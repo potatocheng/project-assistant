@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "usesRealModel": false,
+  "fixture": "deterministic OpenAI-compatible HTTP fixture",
+  "workspace": ".local-data/ai-proof-pfYuBV",
+  "checks": [
+    "saved provider auth and structured request through actual HTTP fixture",
+    "import automatically generates pending AI candidate with exact source quotes, never formal memory",
+    "candidate edit preserves provenance, explicit confirmation is idempotent",
+    "repeated extraction deduplicates original AI fingerprints even after user edit",
+    "unknown evidence fails with no candidates; explicit retry succeeds",
+    "valid zero-candidate output remains a successful distinct state",
+    "database stays responsive during HTTP; cancelled late result cannot write back",
+    "restart preserves AI provenance and formal memory; key is private and excluded from SQLite/backup",
+    "real phase-one backup restores and migrates without losing current device credentials"
+  ]
+}

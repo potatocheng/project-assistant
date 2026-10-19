@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "workspace": ".local-data/restart-proof-1L7xtz",
+  "projectId": "b03611de-2cbf-440b-9e0e-9a74bd6b4c6f",
+  "sourceId": "7bdce245-ebb2-4d7f-8e3c-b2e1c0d5dd6e",
+  "memoryId": "5a582dc5-f729-409f-8ef7-40e5453151a5",
+  "memoryRevision": 2,
+  "originalBackupId": "2ee5bf65-7161-4bdc-88da-43cd23d49146",
+  "safetyBackupId": "46e47250-f5a2-4a7a-b0f0-9631e2d6fd38",
+  "checks": [
+    "中文与表情原文",
+    "确认幂等",
+    "修订历史",
+    "真实进程重启",
+    "备份校验",
+    "还原及安全副本",
+    "还原后再次重启"
+  ]
+}

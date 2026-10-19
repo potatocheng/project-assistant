@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "workspace": ".local-data/workflow-proof-xzGtAY",
+  "usesRealModel": false,
+  "checks": [
+    "local create is idempotent; conflicting request reuse, invalid dates and progress are rejected",
+    "daily list includes planned and overdue work, excludes old completion/unscheduled/future work, and honors project scope",
+    "progress/status events retain business dates, stale edits and reverse-date overwrites are rejected",
+    "local report is based on dated events: old completions, reopened work and cancellations are not counted as new completion",
+    "report saves create immutable versions; later rename/reopen/completion cannot leak into regenerated historical reports or lists",
+    "memory-to-task freezes the current revision and correct evidence; user progress never inherits source evidence and cross-project links are rejected",
+    "real restart and ZIP restoration retain tasks, event histories and every report version",
+    "AI task candidates remain separate pending proposals; editing and explicit confirmation retain source provenance and are idempotent",
+    "reviewed AI feedback updates only the chosen same-project task; source-backed progress and task proposals survive backup restoration",
+    "real schema-two backup migrates with AI memory provenance intact and empty task/report tables",
+    "empty day produces an explicit no-record draft without invented accomplishments"
+  ]
+}

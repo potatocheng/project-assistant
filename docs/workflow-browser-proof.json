@@ -1,0 +1,75 @@
+{
+  "projectId": "b391a2c9-882f-46d3-87ad-3e2ec29d591e",
+  "modelConfigured": false,
+  "tasks": [
+    {
+      "title": "完成一期验收范围确认",
+      "category": "action",
+      "status": "done",
+      "progress": 100,
+      "version": 3
+    },
+    {
+      "title": "跟进供应商测试环境部署",
+      "category": "follow_up",
+      "status": "blocked",
+      "progress": 30,
+      "version": 1
+    }
+  ],
+  "reportVersions": [
+    {
+      "id": "87cc6295-a849-4c6c-a47d-c131866ce934",
+      "version": 2,
+      "edited": true
+    },
+    {
+      "id": "8ba38e7c-a447-4b7f-af12-d057c36e2329",
+      "version": 1,
+      "edited": false
+    }
+  ],
+  "downloadMatchesSavedVersion": true,
+  "editedHasSupplement": true,
+  "oldVersionUnchanged": true,
+  "basisEventsUnchanged": true,
+  "fixture": {
+    "notRealModel": true,
+    "createdThenApplied": true,
+    "taskId": "474d7c62-89d6-49c3-be5e-371f98905f4e",
+    "category": "follow_up",
+    "finalStatus": "in_progress",
+    "progress": 60,
+    "version": 2,
+    "nonProgressFieldsPreserved": true,
+    "sourceEvidenceMatchesRustSegments": true,
+    "eventCount": 2
+  },
+  "finalChecks": {
+    "chineseReportStatus": true,
+    "reportHasInternalStatusTokens": false,
+    "finalReportVersion": 3,
+    "finalReportCharacters": 360,
+    "cleanTabConsoleErrors": 0,
+    "cleanTabConsoleWarnings": 0,
+    "earlierExpectedValidationHttp400": 1,
+    "dailyNarrowViewport": {
+      "width": 900,
+      "height": 680,
+      "documentWidth": 900,
+      "horizontalOverflow": false
+    },
+    "finalBrowser": {
+      "session": "project-work",
+      "tab": 1,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "page": "每日清单",
+      "projectScope": "全部项目"
+    },
+    "fixtureStopped": true,
+    "modelSettingsReset": true
+  }
+}

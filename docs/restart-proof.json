@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "workspace": ".local-data/restart-proof-UFumB8",
+  "projectId": "03d2e91a-0fe7-46c8-b8c6-af2f57db2ffe",
+  "sourceId": "c464a72a-f664-45a0-981e-1c44d261b6c7",
+  "memoryId": "97a67e60-8f35-4f7d-8aff-797aaa3da14b",
+  "memoryRevision": 2,
+  "originalBackupId": "bf6dd274-8c3b-4320-8d61-024dd2f88bf3",
+  "safetyBackupId": "454205fe-60b5-4901-86fb-2bd34748decb",
+  "checks": [
+    "中文与表情原文",
+    "确认幂等",
+    "修订历史",
+    "真实进程重启",
+    "备份校验",
+    "还原及安全副本",
+    "还原后再次重启"
+  ]
+}
