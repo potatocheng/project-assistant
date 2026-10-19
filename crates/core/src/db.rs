@@ -7,7 +7,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 
-pub(crate) const SCHEMA_VERSION: i64 = 3;
+pub(crate) const SCHEMA_VERSION: i64 = 7;
 pub(crate) struct ParseTask {
     pub path: PathBuf,
     pub kind: String,
@@ -44,6 +44,7 @@ impl Database {
             ));
         }
         migrate(&conn)?;
+        conn.execute("UPDATE memory_runs SET status='cancelled',message='应用重启，等待重新整理',updated_at=? WHERE status='running'",[now()])?;
         let recovered_jobs = conn.execute("UPDATE jobs SET status='queued',stage='等待恢复',recovered=1,generation=generation+1,updated_at=? WHERE status IN ('queued','running')", [now()])?;
         Ok(Self {
             conn,
@@ -61,6 +62,86 @@ impl Database {
         }
         let p = request.payload;
         match request.command.as_str() {
+            "get_governance_workspace"
+            | "get_governance_item"
+            | "save_governance_item"
+            | "record_governance_progress" => {
+                crate::governance::dispatch(&mut self.conn, &request.command, &p)
+            }
+            "get_change_acceptance"
+            | "save_change_request"
+            | "transition_change_request"
+            | "save_deliverable"
+            | "review_deliverable"
+            | "delete_change_request"
+            | "delete_deliverable" => {
+                crate::change_control::dispatch(&mut self.conn, &request.command, &p)
+            }
+            "coordination_list"
+            | "coordination_generate_report"
+            | "coordination_get_report"
+            | "coordination_save_report"
+            | "coordination_save_meeting"
+            | "coordination_prepare_meeting"
+            | "coordination_get_meeting"
+            | "coordination_save_action"
+            | "coordination_confirm_action" => {
+                crate::coordination::dispatch(&mut self.conn, &request.command, &p)
+            }
+            "get_management_attention" => crate::management::attention(&self.conn, &p),
+            "get_delivery_overview"
+            | "save_project_profile"
+            | "save_milestone"
+            | "get_follow_up_center"
+            | "record_follow_up"
+            | "snooze_follow_up" => crate::delivery::dispatch(&mut self.conn, &request.command, &p),
+            "_assistant_context" => {
+                let mut context = crate::assistant_qa::retrieve(&self.conn, &p)?;
+                context["workspaceEpoch"] = json!(self.epoch);
+                Ok(context)
+            }
+            "_validate_assistant_context" => {
+                if p["workspaceEpoch"].as_u64() != Some(self.epoch)
+                    || p["modelRevision"].as_str()
+                        != Some(settings::load(&self.root)?.revision.as_str())
+                {
+                    return Err(AppError::new(
+                        "ASSISTANT_CONTEXT_STALE",
+                        "项目或模型配置已更新，请重新提问",
+                    ));
+                }
+                crate::assistant_qa::validate(&self.conn, &p)
+            }
+            "_planning_snapshot" => self.planning_snapshot(&p),
+            "_save_planning_draft" => self.save_planning_draft(&p),
+            "preview_task_relation" => self.preview_task_relation(&p),
+            "get_daily_planning" => self.planning_overview(&p),
+            "save_daily_capacity" => self.save_planning_capacity(&p),
+            "save_task_estimate" => self.save_task_estimate(&p),
+            "remove_task_relation" => self.remove_task_relation(&p),
+            "generate_daily_plan" => self.generate_daily_plan(&p),
+            "confirm_planning_draft" => self.confirm_planning_draft(&p),
+            "dismiss_planning_draft" => self.dismiss_planning_draft(&p),
+            "recompare_memory_review" => self.recompare_memory_review(&p),
+            "get_memory_maintenance" => self.memory_status(),
+            "_memory_policy" => self.memory_policy(),
+            "save_memory_maintenance" => self.save_memory_settings(&p),
+            "resolve_memory_review" => {
+                let mut p = p.clone();
+                p["automatic"] = json!(false);
+                self.resolve_memory_review(&p)
+            }
+            "retry_memory_maintenance" => {
+                self.conn.execute("UPDATE memory_runs SET status='cancelled',message='用户请求重试',updated_at=? WHERE status='failed'",[now()])?;
+                Ok(json!({"queued":true}))
+            }
+            "_ingest_remote" => self.ingest_remote(&p),
+            "_memory_alive" => Ok(json!(self.maintenance_alive(&p)?)),
+            "_memory_reserve" => Ok(json!(self.reserve_memory_call(&p)?)),
+            "_memory_cancel" => {
+                self.cancel_memory_run(required(&p, "run")?, p["job"].as_str())?;
+                Ok(json!({}))
+            }
             "get_state" => self.state(),
             "create_project" => self.create_project(&p),
             "import_text" => self.import(&p, true),
@@ -82,6 +163,32 @@ impl Database {
             "restore_backup" => backup::restore(self, &p),
             "_pending" => self.pending(),
             "_pending_extract" => self.pending_extract(),
+            "_retrieve_qa_context" => {
+                let mut context = crate::qa::retrieve(&self.conn, &p)?;
+                context["workspaceEpoch"] = json!(self.epoch);
+                Ok(context)
+            }
+            "_validate_qa_context" => {
+                if p["workspaceEpoch"].as_u64() != Some(self.epoch)
+                    || p["modelRevision"].as_str()
+                        != Some(settings::load(&self.root)?.revision.as_str())
+                {
+                    return Err(AppError::new(
+                        "QA_CONTEXT_STALE",
+                        "项目或模型配置已更新，请重新提问",
+                    ));
+                }
+                crate::qa::validate(&self.conn, &p)
+            }
+            "_validate_feishu_bindings" => {
+                let bindings = p["bindings"]
+                    .as_array()
+                    .ok_or_else(|| AppError::new("VALIDATION", "请提供飞书群与项目绑定列表"))?;
+                for binding in bindings {
+                    self.ensure_project(required(binding, "projectId")?)?;
+                }
+                Ok(json!({"valid":true}))
+            }
             _ => tasks::dispatch(&mut self.conn, &request.command, &p),
         }
     }
@@ -89,7 +196,9 @@ impl Database {
         let workflow = tasks::state(&self.conn)?;
         Ok(json!({
             "workspace": { "dataDir": self.root, "schemaVersion": SCHEMA_VERSION, "recoveredJobs": self.recovered_jobs },
+            "managementRevision":crate::management::revision(&self.conn)?,
             "aiSettings": settings::load(&self.root)?.public(),
+            "memoryReviewCount":self.conn.query_row("SELECT count(*) FROM memory_reviews r JOIN proposals p ON p.id=r.proposal_id WHERE r.status='pending' AND p.status='pending'",[],|r|r.get::<_,i64>(0))?,
             "tasks":workflow["tasks"],"taskProposals":workflow["taskProposals"],"reports":workflow["reports"],
             "projects": self.all("SELECT id,name,description,created_at FROM projects ORDER BY created_at DESC", project_row)?,
             "sources": self.all(SOURCE_SELECT, source_row)?,
@@ -142,7 +251,7 @@ impl Database {
         }
         Ok(())
     }
-    fn import(&mut self, p: &Value, text: bool) -> Result<Value> {
+    pub(crate) fn import(&mut self, p: &Value, text: bool) -> Result<Value> {
         let project = required(p, "projectId")?;
         self.ensure_project(project)?;
         let (filename, title, kind, bytes) = if text {
@@ -206,11 +315,12 @@ impl Database {
         let relative = format!("originals/{source}.{kind}");
         let path = self.root.join(&relative);
         fs::write(&path, &bytes)?;
-        fs::File::open(&path)?.sync_all()?;
-        fs::File::open(self.root.join("originals"))?.sync_all()?;
+        crate::sync_file(&path)?;
+        crate::sync_directory(&self.root.join("originals"))?;
         let configuration = settings::load(&self.root)?;
-        let auto_extract =
-            configuration.auto_extract && configuration.validate_material_access().is_ok();
+        let auto_extract = configuration.auto_extract
+            && p["deferExtraction"] != true
+            && configuration.validate_material_access().is_ok();
         let tx = self.conn.transaction()?;
         let written = (|| -> Result<()> {
             tx.execute("INSERT INTO sources (id,project_id,title,kind,original_filename,source_at,imported_at,sha256,status,segment_count,error,original_path) VALUES (?,?,?,?,?,?,?,?, 'processing',0,NULL,?)",params![source,project,title,kind,filename,source_at,at,sha,relative])?;
@@ -332,7 +442,7 @@ impl Database {
         let segments = stmt.query_map([source],|r|Ok(json!({"id":r.get::<_,String>(0)?,"sourceVersionId":r.get::<_,String>(1)?,"ordinal":r.get::<_,i64>(2)?,"locator":r.get::<_,String>(3)?,"text":r.get::<_,String>(4)?})))?.collect::<std::result::Result<Vec<_>,_>>()?;
         Ok(json!({"source":source_value,"segments":segments}))
     }
-    fn segments(p: &Value) -> Result<Vec<String>> {
+    pub(crate) fn segments(p: &Value) -> Result<Vec<String>> {
         let Some(value) = p.get("segmentIds") else {
             return Ok(vec![]);
         };
@@ -355,7 +465,7 @@ impl Database {
         }
         Ok(result)
     }
-    fn validate_evidence(
+    pub(crate) fn validate_evidence(
         &self,
         project: &str,
         source: Option<&str>,
@@ -410,7 +520,7 @@ impl Database {
             .collect::<std::result::Result<Vec<_>, _>>()?;
         Ok(json!(rows))
     }
-    fn proposal(&self, proposal: &str) -> Result<Value> {
+    pub(crate) fn proposal(&self, proposal: &str) -> Result<Value> {
         let mut value = self
             .conn
             .query_row(
@@ -430,6 +540,9 @@ impl Database {
         }
         if p["status"] == "rejected" {
             return Err(AppError::new("CONFLICT", "已忽略的候选无法确认"));
+        }
+        if self.conn.query_row("SELECT EXISTS(SELECT 1 FROM memory_reviews WHERE proposal_id=? AND status='pending' AND target_id IS NOT NULL)",[proposal],|r|r.get::<_,bool>(0))? {
+            return Err(AppError::new("MEMORY_REVIEW_REQUIRED","此候选与已有记忆有关联，请在记忆中心核对并选择如何更新"));
         }
         let project = p["projectId"].as_str().unwrap();
         let source = p["sourceId"].as_str().unwrap();
@@ -474,7 +587,7 @@ impl Database {
         )?;
         self.proposal(proposal)
     }
-    fn memory(&self, memory: &str) -> Result<Value> {
+    pub(crate) fn memory(&self, memory: &str) -> Result<Value> {
         self.conn
             .query_row(&format!("{MEMORY_SELECT} WHERE id=?"), [memory], memory_row)
             .optional()?
@@ -782,7 +895,7 @@ impl Database {
     }
 }
 
-fn enqueue_extraction(
+pub(crate) fn enqueue_extraction(
     conn: &Connection,
     source: &str,
     configuration: &settings::SavedSettings,
@@ -826,6 +939,22 @@ pub(crate) fn migrate(conn: &Connection) -> Result<()> {
         if version < 3 {
             conn.execute_batch(tasks::MIGRATION)?;
         }
+        if version < 4 {
+            conn.execute_batch(crate::memory::MIGRATION)?;
+        }
+        if version < 5 {
+            conn.execute_batch(crate::planning::MIGRATION)?;
+        }
+        if version < 6 {
+            crate::delivery::migrate(conn)?;
+            conn.execute_batch("PRAGMA user_version=6;")?;
+        }
+        if version < 7 {
+            crate::governance::migrate(conn)?;
+            crate::change_control::migrate(conn)?;
+            crate::coordination::migrate(conn)?;
+            conn.execute_batch("PRAGMA user_version=7;")?;
+        }
         Ok(())
     })();
     match result {
@@ -847,7 +976,7 @@ fn validate_kind(kind: &str) -> Result<()> {
         Err(AppError::new("VALIDATION", "记忆类型无效"))
     }
 }
-fn validate_content(content: &str) -> Result<()> {
+pub(crate) fn validate_content(content: &str) -> Result<()> {
     if content.len() > 64 * 1024 {
         Err(AppError::new("VALIDATION", "记忆内容过长"))
     } else {
@@ -1102,7 +1231,7 @@ mod tests {
         let bytes = include_bytes!("../tests/fixtures/schema-v2.zip");
         backup::restore(&mut db,&json!({"filename":"schema-v2.zip","contentBase64":base64::engine::general_purpose::STANDARD.encode(bytes),"confirmation":"RESTORE"})).unwrap();
         let state = db.state().unwrap();
-        assert_eq!(state["workspace"]["schemaVersion"], 3);
+        assert_eq!(state["workspace"]["schemaVersion"], SCHEMA_VERSION);
         assert!(!state["memories"].as_array().unwrap().is_empty());
         assert!(state["proposals"]
             .as_array()
@@ -1119,7 +1248,7 @@ mod tests {
         let bytes = include_bytes!("../tests/fixtures/schema-v1.zip");
         backup::restore(&mut db,&json!({"filename":"schema-v1.zip","contentBase64":base64::engine::general_purpose::STANDARD.encode(bytes),"confirmation":"RESTORE"})).unwrap();
         let state = db.state().unwrap();
-        assert_eq!(state["workspace"]["schemaVersion"], 3);
+        assert_eq!(state["workspace"]["schemaVersion"], SCHEMA_VERSION);
         assert_eq!(state["memories"].as_array().unwrap().len(), 1);
         assert_eq!(state["proposals"][0]["origin"], "manual");
         assert_eq!(state["proposals"][0]["quotes"], json!([]));

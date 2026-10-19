@@ -153,7 +153,7 @@ try {
   assert.equal((await host.call('inspect_backup', payload)).compatible, true);
   const restore = await host.call('restore_backup', { ...payload, confirmation: 'RESTORE' });
   state = await host.call('get_state');
-  assert.equal(state.workspace.schemaVersion, 3);
+  assert.equal(state.workspace.schemaVersion, 7);
   assert(state.backups.some((b) => b.id === restore.safetyBackupId));
   assert(state.proposals.every((p) => p.origin === 'manual'));
   assert.equal((await host.call('get_ai_settings')).hasApiKey, true);

@@ -123,7 +123,7 @@ pub(crate) fn create(db: &mut Database) -> Result<Value> {
     }
     let record = json!({"id":backup_id,"filename":filename,"createdAt":created,"byteSize":bytes.len(),"sha256":hash(&bytes),"counts":counts});
     fs::rename(archive_path, db.root.join("backups").join(&filename))?;
-    fs::File::open(db.root.join("backups"))?.sync_all()?;
+    crate::sync_directory(&db.root.join("backups"))?;
     insert_record(&db.conn, &record)?;
     Ok(record)
 }
@@ -320,7 +320,7 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
         "SELECT count(*) FROM sources s WHERE s.status NOT IN ('processing','ready','failed') OR (s.status='ready' AND (s.segment_count<>(SELECT count(*) FROM segments g WHERE g.source_id=s.id) OR s.segment_count=0)) OR (SELECT count(*) FROM jobs j WHERE j.source_id=s.id AND j.kind='import')<>1",
         "SELECT count(*) FROM proposals p JOIN sources s ON s.id=p.source_id WHERE p.project_id<>s.project_id OR p.kind NOT IN ('fact','decision','requirement','risk') OR p.status NOT IN ('pending','confirmed','rejected') OR NOT EXISTS(SELECT 1 FROM proposal_evidence e WHERE e.proposal_id=p.id) OR (p.status='confirmed' AND (p.memory_id IS NULL OR NOT EXISTS(SELECT 1 FROM memories m WHERE m.id=p.memory_id AND m.project_id=p.project_id))) OR (p.status<>'confirmed' AND p.memory_id IS NOT NULL)",
         "SELECT count(*) FROM memories m WHERE m.state<>'active' OR m.kind NOT IN ('fact','decision','requirement','risk') OR m.revision<1 OR (SELECT count(*) FROM revisions r WHERE r.memory_id=m.id)<>m.revision OR NOT EXISTS(SELECT 1 FROM revisions r WHERE r.memory_id=m.id AND r.number=m.revision AND r.content=m.content) OR (SELECT min(number) FROM revisions r WHERE r.memory_id=m.id)<>1 OR (SELECT max(number) FROM revisions r WHERE r.memory_id=m.id)<>m.revision",
-        "SELECT count(*) FROM revisions r WHERE r.origin NOT IN ('confirmation','user_correction') OR r.number<1 OR (r.origin='confirmation' AND NOT EXISTS(SELECT 1 FROM revision_evidence e WHERE e.revision_id=r.id))",
+        "SELECT count(*) FROM revisions r WHERE r.origin NOT IN ('confirmation','user_correction','automatic') OR r.number<1 OR (r.origin IN ('confirmation','automatic') AND NOT EXISTS(SELECT 1 FROM revision_evidence e WHERE e.revision_id=r.id))",
         "SELECT count(*) FROM jobs j JOIN sources s ON s.id=j.source_id WHERE j.kind NOT IN ('import','extract') OR j.status NOT IN ('queued','running','succeeded','failed','cancelled') OR (j.kind='import' AND ((j.status='succeeded' AND s.status<>'ready') OR (j.status IN ('queued','running') AND s.status<>'processing') OR (j.status='failed' AND s.status<>'failed'))) OR (j.kind='extract' AND s.status<>'ready')",
     ] {
         let invalid:i64=conn.query_row(sql,[],|r|r.get(0))?;
@@ -350,6 +350,12 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
         crate::db::migrate(&conn)?;
         validate_ai_rows(&conn)?;
         crate::tasks::validate_backup(&conn)?;
+        crate::memory::validate_backup(&conn)?;
+        crate::planning::validate_backup(&conn)?;
+        crate::delivery::validate_backup(&conn)?;
+        crate::governance::validate_backup(&conn)?;
+        crate::change_control::validate_backup(&conn)?;
+        crate::coordination::validate_backup(&conn)?;
         return Ok(Validated {
             stage,
             manifest,
@@ -358,6 +364,12 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
     }
     validate_ai_rows(&conn)?;
     crate::tasks::validate_backup(&conn)?;
+    crate::memory::validate_backup(&conn)?;
+    crate::planning::validate_backup(&conn)?;
+    crate::delivery::validate_backup(&conn)?;
+    crate::governance::validate_backup(&conn)?;
+    crate::change_control::validate_backup(&conn)?;
+    crate::coordination::validate_backup(&conn)?;
     Ok(Validated {
         stage,
         manifest,
@@ -557,6 +569,13 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
         ));
     }
     let data = validate(&db.root, p)?;
+    let old_budget = {
+        let mut statement = db.conn.prepare("SELECT day,calls FROM memory_budget")?;
+        let rows = statement
+            .query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?)))?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        rows
+    };
     let safety = create(db)?;
     let mut stmt = db
         .conn
@@ -593,21 +612,34 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
     for record in old_backups {
         insert_record(&db.conn, &record)?;
     }
+    // Restoring an older project must not refund requests already sent today.
+    for (day, calls) in old_budget {
+        db.conn.execute("INSERT INTO memory_budget VALUES(?,?) ON CONFLICT(day) DO UPDATE SET calls=max(calls,excluded.calls)",params![day,calls])?;
+    }
     db.conn.execute("UPDATE jobs SET status='cancelled',stage='还原后已暂停，请手动重试',error=NULL,error_code='RESTORED_PAUSED',generation=generation+1,updated_at=? WHERE kind='extract' AND status IN ('queued','running')",[now()])?;
     // Parsing may resume, but a restored import must never inherit authority to send material.
     db.conn
         .execute("UPDATE jobs SET auto_extract=0 WHERE kind='import'", [])?;
+    db.conn.execute(
+        "UPDATE memory_settings SET enabled=0,revision=? WHERE id=1",
+        [crate::id()],
+    )?;
+    db.conn.execute("UPDATE memory_runs SET status='cancelled',message='还原后暂停',updated_at=? WHERE status='running'",[now()])?;
+    db.conn.execute(
+        "UPDATE planning_drafts SET status='stale' WHERE status='pending'",
+        [],
+    )?;
     db.recovered_jobs=db.conn.execute("UPDATE jobs SET status='queued',stage='等待恢复',recovered=1,generation=generation+1,updated_at=? WHERE kind='import' AND status IN ('queued','running')",[now()])?;
     // The journal is the commit marker. A process crash before removal always rolls back.
     db.conn.execute_batch("PRAGMA wal_checkpoint(FULL);")?;
     for entry in &data.manifest.files {
         if entry.path.starts_with("originals/") {
-            fs::File::open(db.root.join(&entry.path))?.sync_all()?;
+            crate::sync_file(&db.root.join(&entry.path))?;
         }
     }
-    fs::File::open(db.root.join("originals"))?.sync_all()?;
+    crate::sync_directory(&db.root.join("originals"))?;
     fs::remove_file(db.root.join("restore-journal.json"))?;
-    fs::File::open(&db.root)?.sync_all()?;
+    crate::sync_directory(&db.root)?;
     Ok(json!({"safetyBackupId":safety["id"],"counts":db.counts()?}))
 }
 
@@ -623,7 +655,7 @@ fn write_journal(root: &Path, safety: &Value) -> Result<()> {
     file.write_all(&bytes)?;
     file.sync_all()?;
     fs::rename(temporary, root.join("restore-journal.json"))?;
-    fs::File::open(root)?.sync_all()?;
+    crate::sync_directory(root)?;
     Ok(())
 }
 
@@ -673,14 +705,14 @@ pub(crate) fn recover_interrupted(root: &Path) -> Result<()> {
     }
     let database = root.join("workspace.sqlite");
     fs::copy(data.stage.0.join("workspace.sqlite"), &database)?;
-    fs::File::open(&database)?.sync_all()?;
+    crate::sync_file(&database)?;
     let conn = Connection::open(&database)?;
     insert_record(&conn, &journal.safety_backup)?;
     conn.execute("UPDATE jobs SET status='cancelled',stage='恢复中断后已暂停，请手动重试',error=NULL,error_code='RESTORED_PAUSED',generation=generation+1,updated_at=? WHERE kind='extract' AND status IN ('queued','running')",[now()])?;
     conn.execute("UPDATE jobs SET auto_extract=0 WHERE kind='import'", [])?;
     drop(conn);
     fs::remove_file(journal_path)?;
-    fs::File::open(root)?.sync_all()?;
+    crate::sync_directory(root)?;
     eprintln!("rolled back an interrupted restore from validated safety backup");
     Ok(())
 }

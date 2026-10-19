@@ -1,18 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import {
-  Archive, ArrowDownToLine, ArrowRight, CalendarDays, Check, CheckCheck, ChevronDown, ClipboardList,
+  Archive, ArrowDownToLine, ArrowRight, Bell, CalendarDays, Check, CheckCheck, ChevronDown, ClipboardList,
   ChevronRight, CircleAlert, FilePlus2, FileText, Folder, HardDrive, History, Layers3,
-  ListTodo, Menu, PencilLine, Plus, RefreshCw, Search, Settings2, ShieldCheck, Upload, X,
+  ListTodo, Menu, MessageCircle, PencilLine, Plus, RefreshCw, Search, Settings2, ShieldCheck, Upload, X,
 } from 'lucide-react';
 import { Dialog, Spinner } from './components/ui';
 import { ModelSettingsDialog, endpointInfo } from './components/ModelSettings';
+import { MemoryCenter } from './components/MemoryCenter';
+import { FeishuSettingsDialog } from './components/FeishuSettings';
 import { ExtractionStatus } from './components/ExtractionStatus';
 import { ProposalEditor } from './components/ProposalEditor';
 import { TaskWorkspace } from './components/work/TaskWorkspace';
 import { ReportWorkspace } from './components/work/ReportWorkspace';
 import { TaskProposals } from './components/work/TaskProposals';
-import { localDay } from './components/work/shared';
+import { DeliveryOverview } from './components/delivery/DeliveryOverview';
+import { FollowUpCenter } from './components/delivery/FollowUpCenter';
+import { AssistantWorkspace } from './components/delivery/AssistantWorkspace';
+import { useFollowUpAlerts } from './components/delivery/useFollowUpAlerts';
+import { GovernanceWorkspace } from './components/governance/GovernanceWorkspace';
+import { ChangeAcceptanceWorkspace } from './components/governance/ChangeAcceptanceWorkspace';
+import { CoordinationWorkspace } from './components/governance/CoordinationWorkspace';
+import { useManagementAttention } from './components/governance/useManagementAttention';
+import { localDay, WorkFilters } from './components/work/shared';
 import { asError, execute, exportBackup, readFile } from './api';
 import { KIND_LABELS } from './types';
 import type {
@@ -20,11 +30,11 @@ import type {
   MemoryDetail, MemoryKind, Page, Project, Proposal, Source, SourceDetail,
 } from './types';
 
-type DialogName = 'project' | 'import' | 'restore' | 'revise' | 'workspace' | 'settings' | 'proposal' | null;
+type DialogName = 'project' | 'import' | 'restore' | 'revise' | 'workspace' | 'settings' | 'feishu' | 'memory-center' | 'proposal' | null;
 type Notice = { message: string; error?: boolean } | null;
 const SAMPLE = {
-  title: '示例 · 项目启动会议纪要',
-  text: '项目启动会议纪要（示例资料）\n\n本项目一期面向内部项目经理，采用本地优先方案。项目资料和已确认记忆保存在用户电脑。\n\n会议决策：首版仅支持手动导入资料，暂不接入企业聊天平台。所有正式记忆都需要用户确认，并保留原文依据。\n\n验收要求：用户能够导入会议纪要、从段落创建候选、确认记忆并追溯原文；修订时必须填写原因。\n\n待关注风险：若原始资料没有记录发生日期，相对日期可能产生歧义，需要人工澄清。',
+  title: '示例 · 客户服务平台评审纪要',
+  text: '客户服务平台评审纪要（示例资料）\n\n项目目标：一期面向客服团队，统一客户信息查询与工单处理。\n\n会议决策：一期优先上线工单列表和详情，知识库管理安排在下一阶段。\n\n验收要求：支持按状态筛选工单；处理记录保留操作人和时间。\n\n待办事项：设计负责人提交页面确认稿，研发负责人确认接口联调时间。具体交付日期待评审后确认。\n\n待关注风险：测试账号尚未开通，可能影响联调，需要与运维确认开通时间。',
 };
 
 function date(value: string | null | undefined, time = false) {
@@ -42,6 +52,22 @@ function Empty({ icon, title, children, action }: { icon?: ReactNode; title: str
   return <div className="empty-state"><div className="empty-icon">{icon ?? <FileText size={28} strokeWidth={1.4} />}</div><h2>{title}</h2>{children && <p>{children}</p>}{action && <div className="empty-actions">{action}</div>}</div>;
 }
 function Kind({ kind }: { kind: MemoryKind }) { return <span className="kind-label">{KIND_LABELS[kind] ?? kind}</span>; }
+
+function Welcome({ onCreate, onRestore }: { onCreate: () => void; onRestore: () => void }) {
+  return <section className="welcome-state">
+    <div className="welcome-symbol"><Layers3 size={34} strokeWidth={1.5} /></div>
+    <div className="eyebrow">开始使用</div>
+    <h2>从一个项目开始</h2>
+    <p>把资料、任务和进展放在一起，清楚地安排每一天。</p>
+    <button className="button primary" onClick={onCreate}><Plus size={17} />创建第一个项目<ArrowRight size={16} /></button>
+    <ol className="welcome-steps">
+      <li><span>01</span><strong>整理资料</strong><p>导入纪要与文档，保留原文依据。</p></li>
+      <li><span>02</span><strong>安排任务</strong><p>明确负责人、截止日期与当天安排。</p></li>
+      <li><span>03</span><strong>记录进展</strong><p>更新任务，按已记录的事实整理日报。</p></li>
+    </ol>
+    <button className="text-button" onClick={onRestore}><History size={14} />从已有备份恢复</button>
+  </section>;
+}
 
 export default function App() {
   const [state, setState] = useState<AppState | null>(null);
@@ -70,16 +96,52 @@ export default function App() {
   const [lastSafetyBackup, setLastSafetyBackup] = useState<string | null>(null);
   const [recoveryDismissed, setRecoveryDismissed] = useState(false);
   const [reloadTick, setReloadTick] = useState(0);
+  const [reminderRevision, setReminderRevision] = useState(0);
   const [manualExpanded, setManualExpanded] = useState(false);
   const [editingProposalId, setEditingProposalId] = useState<string | null>(null);
   const [workDay, setWorkDay] = useState(localDay());
   const [workProjectId, setWorkProjectId] = useState('');
+  const [managementFocusId, setManagementFocusId] = useState<string | undefined>();
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
-  const workPage = page === 'daily' || page === 'tasks' || page === 'reports';
+  const toolsMenu = useRef<HTMLDetailsElement>(null);
+  const deliveryPage = page === 'overview' || page === 'followups' || page === 'assistant';
+  const managementPage = page === 'governance' || page === 'changes' || page === 'coordination';
+  const workPage = managementPage || deliveryPage || page === 'daily' || page === 'tasks' || page === 'reports';
+  const reminders = useFollowUpAlerts(!!state, reminderRevision);
+  const managementAttention = useManagementAttention(!!state, state?.managementRevision, reminderRevision);
+
+  useEffect(() => {
+    const dismiss = (event: PointerEvent) => {
+      if (!toolsMenu.current?.contains(event.target as Node)) toolsMenu.current?.removeAttribute('open');
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && toolsMenu.current?.open) {
+        toolsMenu.current.open = false;
+        toolsMenu.current.querySelector('summary')?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', escape); };
+  }, []);
+
+  const openTool = (next: DialogName) => {
+    toolsMenu.current?.removeAttribute('open');
+    toolsMenu.current?.querySelector('summary')?.focus();
+    setDialog(next); setMobileNav(false);
+  };
+
+  useEffect(() => {
+    let last = 0;
+    const touch = () => { const at = Date.now(); if (at - last > 3000) { last = at; void execute('memory_activity').catch(() => {}); } };
+    window.addEventListener('pointerdown', touch); window.addEventListener('keydown', touch);
+    return () => { window.removeEventListener('pointerdown', touch); window.removeEventListener('keydown', touch); };
+  }, []);
 
   const refresh = useCallback(async () => {
     const next = await execute<AppState>('get_state');
     setState(next);
+    setReminderRevision((current) => current + 1);
     setProjectId((current) => next.projects.some((project) => project.id === current) ? current : next.projects[0]?.id ?? null);
     setLoadError('');
     return next;
@@ -119,8 +181,7 @@ export default function App() {
   }, [sources, memories]);
 
   useEffect(() => {
-    if (!runningJobs.length) return;
-    const timer = window.setInterval(() => { refresh().catch((error) => setNotice({ message: asError(error).message, error: true })); }, 1200);
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') refresh().catch((error) => setNotice({ message: asError(error).message, error: true })); }, runningJobs.length ? 1200 : 8000);
     return () => window.clearInterval(timer);
   }, [runningJobs.length, refresh]);
 
@@ -180,7 +241,7 @@ export default function App() {
     setProjectId(id); setFilter(''); setSourceId(null); setMemoryId(null);
     setSelected(new Set()); setContent(''); setFocusedSegment(null); setMobileNav(false);
   };
-  const changePage = (next: Page) => { setPage(next); setFilter(''); setMobileNav(false); };
+  const changePage = (next: Page) => { setManagementFocusId(undefined); setPage(next); setFilter(''); setMobileNav(false); };
   const openImport = (sample = false) => { setImportSample(sample); setDialog('import'); };
   const toggleSegment = (id: string) => {
     setPreviewSegments(new Set());
@@ -198,6 +259,7 @@ export default function App() {
     setPage('sources'); setSourceId(evidence.sourceId); setFocusedSegment(evidence.segmentId); setMobileNav(false);
   };
   const openTask = (taskId: string, taskProjectId: string) => { setWorkProjectId(taskProjectId); setFocusTaskId(taskId); setPage('tasks'); };
+  const openManagement = (kind: import('./types').ManagementKind, id: string, itemProjectId: string) => { setWorkProjectId(itemProjectId || ''); setManagementFocusId(id); setPage(kind === 'governance' ? 'governance' : kind === 'change' || kind === 'deliverable' ? 'changes' : 'coordination'); };
   const openMemory = (id: string) => { setMemoryId(id); setPage('memories'); };
   const makeBackup = () => run<Backup>('backup', () => execute('create_backup'), '备份已创建，可导出保存。');
   const download = async (backup: Backup) => {
@@ -208,7 +270,8 @@ export default function App() {
     finally { setBusy(''); }
   };
 
-  const title = { daily: '每日清单', tasks: '任务', reports: '日报', sources: '资料与证据', memories: '项目记忆', backups: '备份中心' }[page];
+  const title = { governance: '风险与决策', changes: '变更与验收', coordination: '周报与会议', overview: '项目总览', followups: '提醒与跟进', assistant: '项目问答', daily: '每日清单', tasks: '全部任务', reports: '工作日报', sources: '项目资料', memories: '项目记忆', backups: '备份与恢复' }[page];
+  const unfinishedCount = (state?.tasks ?? []).filter((task) => ['todo', 'in_progress', 'blocked'].includes(task.status)).length;
   const breadcrumb = workPage ? state?.projects.find((project) => project.id === workProjectId)?.name ?? '全部项目' : page === 'backups' ? '本机工作区' : activeProject?.name ?? '工作区';
   const sourceList = sources.filter((source) => source.title.toLowerCase().includes(filter.toLowerCase()));
   const memoryList = memories.filter((memory) => memory.content.toLowerCase().includes(filter.toLowerCase()));
@@ -217,19 +280,24 @@ export default function App() {
   return <div className="app-shell">
     {mobileNav && <button className="nav-scrim" aria-label="收起导航" onClick={() => setMobileNav(false)} />}
     <aside className={`sidebar ${mobileNav ? 'sidebar-open' : ''}`}>
-      <div className="brand"><div className="brand-mark"><Layers3 size={21} strokeWidth={1.8} /></div><span>项目助理</span><span className="local-label">本地</span></div>
+      <div className="brand"><div className="brand-mark"><Layers3 size={21} strokeWidth={1.8} /></div><div className="brand-copy"><strong>项目助理</strong><span>本地工作空间</span></div></div>
       <nav className="main-nav" aria-label="工作区导航">
-        <button className={page === 'daily' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('daily')}><CalendarDays size={17} /><span>每日清单</span></button>
-        <button className={page === 'tasks' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('tasks')}><ListTodo size={17} /><span>任务</span></button>
-        <button className={page === 'reports' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('reports')}><ClipboardList size={17} /><span>日报</span></button>
-        <button className={page === 'sources' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('sources')}><FileText size={17} /><span>资料与证据</span></button>
-        <button className={page === 'memories' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('memories')}><Layers3 size={17} /><span>项目记忆</span></button>
-        <button className={page === 'backups' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('backups')}><Archive size={17} /><span>备份中心</span></button>
+        <span className="nav-group-label">工作</span>
+        <button aria-current={page === 'overview' ? 'page' : undefined} className={page === 'overview' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('overview')}><Layers3 size={18} /><span>项目总览</span></button>
+        <button aria-current={managementPage ? 'page' : undefined} className={managementPage ? 'nav-item active' : 'nav-item'} onClick={() => changePage('governance')}><ShieldCheck size={18} /><span>项目管理</span>{managementAttention.count > 0 && <small className="nav-count" title="风险、待审批变更和验收关注">{managementAttention.count}</small>}</button>
+        <button aria-current={page === 'followups' ? 'page' : undefined} className={page === 'followups' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('followups')}><Bell size={18} /><span>提醒与跟进</span>{reminders.count > 0 && <small className="nav-count">{reminders.count}</small>}</button>
+        <button aria-current={page === 'assistant' ? 'page' : undefined} className={page === 'assistant' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('assistant')}><MessageCircle size={18} /><span>项目问答</span></button>
+        <button aria-current={page === 'daily' ? 'page' : undefined} className={page === 'daily' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('daily')}><CalendarDays size={18} /><span>每日清单</span></button>
+        <button aria-current={page === 'tasks' ? 'page' : undefined} className={page === 'tasks' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('tasks')}><ListTodo size={18} /><span>任务</span>{unfinishedCount > 0 && <small className="nav-count" title={`${unfinishedCount} 项未完成任务`}>{unfinishedCount}</small>}</button>
+        <button aria-current={page === 'reports' ? 'page' : undefined} className={page === 'reports' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('reports')}><ClipboardList size={18} /><span>日报</span></button>
+        <span className="nav-group-label knowledge-label">项目知识</span>
+        <button aria-current={page === 'sources' ? 'page' : undefined} className={page === 'sources' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('sources')}><FileText size={18} /><span>项目资料</span></button>
+        <button aria-current={page === 'memories' ? 'page' : undefined} className={page === 'memories' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('memories')}><Layers3 size={18} /><span>项目记忆</span></button>
       </nav>
       <div className="sidebar-section-heading"><span>项目</span><button className="icon-button small" title="新建项目" aria-label="新建项目" disabled={!state || !!busy} onClick={() => setDialog('project')}><Plus size={16} /></button></div>
       <div className="project-list">
         {workPage && !!state?.projects.length && <button className={`project-item ${!workProjectId ? 'selected' : ''}`} onClick={() => changeProject('')}><Folder size={15} /><span>全部项目</span>{!workProjectId && <span className="selected-dot" />}</button>}
-        {state?.projects.map((project) => <button key={project.id} className={`project-item ${project.id === (workPage ? workProjectId : projectId) ? 'selected' : ''}`} onClick={() => changeProject(project.id)}><Folder size={15} /><span>{project.name}</span>{project.id === (workPage ? workProjectId : projectId) && <span className="selected-dot" />}</button>)}
+        {state?.projects.map((project) => <button key={project.id} aria-pressed={project.id === (workPage ? workProjectId : projectId)} className={`project-item ${project.id === (workPage ? workProjectId : projectId) ? 'selected' : ''}`} title={project.name} onClick={() => changeProject(project.id)}><Folder size={15} /><span>{project.name}</span>{project.id === (workPage ? workProjectId : projectId) && <span className="selected-dot" />}</button>)}
         {state && !state.projects.length && <button className="no-project" onClick={() => setDialog('project')}>创建第一个项目 <Plus size={14} /></button>}
       </div>
       {(page === 'sources' || page === 'memories') && <>
@@ -246,25 +314,37 @@ export default function App() {
           {activeProject && !(page === 'sources' ? sourceList : memoryList).length && <p className="sidebar-hint">{filter ? '没有匹配的记录' : page === 'sources' ? '导入资料后会显示在这里' : '确认后的记忆会显示在这里'}</p>}
         </div>
       </>}
-      <div className="sidebar-bottom"><button className="model-settings-link" onClick={() => { setDialog('settings'); setMobileNav(false); }} disabled={!state || !!busy}><Settings2 size={15} /><span>模型设置</span><small>{state?.aiSettings?.configured ? '已配置' : '未配置'}</small></button><button className="workspace-link" onClick={() => setDialog('workspace')} disabled={!state}><HardDrive size={15} /><span>本机工作区</span><ChevronRight size={13} /></button></div>
+      <div className="sidebar-bottom"><details className="sidebar-tools" ref={toolsMenu}>
+        <summary><Settings2 size={17} /><span>设置与工具</span>{!!state?.memoryReviewCount && <small title="待确认记忆">{state.memoryReviewCount}</small>}<ChevronDown size={14} /></summary>
+        <div className="sidebar-tools-menu">
+          <button className="model-settings-link" onClick={() => openTool('memory-center')} disabled={!state || !!busy}><Layers3 size={16} /><span>记忆中心</span>{!!state?.memoryReviewCount && <small>{state.memoryReviewCount} 待确认</small>}<ChevronRight size={13} /></button>
+          <button className="model-settings-link" onClick={() => openTool('feishu')} disabled={!state || !!busy}><MessageCircle size={16} /><span>飞书助理</span><ChevronRight size={13} /></button>
+          <button className="model-settings-link" onClick={() => openTool('settings')} disabled={!state || !!busy}><Settings2 size={16} /><span>模型设置</span><small>{state?.aiSettings?.configured ? '已配置' : '未配置'}</small></button>
+          <button aria-current={page === 'backups' ? 'page' : undefined} className={`model-settings-link ${page === 'backups' ? 'active' : ''}`} onClick={() => { toolsMenu.current?.removeAttribute('open'); changePage('backups'); }}><Archive size={16} /><span>备份与恢复</span><ChevronRight size={13} /></button>
+          <button className="workspace-link" onClick={() => openTool('workspace')} disabled={!state}><HardDrive size={15} /><span>本机存储</span><ChevronRight size={13} /></button>
+        </div>
+      </details></div>
     </aside>
 
     <main className="app-main">
       <header className="topbar"><div className="topbar-leading"><button className="icon-button mobile-menu" aria-label="打开导航" onClick={() => setMobileNav(true)}><Menu size={20} /></button><span className="breadcrumb">{breadcrumb}</span><ChevronRight size={13} /><h1>{title}</h1></div><div className="topbar-actions">{runningJobs.length > 0 && <span className="processing-label"><Spinner />正在处理 {runningJobs.length} 项</span>}<button className="icon-button refresh-button" aria-label="刷新工作区" title="刷新工作区" disabled={!!busy || loading} onClick={() => { refresh().then(() => setReloadTick((tick) => tick + 1)).catch((error) => setNotice({ message: asError(error).message, error: true })); }}><RefreshCw size={16} /></button>{page === 'sources' && activeProject && <button className="button primary compact" onClick={() => openImport()} disabled={!!busy}><Plus size={15} />导入资料</button>}</div></header>
 
       {state && state.workspace.recoveredJobs > 0 && !recoveryDismissed && <div className="recovery-banner"><RefreshCw size={15} /><span>已恢复 {state.workspace.recoveredJobs} 项中断的处理任务，资料仍保存在本机。</span><button className="icon-button small" aria-label="关闭恢复提示" onClick={() => setRecoveryDismissed(true)}><X size={15} /></button></div>}
+      {reminders.showBanner && page !== 'followups' && <div className="recovery-banner follow-up-alert" role="status"><Bell size={15} /><span>今天有 {reminders.count} 项事项需要跟进{reminders.firstTitle ? `，包括「${reminders.firstTitle}」` : ''}。</span><button className="text-button" onClick={() => { setWorkDay(localDay()); setWorkProjectId(''); changePage('followups'); }}>查看跟进</button><button className="icon-button small" aria-label="收起本次跟进提醒" onClick={reminders.dismiss}><X size={15} /></button></div>}
 
-      {loading ? <div className="loading-view"><Spinner /><span>正在打开本地工作区…</span></div> : loadError ? <Empty icon={<CircleAlert size={30} />} title="无法打开工作区" action={<button className="button primary" onClick={retry}><RefreshCw size={16} />重新连接</button>}>{loadError}</Empty> : workPage && state ? page === 'reports' ? <ReportWorkspace key="reports" state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={setWorkProjectId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onTaskOpen={openTask} onEvidence={openEvidence} /> : <TaskWorkspace key={page} mode={page === 'daily' ? 'daily' : 'tasks'} state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={setWorkProjectId} focusTaskId={focusTaskId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onEvidence={openEvidence} onReport={() => setPage('reports')} /> : page === 'backups' ? <div className="backup-page">
-        <div className="page-heading"><div><div className="eyebrow">本地数据保护</div><h2>备份与恢复</h2><p>备份包含项目、资料、记忆、任务事件和日报版本。模型设置与密钥不随备份导出。</p></div><button className="button primary" onClick={makeBackup} disabled={!!busy}>{busy === 'backup' ? <Spinner /> : <Plus size={16} />}创建完整备份</button></div>
+      {managementAttention.showBanner && !managementPage && <div className="recovery-banner follow-up-alert" role="status"><ShieldCheck size={15} /><span>项目管理有 {managementAttention.count} 项需要关注，包括「{managementAttention.items[0]?.title}」。</span><button className="text-button" onClick={() => { setWorkDay(localDay()); setWorkProjectId(''); changePage(managementAttention.items[0]?.kind === 'governance' ? 'governance' : 'changes'); }}>查看管理事项</button><button className="icon-button small" aria-label="收起本次管理提醒" onClick={managementAttention.dismiss}><X size={15} /></button></div>}
+
+      {loading ? <div className="loading-view"><Spinner /><span>正在打开本地工作区…</span></div> : loadError ? <Empty icon={<CircleAlert size={30} />} title="无法打开工作区" action={<button className="button primary" onClick={retry}><RefreshCw size={16} />重新连接</button>}>{loadError}</Empty> : state && !state.projects.length && page !== 'backups' ? <Welcome onCreate={() => setDialog('project')} onRestore={() => changePage('backups')} /> : managementPage && state ? <div className="delivery-shell management-shell"><nav className="management-tabs" aria-label="项目管理模块">{(['governance', 'changes', 'coordination'] as const).map((entry) => <button key={entry} aria-current={page === entry ? 'page' : undefined} className={page === entry ? 'active' : ''} onClick={() => changePage(entry)}>{entry === 'governance' ? '风险、问题与决策' : entry === 'changes' ? '需求变更与验收' : '周报与会议准备'}</button>)}</nav><WorkFilters day={workDay} onDayChange={setWorkDay} projects={state.projects} projectId={workProjectId} onProjectChange={setWorkProjectId} />{page === 'governance' ? <GovernanceWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} /> : page === 'changes' ? <ChangeAcceptanceWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} /> : <CoordinationWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} />}</div> : deliveryPage && state ? <div className="delivery-shell"><WorkFilters day={workDay} onDayChange={setWorkDay} projects={state.projects} projectId={workProjectId} onProjectChange={setWorkProjectId} />{page === 'overview' ? <DeliveryOverview onManagementOpen={openManagement} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} notify={(message, error) => setNotice({ message, error })} /> : page === 'followups' ? <FollowUpCenter state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} notify={(message, error) => setNotice({ message, error })} /> : <AssistantWorkspace onManagementOpen={openManagement} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} />}</div> : workPage && state ? page === 'reports' ? <ReportWorkspace key="reports" state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={setWorkProjectId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onTaskOpen={openTask} onEvidence={openEvidence} /> : <TaskWorkspace key={page} mode={page === 'daily' ? 'daily' : 'tasks'} state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={setWorkProjectId} focusTaskId={focusTaskId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onEvidence={openEvidence} onReport={() => setPage('reports')} /> : page === 'backups' ? <div className="backup-page">
+        <div className="page-heading"><div><div className="eyebrow">本地数据保护</div><h2>备份与恢复</h2><p>备份包含项目、资料、记忆、任务事件和日报版本。模型设置与密钥不包含在备份中。</p></div><button className="button primary" onClick={makeBackup} disabled={!!busy}>{busy === 'backup' ? <Spinner /> : <Plus size={16} />}创建备份</button></div>
         <div className="backup-summary"><div><span className="summary-number">{state?.backups.length ?? 0}</span><span>份本机备份</span></div><p>创建后可导出 ZIP 文件，保存到其他位置。</p></div>
         <div className="section-title-row"><h3>已有备份</h3><span>{state?.backups.length ?? 0} 份记录</span></div>
         {state?.backups.length ? <div className="backup-list">{[...state.backups].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((backup) => {
           const safety = backup.kind === 'safety' || backup.id === lastSafetyBackup || /safety/i.test(backup.filename);
           return <div className="backup-row" key={backup.id}><div className="backup-row-icon">{safety ? <ShieldCheck size={20} /> : <Archive size={20} />}</div><div className="backup-row-content"><div className="backup-row-title">{safety ? '还原前自动安全副本' : '完整工作区备份'}<span className="subtle-tag">{bytes(backup.byteSize)}</span></div><div className="backup-row-meta">{date(backup.createdAt, true)}<span>·</span>{backup.counts.projects} 个项目<span>·</span>{backup.counts.sources} 份资料<span>·</span>{backup.counts.memories} 条记忆<span>·</span>{backup.counts.tasks ?? 0} 项任务<span>·</span>{backup.counts.reports ?? 0} 个日报版本</div><div className="backup-filename" title={backup.filename}>{backup.filename}</div></div><button className="button secondary compact" onClick={() => download(backup)} disabled={!!busy}>{busy === `export-${backup.id}` ? <Spinner /> : <ArrowDownToLine size={15} />}导出</button></div>;
         })}</div> : <div className="inline-empty"><Archive size={25} strokeWidth={1.4} /><h3>还没有备份</h3><p>创建第一份备份，保留当前工作区的完整副本。</p></div>}
-        <section className="restore-section"><div className="restore-icon"><History size={22} /></div><div><h3>从备份恢复工作区</h3><p>先检查备份内容，再由你确认还原。还原前会自动保存当前工作区的安全副本。</p><button className="button secondary" onClick={() => setDialog('restore')} disabled={!!busy}><Upload size={15} />选择备份文件</button></div></section>
+        <section className="restore-section"><div className="restore-icon"><History size={22} /></div><div><h3>从备份恢复工作区</h3><p>还原会替换当前工作区。确认前可核对内容，系统会先保存安全副本。</p><button className="button secondary" onClick={() => setDialog('restore')} disabled={!!busy}><Upload size={15} />选择备份文件</button></div></section>
         <div className="storage-note"><HardDrive size={15} /><span>数据目录</span><code>{state?.workspace.dataDir}</code></div>
-      </div> : !activeProject ? <Empty icon={<Folder size={32} strokeWidth={1.35} />} title="先创建一个项目" action={<button className="button primary" onClick={() => setDialog('project')}><Plus size={16} />新建项目</button>}>用项目整理资料，让每条记忆都能回到它的来源。</Empty> : page === 'sources' ? <div className="workspace-grid">
+      </div> : !activeProject ? <Empty icon={<Folder size={32} strokeWidth={1.35} />} title="先创建一个项目" action={<button className="button primary" onClick={() => setDialog('project')}><Plus size={16} />新建项目</button>}>在项目中管理资料、任务和已确认的记忆。</Empty> : page === 'sources' ? <div className="workspace-grid">
         <section className="reader-panel">
           {detailLoading ? <div className="loading-view"><Spinner /><span>正在读取原文…</span></div> : detailError ? <Empty title="暂时无法读取资料" action={<button className="button secondary" onClick={() => setReloadTick((tick) => tick + 1)}>重试</button>}>{detailError}</Empty> : !sourceDetail ? <Empty title="导入第一份项目资料" action={<><button className="button primary" onClick={() => openImport()}><Plus size={16} />导入资料</button><button className="button text-button" onClick={() => openImport(true)}>先看看示例 <ArrowRight size={14} /></button></>}>粘贴会议纪要，或选择 TXT、MD、DOCX 和文本 PDF。</Empty> : <>
             <div className="document-heading"><div className="eyebrow">原始资料 <span className="separator">/</span> {sourceDetail.source.kind.toUpperCase()}</div><h2>{sourceDetail.source.title}</h2><div className="document-metadata"><span>{date(sourceDetail.source.importedAt, true)} 导入</span><span>资料日期：{date(sourceDetail.source.sourceAt)}</span><span>{sourceDetail.segments.length} 个段落</span></div>{sourceDetail.source.originalFilename && <p className="original-filename">{sourceDetail.source.originalFilename}</p>}</div>
@@ -276,8 +356,8 @@ export default function App() {
             </>}
           </>}
         </section>
-        <aside className="inspector">
-          <div className="inspector-heading"><span className="eyebrow">从原文到行动与记忆</span><h2>候选记录</h2><p>核对原文依据，由你确认后保存。</p></div>
+        <aside className={`inspector ${!activeSource ? 'inspector-empty' : ''}`}>
+          <div className="inspector-heading"><span className="eyebrow">核对与确认</span><h2>待确认内容</h2><p>核对内容与原文，再保存为任务或记忆。</p></div>
           <ExtractionStatus source={activeSource} job={extractionJob} settings={state?.aiSettings} busy={busy} onSettings={() => setDialog('settings')} onStart={() => { if (sourceId) void run<Job>('start-extraction', () => execute('start_extraction', { sourceId })); }} onRetry={() => { if (extractionJob) void run<Job>('retry-extraction', () => execute('retry_extraction', { jobId: extractionJob.id })); }} onCancel={() => { if (extractionJob) void run<Job>('cancel-extraction', () => execute('cancel_extraction', { jobId: extractionJob.id }), '提取已取消，已发送的请求可能仍由模型服务处理。'); }} />
           <TaskProposals proposals={(state?.taskProposals ?? []).filter((proposal) => proposal.sourceId === sourceId)} tasks={state?.tasks ?? []} day={workDay} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onEvidence={(ids) => { setPreviewSegments(new Set(ids)); setFocusedSegment(ids[0] ?? null); }} onTaskOpen={openTask} />
           <div className="candidate-section"><div className="section-title-row"><h3>待确认记忆</h3><span className="count-badge">{pending.length}</span></div>
@@ -287,29 +367,29 @@ export default function App() {
               <p>{proposal.content}</p>
               {!!proposal.quotes?.length && <details className="candidate-quotes"><summary>查看原文摘录 <ChevronDown size={12} /></summary>{proposal.quotes.map((quote, index) => <div key={`${quote.segmentId}-${index}`}><blockquote>{quote.quote}</blockquote><button className="text-button tiny" onClick={() => { setPreviewSegments(new Set([quote.segmentId])); setFocusedSegment(quote.segmentId); }}>定位原文 <ArrowRight size={11} /></button></div>)}</details>}
               <div className="candidate-actions"><button className="button primary compact" disabled={!!busy} onClick={() => run<Memory>(`confirm-${proposal.id}`, () => execute('confirm_proposal', { proposalId: proposal.id }), '已确认并保存为项目记忆。')}>{busy === `confirm-${proposal.id}` ? <Spinner /> : <Check size={14} />}确认记忆</button><button className="text-button" disabled={!!busy} onClick={() => { setEditingProposalId(proposal.id); setDialog('proposal'); }}><PencilLine size={12} />编辑</button><button className="text-button" disabled={!!busy} onClick={() => run(`reject-${proposal.id}`, () => execute('reject_proposal', { proposalId: proposal.id }), '候选已忽略。')}>忽略</button></div>
-            </div>) : <p className="panel-hint">提取或手动创建的候选会显示在这里。确认后，才会成为正式项目记忆。</p>}
+            </div>) : <p className="panel-hint">提取或手动整理后，在这里核对并保存记忆。</p>}
           </div>
           <details className="manual-proposal-section" open={manualExpanded} onToggle={(event) => setManualExpanded(event.currentTarget.open)}><summary><Plus size={14} /><span>手动整理候选</span>{selected.size > 0 && <small>已选 {selected.size} 段</small>}<ChevronDown size={14} /></summary><form className="proposal-form" onSubmit={createProposal}>
             <div className={`evidence-selection ${selected.size ? 'has-selection' : ''}`}><CheckCheck size={16} /><span>{selected.size ? `已选 ${selected.size} 个原文段落` : '尚未选择原文段落'}</span></div>
             <label className="field-label" htmlFor="proposal-kind">记录类型</label><select id="proposal-kind" value={kind} onChange={(event) => setKind(event.target.value as MemoryKind)} disabled={!!busy || !sourceDetail?.segments.length}>{Object.entries(KIND_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
             <div className="field-label-row"><label className="field-label" htmlFor="proposal-content">候选内容</label><button type="button" className="text-button tiny" disabled={!selected.size || !!busy} onClick={() => setContent(sourceDetail?.segments.filter((segment) => selected.has(segment.id)).map((segment) => segment.text).join('\n\n') ?? '')}>填入所选原文</button></div>
-            <textarea id="proposal-content" rows={5} value={content} maxLength={20000} onChange={(event) => setContent(event.target.value)} placeholder="整理一句清楚、可核实的项目记录…" disabled={!!busy || !sourceDetail?.segments.length} />
+            <textarea id="proposal-content" rows={5} value={content} maxLength={20000} onChange={(event) => setContent(event.target.value)} placeholder="写下需要保留的事实、决策、需求或风险" disabled={!!busy || !sourceDetail?.segments.length} />
             <button className="button primary full-width" type="submit" disabled={!!busy || !selected.size || !content.trim()}>{busy === 'proposal' ? <Spinner /> : <Plus size={15} />}创建候选</button>
           </form></details>
           {historical.length > 0 && <details className="candidate-history"><summary>已处理候选 <span>{historical.length}</span><ChevronDown size={14} /></summary>{historical.map((proposal) => <div className="processed-candidate" key={proposal.id}><div><span>{proposal.status === 'confirmed' ? '已确认' : '已忽略'}</span><Kind kind={proposal.kind} /><span>{proposal.origin === 'ai' ? 'AI 提取' : '手动整理'}</span></div><p>{proposal.content}</p>{proposal.memoryId && <button className="text-button tiny" onClick={() => openMemory(proposal.memoryId!)}>查看记忆 <ArrowRight size={12} /></button>}</div>)}</details>}
         </aside>
       </div> : <div className="workspace-grid">
         <section className="reader-panel memory-panel">
-          {detailLoading ? <div className="loading-view"><Spinner /><span>正在读取记忆…</span></div> : detailError ? <Empty title="暂时无法读取记忆" action={<button className="button secondary" onClick={() => setReloadTick((tick) => tick + 1)}>重试</button>}>{detailError}</Empty> : !memoryDetail || !selectedRevision ? <Empty icon={<Layers3 size={30} strokeWidth={1.4} />} title="还没有已确认记忆" action={<button className="button secondary" onClick={() => changePage('sources')}>从资料整理候选 <ArrowRight size={15} /></button>}>选择资料中的段落，创建并确认第一条项目记录。</Empty> : <>
+          {detailLoading ? <div className="loading-view"><Spinner /><span>正在读取记忆…</span></div> : detailError ? <Empty title="暂时无法读取记忆" action={<button className="button secondary" onClick={() => setReloadTick((tick) => tick + 1)}>重试</button>}>{detailError}</Empty> : !memoryDetail || !selectedRevision ? <Empty icon={<Layers3 size={30} strokeWidth={1.4} />} title="还没有已确认记忆" action={<button className="button secondary" onClick={() => changePage('sources')}>从资料整理候选 <ArrowRight size={15} /></button>}>从项目资料中提取或手动整理，确认后保存在这里。</Empty> : <>
             <div className="memory-heading"><div><div className="eyebrow">已确认记忆</div><div className="memory-kind-row"><Kind kind={memoryDetail.memory.kind} /><span className="version-tag">v{selectedRevision.number}</span>{selectedRevision.number === memoryDetail.memory.revision && <span className="current-label"><span />当前版本</span>}</div></div><button className="button secondary compact" disabled={!!busy} onClick={() => setDialog('revise')}>修订记忆</button></div>
             {selectedRevision.number !== memoryDetail.memory.revision && <div className="historical-banner"><History size={15} /><span>正在查看历史版本 v{selectedRevision.number}</span><button className="text-button" onClick={() => setViewedRevision(null)}>回到最新版</button></div>}
             <p className="memory-content">{selectedRevision.content}</p>
-            <div className="memory-metadata"><span>{date(selectedRevision.createdAt, true)}</span><span>{selectedRevision.origin === 'confirmation' ? '原文确认' : '用户修订'}</span></div>
+            <div className="memory-metadata"><span>{date(selectedRevision.createdAt, true)}</span><span>{selectedRevision.origin === 'automatic' ? '自动整理' : selectedRevision.origin === 'confirmation' ? '原文确认' : '用户修订'}</span></div>
             <section className="evidence-section"><div className="section-title-row"><h3>原文依据</h3><span>{selectedRevision.evidence.length} 处</span></div>{selectedRevision.evidence.length ? selectedRevision.evidence.map((evidence) => <div className="evidence-block" key={evidence.segmentId}><div className="evidence-heading"><FileText size={14} /><span>{evidence.sourceTitle}</span></div><p>{evidence.text}</p><div className="evidence-footer"><span>{evidence.locator}</span><button className="text-button" onClick={() => openEvidence(evidence)}>打开原文 <ArrowRight size={14} /></button></div></div>) : <div className="correction-note"><CircleAlert size={17} /><p>这一版是个人修正，未引用原文依据。</p></div>}</section>
             {selectedRevision.reason && <div className="revision-reason"><span>修订说明</span><p>{selectedRevision.reason}</p></div>}
           </>}
         </section>
-        <aside className="inspector timeline-inspector"><div className="inspector-heading"><span className="eyebrow">保留每次变化</span><h2>修订时间线</h2><p>版本与依据一同保留，随时可回溯。</p></div>{memoryDetail ? <div className="timeline">{[...memoryDetail.revisions].sort((a, b) => b.number - a.number).map((revision) => <button className={`timeline-item ${selectedRevision?.number === revision.number ? 'timeline-active' : ''}`} key={revision.id} onClick={() => setViewedRevision(revision.number)}><span className="timeline-dot" /><div className="timeline-top"><strong>v{revision.number}</strong><span>{date(revision.createdAt, true)}</span></div><h3>{revision.origin === 'confirmation' ? '首次确认' : '修订记忆'}</h3><p>{revision.reason || (revision.origin === 'confirmation' ? '根据所选原文确认。' : '个人修正。')}</p><span className="timeline-evidence">{revision.evidence.length ? `${revision.evidence.length} 处原文依据` : '未引用原文'}</span></button>)}</div> : <p className="panel-hint">确认第一条记忆后，会在这里记录版本历史。</p>}</aside>
+        <aside className={`inspector timeline-inspector ${!memoryDetail ? 'inspector-empty' : ''}`}><div className="inspector-heading"><span className="eyebrow">版本记录</span><h2>修订历史</h2><p>选择版本，查看当时的内容与依据。</p></div>{memoryDetail ? <div className="timeline">{[...memoryDetail.revisions].sort((a, b) => b.number - a.number).map((revision) => <button className={`timeline-item ${selectedRevision?.number === revision.number ? 'timeline-active' : ''}`} key={revision.id} onClick={() => setViewedRevision(revision.number)}><span className="timeline-dot" /><div className="timeline-top"><strong>v{revision.number}</strong><span>{date(revision.createdAt, true)}</span></div><h3>{revision.origin === 'automatic' ? '自动整理' : revision.origin === 'confirmation' ? '原文确认' : '修订记忆'}</h3><p>{revision.reason || (revision.origin === 'confirmation' ? '根据所选原文确认。' : '个人修正。')}</p><span className="timeline-evidence">{revision.evidence.length ? `${revision.evidence.length} 处原文依据` : '未引用原文'}</span></button>)}</div> : <p className="panel-hint">确认第一条记忆后，会在这里记录版本历史。</p>}</aside>
       </div>}
     </main>
 
@@ -324,6 +404,8 @@ export default function App() {
       if (result) { setSourceId(result.sourceId); setPage('sources'); closeDialog(); setNotice({ message: result.duplicate ? '这份资料已导入，已打开原有记录。' : '资料已接收，处理状态会自动更新。' }); }
     }} notify={(message) => setNotice({ message, error: true })} />}
     {dialog === 'settings' && <ModelSettingsDialog close={closeDialog} onSaved={refresh} />}
+    {dialog === 'memory-center' && <MemoryCenter projects={state?.projects ?? []} close={closeDialog} onSaved={refresh} />}
+    {dialog === 'feishu' && <FeishuSettingsDialog projects={state?.projects ?? []} close={closeDialog} onSaved={refresh} />}
     {dialog === 'proposal' && editingProposal && <ProposalEditor proposal={editingProposal} busy={busy} close={closeDialog} submit={async (payload) => {
       const result = await run<Proposal>('edit-proposal', () => execute('update_proposal', payload), '候选已更新，请核对后确认。');
       if (result) closeDialog();
@@ -344,7 +426,7 @@ export default function App() {
 
 function ProjectDialog({ busy, close, submit }: { busy: string; close: () => void; submit: (name: string, description: string) => Promise<void> }) {
   const [name, setName] = useState(''); const [description, setDescription] = useState('');
-  return <Dialog title="新建项目" subtitle="为相关资料和记忆建立一个清楚的归属。" close={close} busy={!!busy}><form onSubmit={(event) => { event.preventDefault(); if (name.trim()) void submit(name.trim(), description.trim()); }}><div className="dialog-body"><label className="field-label" htmlFor="project-name">项目名称</label><input id="project-name" value={name} maxLength={120} onChange={(event) => setName(event.target.value)} placeholder="例如：客户服务平台一期" autoFocus required disabled={!!busy} /><label className="field-label spaced" htmlFor="project-description">项目说明 <span>可选</span></label><textarea id="project-description" rows={3} value={description} maxLength={2000} onChange={(event) => setDescription(event.target.value)} placeholder="项目的目标、范围或背景…" disabled={!!busy} /></div><div className="dialog-footer"><button type="button" className="button secondary" onClick={close} disabled={!!busy}>取消</button><button className="button primary" disabled={!name.trim() || !!busy}>{busy === 'project' ? <Spinner /> : <Plus size={15} />}创建项目</button></div></form></Dialog>;
+  return <Dialog title="新建项目" subtitle="在同一个项目中管理资料、任务与进展。" close={close} busy={!!busy}><form onSubmit={(event) => { event.preventDefault(); if (name.trim()) void submit(name.trim(), description.trim()); }}><div className="dialog-body"><label className="field-label" htmlFor="project-name">项目名称</label><input id="project-name" value={name} maxLength={120} onChange={(event) => setName(event.target.value)} placeholder="例如：客户服务平台一期" autoFocus required disabled={!!busy} /><label className="field-label spaced" htmlFor="project-description">项目说明 <span>可选</span></label><textarea id="project-description" rows={3} value={description} maxLength={2000} onChange={(event) => setDescription(event.target.value)} placeholder="项目的目标、范围或背景…" disabled={!!busy} /></div><div className="dialog-footer"><button type="button" className="button secondary" onClick={close} disabled={!!busy}>取消</button><button className="button primary" disabled={!name.trim() || !!busy}>{busy === 'project' ? <Spinner /> : <Plus size={15} />}创建项目</button></div></form></Dialog>;
 }
 
 function ImportDialog({ busy, close, project, sample, settings, submit, notify }: {
@@ -371,8 +453,8 @@ function ImportDialog({ busy, close, project, sample, settings, submit, notify }
     }
   };
   return <Dialog title="导入项目资料" subtitle={`资料归属：${project.name}`} close={close} busy={!!busy || reading} wide><form onSubmit={submitImport}><div className="dialog-body"><div className="segmented-control"><button type="button" className={mode === 'text' ? 'selected' : ''} onClick={() => setMode('text')} disabled={!!busy || reading}>粘贴文本</button><button type="button" className={mode === 'file' ? 'selected' : ''} onClick={() => setMode('file')} disabled={!!busy || reading}>选择文件</button></div>
-    {mode === 'text' ? <><label className="field-label" htmlFor="source-title">资料标题</label><input id="source-title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={240} placeholder="例如：10 月项目例会纪要" required disabled={!!busy} /><div className="field-label-row"><label className="field-label" htmlFor="source-text">原始内容</label><button className="text-button tiny" type="button" onClick={() => { setTitle(SAMPLE.title); setText(SAMPLE.text); }} disabled={!!busy}>填入示例文本</button></div><textarea id="source-text" className="import-textarea" rows={10} value={text} onChange={(event) => setText(event.target.value)} placeholder="直接粘贴会议纪要、聊天记录或邮件正文，保留原始日期与发言人有助于追溯。" required disabled={!!busy} /></> : <><label className="file-picker"><div className="file-picker-icon"><FilePlus2 size={26} strokeWidth={1.5} /></div><strong>{file ? file.name : '选择一份项目资料'}</strong><span>{file ? bytes(file.size) : 'TXT、MD、DOCX 或文本 PDF · 最大 10 MiB'}</span><span className="button secondary compact">{file ? '重新选择' : '选择文件'}</span><input type="file" accept=".txt,.md,.docx,.pdf" aria-label="选择项目资料文件" disabled={!!busy || reading} onChange={(event) => { const next = event.target.files?.[0] ?? null; if (next && next.size > 10 * 1024 * 1024) { notify('文件超过 10 MiB，请选择较小的文件。'); event.target.value = ''; setFile(null); } else setFile(next); }} /></label><p className="field-hint">扫描 PDF 不含可提取文本，本阶段暂不支持。</p></>}
-    <label className="field-label spaced" htmlFor="source-date">资料发生日期 <span>可选</span></label><input id="source-date" className="date-input" type="date" value={sourceAt} onChange={(event) => setSourceAt(event.target.value)} disabled={!!busy || reading} /><p className="field-hint">填写会议或消息的原始日期，导入时间会单独保存。</p><div className="import-ai-note"><Settings2 size={15} /><p>{settings?.autoExtract && settings.configured && (endpointInfo(settings.baseUrl).local || settings.remoteConsent) ? <>解析完成后，原文将发送至 <strong>{endpointInfo(settings.baseUrl).host}</strong>，使用 {settings.model} 提取待确认候选。</> : settings?.autoExtract ? '自动提取尚未配置就绪。资料仍会正常导入，也可以手动整理。' : '自动提取已关闭。导入后可手动启动提取，或自行整理候选。'}</p></div></div><div className="dialog-footer"><button type="button" className="button secondary" onClick={close} disabled={!!busy || reading}>取消</button><button className="button primary" disabled={!!busy || reading || (mode === 'text' ? !title.trim() || !text.trim() : !file)}>{busy === 'import' || reading ? <Spinner /> : <Upload size={15} />}导入资料</button></div></form></Dialog>;
+    {mode === 'text' ? <><label className="field-label" htmlFor="source-title">资料标题</label><input id="source-title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={240} placeholder="例如：10 月项目例会纪要" required disabled={!!busy} /><div className="field-label-row"><label className="field-label" htmlFor="source-text">资料正文</label><button className="text-button tiny" type="button" onClick={() => { setTitle(SAMPLE.title); setText(SAMPLE.text); }} disabled={!!busy}>填入示例文本</button></div><textarea id="source-text" className="import-textarea" rows={10} value={text} onChange={(event) => setText(event.target.value)} placeholder="粘贴会议纪要、聊天记录或邮件正文，建议保留日期和发言人。" required disabled={!!busy} /></> : <><label className="file-picker"><div className="file-picker-icon"><FilePlus2 size={26} strokeWidth={1.5} /></div><strong>{file ? file.name : '选择一份项目资料'}</strong><span>{file ? bytes(file.size) : 'TXT、MD、DOCX 或文本 PDF · 最大 10 MiB'}</span><span className="button secondary compact">{file ? '重新选择' : '选择文件'}</span><input type="file" accept=".txt,.md,.docx,.pdf" aria-label="选择项目资料文件" disabled={!!busy || reading} onChange={(event) => { const next = event.target.files?.[0] ?? null; if (next && next.size > 10 * 1024 * 1024) { notify('文件超过 10 MiB，请选择较小的文件。'); event.target.value = ''; setFile(null); } else setFile(next); }} /></label><p className="field-hint">仅支持含文本的 PDF，暂不支持扫描件。</p></>}
+    <label className="field-label spaced" htmlFor="source-date">资料日期 <span>可选</span></label><input id="source-date" className="date-input" type="date" value={sourceAt} onChange={(event) => setSourceAt(event.target.value)} disabled={!!busy || reading} /><p className="field-hint">会议或消息的实际日期，用于理解原文中的时间。</p><div className="import-ai-note"><Settings2 size={15} /><p>{settings?.autoExtract && settings.configured && (endpointInfo(settings.baseUrl).local || settings.remoteConsent) ? <>解析完成后，原文将发送至 <strong>{endpointInfo(settings.baseUrl).host}</strong>，使用 {settings.model} 提取待确认候选。</> : settings?.autoExtract ? '自动提取尚未配置就绪。资料仍会正常导入，也可以手动整理。' : '自动提取已关闭。导入后可手动启动提取，或自行整理候选。'}</p></div></div><div className="dialog-footer"><button type="button" className="button secondary" onClick={close} disabled={!!busy || reading}>取消</button><button className="button primary" disabled={!!busy || reading || (mode === 'text' ? !title.trim() || !text.trim() : !file)}>{busy === 'import' || reading ? <Spinner /> : <Upload size={15} />}导入资料</button></div></form></Dialog>;
 }
 
 function ReviseDialog({ detail, sources, busy, close, reload, submit, notify }: {
@@ -430,6 +512,6 @@ function RestoreDialog({ busy, close, current, inspect, submit, notify }: {
   };
   return <Dialog title="从备份恢复" subtitle="检查备份后，再确认替换当前工作区。" close={close} busy={!!busy || inspecting} wide><div className="dialog-body"><label className="file-picker backup-file-picker"><Archive size={27} strokeWidth={1.4} /><strong>{file?.filename ?? '选择工作区备份 ZIP'}</strong><span>{inspecting ? '正在检查完整性与兼容性…' : '最大 256 MiB · 不会在选择后立即还原'}</span><span className="button secondary compact">{inspecting ? <Spinner /> : <Upload size={14} />}{file ? '更换备份' : '选择备份文件'}</span><input type="file" accept=".zip" aria-label="选择备份ZIP文件" disabled={!!busy || inspecting} onChange={(event) => { void inspectFile(event.target.files?.[0]); }} /></label>
     {error && <div className="form-error" role="alert"><CircleAlert size={17} /><p>{error}</p></div>}
-    {inspection && inspection.compatible && <><div className="inspection-success"><ShieldCheck size={17} /><span>备份检查通过</span><span>{date(inspection.createdAt, true)}</span></div><table className="restore-counts"><thead><tr><th>工作区内容</th><th>当前</th><th>备份中</th></tr></thead><tbody><tr><td>项目</td><td>{current.projects}</td><td>{inspection.counts.projects}</td></tr><tr><td>原始资料</td><td>{current.sources}</td><td>{inspection.counts.sources}</td></tr><tr><td>正式记忆</td><td>{current.memories}</td><td>{inspection.counts.memories}</td></tr><tr><td>任务</td><td>{current.tasks}</td><td>{inspection.counts.tasks ?? 0}</td></tr><tr><td>日报版本</td><td>{current.reports}</td><td>{inspection.counts.reports ?? 0}</td></tr></tbody></table><div className="restore-warning"><ShieldCheck size={18} /><p>还原会替换当前全部项目、资料、记忆、任务与日报。应用会先自动创建当前工作区的安全副本。</p></div><label className="restore-confirm"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} disabled={!!busy} /><span>我已核对备份，确认用它还原当前工作区</span></label></>}
+    {inspection && inspection.compatible && <><div className="inspection-success"><ShieldCheck size={17} /><span>备份检查通过</span><span>{date(inspection.createdAt, true)}</span></div><table className="restore-counts"><thead><tr><th>工作区内容</th><th>当前</th><th>备份中</th></tr></thead><tbody><tr><td>项目</td><td>{current.projects}</td><td>{inspection.counts.projects}</td></tr><tr><td>原始资料</td><td>{current.sources}</td><td>{inspection.counts.sources}</td></tr><tr><td>已确认记忆</td><td>{current.memories}</td><td>{inspection.counts.memories}</td></tr><tr><td>任务</td><td>{current.tasks}</td><td>{inspection.counts.tasks ?? 0}</td></tr><tr><td>日报版本</td><td>{current.reports}</td><td>{inspection.counts.reports ?? 0}</td></tr></tbody></table><div className="restore-warning"><ShieldCheck size={18} /><p>还原会替换当前全部项目、资料、记忆、任务与日报。应用会先自动创建当前工作区的安全副本。</p></div><label className="restore-confirm"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} disabled={!!busy} /><span>我已核对备份，确认用它还原当前工作区</span></label></>}
     </div><div className="dialog-footer"><button className="button secondary" onClick={close} disabled={!!busy || inspecting}>取消</button><button className="button primary" disabled={!!busy || inspecting || !file || !inspection?.compatible || !confirmed} onClick={() => { if (file) void submit(file).catch((caught) => notify(asError(caught).message)); }}>{busy === 'restore' ? <Spinner /> : <History size={15} />}确认还原工作区</button></div></Dialog>;
 }

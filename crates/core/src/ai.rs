@@ -309,13 +309,13 @@ fn request_body(config: &AiConfig, url: &Url, batch: &[SourceSegment]) -> Value 
 }
 
 fn network_error(error: &reqwest::Error) -> AppError {
-    if error.is_timeout() {
-        AppError::new("MODEL_TIMEOUT", "模型请求超时，请检查服务后重试")
-    } else if error.is_connect() {
+    if error.is_connect() {
         AppError::new(
             "MODEL_CONNECTION",
             "无法连接模型服务，请检查服务是否启动及地址是否正确",
         )
+    } else if error.is_timeout() {
+        AppError::new("MODEL_TIMEOUT", "模型请求超时，请检查服务后重试")
     } else {
         AppError::new("MODEL_NETWORK", "模型请求未完成，请检查网络后重试")
     }
@@ -392,9 +392,55 @@ fn request_batch(
     url: &Url,
     batch: &[SourceSegment],
 ) -> Result<Value> {
-    let mut request = client
-        .post(url.clone())
-        .json(&request_body(config, url, batch));
+    send_json(
+        config,
+        api_key,
+        client,
+        url,
+        &request_body(config, url, batch),
+    )
+}
+
+/// Shared, bounded JSON completion transport. Callers still validate their own
+/// input permissions and output schemas before using a model response.
+pub(crate) fn complete_json(
+    config: &AiConfig,
+    api_key: Option<&str>,
+    messages: Value,
+    schema: Value,
+    schema_name: &str,
+) -> Result<Value> {
+    let url = endpoint(config)?;
+    let client = client(config, &url)?;
+    let mut body = if config.provider == "ollama" {
+        json!({
+            "model":config.model,"messages":messages,"stream":false,
+            "format":if config.output_format=="json_schema" {schema} else {json!("json")},
+            "options":{"temperature":0,"num_ctx":16384,"num_predict":4096}
+        })
+    } else {
+        json!({
+            "model":config.model,"messages":messages,"stream":false,
+            "temperature":0,"max_tokens":4096,
+            "response_format":if config.output_format=="json_schema" {
+                json!({"type":"json_schema","json_schema":{"name":schema_name,"strict":true,"schema":schema}})
+            } else {json!({"type":"json_object"})}
+        })
+    };
+    if config.provider == "openai_compatible" && url.host_str() == Some("api.deepseek.com") {
+        body["thinking"] = json!({"type":"disabled"});
+    }
+    send_json(config, api_key, &client, &url, &body)
+}
+
+fn send_json(
+    config: &AiConfig,
+    api_key: Option<&str>,
+    client: &Client,
+    url: &Url,
+    body: &Value,
+) -> Result<Value> {
+    let mut request = client.post(url.clone()).json(body);
     if config.provider == "openai_compatible" {
         if let Some(key) = api_key.filter(|key| !key.is_empty()) {
             let mut authorization = HeaderValue::from_str(&format!("Bearer {key}"))
@@ -1082,7 +1128,8 @@ mod tests {
             base_url: format!("http://{address}"),
             model: "no-server".into(),
             output_format: "json_object".into(),
-            timeout_seconds: 1,
+            // Windows may take over a second to report a refused TCP connect.
+            timeout_seconds: 5,
         };
         let error = extract(&unavailable, Some(secret), &segments(), |_, _| true).unwrap_err();
         assert_eq!(error.code, "MODEL_CONNECTION");
