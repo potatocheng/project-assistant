@@ -115,7 +115,7 @@ fn task_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Value> {
         json!({"id":row.get::<_,String>(0)?,"projectId":row.get::<_,String>(1)?,"title":row.get::<_,String>(2)?,"description":row.get::<_,String>(3)?,"category":row.get::<_,String>(4)?,"assignee":row.get::<_,Option<String>>(5)?,"priority":row.get::<_,String>(6)?,"status":row.get::<_,String>(7)?,"progress":row.get::<_,i64>(8)?,"dueDate":row.get::<_,Option<String>>(9)?,"plannedDate":row.get::<_,Option<String>>(10)?,"version":row.get::<_,i64>(11)?,"origin":row.get::<_,String>(12)?,"memoryId":row.get::<_,Option<String>>(13)?,"memoryRevision":row.get::<_,Option<i64>>(14)?,"createdAt":row.get::<_,String>(15)?,"updatedAt":row.get::<_,String>(16)?}),
     )
 }
-fn task(conn: &Connection, id: &str) -> Result<Value> {
+pub(crate) fn task(conn: &Connection, id: &str) -> Result<Value> {
     conn.query_row(&format!("{TASK_SELECT} WHERE id=?"), [id], task_row)
         .optional()?
         .ok_or_else(|| AppError::new("NOT_FOUND", "任务不存在"))
@@ -195,7 +195,7 @@ fn append_event(
     )?;
     Ok(())
 }
-fn insert_task(
+pub(crate) fn insert_task(
     conn: &Connection,
     p: &Value,
     origin: &str,
@@ -263,7 +263,7 @@ fn insert_task(
     )?;
     Ok(value)
 }
-fn write_task(
+pub(crate) fn write_task(
     conn: &Connection,
     before: &Value,
     p: &Value,
@@ -313,7 +313,7 @@ fn write_task(
     conn.execute("UPDATE tasks SET title=?,description=?,category=?,assignee=?,priority=?,status=?,progress=?,due_date=?,planned_date=?,version=?,updated_at=? WHERE id=? AND version=?",params![after["title"].as_str(),after["description"].as_str(),after["category"].as_str(),after["assignee"].as_str(),after["priority"].as_str(),after["status"].as_str(),after["progress"].as_i64(),after["dueDate"].as_str(),after["plannedDate"].as_str(),base+1,after["updatedAt"].as_str(),after["id"].as_str(),base])?;
     Ok(after)
 }
-fn create(conn: &Connection, p: &Value) -> Result<Value> {
+pub(crate) fn create(conn: &Connection, p: &Value) -> Result<Value> {
     let project = required(p, "projectId")?;
     let memory = optional_string(p, "memoryId")?;
     let mut revision = None;
@@ -349,7 +349,7 @@ fn update(conn: &Connection, p: &Value) -> Result<Value> {
     limited(note, 10000, true)?;
     write_task(conn, &before, p, "user", &[], note)
 }
-fn task_detail(conn: &Connection, id: &str) -> Result<Value> {
+pub(crate) fn task_detail(conn: &Connection, id: &str) -> Result<Value> {
     let value = task(conn, id)?;
     let mut statement = conn.prepare(&format!(
         "{EVENT_SELECT} WHERE task_id=? ORDER BY version DESC"
@@ -448,7 +448,7 @@ fn reject_proposal(conn: &Connection, p: &Value) -> Result<Value> {
     )?;
     proposal(conn, id)
 }
-fn confirm_proposal(conn: &Connection, p: &Value) -> Result<Value> {
+pub(crate) fn confirm_proposal(conn: &Connection, p: &Value) -> Result<Value> {
     let id = required(p, "proposalId")?;
     let candidate = proposal(conn, id)?;
     if candidate["status"] == "confirmed" {
@@ -962,7 +962,7 @@ pub(crate) fn state(conn: &Connection) -> Result<Value> {
     Ok(json!({"tasks":tasks,"taskProposals":proposals,"reports":reports}))
 }
 
-fn validate_snapshot(conn: &Connection, value: &Value) -> Result<()> {
+pub(crate) fn validate_snapshot(conn: &Connection, value: &Value) -> Result<()> {
     for key in [
         "id",
         "projectId",

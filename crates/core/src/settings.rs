@@ -78,7 +78,7 @@ impl SavedSettings {
     }
 }
 
-fn private_directory(root: &Path) -> Result<std::path::PathBuf> {
+pub(crate) fn private_directory(root: &Path) -> Result<std::path::PathBuf> {
     let directory = root.join("secrets");
     if fs::symlink_metadata(&directory).is_ok_and(|metadata| metadata.file_type().is_symlink()) {
         return Err(AppError::new("SECRET_PATH", "秘密配置目录不能是符号链接"));
@@ -89,7 +89,69 @@ fn private_directory(root: &Path) -> Result<std::path::PathBuf> {
         use std::os::unix::fs::PermissionsExt;
         fs::set_permissions(&directory, fs::Permissions::from_mode(0o700))?;
     }
+    #[cfg(windows)]
+    protect_windows_directory(&directory)?;
     Ok(directory)
+}
+
+#[cfg(windows)]
+fn protect_windows_directory(directory: &Path) -> Result<()> {
+    use std::{
+        collections::HashSet,
+        os::windows::process::CommandExt,
+        sync::{Mutex, OnceLock},
+    };
+    static PROTECTED: OnceLock<Mutex<HashSet<std::path::PathBuf>>> = OnceLock::new();
+    let mut protected = PROTECTED
+        .get_or_init(|| Mutex::new(HashSet::new()))
+        .lock()
+        .map_err(|_| AppError::new("SECRET_PATH", "无法检查秘密目录权限"))?;
+    if protected.contains(directory) {
+        return Ok(());
+    }
+    let system = std::path::PathBuf::from(
+        std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into()),
+    )
+    .join("System32");
+    let identity = std::process::Command::new(system.join("whoami.exe"))
+        .args(["/user", "/fo", "csv", "/nh"])
+        .creation_flags(0x08000000)
+        .output()?;
+    let identity = String::from_utf8_lossy(&identity.stdout);
+    let sid = identity
+        .trim()
+        .rsplit(',')
+        .next()
+        .unwrap_or("")
+        .trim_matches('"');
+    if !sid.starts_with("S-1-")
+        || !sid
+            .chars()
+            .all(|c| c.is_ascii_digit() || c == 'S' || c == '-')
+    {
+        return Err(AppError::new(
+            "SECRET_PATH",
+            "无法确定当前 Windows 账号，未保存凭据",
+        ));
+    }
+    let access = std::process::Command::new(system.join("icacls.exe"))
+        .arg(directory)
+        .args([
+            "/inheritance:r",
+            "/grant:r",
+            &format!("*{sid}:(OI)(CI)F"),
+            "*S-1-5-18:(OI)(CI)F",
+        ])
+        .creation_flags(0x08000000)
+        .output()?;
+    if !access.status.success() {
+        return Err(AppError::new(
+            "SECRET_PATH",
+            "无法将秘密目录限定为当前 Windows 账号访问",
+        ));
+    }
+    protected.insert(directory.to_path_buf());
+    Ok(())
 }
 pub(crate) fn load(root: &Path) -> Result<SavedSettings> {
     let directory = private_directory(root)?;
@@ -184,7 +246,7 @@ pub(crate) fn save(root: &Path, p: &Value) -> Result<(SavedSettings, bool)> {
         return Err(error.into());
     }
     fs::rename(&temporary, directory.join("ai-settings.json"))?;
-    fs::File::open(&directory)?.sync_all()?;
+    crate::sync_directory(&directory)?;
     Ok((next, true))
 }
 

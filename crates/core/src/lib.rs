@@ -1,7 +1,18 @@
 mod ai;
+mod assistant_qa;
 mod backup;
+mod change_control;
+mod coordination;
 mod db;
+mod delivery;
+mod feishu;
+mod governance;
+mod maintenance;
+mod management;
+mod memory;
 mod parse;
+mod planning;
+mod qa;
 mod settings;
 mod tasks;
 
@@ -70,6 +81,27 @@ pub(crate) fn hash(bytes: &[u8]) -> String {
     use sha2::{Digest, Sha256};
     format!("{:x}", Sha256::digest(bytes))
 }
+/// Unix supports syncing directory entries. Windows does not expose directory
+/// FlushFileBuffers through a normal File handle; each written file is synced
+/// separately before its rename on that platform.
+pub(crate) fn sync_directory(path: &Path) -> Result<()> {
+    #[cfg(unix)]
+    File::open(path)?.sync_all()?;
+    #[cfg(not(unix))]
+    if !fs::metadata(path)?.is_dir() {
+        return Err(AppError::new("IO", "持久化目录无效"));
+    }
+    Ok(())
+}
+pub(crate) fn sync_file(path: &Path) -> Result<()> {
+    // FlushFileBuffers on Windows requires a writable handle.
+    OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(path)?
+        .sync_all()?;
+    Ok(())
+}
 pub(crate) fn required<'a>(p: &'a Value, key: &str) -> Result<&'a str> {
     p.get(key)
         .and_then(Value::as_str)
@@ -84,6 +116,8 @@ enum Message {
     ClaimExtract(String, u64, mpsc::Sender<Result<Option<db::AiTask>>>),
     ProgressExtract(String, u64, i64, usize, usize, mpsc::Sender<bool>),
     CompleteExtract(String, u64, i64, Result<ai::ExtractionResult>),
+    ClaimMaintenance(mpsc::Sender<Result<Option<memory::Task>>>),
+    CompleteMaintenance(String, Value, memory::Output, Arc<maintenance::Worker>, u64),
     Shutdown,
 }
 
@@ -98,10 +132,14 @@ struct Inner {
     ai_notify: mpsc::SyncSender<()>,
     root: std::path::PathBuf,
     actor: Mutex<Option<thread::JoinHandle<()>>>,
+    connector: feishu::Connector,
+    maintenance: Arc<maintenance::Worker>,
     _lock: File,
 }
 impl Drop for Inner {
     fn drop(&mut self) {
+        self.connector.shutdown();
+        self.maintenance.stop();
         let _ = self.sender.send(Message::Shutdown);
         if let Ok(handle) = self.actor.get_mut() {
             if let Some(handle) = handle.take() {
@@ -172,6 +210,22 @@ impl Engine {
                             if let Err(error) = db.complete_extract(&job, epoch, generation, result)
                             {
                                 eprintln!("AI persistence: {}", error.code);
+                            }
+                        }
+                        Message::ClaimMaintenance(reply) => {
+                            let _ = reply.send(db.claim_maintenance());
+                        }
+                        Message::CompleteMaintenance(run, guard, output, activity, generation) => {
+                            if !activity.is_current(generation) {
+                                let job = match &output {
+                                    memory::Output::Extract(job, ..) => Some(job.as_str()),
+                                    _ => None,
+                                };
+                                let _ = db.cancel_memory_run(&run, job);
+                                continue;
+                            }
+                            if let Err(e) = db.finish_maintenance(&run, &guard, output) {
+                                eprintln!("memory persistence: {}", e.code);
                             }
                         }
                         Message::Shutdown => break,
@@ -319,6 +373,50 @@ impl Engine {
                     }
                 }
             })?;
+        let question_sender = sender.clone();
+        let question_root = engine_root.clone();
+        let validation_sender = sender.clone();
+        let connector = match feishu::Connector::open(
+            engine_root.clone(),
+            Arc::new(move |project, question| {
+                ask_project(
+                    &question_sender,
+                    &question_root,
+                    &json!({"projectId":project,"question":question}),
+                )
+            }),
+            Arc::new(move |context| {
+                actor_call(
+                    &validation_sender,
+                    Request {
+                        command: "_validate_qa_context".into(),
+                        payload: context.clone(),
+                    },
+                )
+                .map(|_| ())
+            }),
+        ) {
+            Ok(connector) => connector,
+            Err(error) => {
+                let _ = sender.send(Message::Shutdown);
+                let _ = actor.join();
+                return Err(error);
+            }
+        };
+        let maintenance = maintenance::Worker::start(sender.clone(), engine_root.clone())?;
+        let ingest_sender = sender.clone();
+        let ingest_notify = notify.clone();
+        connector.set_ingest(Arc::new(move |payload| {
+            let result = actor_call(
+                &ingest_sender,
+                Request {
+                    command: "_ingest_remote".into(),
+                    payload: payload.clone(),
+                },
+            )?;
+            let _ = ingest_notify.try_send(());
+            Ok(result)
+        }))?;
         let engine = Self {
             inner: Arc::new(Inner {
                 sender,
@@ -326,6 +424,8 @@ impl Engine {
                 ai_notify,
                 root: engine_root,
                 actor: Mutex::new(Some(actor)),
+                connector,
+                maintenance,
                 _lock: workspace_lock,
             }),
         };
@@ -336,10 +436,94 @@ impl Engine {
         if request.command.starts_with('_') {
             return Err(AppError::new("UNKNOWN_COMMAND", "未知操作"));
         }
+        if request.command == "memory_activity" {
+            self.inner.maintenance.touch();
+            return Ok(json!({"ok":true}));
+        }
+        if request.command == "run_memory_maintenance" {
+            self.inner.maintenance.run_now();
+            return Ok(json!({"queued":true}));
+        }
+        if !matches!(
+            request.command.as_str(),
+            "get_state"
+                | "get_memory_maintenance"
+                | "get_feishu_status"
+                | "get_feishu_sources"
+                | "get_daily_planning"
+                | "get_delivery_overview"
+                | "get_follow_up_center"
+                | "get_management_attention"
+                | "get_governance_workspace"
+                | "get_governance_item"
+                | "get_change_acceptance"
+                | "coordination_list"
+                | "coordination_get_report"
+                | "coordination_get_meeting"
+                | "get_source"
+                | "get_memory"
+        ) {
+            self.inner.maintenance.touch();
+        }
+        if request.command == "save_feishu_sources" {
+            self.call(Request {
+                command: "_validate_feishu_bindings".into(),
+                payload: json!({"bindings":request.payload["sources"]}),
+            })?;
+        }
         if request.command == "test_ai_connection" {
             let settings = settings::load(&self.inner.root)?;
             settings.validate_credentials()?;
             return ai::test_connection(&settings.config(), settings.api_key.as_deref());
+        }
+        if request.command == "ask_project" {
+            return ask_project(&self.inner.sender, &self.inner.root, &request.payload);
+        }
+        if request.command == "ask_assistant" {
+            return assistant_qa::ask(self, &request.payload);
+        }
+        if request.command == "analyze_task_workload" {
+            let configuration = settings::load(&self.inner.root)?;
+            let snapshot = self.call(Request {
+                command: "_planning_snapshot".into(),
+                payload: request.payload.clone(),
+            })?;
+            if snapshot["modelRevision"] != configuration.revision {
+                return Err(AppError::new(
+                    "PLANNING_STALE",
+                    "模型配置已变化，请重新整理",
+                ));
+            }
+            let result = planning::analyze(
+                &configuration,
+                &snapshot,
+                request.payload["useModel"].as_bool().unwrap_or(true),
+            )?;
+            return self.call(Request {
+                command: "_save_planning_draft".into(),
+                payload: json!({"kind":"analysis","snapshot":snapshot,"result":result}),
+            });
+        }
+        if request.command == "save_feishu_settings" {
+            // A chat may only be bound to an existing project in this workspace.
+            self.call(Request {
+                command: "_validate_feishu_bindings".into(),
+                payload: request.payload.clone(),
+            })?;
+        }
+        if request.command == "restore_backup" {
+            // Restore pauses delivery until the user reviews the restored projects.
+            self.inner.connector.pause()?;
+        }
+        if request.command == "save_ai_settings" {
+            self.inner.connector.invalidate()?;
+        }
+        if let Some(result) = self
+            .inner
+            .connector
+            .handle(&request.command, &request.payload)
+        {
+            return result;
         }
         let schedule = matches!(
             request.command.as_str(),
@@ -363,6 +547,27 @@ impl Engine {
         let _ = self.inner.notify.try_send(());
         let _ = self.inner.ai_notify.try_send(());
     }
+}
+fn ask_project(sender: &mpsc::SyncSender<Message>, root: &Path, payload: &Value) -> Result<Value> {
+    // Take a project-scoped snapshot on the database actor; network I/O stays outside it.
+    let configuration = settings::load(root)?;
+    let mut context = actor_call(
+        sender,
+        Request {
+            command: "_retrieve_qa_context".into(),
+            payload: payload.clone(),
+        },
+    )?;
+    context["modelRevision"] = json!(configuration.revision);
+    let answer = qa::answer(&configuration, &context)?;
+    actor_call(
+        sender,
+        Request {
+            command: "_validate_qa_context".into(),
+            payload: context,
+        },
+    )?;
+    Ok(answer)
 }
 fn actor_call(sender: &mpsc::SyncSender<Message>, request: Request) -> Result<Value> {
     let (tx, rx) = mpsc::channel();

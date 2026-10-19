@@ -13,13 +13,16 @@
     "verify:restart": "node scripts/verify-restart.mjs",
     "qa:bridge": "node scripts/qa-bridge.mjs",
     "verify:ai": "node scripts/verify-ai.mjs",
-    "verify:workflow": "node scripts/verify-workflow.mjs"
+    "verify:workflow": "node scripts/verify-workflow.mjs",
+    "verify:planning": "node scripts/verify-planning.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0",

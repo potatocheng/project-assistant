@@ -1,5 +1,13 @@
 # Phase one application contract
 
+## Personal Feishu assistant extension
+
+`ask_project {projectId,question}` performs read-only retrieval over the project's active current confirmed memory, then an independently prompted model answer. Returns `{answer,citations,grounded,context}`. No matches returns grounded=false without a model request. Citations carry the current revision and its evidence. Actor-owned snapshots carry workspace epoch and model settings revision; changes during generation reject stale answers. Extraction material consent also gates remote QA.
+
+`get_feishu_status {}` returns redacted settings, personal authorization status, runtime status, and recent delivery records. `save_feishu_settings {appId,appSecret?,enabled,pollIntervalSeconds,replyPrefix,bindings:[{chatId,projectId,enabled}]}` validates local project IDs and updates device settings. `begin_feishu_authorization {}` returns `{authorizationUrl,redirectUri,expiresAt}` and starts a state-checked loopback OAuth callback. `disconnect_feishu {}` clears local personal authorization and disables delivery. `poll_feishu_now {}` requests an asynchronous poll. `list_feishu_chats {}` returns `{chats:[{chatId,name}]}` from personal authorization.
+
+The connector uses personal OAuth credentials only and searches new mentions of the authorized user inside explicitly bound enabled group chats. Delivery receipts have persistent message-ID deduplication outside project backups. Restore pauses the connector before changing project state. Network operations run outside the database actor and reuse its existing Engine rather than opening another workspace instance. Configuration and tokens are device-local, private, redacted, and excluded from project backups. See [setup and operational behavior](feishu-personal-assistant.md).
+
 The Rust core owns all persistent state. React uses a single `execute` Tauri command with `{ request: { command, payload } }`. Payloads and response objects use camelCase. Commands return JSON data or an error `{ code, message }`. There is no model connection in phase one. A user creates a proposal from source segments, then explicitly confirms it.
 
 Core public API: `Engine::open(root: impl AsRef<Path>) -> Result<Engine, AppError>`; cloneable Engine; `Engine::execute(request: Request) -> Result<serde_json::Value, AppError>`; `Request { command: String, payload: serde_json::Value }` (serde). A dedicated database thread owns the connection; parsing is outside the database actor. On startup pending/interrupted imports resume from persisted originals. All tests use isolated workspace directories.
@@ -34,7 +42,7 @@ Proposal: `{ id, projectId, sourceId, kind, content, status: "pending"|"confirme
 
 Memory: `{ id, projectId, kind, content, revision: number, state: "active", sourceTitle, confirmedAt, updatedAt }`.
 
-Revision: `{ id, memoryId, number, content, reason, origin: "confirmation"|"user_correction", createdAt, evidence: Evidence[] }`.
+Revision: `{ id, memoryId, number, content, reason, origin: "confirmation"|"user_correction"|"automatic", createdAt, evidence: Evidence[] }`.
 
 Evidence: `{ segmentId, sourceId, sourceTitle, locator, text }`.
 
@@ -127,3 +135,81 @@ Desktop `export_report {reportId}` -> `{cancelled:boolean,path?:string}` opens n
 Schema3 transactional migration preserves v1/v2 sources/memories/AI provenance. Tasks/events/proposals/report versions/idempotency records join consistent backups and full type/domain/evidence validation. v1 and v2 archives restore and migrate; unknown future schema refuses. Existing restored import/extract pause rules remain unchanged. Default daily page uses client date 2026-10-19 when applicable; do not hardcode it in product code.
 
 Phase3 desktop also adds `copy_report {reportId}` -> `{copied:true}`, writing the Rust-stored report through native clipboard; renderer does not receive general clipboard-read access. Counts for v3 backups add `tasks,reports` (report version count); old backup counts may omit these and UI displays0. Restore inspection must show task/report differences too. Existing counts fields remain unchanged.
+
+
+## Schema 4: source ingestion and memory maintenance
+
+- `get_feishu_sources {}` → `{settings:{enabled,intervalSeconds,sources:[{kind:"chat"|"document",target,projectId,enabled,historyDays}]},syncing,statuses,lastError}`. Source start anchors are server managed. Only explicitly selected sources are read; document URLs are validated as Feishu docx/wiki references. No arbitrary URL fetching.
+- `save_feishu_sources {enabled,intervalSeconds,sources}` → same status. Validates existing project IDs, source identity uniqueness, intervals60–3600 and lookback1–30 days. Source settings and cursors are device-local, excluded from archives.
+- `sync_feishu_sources {}` → `{queued:true}`. Queues asynchronous read/import work; inspect source statuses for completion. No reply is sent by ingestion.
+- `get_memory_maintenance {}` → `{settings:{enabled,idleSeconds,dailyCalls,autoNew,revision},callsToday,blockedReason,reviews,runs,origins}`. Defaults: enabled=true, idleSeconds=120, dailyCalls=100, autoNew=true. `get_state` adds `memoryReviewCount`.
+- `save_memory_maintenance {enabled,idleSeconds,dailyCalls,autoNew}` → settings. Validates idle30–3600 and dailyCalls1–2000; cancels stale work through a new configuration revision.
+- `memory_activity {}` → `{ok:true}`. Debounced actual user input only; polling must never call it.
+- `run_memory_maintenance {}` → `{queued:true}`. Explicitly runs one item even when scheduled maintenance is disabled; respects saved model permissions and daily budget.
+- `retry_memory_maintenance {}` requeues failed comparisons. Extraction retries use `retry_extraction`.
+- `recompare_memory_review {reviewId}` discards a still-pending comparison and queues fresh comparison; never changes formal memory.
+- `resolve_memory_review {reviewId,action:"new"|"replace"|"mergeEvidence"|"ignore",baseRevision?,content?}` → `{resolved:true}`. Public calls cannot set automatic provenance. Target mutations require both reviewed and current revisions to match. New/replace may use user-edited content; mergeEvidence preserves current content and prior evidence.
+
+Comparisons use current same-project memory with bounded model input, occurrence/revision metadata, exact-quote proposals and immutable source snapshots. Incomplete context cannot auto-admit new facts. Only Feishu-collected sources auto-apply independent new facts (if enabled) or literal duplicates; manually imported candidates remain pending. Conflicts and semantic duplicates need user review. Each accepted change creates a revision with evidence; `automatic` is visibly distinguished from human confirmation.
+
+Workspace epoch, configuration revision, model revision, source/job generations, proposal and memory snapshots plus user-activity generation guard commits. Worker HTTP runs outside the actor. Counters reserve each network model call before dispatch, including failed/ambiguous requests; deterministic local comparisons do not consume calls. Restoration pauses scheduled work and keeps the larger local daily usage counter, so old archives cannot refund requests. Secrets, subscriptions, cursors and reply receipts never enter project archives; source provenance, memory reviews and run histories do.
+
+Unresolved pending conflict/uncertain reviews with a target temporarily exclude that target from QA retrieval; the same check before sending invalidates an answer started before the conflict appeared. Resolution restores eligibility without deleting historical memory.
+
+
+## Schema 5: reviewed workload and daily capacity planning
+
+- `get_daily_planning {date,projectId?}` returns dated `capacity` (nullable), scoped active `tasks`, `estimates`, `relations`, that date's `allocations`, latest scoped `drafts` with stale flags, latest applicable `confirmedPlan`, bounded context counts and `modelAvailable`. Polling does not count as user activity.
+- `save_daily_capacity {date,minutes,bufferMinutes,baseRevision}` explicitly sets that date's personal capacity. Integer minutes0–960, buffer0–minutes, optimistic revision (null on creation). Past dates are immutable. No default/carry-forward capacity.
+- `save_task_estimate {taskId,baseVersion,baseUpdatedAt,minutes}` explicitly confirms5–1440 integer minutes. Task version and prior estimate timestamp (null on first estimate) must match.
+- `analyze_task_workload {date,projectId?,useModel?:boolean}` captures actor snapshot, performs bounded grounded structured analysis outside actor, saves pending analysis only if snapshot still current. Default useModel=true, saved material consent required. useModel=false suggests literal duplicates and existing pending source task proposals. No task mutation.
+- `preview_task_relation {date,projectId?,kind:"dependency"|"blocker",taskId,targetId:string|null,reason}` creates a one-change pending review; dependency means taskId waits for targetId. Same project, no self-reference.
+- `generate_daily_plan {date,projectId?,durationOverrides?:Record<taskId,integer>,skipTaskIds?:string[]}` creates pending deterministic dependency/capacity preview. Requires saved capacity. Unknown task overrides rejected. Result contains `items`, `deferred`, `commitments`, totals, date changes, reasons, assumptions and conditional prerequisites; no task mutation.
+- `confirm_planning_draft {draftId,selectedIds:string[]}`: analysis requires nonempty explicit chosen suggestion IDs; schedule requires[] and confirms complete reviewed plan (partial changes require regenerated preview). Snapshot guards include task versions, source/memory/proposal snapshots, estimates, graph, allocations, daily capacity, model revision and workspace epoch. Atomic transaction; cyclic graphs and merge chains rejected, no cross-project edges. Same applied selection is idempotent.
+- `dismiss_planning_draft {draftId}` dismisses pending suggestion with no task changes.
+- `remove_task_relation {relationId,createdAt}` confirms deactivation of one dependency/blocker. History retained. Does not change task status.
+
+Capacity is shared across projects; scoped plans reserve other-project same-day commitments plus same-day done work. Action predecessors may be sequenced in one day with explicit conditional wording. Follow-up effort never proves delivery and cannot unlock a dependent task. Scheduling does not change task status/progress/owner/deadline. Future planned dates are kept; non-fitting same-day items explicitly preview clearing plannedDate to null; no automatic next-day promises. Confirmed duration/order/reasons are separately persisted; task date changes enter normal user task events. Merge cancels source tasks with notes, keeps target fields, redirects dependencies/blockers and preserves history. Reviewed source task proposals can apply status/progress as shown; memory-based new tasks are unscheduled follow-ups with unassigned owner/deadline.
+
+Model evidence must be a same-project literal quote from the supplied catalog; memory_task and proposal changes must cite their respective source object. Current memories with pending conflict/uncertain reviews are excluded. Latest ready remote object version is used for Feishu original excerpts. Full scoped active task inventory is retained; descriptions and material excerpts are bounded, coverage limitations displayed. Up to100 suggested changes. No credentials, privileged commands or source instructions enter control flow.
+
+Schema5 adds planning_capacity,task_estimates,task_relations,planning_drafts,daily_allocations. Snapshot fingerprints, authentic historical task snapshots, analysis grounding, graph validity, deterministic schedule equality and allocation/draft consistency are validated during backup inspection. Restoration preserves confirmed planning history and invalidates pending drafts. Device Feishu credentials/settings remain excluded.
+# 项目交付与统一问答增量接口（schema 6）
+
+| 命令 | 主要输入 | 行为 |
+| --- | --- | --- |
+| `get_delivery_overview` | `date`, 可选 `projectId` | 返回项目档案、里程碑、任务计数、关注状态及判断依据 |
+| `save_project_profile` | `projectId`, `goal`, `status`, `targetDate`, `baseVersion` | 首次版本 0；后续按当前版本更新 |
+| `save_milestone` | `projectId`, 可选 `milestoneId`/`baseVersion`, `title`, `description`, `status`, `baselineDate`, `forecastDate`, `taskIds` | 新建或更新里程碑；关联仅限同项目，完成需关联任务全部完成 |
+| `get_follow_up_center` | `date`, 可选 `projectId` | 返回命中提醒、暂缓状态、跟进历史和未结任务跟进版本 |
+| `record_follow_up` | `taskId`, `baseVersion`, `workDate`, `note`, `nextFollowUpDate` | 保存独立跟进历史及下次日期，不修改任务交付状态 |
+| `snooze_follow_up` | `taskId`, `baseVersion`, `date`, `snoozedUntil` | 暂缓至指定日期；空值取消暂缓 |
+| `ask_assistant` | `question`, `date`, 可选 `projectId`/`useModel` | 默认本地规则，返回 `answer`, `mode`, `grounded`, `citations`, `updatedAt`, `limitations` |
+
+上述读取以当前记录为基础；`date` 不重建历史快照。问答内部快照与校验命令不能由公开 Engine/Tauri 接口调用。`ask_project` 与飞书问答的记忆范围保持独立。
+
+## 项目管理增量接口（schema 7）
+
+所有写入均校验同项目引用与当前版本，保留业务日期、录入时间和不可变修订。工作区备份包含新台账及历史。`get_state` 增加 `managementRevision`，用于使问答和管理提示随记录更新。
+
+| 命令 | 主要输入与行为 |
+| --- | --- |
+| `get_governance_workspace` / `get_governance_item` | `projectId?`, `date` / `itemId`；返回风险、问题、待决策台账及修订、依据 |
+| `save_governance_item` | `itemId?`, `baseVersion?`, `projectId`, `kind`, `title`, `owner`, `severity`, `impact`, `responsePlan`, `status`, `workDate`，可选期限、复查、升级对象、关联和证据；关闭需 `resolution` / `closureReason`，决策另需 `decisionMaker` / `conclusion` |
+| `record_governance_progress` | `itemId`, `baseVersion`, `workDate`, `note`；记录独立进展 |
+| `get_change_acceptance` | `projectId?`, `date`；返回变更、交付验收、历史及目标版本复核结果 |
+| `save_change_request` | `changeId?`, `baseVersion?`, `projectId`, `date`, `title`, `before`, `after`, `reason`, `requester`, `decisionOwner`, `scopeImpact`, `scheduleImpact`, `effortImpact`, `links`, `segmentIds` |
+| `transition_change_request` | `changeId`, `baseVersion`, `date`, `status`, `actor`, `note`；提交、批准、拒绝、实施或取消，批准人必须匹配决策人 |
+| `save_deliverable` | `deliverableId?`, `baseVersion?`, `projectId`, `date`, `title`, `owner`, `target:{kind,id,version}`, `criteria:[{id?,title,status,evidence,note}]`, `links`, `segmentIds` |
+| `review_deliverable` | `deliverableId`, `baseVersion`, `date`, `status`, `reviewer`, `note`, `remediation`；先进入 `in_review`，再 `accepted` / `rejected`，通过要求标准全部通过且目标在验收日期前已完成 |
+| `delete_change_request` / `delete_deliverable` | 草案软取消，保留历史 |
+| `coordination_list` | `projectId?`；返回周报、会议及行动项索引 |
+| `coordination_generate_report` | `projectId?`, `startDate`, `endDate`, `reportId?`, `baseVersion?`；保存新报告版本及冻结依据 |
+| `coordination_get_report` / `coordination_save_report` | `reportId`, `version?` / `reportId`, `baseVersion`, `content`；读取历史或保存编辑版 |
+| `coordination_save_meeting` | `projectId`, `meetingId?`, `baseVersion?`, `title`, `date`, `attendees`, `objective`, `agenda`, `briefing`, `minutes`, `decisions` |
+| `coordination_prepare_meeting` / `coordination_get_meeting` | `meetingId`, `baseVersion` / `meetingId`, `version?`；生成材料或读取历史 |
+| `coordination_save_action` | `meetingId`, `actionId?`, `baseVersion?`, `title`, `owner`, `dueDate`, `status`；仅记录约定 |
+| `coordination_confirm_action` | `actionId`, `baseVersion`, `workDate`, `category?:action\|follow_up`；默认跟进，幂等返回 `{action,task,alreadyConfirmed}` |
+| `get_management_attention` | `date`, `projectId?`；只读关注项，供总览与全局提示使用 |
+
+桌面 `export_coordination_report {reportId,version}` 使用保存对话框导出 Rust 中已保存的 Markdown；`copy_coordination_report` 复制同一保存版本。统一问答增加治理、变更、验收、周报、会议及行动项引用，可跳回管理记录；行动项同时标明当前任务状态、负责人、期限和会议原约定。

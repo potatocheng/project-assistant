@@ -105,3 +105,27 @@ export async function copyReport(reportId: string, content: string): Promise<voi
     throw new AppError('请在桌面应用中复制日报。', 'DESKTOP_REQUIRED');
   } catch (error) { throw asError(error); }
 }
+
+export async function exportCoordinationReport(reportId: string, version: number, filename: string): Promise<boolean> {
+  try {
+    if ('__TAURI_INTERNALS__' in window) {
+      const result = await invoke<{ cancelled?: boolean }>('export_coordination_report', { reportId, version });
+      return !result.cancelled;
+    }
+    if (import.meta.env.DEV && bridge) {
+      const report = await execute<{ content: string }>('coordination_get_report', { reportId, version });
+      const url = URL.createObjectURL(new Blob([report.content], { type: 'text/markdown;charset=utf-8' }));
+      const anchor = document.createElement('a'); anchor.href = url; anchor.download = filename; anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000); return true;
+    }
+    throw new AppError('请从桌面应用导出周报。', 'DESKTOP_REQUIRED');
+  } catch (error) { throw asError(error); }
+}
+
+export async function copyCoordinationReport(reportId: string, version: number, content: string): Promise<void> {
+  try {
+    if ('__TAURI_INTERNALS__' in window) { await invoke('copy_coordination_report', { reportId, version }); return; }
+    if (import.meta.env.DEV && bridge) { await navigator.clipboard.writeText(content); return; }
+    throw new AppError('请从桌面应用复制周报。', 'DESKTOP_REQUIRED');
+  } catch (error) { throw asError(error); }
+}

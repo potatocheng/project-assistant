@@ -1,5 +1,6 @@
 export type MemoryKind = 'fact' | 'decision' | 'requirement' | 'risk';
-export type Page = 'daily' | 'tasks' | 'reports' | 'sources' | 'memories' | 'backups';
+export type ManagementKind = 'governance' | 'change' | 'deliverable' | 'meeting' | 'meeting_action' | 'weekly_report';
+export type Page = 'governance' | 'changes' | 'coordination' | 'overview' | 'followups' | 'assistant' | 'daily' | 'tasks' | 'reports' | 'sources' | 'memories' | 'backups';
 
 export interface Project { id: string; name: string; description: string; createdAt: string }
 export interface Source {
@@ -23,7 +24,7 @@ export interface Memory {
 export interface Evidence { segmentId: string; sourceId: string; sourceTitle: string; locator: string; text: string }
 export interface Revision {
   id: string; memoryId: string; number: number; content: string; reason: string;
-  origin: 'confirmation' | 'user_correction'; createdAt: string; evidence: Evidence[];
+  origin: 'confirmation' | 'user_correction' | 'automatic'; createdAt: string; evidence: Evidence[];
 }
 export interface Job {
   id: string; kind: string; status: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
@@ -47,7 +48,8 @@ export interface AppState {
   workspace: { dataDir: string; schemaVersion: number; recoveredJobs: number };
   projects: Project[]; sources: Source[]; proposals: Proposal[];
   memories: Memory[]; jobs: Job[]; backups: Backup[];
-  aiSettings: AiSettings;
+  aiSettings: AiSettings; memoryReviewCount: number;
+  managementRevision?: string;
   tasks: Task[]; taskProposals: TaskProposal[]; reports: ReportSummary[];
 }
 export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done' | 'cancelled';
@@ -89,6 +91,28 @@ export interface MemoryDetail { memory: Memory; revisions: Revision[] }
 export interface BackupInspection { formatVersion: number; createdAt: string; counts: Counts; compatible: boolean }
 export interface ImportResult { jobId: string; duplicate: boolean; sourceId: string }
 export interface FileInput { filename: string; contentBase64: string }
+
+export interface FeishuBinding { chatId: string; projectId: string; enabled: boolean }
+export interface FeishuEditableSettings {
+  appId: string; enabled: boolean; pollIntervalSeconds: number; replyPrefix: string; bindings: FeishuBinding[];
+}
+export interface FeishuMessage {
+  id: string; messageId: string; chatId: string; projectId: string; question: string; answer: string | null;
+  status: string; error: string | null; createdAt: string; updatedAt: string;
+}
+export interface FeishuStatus {
+  settings: FeishuEditableSettings & { hasAppSecret: boolean; redirectUri: string };
+  authorization: {
+    status: 'disconnected' | 'authorizing' | 'connected' | 'expired';
+    user: { openId: string; name: string } | null; authorizationUrl?: string | null;
+  };
+  runtime: { polling: boolean; lastPollAt: string | null; lastError: string | null };
+  recentMessages: FeishuMessage[];
+}
+export interface ProjectAnswer {
+  answer: string; grounded: boolean; context: unknown;
+  citations: Array<{ memoryId: string; revision: number; content: string; sourceTitle: string; evidence: Evidence[] }>;
+}
 
 export const KIND_LABELS: Record<MemoryKind, string> = {
   fact: '项目事实', decision: '项目决策', requirement: '项目需求', risk: '项目风险',
