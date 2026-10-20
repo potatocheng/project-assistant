@@ -3,12 +3,13 @@ import type { FormEvent, ReactNode } from 'react';
 import {
   Archive, ArrowDownToLine, ArrowRight, Bell, CalendarDays, Check, CheckCheck, ChevronDown, ClipboardList,
   ChevronRight, CircleAlert, FilePlus2, FileText, Folder, HardDrive, History, Layers3,
-  ListTodo, Menu, MessageCircle, PencilLine, Plus, RefreshCw, Search, Settings2, ShieldCheck, Upload, X,
+  ListTodo, Menu, MessageCircle, PencilLine, Plus, Radar, RefreshCw, Search, Settings2, ShieldCheck, Upload, X,
 } from 'lucide-react';
 import { Dialog, Spinner } from './components/ui';
 import { ModelSettingsDialog, endpointInfo } from './components/ModelSettings';
 import { MemoryCenter } from './components/MemoryCenter';
 import { FeishuSettingsDialog } from './components/FeishuSettings';
+import { ChatReplies } from './components/ChatReplies';
 import { ExtractionStatus } from './components/ExtractionStatus';
 import { ProposalEditor } from './components/ProposalEditor';
 import { TaskWorkspace } from './components/work/TaskWorkspace';
@@ -18,6 +19,8 @@ import { DeliveryOverview } from './components/delivery/DeliveryOverview';
 import { FollowUpCenter } from './components/delivery/FollowUpCenter';
 import { AssistantWorkspace } from './components/delivery/AssistantWorkspace';
 import { useFollowUpAlerts } from './components/delivery/useFollowUpAlerts';
+import { ProactiveCenter } from './components/proactive/ProactiveCenter';
+import { useProactiveAlerts } from './components/proactive/useProactiveAlerts';
 import { GovernanceWorkspace } from './components/governance/GovernanceWorkspace';
 import { ChangeAcceptanceWorkspace } from './components/governance/ChangeAcceptanceWorkspace';
 import { CoordinationWorkspace } from './components/governance/CoordinationWorkspace';
@@ -52,6 +55,15 @@ function Empty({ icon, title, children, action }: { icon?: ReactNode; title: str
   return <div className="empty-state"><div className="empty-icon">{icon ?? <FileText size={28} strokeWidth={1.4} />}</div><h2>{title}</h2>{children && <p>{children}</p>}{action && <div className="empty-actions">{action}</div>}</div>;
 }
 function Kind({ kind }: { kind: MemoryKind }) { return <span className="kind-label">{KIND_LABELS[kind] ?? kind}</span>; }
+
+function SidebarGroup({ label, icon, active, attention, children }: { label: string; icon: ReactNode; active: boolean; attention?: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(active);
+  useEffect(() => { setOpen(active); }, [active]);
+  return <details className={`nav-group ${active ? 'nav-group-current' : ''}`} open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
+    <summary>{icon}<span>{label}</span>{attention && <i className="nav-attention-dot" aria-label="有待处理事项" />}<ChevronRight size={14} /></summary>
+    <div className="nav-group-items">{children}</div>
+  </details>;
+}
 
 function Welcome({ onCreate, onRestore }: { onCreate: () => void; onRestore: () => void }) {
   return <section className="welcome-state">
@@ -106,9 +118,10 @@ export default function App() {
   const toolsMenu = useRef<HTMLDetailsElement>(null);
   const deliveryPage = page === 'overview' || page === 'followups' || page === 'assistant';
   const managementPage = page === 'governance' || page === 'changes' || page === 'coordination';
-  const workPage = managementPage || deliveryPage || page === 'daily' || page === 'tasks' || page === 'reports';
+  const workPage = page === 'proactive' || page === 'chat-replies' || managementPage || deliveryPage || page === 'daily' || page === 'tasks' || page === 'reports';
   const reminders = useFollowUpAlerts(!!state, reminderRevision);
   const managementAttention = useManagementAttention(!!state, state?.managementRevision, reminderRevision);
+  const proactiveAlerts = useProactiveAlerts(!!state, reminderRevision);
 
   useEffect(() => {
     const dismiss = (event: PointerEvent) => {
@@ -270,29 +283,42 @@ export default function App() {
     finally { setBusy(''); }
   };
 
-  const title = { governance: '风险与决策', changes: '变更与验收', coordination: '周报与会议', overview: '项目总览', followups: '提醒与跟进', assistant: '项目问答', daily: '每日清单', tasks: '全部任务', reports: '工作日报', sources: '项目资料', memories: '项目记忆', backups: '备份与恢复' }[page];
-  const unfinishedCount = (state?.tasks ?? []).filter((task) => ['todo', 'in_progress', 'blocked'].includes(task.status)).length;
+  const title = { proactive: '待处理行动', 'chat-replies': '聊天回复', governance: '风险与决策', changes: '变更与验收', coordination: '周报与会议', overview: '项目总览', followups: '提醒与跟进', assistant: '项目问答', daily: '每日清单', tasks: '全部任务', reports: '工作日报', sources: '项目资料', memories: '项目记忆', backups: '备份与恢复' }[page];
   const breadcrumb = workPage ? state?.projects.find((project) => project.id === workProjectId)?.name ?? '全部项目' : page === 'backups' ? '本机工作区' : activeProject?.name ?? '工作区';
   const sourceList = sources.filter((source) => source.title.toLowerCase().includes(filter.toLowerCase()));
   const memoryList = memories.filter((memory) => memory.content.toLowerCase().includes(filter.toLowerCase()));
   const retry = () => { setLoading(true); setLoadError(''); setReloadTick((value) => value + 1); };
+  const attention = proactiveAlerts.showBanner && page !== 'proactive'
+    ? { icon: <Radar size={15} />, message: `${proactiveAlerts.count} 项行动待处理${proactiveAlerts.firstTitle ? ` · ${proactiveAlerts.firstTitle}` : ''}`, action: '查看行动', open: () => { setWorkProjectId(''); changePage('proactive'); }, dismiss: proactiveAlerts.dismiss }
+    : !proactiveAlerts.automaticEnabled && reminders.showBanner && page !== 'followups'
+      ? { icon: <Bell size={15} />, message: `${reminders.count} 项事项待跟进${reminders.firstTitle ? ` · ${reminders.firstTitle}` : ''}`, action: '查看跟进', open: () => { setWorkDay(localDay()); setWorkProjectId(''); changePage('followups'); }, dismiss: reminders.dismiss }
+      : !proactiveAlerts.automaticEnabled && managementAttention.showBanner && !managementPage
+        ? { icon: <ShieldCheck size={15} />, message: `${managementAttention.count} 项管理事项待关注 · ${managementAttention.items[0]?.title ?? ''}`, action: '查看事项', open: () => { setWorkDay(localDay()); setWorkProjectId(''); changePage(managementAttention.items[0]?.kind === 'governance' ? 'governance' : 'changes'); }, dismiss: managementAttention.dismiss }
+        : null;
 
   return <div className="app-shell">
     {mobileNav && <button className="nav-scrim" aria-label="收起导航" onClick={() => setMobileNav(false)} />}
     <aside className={`sidebar ${mobileNav ? 'sidebar-open' : ''}`}>
       <div className="brand"><div className="brand-mark"><Layers3 size={21} strokeWidth={1.8} /></div><div className="brand-copy"><strong>项目助理</strong><span>本地工作空间</span></div></div>
       <nav className="main-nav" aria-label="工作区导航">
-        <span className="nav-group-label">工作</span>
+        <span className="nav-group-label">日常工作</span>
+        <button aria-current={page === 'daily' ? 'page' : undefined} className={page === 'daily' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('daily')}><CalendarDays size={18} /><span>每日清单</span></button>
+        <button aria-current={page === 'proactive' ? 'page' : undefined} className={page === 'proactive' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('proactive')}><Radar size={18} /><span>待处理行动</span>{proactiveAlerts.count > 0 && <small className="nav-count nav-count-attention" title="需要处理的行动">{proactiveAlerts.count}</small>}</button>
+        <button aria-current={page === 'tasks' ? 'page' : undefined} className={page === 'tasks' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('tasks')}><ListTodo size={18} /><span>全部任务</span></button>
+        <button aria-current={page === 'reports' ? 'page' : undefined} className={page === 'reports' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('reports')}><ClipboardList size={18} /><span>工作日报</span></button>
+        <div className="nav-secondary">
+        <SidebarGroup label="项目与资料" icon={<Folder size={18} />} active={managementPage || page === 'overview' || page === 'sources' || page === 'memories'} attention={managementAttention.count > 0}>
         <button aria-current={page === 'overview' ? 'page' : undefined} className={page === 'overview' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('overview')}><Layers3 size={18} /><span>项目总览</span></button>
         <button aria-current={managementPage ? 'page' : undefined} className={managementPage ? 'nav-item active' : 'nav-item'} onClick={() => changePage('governance')}><ShieldCheck size={18} /><span>项目管理</span>{managementAttention.count > 0 && <small className="nav-count" title="风险、待审批变更和验收关注">{managementAttention.count}</small>}</button>
-        <button aria-current={page === 'followups' ? 'page' : undefined} className={page === 'followups' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('followups')}><Bell size={18} /><span>提醒与跟进</span>{reminders.count > 0 && <small className="nav-count">{reminders.count}</small>}</button>
-        <button aria-current={page === 'assistant' ? 'page' : undefined} className={page === 'assistant' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('assistant')}><MessageCircle size={18} /><span>项目问答</span></button>
-        <button aria-current={page === 'daily' ? 'page' : undefined} className={page === 'daily' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('daily')}><CalendarDays size={18} /><span>每日清单</span></button>
-        <button aria-current={page === 'tasks' ? 'page' : undefined} className={page === 'tasks' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('tasks')}><ListTodo size={18} /><span>任务</span>{unfinishedCount > 0 && <small className="nav-count" title={`${unfinishedCount} 项未完成任务`}>{unfinishedCount}</small>}</button>
-        <button aria-current={page === 'reports' ? 'page' : undefined} className={page === 'reports' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('reports')}><ClipboardList size={18} /><span>日报</span></button>
-        <span className="nav-group-label knowledge-label">项目知识</span>
         <button aria-current={page === 'sources' ? 'page' : undefined} className={page === 'sources' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('sources')}><FileText size={18} /><span>项目资料</span></button>
         <button aria-current={page === 'memories' ? 'page' : undefined} className={page === 'memories' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('memories')}><Layers3 size={18} /><span>项目记忆</span></button>
+        </SidebarGroup>
+        <SidebarGroup label="沟通与跟进" icon={<MessageCircle size={18} />} active={page === 'assistant' || page === 'chat-replies' || page === 'followups'} attention={reminders.count > 0}>
+        <button aria-current={page === 'followups' ? 'page' : undefined} className={page === 'followups' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('followups')}><Bell size={18} /><span>提醒与跟进</span>{reminders.count > 0 && <small className="nav-count">{reminders.count}</small>}</button>
+        <button aria-current={page === 'assistant' ? 'page' : undefined} className={page === 'assistant' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('assistant')}><MessageCircle size={18} /><span>项目问答</span></button>
+        <button aria-current={page === 'chat-replies' ? 'page' : undefined} className={page === 'chat-replies' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('chat-replies')}><MessageCircle size={18} /><span>聊天回复</span></button>
+        </SidebarGroup>
+        </div>
       </nav>
       <div className="sidebar-section-heading"><span>项目</span><button className="icon-button small" title="新建项目" aria-label="新建项目" disabled={!state || !!busy} onClick={() => setDialog('project')}><Plus size={16} /></button></div>
       <div className="project-list">
@@ -330,11 +356,9 @@ export default function App() {
       <header className="topbar"><div className="topbar-leading"><button className="icon-button mobile-menu" aria-label="打开导航" onClick={() => setMobileNav(true)}><Menu size={20} /></button><span className="breadcrumb">{breadcrumb}</span><ChevronRight size={13} /><h1>{title}</h1></div><div className="topbar-actions">{runningJobs.length > 0 && <span className="processing-label"><Spinner />正在处理 {runningJobs.length} 项</span>}<button className="icon-button refresh-button" aria-label="刷新工作区" title="刷新工作区" disabled={!!busy || loading} onClick={() => { refresh().then(() => setReloadTick((tick) => tick + 1)).catch((error) => setNotice({ message: asError(error).message, error: true })); }}><RefreshCw size={16} /></button>{page === 'sources' && activeProject && <button className="button primary compact" onClick={() => openImport()} disabled={!!busy}><Plus size={15} />导入资料</button>}</div></header>
 
       {state && state.workspace.recoveredJobs > 0 && !recoveryDismissed && <div className="recovery-banner"><RefreshCw size={15} /><span>已恢复 {state.workspace.recoveredJobs} 项中断的处理任务，资料仍保存在本机。</span><button className="icon-button small" aria-label="关闭恢复提示" onClick={() => setRecoveryDismissed(true)}><X size={15} /></button></div>}
-      {reminders.showBanner && page !== 'followups' && <div className="recovery-banner follow-up-alert" role="status"><Bell size={15} /><span>今天有 {reminders.count} 项事项需要跟进{reminders.firstTitle ? `，包括「${reminders.firstTitle}」` : ''}。</span><button className="text-button" onClick={() => { setWorkDay(localDay()); setWorkProjectId(''); changePage('followups'); }}>查看跟进</button><button className="icon-button small" aria-label="收起本次跟进提醒" onClick={reminders.dismiss}><X size={15} /></button></div>}
+      {attention && <div className="attention-strip" role="status">{attention.icon}<span title={attention.message}>{attention.message}</span><button className="text-button" onClick={attention.open}>{attention.action}<ArrowRight size={13} /></button><button className="icon-button small" aria-label="收起本次提醒" onClick={attention.dismiss}><X size={15} /></button></div>}
 
-      {managementAttention.showBanner && !managementPage && <div className="recovery-banner follow-up-alert" role="status"><ShieldCheck size={15} /><span>项目管理有 {managementAttention.count} 项需要关注，包括「{managementAttention.items[0]?.title}」。</span><button className="text-button" onClick={() => { setWorkDay(localDay()); setWorkProjectId(''); changePage(managementAttention.items[0]?.kind === 'governance' ? 'governance' : 'changes'); }}>查看管理事项</button><button className="icon-button small" aria-label="收起本次管理提醒" onClick={managementAttention.dismiss}><X size={15} /></button></div>}
-
-      {loading ? <div className="loading-view"><Spinner /><span>正在打开本地工作区…</span></div> : loadError ? <Empty icon={<CircleAlert size={30} />} title="无法打开工作区" action={<button className="button primary" onClick={retry}><RefreshCw size={16} />重新连接</button>}>{loadError}</Empty> : state && !state.projects.length && page !== 'backups' ? <Welcome onCreate={() => setDialog('project')} onRestore={() => changePage('backups')} /> : managementPage && state ? <div className="delivery-shell management-shell"><nav className="management-tabs" aria-label="项目管理模块">{(['governance', 'changes', 'coordination'] as const).map((entry) => <button key={entry} aria-current={page === entry ? 'page' : undefined} className={page === entry ? 'active' : ''} onClick={() => changePage(entry)}>{entry === 'governance' ? '风险、问题与决策' : entry === 'changes' ? '需求变更与验收' : '周报与会议准备'}</button>)}</nav><WorkFilters day={workDay} onDayChange={setWorkDay} projects={state.projects} projectId={workProjectId} onProjectChange={setWorkProjectId} />{page === 'governance' ? <GovernanceWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} /> : page === 'changes' ? <ChangeAcceptanceWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} /> : <CoordinationWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} />}</div> : deliveryPage && state ? <div className="delivery-shell"><WorkFilters day={workDay} onDayChange={setWorkDay} projects={state.projects} projectId={workProjectId} onProjectChange={setWorkProjectId} />{page === 'overview' ? <DeliveryOverview onManagementOpen={openManagement} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} notify={(message, error) => setNotice({ message, error })} /> : page === 'followups' ? <FollowUpCenter state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} notify={(message, error) => setNotice({ message, error })} /> : <AssistantWorkspace onManagementOpen={openManagement} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} />}</div> : workPage && state ? page === 'reports' ? <ReportWorkspace key="reports" state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={setWorkProjectId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onTaskOpen={openTask} onEvidence={openEvidence} /> : <TaskWorkspace key={page} mode={page === 'daily' ? 'daily' : 'tasks'} state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={setWorkProjectId} focusTaskId={focusTaskId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onEvidence={openEvidence} onReport={() => setPage('reports')} /> : page === 'backups' ? <div className="backup-page">
+      {loading ? <div className="loading-view"><Spinner /><span>正在打开本地工作区…</span></div> : loadError ? <Empty icon={<CircleAlert size={30} />} title="无法打开工作区" action={<button className="button primary" onClick={retry}><RefreshCw size={16} />重新连接</button>}>{loadError}</Empty> : page === 'chat-replies' && state ? <ChatReplies projects={state.projects} projectId={workProjectId} onProjectChange={setWorkProjectId} openSettings={() => openTool('feishu')} refreshKey={reminderRevision} /> : page === 'proactive' && state ? <ProactiveCenter key={workProjectId} projects={state.projects} projectId={workProjectId} onProjectChange={setWorkProjectId} refreshRevision={reminderRevision} onChanged={() => setReminderRevision((value) => value + 1)} onTaskOpen={openTask} onManagementOpen={openManagement} onOverviewOpen={(id) => { setWorkProjectId(id); changePage('overview'); }} notify={(message, error) => setNotice({ message, error })} /> : state && !state.projects.length && page !== 'backups' ? <Welcome onCreate={() => setDialog('project')} onRestore={() => changePage('backups')} /> : managementPage && state ? <div className="delivery-shell management-shell"><nav className="management-tabs" aria-label="项目管理模块">{(['governance', 'changes', 'coordination'] as const).map((entry) => <button key={entry} aria-current={page === entry ? 'page' : undefined} className={page === entry ? 'active' : ''} onClick={() => changePage(entry)}>{entry === 'governance' ? '风险、问题与决策' : entry === 'changes' ? '需求变更与验收' : '周报与会议准备'}</button>)}</nav><WorkFilters day={workDay} onDayChange={setWorkDay} projects={state.projects} projectId={workProjectId} onProjectChange={setWorkProjectId} />{page === 'governance' ? <GovernanceWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} /> : page === 'changes' ? <ChangeAcceptanceWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} /> : <CoordinationWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} />}</div> : deliveryPage && state ? <div className="delivery-shell"><WorkFilters day={workDay} onDayChange={setWorkDay} projects={state.projects} projectId={workProjectId} onProjectChange={setWorkProjectId} />{page === 'overview' ? <DeliveryOverview onManagementOpen={openManagement} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} notify={(message, error) => setNotice({ message, error })} /> : page === 'followups' ? <FollowUpCenter state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} notify={(message, error) => setNotice({ message, error })} /> : <AssistantWorkspace onManagementOpen={openManagement} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} />}</div> : workPage && state ? page === 'reports' ? <ReportWorkspace key="reports" state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={setWorkProjectId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onTaskOpen={openTask} onEvidence={openEvidence} /> : <TaskWorkspace key={page} mode={page === 'daily' ? 'daily' : 'tasks'} state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={setWorkProjectId} focusTaskId={focusTaskId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onEvidence={openEvidence} onReport={() => setPage('reports')} /> : page === 'backups' ? <div className="backup-page">
         <div className="page-heading"><div><div className="eyebrow">本地数据保护</div><h2>备份与恢复</h2><p>备份包含项目、资料、记忆、任务事件和日报版本。模型设置与密钥不包含在备份中。</p></div><button className="button primary" onClick={makeBackup} disabled={!!busy}>{busy === 'backup' ? <Spinner /> : <Plus size={16} />}创建备份</button></div>
         <div className="backup-summary"><div><span className="summary-number">{state?.backups.length ?? 0}</span><span>份本机备份</span></div><p>创建后可导出 ZIP 文件，保存到其他位置。</p></div>
         <div className="section-title-row"><h3>已有备份</h3><span>{state?.backups.length ?? 0} 份记录</span></div>

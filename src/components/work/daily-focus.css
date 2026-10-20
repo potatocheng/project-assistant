@@ -1,0 +1,81 @@
+.daily-planning.daily-focus {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 0 0 16px;
+}
+
+.daily-focus .planning-heading { gap: 20px; }
+.daily-focus .daily-focus-heading { min-width: 0; }
+.daily-focus .daily-focus-heading h3 { font-size: 12px; color: var(--muted); font-weight: 500; }
+.daily-focus .daily-focus-heading h3 > svg { width: 15px; height: 15px; }
+.daily-focus .daily-focus-heading p { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 14px; margin-top: 8px; line-height: 1.6; }
+.daily-focus .daily-focus-heading p strong { font-size: 15px; color: var(--ink); font-weight: 600; }
+.daily-focus .daily-focus-heading p > span { font-size: 12px; }
+.daily-focus .planning-heading-actions { gap: 16px; }
+.daily-focus .daily-focus-toggle { color: var(--muted); }
+.daily-focus .planning-controls { margin-top: 20px; }
+.daily-focus .planning-capacity { max-width: 660px; gap: 16px; }
+.daily-focus .planning-capacity label { font-size: 12px; }
+.daily-focus .planning-capacity > div { padding-bottom: 0; font-size: 12px; }
+.daily-focus .planning-capacity > div strong { color: var(--ink); margin-left: 7px; }
+.daily-focus-input { position: relative; display: block; }
+.daily-focus-input > span { position: absolute; top: 50%; right: 13px; transform: translateY(-50%); pointer-events: none; font-size: 12px; color: var(--muted); }
+.daily-focus .daily-focus-input input { padding-right: 49px; }
+.daily-focus .daily-focus-generate { margin-top: 18px; gap: 13px; }
+.daily-focus .daily-focus-generate .planning-context { margin: 0; font-size: 12px; }
+.daily-focus .daily-focus-secondary-actions { margin-top: 13px; gap: 16px; }
+.daily-focus .planning-details > summary { color: var(--secondary); min-height: 28px; }
+.daily-focus .daily-focus-advanced { margin-top: 21px; padding-top: 12px; }
+.daily-focus .daily-focus-advanced > summary { font-size: 12px; }
+.daily-focus .daily-focus-advanced > .planning-details { margin-top: 16px; border-top-style: dashed; }
+.daily-focus .planning-model { margin-top: 12px; align-items: flex-start; }
+.daily-focus .planning-model input { flex-shrink: 0; margin-top: 3px; }
+.daily-focus .daily-focus-drafts { gap: 9px 17px; margin-top: 19px; align-items: center; }
+.daily-focus-drafts > span { font-size: 12px; color: var(--muted); }
+.daily-focus .planning-approved-summary { margin-top: 16px; color: var(--muted); font-size: 11px; }
+
+.daily-focus-review .planning-budget.daily-focus-budget { background: transparent; border-bottom: 1px solid var(--line); border-radius: 0; padding: 0 0 21px; margin-bottom: 17px; align-items: center; gap: 29px; }
+.daily-focus-budget > div:first-child { display: flex; flex-direction: column; gap: 5px; }
+.daily-focus-budget > div:first-child > span { color: var(--muted); font-size: 12px; }
+.daily-focus-budget > div:first-child > strong { color: var(--ink); font-size: 32px; line-height: 1.15; font-weight: 600; letter-spacing: -.8px; }
+.daily-focus-budget strong small { margin-left: 7px; font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.daily-focus-budget-context { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 12px; }
+.daily-focus-budget-context > span:first-child { color: var(--ink); }
+.daily-focus-review .planning-item { background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 19px 0; margin: 0; border-radius: 0; }
+.daily-focus-review .planning-item-heading { align-items: baseline; gap: 12px; flex-wrap: nowrap; }
+.daily-focus-review .planning-item-heading > strong { min-width: 0; overflow-wrap: anywhere; line-height: 1.65; }
+.daily-focus-review .planning-item-heading > .daily-focus-duration { color: var(--ink); font-size: 13px; font-weight: 500; }
+.daily-focus-review .planning-item > .daily-focus-item-reason { margin: 7px 0 9px; color: var(--secondary); font-size: 12px; }
+.daily-focus-item-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 14px; font-size: 11px; color: var(--muted); line-height: 1.7; }
+.daily-focus-item-adjust { margin-top: 10px; }
+.daily-focus-item-adjust > summary, .daily-focus-commitments > summary { list-style: none; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; color: var(--muted); font-size: 12px; min-height: 25px; }
+.daily-focus-item-adjust > summary::-webkit-details-marker, .daily-focus-commitments > summary::-webkit-details-marker, .daily-focus-deferred > summary::-webkit-details-marker { display: none; }
+.daily-focus-item-adjust > summary svg, .daily-focus-commitments > summary svg, .daily-focus-deferred > summary > svg { transition: transform .18s ease; }
+.daily-focus-item-adjust[open] > summary svg, .daily-focus-commitments[open] > summary svg, .daily-focus-deferred[open] > summary > svg { transform: rotate(180deg); }
+.daily-focus-item-adjust .planning-item-fields { padding-top: 12px; gap: 12px 22px; }
+.daily-focus-count { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 6px; }
+.daily-focus-deferred { margin-top: 22px; }
+.daily-focus-deferred > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; min-height: 37px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--secondary); }
+.daily-focus-deferred > .field-hint { margin-top: 6px; }
+.daily-focus-commitments { margin-top: 12px; }
+.daily-focus-commitments > p { color: var(--secondary); font-size: 12px; line-height: 1.8; margin-top: 10px; }
+.daily-focus-retry { margin-top: 19px; }
+.daily-focus-retry .planning-warning { margin-bottom: 12px; }
+
+@media (max-width: 680px) {
+  .daily-focus .planning-heading { flex-direction: row; align-items: center; gap: 12px; }
+  .daily-focus .planning-heading-actions { width: auto; flex-shrink: 0; justify-content: flex-end; flex-wrap: wrap; gap: 8px; max-width: 135px; }
+  .daily-focus .daily-focus-heading p { font-size: 11px; }
+  .daily-focus .daily-focus-heading p strong { font-size: 14px; }
+  .daily-focus .daily-focus-generate { align-items: flex-start; flex-direction: column; gap: 9px; }
+  .daily-focus-review .planning-budget.daily-focus-budget { gap: 18px 23px; }
+  .daily-focus-budget-context { font-size: 11px; }
+  .daily-focus-review .planning-item-heading { gap: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .daily-focus .planning-controls { animation: none; }
+  .daily-focus-item-adjust > summary svg, .daily-focus-commitments > summary svg, .daily-focus-deferred > summary > svg { transition: none; }
+}

@@ -1,0 +1,50 @@
+.chat-replies { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--surface); }
+.chat-replies-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 22px 36px 17px; }
+.chat-replies-connection, .chat-replies-actions { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.chat-replies-connection { flex-wrap: wrap; font-size: 12px; }
+.chat-replies-connection strong { font-weight: 550; }
+.chat-replies-connection > span:last-child:not(.settings-status-dot) { color: var(--muted); overflow-wrap: anywhere; }
+.chat-replies-actions { flex-shrink: 0; }
+.chat-replies-filters { display: grid; grid-template-columns: minmax(130px, 1fr) 135px 150px minmax(170px, 1.5fr); gap: 10px; padding: 0 36px 18px; border-bottom: 1px solid var(--line); }
+.chat-replies-filters select, .chat-replies-search input { font-size: 12px; min-width: 0; }
+.chat-replies-search { display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid #dce0d6; border-radius: 6px; color: var(--muted); min-width: 0; }
+.chat-replies-search input:not([type='checkbox']):not([type='file']) { border: 0; padding-left: 0; padding-right: 0; background: transparent; box-shadow: none; }
+.chat-replies-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 14px 36px; font-size: 11px; color: var(--muted); }
+.chat-replies-list { flex: 1; min-height: 0; overflow-y: auto; padding: 0 36px 30px; }
+.chat-reply { padding: 23px 0 27px; border-bottom: 1px solid var(--line); }
+.chat-reply-heading, .chat-reply-heading > div { display: flex; flex-wrap: wrap; align-items: center; gap: 9px 13px; }
+.chat-reply-heading { justify-content: space-between; margin-bottom: 18px; font-size: 11px; color: var(--muted); }
+.chat-reply-heading strong { font-size: 13px; font-weight: 550; color: var(--ink); overflow-wrap: anywhere; }
+.chat-reply-channel { color: var(--green); }
+.chat-reply-outcome { font-weight: 550; }
+.chat-reply-sent { color: var(--green); }
+.chat-reply-attention { color: var(--danger); }
+.chat-reply-content { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.5fr); gap: 32px; }
+.chat-reply-content > div > span { display: block; font-size: 11px; color: var(--muted); margin-bottom: 9px; }
+.chat-reply-content p { font-size: 13px; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-reply-answer { border-left: 2px solid var(--green-soft); padding-left: 21px; }
+.chat-reply-answer small { display: block; margin-top: 10px; color: var(--muted); line-height: 1.7; }
+.chat-reply-content .chat-reply-placeholder { color: var(--muted); }
+.chat-reply-content .chat-reply-reason { color: var(--danger); margin-top: 10px; font-size: 12px; }
+.chat-replies-error { margin: 0 36px 12px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; background: #fbf0ec; color: var(--danger); font-size: 12px; line-height: 1.8; }
+.chat-replies-error p { flex: 1; overflow-wrap: anywhere; }
+.chat-replies-notice { margin: 0 36px 12px; color: var(--green); font-size: 12px; }
+.chat-replies-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 330px; gap: 16px; text-align: center; color: var(--muted); }
+.chat-replies-empty h2 { font-size: 18px; font-weight: 550; color: var(--ink); }
+.chat-replies-empty p { font-size: 13px; line-height: 1.9; max-width: 400px; }
+@media (max-width: 1100px) {
+  .chat-replies-toolbar { padding: 20px 25px 16px; }
+  .chat-replies-filters { padding: 0 25px 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .chat-replies-search { grid-column: 1 / -1; }
+  .chat-replies-caption, .chat-replies-list { padding-left: 25px; padding-right: 25px; }
+  .chat-reply-content { gap: 20px; }
+}
+@media (max-width: 760px) {
+  .chat-replies-toolbar { align-items: flex-start; flex-wrap: wrap; padding: 18px 19px; }
+  .chat-replies-filters { padding-left: 19px; padding-right: 19px; gap: 8px; }
+  .chat-replies-filters select { padding: 9px 7px; font-size: 11px; }
+  .chat-replies-caption, .chat-replies-list { padding-left: 19px; padding-right: 19px; }
+  .chat-reply-content { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .chat-reply-answer { padding-left: 14px; }
+  .chat-replies-error, .chat-replies-notice { margin-left: 19px; margin-right: 19px; }
+}

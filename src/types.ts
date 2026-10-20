@@ -1,6 +1,6 @@
 export type MemoryKind = 'fact' | 'decision' | 'requirement' | 'risk';
 export type ManagementKind = 'governance' | 'change' | 'deliverable' | 'meeting' | 'meeting_action' | 'weekly_report';
-export type Page = 'governance' | 'changes' | 'coordination' | 'overview' | 'followups' | 'assistant' | 'daily' | 'tasks' | 'reports' | 'sources' | 'memories' | 'backups';
+export type Page = 'proactive' | 'chat-replies' | 'governance' | 'changes' | 'coordination' | 'overview' | 'followups' | 'assistant' | 'daily' | 'tasks' | 'reports' | 'sources' | 'memories' | 'backups';
 
 export interface Project { id: string; name: string; description: string; createdAt: string }
 export interface Source {
@@ -92,12 +92,17 @@ export interface BackupInspection { formatVersion: number; createdAt: string; co
 export interface ImportResult { jobId: string; duplicate: boolean; sourceId: string }
 export interface FileInput { filename: string; contentBase64: string }
 
-export interface FeishuBinding { chatId: string; projectId: string; enabled: boolean }
+export interface FeishuBinding {
+  chatId: string; projectId: string; enabled: boolean;
+  chatType?: 'group' | 'p2p'; peerId?: string; name?: string;
+}
+export interface FeishuPrivateChat { chatId: string; peerId: string; name: string }
 export interface FeishuEditableSettings {
   appId: string; enabled: boolean; pollIntervalSeconds: number; replyPrefix: string; bindings: FeishuBinding[];
 }
 export interface FeishuMessage {
   id: string; messageId: string; chatId: string; projectId: string; question: string; answer: string | null;
+  chatType: 'group' | 'p2p'; peerId: string; peerName: string;
   status: string; error: string | null; createdAt: string; updatedAt: string;
 }
 export interface FeishuStatus {

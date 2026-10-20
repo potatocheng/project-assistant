@@ -49,3 +49,4 @@ jobs:
       - run: npm run verify:restart
       - run: npm run verify:ai
       - run: npm run verify:workflow
+      - run: npm run verify:proactive

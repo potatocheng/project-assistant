@@ -7,7 +7,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 
-pub(crate) const SCHEMA_VERSION: i64 = 7;
+pub(crate) const SCHEMA_VERSION: i64 = 8;
 pub(crate) struct ParseTask {
     pub path: PathBuf,
     pub kind: String,
@@ -62,6 +62,11 @@ impl Database {
         }
         let p = request.payload;
         match request.command.as_str() {
+            "get_proactive_center"
+            | "run_proactive_scan"
+            | "save_proactive_settings"
+            | "update_proactive_action"
+            | "_proactive_tick" => crate::proactive::dispatch(&mut self.conn, &request.command, &p),
             "get_governance_workspace"
             | "get_governance_item"
             | "save_governance_item"
@@ -183,7 +188,7 @@ impl Database {
             "_validate_feishu_bindings" => {
                 let bindings = p["bindings"]
                     .as_array()
-                    .ok_or_else(|| AppError::new("VALIDATION", "请提供飞书群与项目绑定列表"))?;
+                    .ok_or_else(|| AppError::new("VALIDATION", "请提供飞书会话与项目绑定列表"))?;
                 for binding in bindings {
                     self.ensure_project(required(binding, "projectId")?)?;
                 }
@@ -954,6 +959,10 @@ pub(crate) fn migrate(conn: &Connection) -> Result<()> {
             crate::change_control::migrate(conn)?;
             crate::coordination::migrate(conn)?;
             conn.execute_batch("PRAGMA user_version=7;")?;
+        }
+        if version < 8 {
+            crate::proactive::migrate(conn)?;
+            conn.execute_batch("PRAGMA user_version=8;")?;
         }
         Ok(())
     })();

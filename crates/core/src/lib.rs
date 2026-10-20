@@ -12,6 +12,7 @@ mod management;
 mod memory;
 mod parse;
 mod planning;
+mod proactive;
 mod qa;
 mod settings;
 mod tasks;
@@ -24,6 +25,7 @@ use std::{
     path::Path,
     sync::{mpsc, Arc, Mutex},
     thread,
+    time::{Duration, Instant},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -174,7 +176,8 @@ impl Engine {
             .name("project-database".into())
             .spawn(move || {
                 let mut db = match db::Database::open(root) {
-                    Ok(db) => {
+                    Ok(mut db) => {
+                        scan_proactive(&mut db);
                         let _ = ready_tx.send(Ok(()));
                         db
                     }
@@ -183,10 +186,27 @@ impl Engine {
                         return;
                     }
                 };
-                for message in receiver {
+                let mut next_scan = Instant::now() + Duration::from_secs(60);
+                loop {
+                    let message = match receiver
+                        .recv_timeout(next_scan.saturating_duration_since(Instant::now()))
+                    {
+                        Ok(message) => message,
+                        Err(mpsc::RecvTimeoutError::Timeout) => {
+                            scan_proactive(&mut db);
+                            next_scan = Instant::now() + Duration::from_secs(60);
+                            continue;
+                        }
+                        Err(mpsc::RecvTimeoutError::Disconnected) => break,
+                    };
                     match message {
                         Message::Execute(request, reply) => {
-                            let _ = reply.send(db.execute(request));
+                            let rescan = affects_proactive_actions(&request.command);
+                            let result = db.execute(request);
+                            if rescan && result.is_ok() {
+                                scan_proactive(&mut db);
+                            }
+                            let _ = reply.send(result);
                         }
                         Message::Claim(job, epoch, reply) => {
                             let _ = reply.send(db.claim(&job, epoch));
@@ -196,6 +216,7 @@ impl Engine {
                                 eprintln!("import persistence: {error}");
                             }
                             let _ = actor_ai_notify.try_send(());
+                            scan_proactive(&mut db);
                         }
                         Message::ClaimExtract(job, epoch, reply) => {
                             let _ = reply.send(db.claim_extract(&job, epoch));
@@ -211,6 +232,7 @@ impl Engine {
                             {
                                 eprintln!("AI persistence: {}", error.code);
                             }
+                            scan_proactive(&mut db);
                         }
                         Message::ClaimMaintenance(reply) => {
                             let _ = reply.send(db.claim_maintenance());
@@ -227,8 +249,15 @@ impl Engine {
                             if let Err(e) = db.finish_maintenance(&run, &guard, output) {
                                 eprintln!("memory persistence: {}", e.code);
                             }
+                            scan_proactive(&mut db);
                         }
                         Message::Shutdown => break,
+                    }
+                    // Keep a fixed deadline even when polling or business writes
+                    // keep the actor busy; recv_timeout alone would reset it.
+                    if Instant::now() >= next_scan {
+                        scan_proactive(&mut db);
+                        next_scan = Instant::now() + Duration::from_secs(60);
                     }
                 }
             })?;
@@ -453,6 +482,7 @@ impl Engine {
                 | "get_daily_planning"
                 | "get_delivery_overview"
                 | "get_follow_up_center"
+                | "get_proactive_center"
                 | "get_management_attention"
                 | "get_governance_workspace"
                 | "get_governance_item"
@@ -548,6 +578,38 @@ impl Engine {
         let _ = self.inner.ai_notify.try_send(());
     }
 }
+fn scan_proactive(db: &mut db::Database) {
+    if let Err(error) = db.execute(Request {
+        command: "_proactive_tick".into(),
+        payload: json!({}),
+    }) {
+        // A scan must not turn a successfully recorded user action into an
+        // apparent failure. The proactive module persists its own diagnostics.
+        eprintln!("proactive scan: {}", error.code);
+    }
+}
+
+fn affects_proactive_actions(command: &str) -> bool {
+    matches!(command, "restore_backup" | "_ingest_remote")
+        || [
+            "create_",
+            "save_",
+            "update_",
+            "confirm_",
+            "reject_",
+            "revise_",
+            "record_",
+            "remove_",
+            "transition_",
+            "review_",
+            "delete_",
+            "coordination_save_",
+            "coordination_confirm_",
+        ]
+        .iter()
+        .any(|prefix| command.starts_with(prefix))
+}
+
 fn ask_project(sender: &mpsc::SyncSender<Message>, root: &Path, payload: &Value) -> Result<Value> {
     // Take a project-scoped snapshot on the database actor; network I/O stays outside it.
     let configuration = settings::load(root)?;

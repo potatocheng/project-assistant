@@ -213,3 +213,29 @@ Schema5 adds planning_capacity,task_estimates,task_relations,planning_drafts,dai
 | `get_management_attention` | `date`, `projectId?`；只读关注项，供总览与全局提示使用 |
 
 桌面 `export_coordination_report {reportId,version}` 使用保存对话框导出 Rust 中已保存的 Markdown；`copy_coordination_report` 复制同一保存版本。统一问答增加治理、变更、验收、周报、会议及行动项引用，可跳回管理记录；行动项同时标明当前任务状态、负责人、期限和会议原约定。
+
+
+## 飞书私聊代答
+
+`save_feishu_settings.bindings[]` 在原有 `chatId`、`projectId`、`enabled` 上增加 `chatType: group|p2p`、`peerId`、`name`。省略 `chatType` 的旧配置仍视为群聊；私聊必须提供同事 Open ID。会话 ID 全局唯一，绑定项目必须存在。修改类型、同事、项目或启用状态时重置该绑定的新消息起点。
+
+`list_feishu_private_chats {}` 使用个人身份读取最近 30 天最多 500 条私聊消息及会话元数据，返回 `{chats:[{chatId,peerId,name}],hasMore}`；仅发现会话，不入项目资料、不排队回复、不返回消息正文。`hasMore` 表示达到扫描上限，界面允许手动填写。
+
+`get_feishu_status.recentMessages[]` 增加 `chatType`、`peerId`、`peerName`，来自接收消息时的绑定快照，不依赖当前绑定。旧回执自动迁移为 `group`，原去重与发送状态保留；回执不随项目备份倒退。群聊仍要求明确 @本人，私聊仅接受已核对的会话及同事的新消息。
+
+## 主动巡检与持续跟进增量接口（schema 8）
+
+主动巡检运行在 Rust 核心，默认启用、默认复查间隔为 60 分钟。应用启动、每分钟后台轮询和相关业务写入后评估当前工作区；不依赖 React 页面保持打开。应用退出后不会继续运行。读取中心不触发巡检，`projectId` 只限制读取和本次手动巡检范围，后台仍评估整个工作区。
+
+| 命令 | 输入与返回 |
+| --- | --- |
+| `get_proactive_center` | `{projectId?}` → ProactiveCenter；读取行动、历史和设置 |
+| `run_proactive_scan` | `{projectId?}` → ProactiveCenter；立即评估所选范围，关闭时保持暂停 |
+| `save_proactive_settings` | `{enabled,reviewMinutes,baseRevision}` → Settings；`reviewMinutes` 为 5–10080 的整数，`baseRevision` 必须匹配当前 UUID 版本；重新启用后立即评估 |
+| `update_proactive_action` | `{actionId,baseVersion,operation,note,nextCheckAt?}` → Action；`operation` 为 `watch` / `snooze` / `dismiss` / `reopen`，版本冲突拒绝覆盖 |
+
+`ProactiveCenter = {settings,lastRunAt,lastError,counts,actions,history}`。`Settings = {enabled,reviewMinutes,revision}`；`counts` 包含 `ready,watching,snoozed,resolved,dismissed,total`。`Action` 包含 `id,projectId,projectName,targetKind,targetId,title,status,priority,reason,suggestedAction,draft,evidence,version,createdAt,updatedAt,lastCheckedAt,nextCheckAt,reviewCount,unchangedChecks,outcome`；`priority` 为整数，越大越优先。`evidence[] = {label,detail,targetKind,targetId}`，引用同项目的实际记录；`History = {id,actionId,kind,note,createdAt}`。按项目读取时，行动、统计和历史均限制在该项目；中心返回最近 200 条历史，完整历史持久保存。
+
+`watch` / `snooze` 必须提供非空说明及未来 366 天以内的 RFC3339 `nextCheckAt`；`watch` 表示已采取跟进并约定复查，`snooze` 表示暂缓处理。`dismiss` / `reopen` 的说明可为空。复查记录和处理说明持久保存，同一目标重复巡检复用行动。目标完成或关注条件解除时自动收束，忽略持续至该次关注解除；再次发生风险时可重开。暂停或取消的项目停止主动跟进。行动仅准备说明、建议和草稿，不替用户修改业务事实、确认资料或发送消息。
+
+schema 8 将主动设置、行动和行动历史纳入一致备份并验证状态、版本、引用及领域约束。兼容旧版工作区迁移和备份恢复，拒绝未来版本。恢复保留跟进记录但将巡检设为关闭；重新启用才重评当前状态。内部定时命令 `_proactive_tick` 不能通过公开 Engine / Tauri / QA bridge 接口调用，也不提供公开测试时钟。运行说明见[主动行动](proactive-assistant.md)。

@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fs,
     io::{Read, Write},
     net::{TcpListener, TcpStream},
@@ -32,7 +32,7 @@ pub(crate) type Ask = Arc<dyn Fn(&str, &str) -> Result<Value> + Send + Sync>;
 pub(crate) type Validate = Arc<dyn Fn(&Value) -> Result<()> + Send + Sync>;
 const REDIRECT_URI: &str = "http://127.0.0.1:17179/feishu/callback";
 const API_BASE: &str = "https://open.feishu.cn";
-const SCOPES: &str = "offline_access search:message im:message.group_msg:get_as_user im:message im:message.send_as_user im:chat:read docx:document:readonly wiki:wiki:readonly";
+const SCOPES: &str = "offline_access search:message im:message.p2p_msg:get_as_user im:message.group_msg:get_as_user im:message im:message.send_as_user im:chat:read docx:document:readonly wiki:wiki:readonly";
 const RESPONSE_LIMIT: u64 = 4 * 1024 * 1024;
 const OVERLAP_SECONDS: i64 = 900;
 
@@ -61,12 +61,25 @@ fn valid_id(value: &str, prefix: &str) -> bool {
             .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum ChatType {
+    #[default]
+    Group,
+    P2p,
+}
+#[derive(Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Binding {
     chat_id: String,
     project_id: String,
     enabled: bool,
+    #[serde(default)]
+    chat_type: ChatType,
+    #[serde(default)]
+    peer_id: String,
+    #[serde(default)]
+    name: String,
     #[serde(default)]
     since: i64,
 }
@@ -178,6 +191,7 @@ impl Api {
             || [
                 "/open-apis/im/v1/messages/search",
                 "/open-apis/im/v2/chats/search",
+                "/open-apis/im/v1/chats/batch_query",
             ]
             .contains(&path);
         // Only reads may retry transient transport errors. Token rotations and
@@ -343,6 +357,21 @@ impl Connector {
               reply_id TEXT, UNIQUE(account,message_id));
             UPDATE receipts SET status='unknown', error='应用在发送期间退出，结果未知，不会自动重发', updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE status='sending';
             UPDATE receipts SET status='pending' WHERE status='generating';")?;
+        let columns: HashSet<String> = db
+            .prepare("PRAGMA table_info(receipts)")?
+            .query_map([], |row| row.get(1))?
+            .collect::<std::result::Result<_, _>>()?;
+        for (column, definition) in [
+            ("chat_type", "TEXT NOT NULL DEFAULT 'group'"),
+            ("peer_id", "TEXT NOT NULL DEFAULT ''"),
+            ("peer_name", "TEXT NOT NULL DEFAULT ''"),
+        ] {
+            if !columns.contains(column) {
+                db.execute_batch(&format!(
+                    "ALTER TABLE receipts ADD COLUMN {column} {definition}"
+                ))?;
+            }
+        }
         let (wake, receiver) = mpsc::sync_channel(1);
         let inner = Arc::new(Inner {
             root,
@@ -398,6 +427,7 @@ impl Connector {
             "disconnect_feishu" => self.inner.disconnect(),
             "poll_feishu_now" => self.inner.trigger(),
             "list_feishu_chats" => self.inner.list_chats(),
+            "list_feishu_private_chats" => self.inner.list_private_chats(),
             "get_feishu_sources" => self.inner.knowledge_status(),
             "save_feishu_sources" => self.inner.save_knowledge(p),
             "sync_feishu_sources" => self.inner.trigger_knowledge(),
@@ -453,8 +483,8 @@ impl Inner {
         let runtime = json!({"polling":state.polling,"lastPollAt":state.last_poll_at,"lastError":state.last_error});
         drop(state);
         let db = lock(&self.receipts)?;
-        let mut statement = db.prepare("SELECT id,message_id,chat_id,project_id,question,answer,status,error,created_at,updated_at FROM receipts ORDER BY rowid DESC LIMIT 50")?;
-        let recent = statement.query_map([], |r| Ok(json!({"id":r.get::<_,String>(0)?,"messageId":r.get::<_,String>(1)?,"chatId":r.get::<_,String>(2)?,"projectId":r.get::<_,String>(3)?,"question":r.get::<_,String>(4)?,"answer":r.get::<_,Option<String>>(5)?,"status":r.get::<_,String>(6)?,"error":r.get::<_,Option<String>>(7)?,"createdAt":r.get::<_,String>(8)?,"updatedAt":r.get::<_,String>(9)?})))?.collect::<std::result::Result<Vec<_>,_>>()?;
+        let mut statement = db.prepare("SELECT id,message_id,chat_id,project_id,question,answer,status,error,created_at,updated_at,chat_type,peer_id,peer_name FROM receipts ORDER BY rowid DESC LIMIT 50")?;
+        let recent = statement.query_map([], |r| Ok(json!({"id":r.get::<_,String>(0)?,"messageId":r.get::<_,String>(1)?,"chatId":r.get::<_,String>(2)?,"projectId":r.get::<_,String>(3)?,"question":r.get::<_,String>(4)?,"answer":r.get::<_,Option<String>>(5)?,"status":r.get::<_,String>(6)?,"error":r.get::<_,Option<String>>(7)?,"createdAt":r.get::<_,String>(8)?,"updatedAt":r.get::<_,String>(9)?,"chatType":r.get::<_,String>(10)?,"peerId":r.get::<_,String>(11)?,"peerName":r.get::<_,String>(12)?})))?.collect::<std::result::Result<Vec<_>,_>>()?;
         Ok(
             json!({"settings":settings,"authorization":authorization,"runtime":runtime,"recentMessages":recent}),
         )
@@ -791,6 +821,167 @@ impl Inner {
             "可访问的群聊过多，请手动填写群 ID",
         ))
     }
+    fn chat_contexts(
+        &self,
+        saved: &Saved,
+        session: &Session,
+        ids: &[String],
+    ) -> Result<HashMap<String, Value>> {
+        let mut contexts = HashMap::new();
+        for batch in ids.chunks(50) {
+            self.check_generation(&saved.generation, false)?;
+            let data = self.api.json(
+                Method::POST,
+                "/open-apis/im/v1/chats/batch_query",
+                &[("user_id_type".into(), "open_id".into())],
+                Some(&session.access_token),
+                Some(&json!({"chat_ids":batch})),
+            )?;
+            for chat in required_items(&data)? {
+                if let Some(id) = chat["chat_id"]
+                    .as_str()
+                    .filter(|id| batch.iter().any(|s| s == id))
+                {
+                    contexts.insert(id.into(), chat.clone());
+                }
+            }
+        }
+        self.check_generation(&saved.generation, false)?;
+        Ok(contexts)
+    }
+    fn verify_private_bindings(&self, saved: &Saved, session: &Session) -> Result<()> {
+        let bindings: Vec<_> = saved
+            .bindings
+            .iter()
+            .filter(|b| b.enabled && b.chat_type == ChatType::P2p)
+            .collect();
+        let ids = bindings
+            .iter()
+            .map(|b| b.chat_id.clone())
+            .collect::<Vec<_>>();
+        let contexts = self.chat_contexts(saved, session, &ids)?;
+        for b in bindings {
+            let valid = contexts.get(&b.chat_id).is_some_and(|c| {
+                c["chat_mode"].as_str() == Some("p2p")
+                    && c["p2p_target_id"].as_str() == Some(&b.peer_id)
+                    && b.peer_id != session.user.open_id
+            });
+            if !valid {
+                return Err(error(
+                    "FEISHU_PRIVATE_CHAT",
+                    "无法核对私聊与同事身份，请重新读取最近私聊并检查绑定；本轮未发送回复",
+                ));
+            }
+        }
+        Ok(())
+    }
+    fn list_private_chats(&self) -> Result<Value> {
+        let (saved, mut session) = self.valid_session().inspect_err(|e| self.record_error(e))?;
+        let end = timestamp();
+        let body = json!({"query":"","filter":{"chat_type":"p2p","from_types":["user"],
+            "time_range":{"start_time":iso(end - 30 * 86400),"end_time":iso(end)}}});
+        let mut page = String::new();
+        let mut pages = HashSet::new();
+        let mut messages = Vec::new();
+        let mut more = false;
+        // Bounded discovery for the settings picker; never queues historical replies.
+        for _ in 0..10 {
+            self.check_generation(&saved.generation, false)?;
+            if session.expires_at <= timestamp() + 60 {
+                session = self.valid_session()?.1;
+            }
+            let mut query = vec![("page_size".into(), "50".into())];
+            if !page.is_empty() {
+                query.push(("page_token".into(), page.clone()));
+            }
+            let data = self.api.json(
+                Method::POST,
+                "/open-apis/im/v1/messages/search",
+                &query,
+                Some(&session.access_token),
+                Some(&body),
+            )?;
+            let ids = search_ids(&data)?;
+            if !ids.is_empty() {
+                let mut query: Vec<_> = ids
+                    .iter()
+                    .map(|id| ("message_ids".into(), id.clone()))
+                    .collect();
+                query.push(("with_sender_name".into(), "true".into()));
+                let details = self.api.json(
+                    Method::GET,
+                    "/open-apis/im/v1/messages/mget",
+                    &query,
+                    Some(&session.access_token),
+                    None,
+                )?;
+                let items = required_items(&details)?;
+                if ids
+                    .iter()
+                    .any(|id| !items.iter().any(|m| m["message_id"].as_str() == Some(id)))
+                {
+                    return Err(error("FEISHU_RESPONSE", "部分私聊消息未能读取，请稍后重试"));
+                }
+                messages.extend(
+                    items
+                        .iter()
+                        .filter(|m| ids.iter().any(|id| m["message_id"].as_str() == Some(id)))
+                        .cloned(),
+                );
+            }
+            more = has_more(&data)?;
+            if !more {
+                break;
+            }
+            page = next_page(&data)?;
+            if !pages.insert(page.clone()) {
+                return Err(error(
+                    "FEISHU_PAGINATION",
+                    "飞书返回重复分页游标，请稍后重试",
+                ));
+            }
+        }
+        let ids: HashSet<_> = messages
+            .iter()
+            .filter_map(|m| m["chat_id"].as_str())
+            .filter(|id| valid_id(id, "oc_"))
+            .map(str::to_owned)
+            .collect();
+        let contexts =
+            self.chat_contexts(&saved, &session, &ids.into_iter().collect::<Vec<_>>())?;
+        let mut chats = Vec::new();
+        for (chat_id, context) in contexts {
+            let Some(peer) = context["p2p_target_id"].as_str().filter(|id| {
+                (valid_id(id, "ou_") || valid_id(id, "ou-")) && *id != session.user.open_id
+            }) else {
+                continue;
+            };
+            if context["chat_mode"].as_str() != Some("p2p") {
+                continue;
+            }
+            let name = messages
+                .iter()
+                .filter(|m| {
+                    m["chat_id"].as_str() == Some(&chat_id)
+                        && m["sender"]["id"].as_str() == Some(peer)
+                })
+                .find_map(|m| {
+                    m["sender"]["sender_name"]
+                        .as_str()
+                        .or_else(|| m["sender"]["name"].as_str())
+                        .filter(|s| !s.is_empty() && s.len() <= 400)
+                })
+                .unwrap_or(peer);
+            chats.push(json!({"chatId":chat_id,"peerId":peer,"name":name}));
+        }
+        chats.sort_by(|a, b| {
+            a["name"]
+                .as_str()
+                .cmp(&b["name"].as_str())
+                .then_with(|| a["chatId"].as_str().cmp(&b["chatId"].as_str()))
+        });
+        Ok(json!({"chats":chats,"hasMore":more}))
+    }
     fn check_generation(&self, generation: &str, enabled: bool) -> Result<()> {
         let state = lock(&self.state)?;
         if self.stopped.load(Ordering::SeqCst)
@@ -811,6 +1002,7 @@ impl Inner {
             return Ok(());
         }
         let account = format!("{}:{}", saved.app_id, session.user.open_id);
+        self.verify_private_bindings(&saved, &session)?;
         self.process_pending(&saved, &session, &account)?;
         // A slow answer can rotate the token. Do not keep using the original
         // poll snapshot after pending work finishes.
@@ -826,20 +1018,41 @@ impl Inner {
             .unwrap_or(saved.active_since);
         let end = timestamp();
         let start = (watermark - OVERLAP_SECONDS).max(saved.active_since);
-        let chats: Vec<_> = saved
-            .bindings
-            .iter()
-            .filter(|b| b.enabled)
-            .map(|b| &b.chat_id)
-            .collect();
-        let body = json!({"query":"","filter":{"is_at_me":true,"chat_ids":chats,"from_types":["user"],
-            "time_range":{"start_time":iso(start),"end_time":iso(end)}}});
+        for chat_type in [ChatType::Group, ChatType::P2p] {
+            let chats: Vec<_> = saved
+                .bindings
+                .iter()
+                .filter(|b| b.enabled && b.chat_type == chat_type)
+                .map(|b| &b.chat_id)
+                .collect();
+            if chats.is_empty() {
+                continue;
+            }
+            let mut body = json!({"query":"","filter":{"chat_ids":chats,"from_types":["user"],
+                "chat_type":chat_type,"time_range":{"start_time":iso(start),"end_time":iso(end)}}});
+            if chat_type == ChatType::Group {
+                body["filter"]["is_at_me"] = json!(true);
+            }
+            self.search_poll(&saved, &mut session, &account, &body, chat_type)?;
+        }
+        self.check_generation(&saved.generation, true)?;
+        lock(&self.receipts)?.execute("INSERT INTO metadata(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value",params![key,end.to_string()])?;
+        self.process_pending(&saved, &session, &account)
+    }
+    fn search_poll(
+        &self,
+        saved: &Saved,
+        session: &mut Session,
+        account: &str,
+        body: &Value,
+        chat_type: ChatType,
+    ) -> Result<()> {
         let mut page = String::new();
         let mut pages = HashSet::new();
         for _ in 0..100 {
             self.check_generation(&saved.generation, true)?;
             if session.expires_at <= timestamp() + 60 {
-                session = self.valid_session()?.1;
+                *session = self.valid_session()?.1;
                 self.check_generation(&saved.generation, true)?;
             }
             let mut query = vec![("page_size".into(), "50".into())];
@@ -851,20 +1064,9 @@ impl Inner {
                 "/open-apis/im/v1/messages/search",
                 &query,
                 Some(&session.access_token),
-                Some(&body),
+                Some(body),
             )?;
-            let ids: Vec<String> = required_items(&data)?
-                .iter()
-                .map(|item| {
-                    item["meta_data"]["message_id"]
-                        .as_str()
-                        .filter(|s| valid_id(s, "om_"))
-                        .map(str::to_owned)
-                        .ok_or_else(|| {
-                            error("FEISHU_RESPONSE", "飞书搜索结果缺少消息 ID，未推进轮询进度")
-                        })
-                })
-                .collect::<Result<_>>()?;
+            let ids = search_ids(&data)?;
             if !ids.is_empty() {
                 let query: Vec<_> = ids
                     .iter()
@@ -892,13 +1094,21 @@ impl Inner {
                 }
                 self.check_generation(&saved.generation, true)?;
                 for message in items {
-                    self.discover(&saved, &session, &account, message)?;
+                    // Only accept details requested in this search and in this channel.
+                    if ids
+                        .iter()
+                        .any(|id| message["message_id"].as_str() == Some(id))
+                        && saved.bindings.iter().any(|b| {
+                            b.chat_type == chat_type
+                                && message["chat_id"].as_str() == Some(&b.chat_id)
+                        })
+                    {
+                        self.discover(saved, session, account, message)?;
+                    }
                 }
             }
             if !has_more(&data)? {
                 self.check_generation(&saved.generation, true)?;
-                lock(&self.receipts)?.execute("INSERT INTO metadata(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value",params![key,end.to_string()])?;
-                self.process_pending(&saved, &session, &account)?;
                 return Ok(());
             }
             page = next_page(&data)?;
@@ -925,8 +1135,14 @@ impl Inner {
             return Ok(());
         };
         let created = now();
-        lock(&self.receipts)?.execute("INSERT OR IGNORE INTO receipts(id,account,message_id,chat_id,project_id,question,status,generation,uuid,created_at,updated_at) VALUES(?1,?2,?3,?4,?5,?6,'pending',?7,?8,?9,?9)",
-            params![id(),account,candidate.message_id,candidate.chat_id,candidate.project_id,candidate.question,saved.generation,id(),created])?;
+        let binding = candidate.binding;
+        let kind = if binding.chat_type == ChatType::P2p {
+            "p2p"
+        } else {
+            "group"
+        };
+        lock(&self.receipts)?.execute("INSERT OR IGNORE INTO receipts(id,account,message_id,chat_id,project_id,question,status,generation,uuid,created_at,updated_at,chat_type,peer_id,peer_name) VALUES(?1,?2,?3,?4,?5,?6,'pending',?7,?8,?9,?9,?10,?11,?12)",
+            params![id(),account,candidate.message_id,candidate.chat_id,candidate.project_id,candidate.question,saved.generation,id(),created,kind,binding.peer_id,binding.name])?;
         Ok(())
     }
     fn process_pending(&self, saved: &Saved, session: &Session, account: &str) -> Result<()> {
@@ -959,7 +1175,7 @@ impl Inner {
                     &row.id,
                     "cancelled",
                     None,
-                    Some("群聊项目绑定已变化，本次回复取消"),
+                    Some("会话项目绑定已变化，本次回复取消"),
                 )?;
                 continue;
             }
@@ -1105,6 +1321,7 @@ struct Receipt {
     generation: String,
 }
 struct Candidate<'a> {
+    binding: &'a Binding,
     message_id: &'a str,
     chat_id: &'a str,
     project_id: &'a str,
@@ -1142,8 +1359,18 @@ fn candidate<'a>(saved: &'a Saved, me: &str, message: &'a Value) -> Option<Candi
     {
         return None;
     }
-    let mentions = message["mentions"].as_array()?;
-    if !mentions.iter().any(|m| {
+    if sender["id_type"].as_str().is_some_and(|t| t != "open_id") {
+        return None;
+    }
+    let mentions = message["mentions"]
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or(&[]);
+    if binding.chat_type == ChatType::P2p {
+        if binding.peer_id.is_empty() || sender["id"].as_str() != Some(&binding.peer_id) {
+            return None;
+        }
+    } else if !mentions.iter().any(|m| {
         m["id"].as_str() == Some(me) && m["id_type"].as_str().is_none_or(|t| t == "open_id")
     }) {
         return None;
@@ -1173,6 +1400,7 @@ fn candidate<'a>(saved: &'a Saved, me: &str, message: &'a Value) -> Option<Candi
         return None;
     }
     Some(Candidate {
+        binding,
         message_id,
         chat_id,
         project_id: &binding.project_id,
@@ -1240,6 +1468,18 @@ fn reply_text(saved: &Saved, generated: &Value) -> Option<String> {
     // Feishu text sends are limited; keep a conservative UTF-8 byte bound.
     (result.len() <= 20_000).then_some(result)
 }
+fn search_ids(data: &Value) -> Result<Vec<String>> {
+    required_items(data)?
+        .iter()
+        .map(|item| {
+            item["meta_data"]["message_id"]
+                .as_str()
+                .filter(|s| valid_id(s, "om_"))
+                .map(str::to_owned)
+                .ok_or_else(|| error("FEISHU_RESPONSE", "飞书搜索结果缺少消息 ID，未推进轮询进度"))
+        })
+        .collect()
+}
 fn required_items(value: &Value) -> Result<&Vec<Value>> {
     value["items"]
         .as_array()
@@ -1304,7 +1544,7 @@ fn worker(weak: Weak<Inner>, receiver: mpsc::Receiver<()>) {
 fn public_settings(saved: &Saved) -> Value {
     json!({"appId":saved.app_id,"hasAppSecret":saved.app_secret.is_some(),"enabled":saved.enabled,
         "pollIntervalSeconds":saved.poll_interval_seconds,"replyPrefix":saved.reply_prefix,
-        "redirectUri":REDIRECT_URI,"bindings":saved.bindings.iter().map(|b|json!({"chatId":b.chat_id,"projectId":b.project_id,"enabled":b.enabled})).collect::<Vec<_>>()})
+        "redirectUri":REDIRECT_URI,"bindings":saved.bindings.iter().map(|b|json!({"chatId":b.chat_id,"projectId":b.project_id,"enabled":b.enabled,"chatType":b.chat_type,"peerId":b.peer_id,"name":b.name})).collect::<Vec<_>>()})
 }
 fn parse_settings(old: &Saved, p: &Value) -> Result<Saved> {
     let app_id = p["appId"].as_str().unwrap_or("").trim();
@@ -1338,18 +1578,32 @@ fn parse_settings(old: &Saved, p: &Value) -> Result<Saved> {
     let mut seen = HashSet::new();
     let entries = p["bindings"]
         .as_array()
-        .ok_or_else(|| error("FEISHU_CONFIG", "请提供群聊与项目绑定列表"))?;
+        .ok_or_else(|| error("FEISHU_CONFIG", "请提供会话与项目绑定列表"))?;
     if entries.len() > 100 {
-        return Err(error("FEISHU_CONFIG", "最多可绑定 100 个项目群"));
+        return Err(error("FEISHU_CONFIG", "最多可绑定 100 个群聊或私聊"));
     }
     for entry in entries {
         let chat_id = entry["chatId"]
             .as_str()
             .filter(|s| valid_id(s, "oc_"))
-            .ok_or_else(|| error("FEISHU_CONFIG", "群聊 ID 格式无效"))?;
+            .ok_or_else(|| error("FEISHU_CONFIG", "会话 ID 格式无效"))?;
         let project_id = crate::required(entry, "projectId")?;
         if project_id.len() > 200 || !seen.insert(chat_id.to_owned()) {
-            return Err(error("FEISHU_CONFIG", "一个群聊只能绑定一个项目"));
+            return Err(error("FEISHU_CONFIG", "一个会话只能绑定一个项目"));
+        }
+        let chat_type: ChatType =
+            serde_json::from_value(entry.get("chatType").cloned().unwrap_or(json!("group")))
+                .map_err(|_| error("FEISHU_CONFIG", "会话类型必须为 group 或 p2p"))?;
+        let peer_id = entry["peerId"].as_str().unwrap_or("");
+        let name = entry["name"].as_str().unwrap_or("").trim();
+        if name.len() > 400
+            || (chat_type == ChatType::P2p
+                && (!valid_id(peer_id, "ou_") && !valid_id(peer_id, "ou-")))
+        {
+            return Err(error(
+                "FEISHU_CONFIG",
+                "私聊需填写有效的同事 Open ID，备注最多 400 字节",
+            ));
         }
         let binding_enabled = entry["enabled"]
             .as_bool()
@@ -1358,7 +1612,11 @@ fn parse_settings(old: &Saved, p: &Value) -> Result<Saved> {
             .bindings
             .iter()
             .find(|b| {
-                b.chat_id == chat_id && b.project_id == project_id && b.enabled == binding_enabled
+                b.chat_id == chat_id
+                    && b.project_id == project_id
+                    && b.enabled == binding_enabled
+                    && b.chat_type == chat_type
+                    && b.peer_id == peer_id
             })
             .map(|b| b.since)
             .unwrap_or_else(timestamp);
@@ -1366,13 +1624,20 @@ fn parse_settings(old: &Saved, p: &Value) -> Result<Saved> {
             chat_id: chat_id.into(),
             project_id: project_id.into(),
             enabled: binding_enabled,
+            chat_type,
+            peer_id: if chat_type == ChatType::P2p {
+                peer_id.into()
+            } else {
+                String::new()
+            },
+            name: name.into(),
             since,
         });
     }
     if enabled && (app_id.is_empty() || secret.is_none() || !bindings.iter().any(|b| b.enabled)) {
         return Err(error(
             "FEISHU_CONFIG",
-            "启用前请保存应用凭证并绑定至少一个项目群",
+            "启用前请保存应用凭证并绑定至少一个群聊或私聊项目",
         ));
     }
     let credentials_changed = app_id != old.app_id || secret != old.app_secret;
@@ -1832,6 +2097,7 @@ mod tests {
                 project_id: "project-1".into(),
                 enabled: true,
                 since: 0,
+                ..Binding::default()
             }],
             session: Some(session_from_token(&token(), user).unwrap()),
             ..Saved::default()
@@ -1868,6 +2134,293 @@ mod tests {
             return Some(json!({"code":0,"data":{"message_id":"om_reply"}}));
         }
         panic!("unexpected fixture request: {}", request.target)
+    }
+
+    fn private_binding() -> Binding {
+        Binding {
+            chat_id: "oc_private".into(),
+            project_id: "project-private".into(),
+            chat_type: ChatType::P2p,
+            peer_id: "ou_colleague".into(),
+            name: "同事甲".into(),
+            enabled: true,
+            since: 0,
+        }
+    }
+    fn private_message() -> Value {
+        let mut m = message();
+        m["message_id"] = json!("om_private");
+        m["chat_id"] = json!("oc_private");
+        m["sender"]["id"] = json!("ou_colleague");
+        m["sender"]["sender_name"] = json!("同事甲");
+        m["body"]["content"] = json!(json!({"text":"发布计划是什么？"}).to_string());
+        m.as_object_mut().unwrap().remove("mentions");
+        m
+    }
+    fn private_fixture(r: &Request) -> Option<Value> {
+        if r.target.starts_with("/open-apis/im/v1/chats/batch_query") {
+            assert_eq!(r.body["chat_ids"], json!(["oc_private"]));
+            return Some(
+                json!({"code":0,"data":{"items":[{"chat_id":"oc_private","chat_mode":"p2p","p2p_target_id":"ou_colleague"}]}}),
+            );
+        }
+        if r.target.starts_with("/open-apis/im/v1/messages/search")
+            && r.body["filter"]["chat_type"] == "p2p"
+        {
+            assert!(r.body["filter"].get("is_at_me").is_none());
+            assert_eq!(r.body["filter"]["from_types"], json!(["user"]));
+            return Some(
+                json!({"code":0,"data":{"items":[{"meta_data":{"message_id":"om_private"}}],"has_more":false}}),
+            );
+        }
+        if r.target.starts_with("/open-apis/im/v1/messages/mget") && r.target.contains("om_private")
+        {
+            return Some(json!({"code":0,"data":{"items":[private_message()]}}));
+        }
+        if r.target
+            .starts_with("/open-apis/im/v1/messages/om_private/reply")
+        {
+            return Some(json!({"code":0,"data":{"message_id":"om_private_reply"}}));
+        }
+        default_fixture(r)
+    }
+    #[test]
+    fn private_messages_need_exact_colleague_and_binding_but_no_mention() {
+        let mut s = saved();
+        s.bindings.push(private_binding());
+        let original = private_message();
+        let c = candidate(&s, "ou_me", &original).unwrap();
+        assert_eq!(c.project_id, "project-private");
+        assert_eq!(c.question, "发布计划是什么？");
+        for case in [
+            "own",
+            "other-colleague",
+            "wrong-id-type",
+            "bot",
+            "other-chat",
+            "old",
+            "deleted",
+            "image",
+            "empty",
+        ] {
+            let mut m = original.clone();
+            match case {
+                "own" => m["sender"]["id"] = json!("ou_me"),
+                "other-colleague" => m["sender"]["id"] = json!("ou_else"),
+                "wrong-id-type" => m["sender"]["id_type"] = json!("user_id"),
+                "bot" => m["sender"]["sender_type"] = json!("bot"),
+                "other-chat" => m["chat_id"] = json!("oc_else"),
+                "old" => m["create_time"] = json!("-1"),
+                "deleted" => m["deleted"] = json!(true),
+                "image" => m["msg_type"] = json!("image"),
+                "empty" => m["body"]["content"] = json!(json!({"text":" "}).to_string()),
+                _ => unreachable!(),
+            }
+            assert!(candidate(&s, "ou_me", &m).is_none(), "{case}");
+        }
+        let mut rich = original.clone();
+        rich["msg_type"] = json!("post");
+        rich["body"]["content"] =
+            json!(json!({"content":[[{"tag":"text","text":"周五发布吗？"}]]}).to_string());
+        assert_eq!(
+            candidate(&s, "ou_me", &rich).unwrap().question,
+            "周五发布吗？"
+        );
+        s.bindings[1].since = timestamp() + 1;
+        assert!(candidate(&s, "ou_me", &original).is_none());
+        s.bindings[1].since = 0;
+        s.bindings[1].enabled = false;
+        assert!(candidate(&s, "ou_me", &original).is_none());
+        // Ordinary group messages still require @me.
+        let mut group = message();
+        group.as_object_mut().unwrap().remove("mentions");
+        assert!(candidate(&s, "ou_me", &group).is_none());
+    }
+    #[test]
+    fn private_and_group_replies_keep_project_scope_and_deduplicate_across_restart() {
+        let fixture = Fixture::new(private_fixture);
+        let dir = tempfile::tempdir().unwrap();
+        let c = connector(
+            dir.path(),
+            &fixture,
+            Arc::new(|project, question| {
+                assert!(["project-1", "project-private"].contains(&project));
+                assert_eq!(question, "发布计划是什么？");
+                Ok(answer())
+            }),
+        );
+        {
+            let mut state = lock(&c.inner.state).unwrap();
+            state.saved.bindings.push(private_binding());
+            c.inner.persist(&state.saved).unwrap();
+        }
+        c.inner.poll().unwrap();
+        c.inner.poll().unwrap();
+        assert_eq!(replies(&fixture), 2);
+        let recent = c.inner.status().unwrap()["recentMessages"].clone();
+        let private = recent
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["chatType"] == "p2p")
+            .unwrap();
+        assert_eq!(private["peerName"], "同事甲");
+        assert_eq!(private["projectId"], "project-private");
+        assert_eq!(private["status"], "replied");
+        drop(c);
+        let reopened = Connector::create(
+            dir.path().into(),
+            Arc::new(|_, _| panic!("duplicate answer")),
+            Arc::new(|_| Ok(())),
+            fixture.api(),
+            false,
+        )
+        .unwrap();
+        reopened.inner.poll().unwrap();
+        assert_eq!(replies(&fixture), 2);
+    }
+    #[test]
+    fn private_chat_identity_must_match_server_before_generation_or_send() {
+        for (mode, peer) in [("group", "ou_colleague"), ("p2p", "ou_else")] {
+            let fixture = Fixture::new(move |r| {
+                if r.target.starts_with("/open-apis/im/v1/chats/batch_query") {
+                    return Some(
+                        json!({"code":0,"data":{"items":[{"chat_id":"oc_private","chat_mode":mode,"p2p_target_id":peer}]}}),
+                    );
+                }
+                private_fixture(r)
+            });
+            let dir = tempfile::tempdir().unwrap();
+            let c = connector(
+                dir.path(),
+                &fixture,
+                Arc::new(|_, _| panic!("unverified private chat")),
+            );
+            lock(&c.inner.state).unwrap().saved.bindings = vec![private_binding()];
+            assert_eq!(c.inner.poll().unwrap_err().code, "FEISHU_PRIVATE_CHAT");
+            assert_eq!(replies(&fixture), 0);
+        }
+    }
+    #[test]
+    fn private_discovery_lists_peers_without_sending_or_retaining_history() {
+        let fixture = Fixture::new(private_fixture);
+        let dir = tempfile::tempdir().unwrap();
+        let c = connector(
+            dir.path(),
+            &fixture,
+            Arc::new(|_, _| panic!("discovery must not answer")),
+        );
+        let result = c
+            .handle("list_feishu_private_chats", &json!({}))
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            result["chats"],
+            json!([{"chatId":"oc_private","peerId":"ou_colleague","name":"同事甲"}])
+        );
+        assert!(!result.to_string().contains("发布计划"));
+        assert!(c.inner.status().unwrap()["recentMessages"]
+            .as_array()
+            .unwrap()
+            .is_empty());
+        assert_eq!(replies(&fixture), 0);
+    }
+    #[test]
+    fn private_reply_requires_evidence_and_ambiguous_send_never_retries() {
+        for grounded in [false, true] {
+            let fixture = Fixture::new(|r| {
+                if r.target.contains("/reply") {
+                    None
+                } else {
+                    private_fixture(r)
+                }
+            });
+            let dir = tempfile::tempdir().unwrap();
+            let c = connector(
+                dir.path(),
+                &fixture,
+                Arc::new(move |_, _| {
+                    let mut result = answer();
+                    result["grounded"] = json!(grounded);
+                    Ok(result)
+                }),
+            );
+            lock(&c.inner.state).unwrap().saved.bindings = vec![private_binding()];
+            c.inner.poll().unwrap();
+            c.inner.poll().unwrap();
+            assert_eq!(replies(&fixture), usize::from(grounded));
+            assert_eq!(
+                c.inner.status().unwrap()["recentMessages"][0]["status"],
+                if grounded { "unknown" } else { "skipped" }
+            );
+        }
+    }
+    #[test]
+    fn legacy_receipts_migrate_without_losing_deduplication_or_send_status() {
+        let fixture = Fixture::new(default_fixture);
+        let dir = tempfile::tempdir().unwrap();
+        save_private(dir.path(), &saved()).unwrap();
+        let db = Connection::open(dir.path().join("feishu-runtime.sqlite")).unwrap();
+        db.execute_batch("CREATE TABLE receipts (
+            id TEXT PRIMARY KEY, account TEXT NOT NULL, message_id TEXT NOT NULL,
+            chat_id TEXT NOT NULL, project_id TEXT NOT NULL, question TEXT NOT NULL,
+            answer TEXT, status TEXT NOT NULL, error TEXT, generation TEXT NOT NULL,
+            uuid TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+            reply_id TEXT, UNIQUE(account,message_id));
+            INSERT INTO receipts VALUES ('legacy','cli_fixture:ou_me','om_question','oc_project',
+                'project-1','发布计划是什么？','已回复','replied',NULL,'old-generation','stable-uuid','before','before','om_reply');").unwrap();
+        drop(db);
+        let c = Connector::create(
+            dir.path().into(),
+            Arc::new(|_, _| panic!("legacy reply must not be regenerated")),
+            Arc::new(|_| Ok(())),
+            fixture.api(),
+            false,
+        )
+        .unwrap();
+        c.inner.poll().unwrap();
+        let old = c.inner.status().unwrap()["recentMessages"][0].clone();
+        assert_eq!(old["id"], "legacy");
+        assert_eq!(old["chatType"], "group");
+        assert_eq!(old["status"], "replied");
+        assert_eq!(replies(&fixture), 0);
+        drop(c);
+        let reopened = Connector::create(
+            dir.path().into(),
+            Arc::new(|_, _| panic!("duplicate reply")),
+            Arc::new(|_| Ok(())),
+            fixture.api(),
+            false,
+        )
+        .unwrap();
+        reopened.inner.poll().unwrap();
+        assert_eq!(replies(&fixture), 0);
+    }
+    #[test]
+    fn old_group_settings_stay_group_and_private_changes_reset_start_time() {
+        let old = saved();
+        let mut serialized = serde_json::to_value(&old).unwrap();
+        for key in ["chatType", "peerId", "name"] {
+            serialized["bindings"][0]
+                .as_object_mut()
+                .unwrap()
+                .remove(key);
+        }
+        let legacy: Saved = serde_json::from_value(serialized).unwrap();
+        assert!(legacy.bindings[0].chat_type == ChatType::Group);
+        let mut s = old.clone();
+        s.bindings = vec![private_binding()];
+        let mut input = public_settings(&s);
+        let unchanged = parse_settings(&s, &input).unwrap();
+        assert_eq!(unchanged.bindings[0].since, 0);
+        input["bindings"][0]["projectId"] = json!("project-new");
+        assert!(parse_settings(&s, &input).unwrap().bindings[0].since > 0);
+        input["bindings"][0]["peerId"] = json!("ou_other");
+        assert!(parse_settings(&s, &input).unwrap().bindings[0].since > 0);
+        input["bindings"][0]["peerId"] = json!("");
+        assert!(parse_settings(&s, &input).is_err());
+        input["bindings"][0]["chatType"] = json!("unknown");
+        assert!(parse_settings(&s, &input).is_err());
     }
 
     #[test]
@@ -2495,36 +3048,46 @@ mod tests {
     }
     #[test]
     fn pause_during_generation_cancels_late_result_and_prevents_send() {
-        let fixture = Fixture::new(default_fixture);
-        let dir = tempfile::tempdir().unwrap();
-        let (started, ready) = mpsc::channel();
-        let (release, wait) = mpsc::channel();
-        let wait = Mutex::new(wait);
-        let c = connector(
-            dir.path(),
-            &fixture,
-            Arc::new(move |_, _| {
-                started.send(()).unwrap();
-                wait.lock()
-                    .unwrap()
-                    .recv_timeout(Duration::from_secs(5))
-                    .unwrap();
-                Ok(answer())
-            }),
-        );
-        let inner = c.inner.clone();
-        let job = thread::spawn(move || inner.poll());
-        ready.recv_timeout(Duration::from_secs(5)).unwrap();
-        c.pause().unwrap();
-        release.send(()).unwrap();
-        let _ = job.join().unwrap();
-        assert_eq!(replies(&fixture), 0);
-        assert!(!load_saved(dir.path()).unwrap().enabled);
-        assert_eq!(
-            c.inner.status().unwrap()["recentMessages"][0]["status"],
-            "cancelled"
-        );
+        for private in [false, true] {
+            let fixture = Fixture::new(if private {
+                private_fixture
+            } else {
+                default_fixture
+            });
+            let dir = tempfile::tempdir().unwrap();
+            let (started, ready) = mpsc::channel();
+            let (release, wait) = mpsc::channel();
+            let wait = Mutex::new(wait);
+            let c = connector(
+                dir.path(),
+                &fixture,
+                Arc::new(move |_, _| {
+                    started.send(()).unwrap();
+                    wait.lock()
+                        .unwrap()
+                        .recv_timeout(Duration::from_secs(5))
+                        .unwrap();
+                    Ok(answer())
+                }),
+            );
+            if private {
+                lock(&c.inner.state).unwrap().saved.bindings = vec![private_binding()];
+            }
+            let inner = c.inner.clone();
+            let job = thread::spawn(move || inner.poll());
+            ready.recv_timeout(Duration::from_secs(5)).unwrap();
+            c.pause().unwrap();
+            release.send(()).unwrap();
+            let _ = job.join().unwrap();
+            assert_eq!(replies(&fixture), 0);
+            assert!(!load_saved(dir.path()).unwrap().enabled);
+            assert_eq!(
+                c.inner.status().unwrap()["recentMessages"][0]["status"],
+                "cancelled"
+            );
+        }
     }
+
     #[test]
     fn identity_mismatch_and_missing_evidence_never_send() {
         let fixture = Fixture::new(|r| {

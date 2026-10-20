@@ -3,16 +3,11 @@ import type { FormEvent, KeyboardEvent } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Check, CircleAlert, Copy, ExternalLink, Link2, MessageCircle, Plus, RefreshCw, Send, Trash2, Unplug } from 'lucide-react';
 import { asError, execute } from '../api';
-import type { FeishuBinding, FeishuEditableSettings, FeishuStatus, Project, ProjectAnswer } from '../types';
+import type { FeishuBinding, FeishuPrivateChat, FeishuEditableSettings, FeishuStatus, Project, ProjectAnswer } from '../types';
 import { Dialog, Spinner } from './ui';
 
-type Tab = 'connection' | 'bindings' | 'history' | 'preview';
+type Tab = 'connection' | 'bindings' | 'preview';
 const AUTH_LABELS = { disconnected: '未连接账号', authorizing: '等待授权', connected: '账号已连接', expired: '授权已过期' };
-const MESSAGE_LABELS: Record<string, string> = {
-  pending: '等待处理', processing: '正在生成', answering: '正在生成', sending: '正在发送',
-  replied: '已回复', sent: '已回复', succeeded: '已回复', failed: '失败', skipped: '已跳过', ignored: '已跳过',
-  unknown: '发送结果待核对', send_unknown: '发送结果待核对', deferred: '稍后重试', rejected: '未发送',
-};
 
 function navigateTabs(event: KeyboardEvent<HTMLDivElement>) {
   if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
@@ -28,11 +23,6 @@ function navigateTabs(event: KeyboardEvent<HTMLDivElement>) {
 
 function editable(settings: FeishuStatus['settings']): FeishuEditableSettings {
   return { appId: settings.appId, enabled: settings.enabled, pollIntervalSeconds: settings.pollIntervalSeconds, replyPrefix: settings.replyPrefix, bindings: settings.bindings };
-}
-function displayTime(value: string | null) {
-  if (!value) return '尚未检查';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 function authorizationUrl(value: string | null | undefined) {
   if (!value) return '';
@@ -54,6 +44,7 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
   const [tab, setTab] = useState<Tab>('connection');
   const [authUrl, setAuthUrl] = useState('');
   const [chats, setChats] = useState<Array<{ chatId: string; name: string }>>([]);
+  const [privateChats, setPrivateChats] = useState<FeishuPrivateChat[]>([]);
   const [previewProjectId, setPreviewProjectId] = useState(projects[0]?.id ?? '');
   const [question, setQuestion] = useState('');
   const [preview, setPreview] = useState<ProjectAnswer | null>(null);
@@ -94,11 +85,14 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
   const appChanged = !!form && !!status && form.appId.trim() !== status.settings.appId;
   const needsNewSecret = appChanged && !!form?.appId.trim() && !secret.trim();
   const bindingError = form?.bindings.some((binding) => !binding.chatId.trim() || !projects.some((project) => project.id === binding.projectId))
-    ? '每个群都需要填写群 ID 并选择项目。'
-    : form && new Set(form.bindings.map((binding) => binding.chatId.trim())).size !== form.bindings.length ? '同一个群只能绑定一个项目。' : '';
+    ? '每个会话都需要填写会话 ID 并选择项目。'
+    : form && new Set(form.bindings.map((binding) => binding.chatId.trim())).size !== form.bindings.length ? '同一个会话只能绑定一个项目。'
+    : form?.bindings.some((binding) => binding.chatType === 'p2p' && !/^ou[_-][A-Za-z0-9_-]+$/.test(binding.peerId ?? '')) ? '每个私聊都需要选择同事或填写有效的同事 Open ID。' : '';
   const intervalValid = !!form && Number.isInteger(form.pollIntervalSeconds) && form.pollIntervalSeconds >= 30 && form.pollIntervalSeconds <= 3600;
   const connected = status?.authorization.status === 'connected';
   const savedBindings = status?.settings.bindings.filter((binding) => binding.enabled).length ?? 0;
+  const savedGroups = status?.settings.bindings.filter((binding) => binding.enabled && binding.chatType !== 'p2p').length ?? 0;
+  const savedPrivateChats = savedBindings - savedGroups;
   const patch = (value: Partial<FeishuEditableSettings>) => { setForm((current) => current ? { ...current, ...value } : current); setError(''); setNotice(''); };
   const updateBinding = (index: number, value: Partial<FeishuBinding>) => {
     if (form) patch({ bindings: form.bindings.map((binding, position) => position === index ? { ...binding, ...value } : binding) });
@@ -115,7 +109,7 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
     if (!form || bindingError || !intervalValid || needsNewSecret) return;
     await action('save', async () => {
       const next = await execute<FeishuStatus>('save_feishu_settings', {
-        ...form, appId: form.appId.trim(), bindings: form.bindings.map((binding) => ({ ...binding, chatId: binding.chatId.trim() })),
+        ...form, appId: form.appId.trim(), bindings: form.bindings.map((binding) => ({ ...binding, chatId: binding.chatId.trim(), peerId: binding.peerId?.trim() })),
         ...(secret.trim() ? { appSecret: secret.trim() } : {}),
       });
       if (!alive.current) return;
@@ -145,20 +139,17 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
   const copy = (value: string) => action('copy', async () => {
     await navigator.clipboard.writeText(value); setNotice('已复制。');
   });
-  const checkNow = () => action('poll', async () => {
-    await execute('poll_feishu_now'); await refresh(); setNotice('正在检查新消息，结果会自动更新。');
-  });
   const testAnswer = () => action('preview', async () => {
     setPreview(null);
     const result = await execute<ProjectAnswer>('ask_project', { projectId: previewProjectId, question: question.trim() });
     if (alive.current) setPreview(result);
   });
 
-  return <Dialog title="飞书个人助理" subtitle="在指定群中，根据项目记忆替你回复 @提问。" close={close} busy={!!busy} wide>
+  return <Dialog title="飞书个人助理" subtitle="根据项目记忆，替你回复群内 @提问和指定同事的私聊。" close={close} busy={!!busy} wide>
     {busy === 'load' ? <div className="dialog-body settings-loading"><Spinner />正在读取飞书连接…</div> : !form || !status ? <div className="dialog-body"><div className="form-error" role="alert"><CircleAlert size={17} /><p>{error || '暂时无法读取飞书设置。'}</p></div><button className="button secondary settings-reload" onClick={() => void action('reload', async () => { await refresh(); })}>{busy ? <Spinner /> : <RefreshCw size={15} />}重新读取</button></div> : <form onSubmit={save}>
-      <div className="feishu-overview"><div className="feishu-identity"><span className={`settings-status-dot ${connected ? 'ready' : ''}`} /><strong>{AUTH_LABELS[status.authorization.status]}</strong>{status.authorization.user && <span>{status.authorization.user.name || status.authorization.user.openId}</span>}</div><span className="feishu-run-status">{status.runtime.polling ? <><Spinner />正在检查消息</> : !status.settings.enabled ? '自动回复已关闭' : !connected ? '等待账号授权' : !savedBindings ? '等待绑定群' : '自动回复已开启'}</span></div>
+      <div className="feishu-overview"><div className="feishu-identity"><span className={`settings-status-dot ${connected ? 'ready' : ''}`} /><strong>{AUTH_LABELS[status.authorization.status]}</strong>{status.authorization.user && <span>{status.authorization.user.name || status.authorization.user.openId}</span>}</div><span className="feishu-run-status">{status.runtime.polling ? <><Spinner />正在检查消息</> : !status.settings.enabled ? '自动回复已关闭' : !connected ? '等待账号授权' : !savedBindings ? '等待绑定会话' : '自动回复已开启'}</span></div>
       <div className="feishu-tabs" role="tablist" aria-label="飞书个人助理设置" onKeyDown={navigateTabs}>{([
-        ['connection', '连接账号'], ['bindings', '自动回复'], ['history', '回复记录'], ['preview', '回答预览'],
+        ['connection', '连接账号'], ['bindings', '自动回复'], ['preview', '回答预览'],
       ] as const).map(([value, label]) => <button type="button" key={value} role="tab" tabIndex={tab === value ? 0 : -1} aria-selected={tab === value} aria-controls={`feishu-panel-${value}`} id={`feishu-tab-${value}`} className={tab === value ? 'selected' : ''} onClick={() => setTab(value)}>{label}</button>)}</div>
       <div className="dialog-body feishu-body" role="tabpanel" id={`feishu-panel-${tab}`} aria-labelledby={`feishu-tab-${tab}`}>
         {tab === 'connection' && <>
@@ -169,7 +160,7 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
           {appChanged && <p className="field-hint">保存后会清除旧密钥与授权，请填写新密钥并重新授权。</p>}
           <label className="field-label spaced" htmlFor="feishu-redirect-uri">重定向地址</label><div className="feishu-copy-field"><input id="feishu-redirect-uri" readOnly value={status.settings.redirectUri} onFocus={(event) => event.target.select()} /><button type="button" className="icon-button" aria-label="复制重定向地址" title="复制重定向地址" disabled={!!busy} onClick={() => void copy(status.settings.redirectUri)}><Copy size={15} /></button></div>
           <p className="field-hint">复制到飞书应用的「安全设置 → 重定向 URL」。授权时保持本应用运行。</p>
-          <details className="feishu-permissions"><summary>所需用户身份权限</summary><p><code>offline_access</code> 刷新个人授权</p><p><code>search:message</code> 搜索 @你的消息</p><p><code>im:message.group_msg:get_as_user</code> 读取用户所在群的消息</p><p><code>im:message</code> 读取消息与上下文</p><p><code>im:message.send_as_user</code> 以你的身份回复</p><p><code>im:chat:read</code> 读取可选群列表</p><p>权限变更需要重新发布应用，并重新完成个人授权。</p></details>
+          <details className="feishu-permissions"><summary>所需用户身份权限</summary><p><code>offline_access</code> 刷新个人授权</p><p><code>search:message</code> 搜索群内 @你和私聊消息</p><p><code>im:message.p2p_msg:get_as_user</code> 读取个人账号的私聊消息</p><p><code>im:message.group_msg:get_as_user</code> 读取用户所在群的消息</p><p><code>im:message</code> 读取消息与上下文</p><p><code>im:message.send_as_user</code> 以你的身份回复</p><p><code>im:chat:read</code> 读取可选群列表</p><p>权限变更需要重新发布应用，并重新完成个人授权。</p></details>
           <div className="feishu-section-heading feishu-section-spaced"><h3>2. 连接个人账号</h3></div>
           <div className="feishu-authorization-actions"><button type="button" className="button secondary" disabled={!!busy || dirty || !status.settings.appId || !status.settings.hasAppSecret} onClick={() => void authorize()}>{busy === 'authorize' ? <Spinner /> : <Link2 size={15} />}{connected ? '重新授权' : '连接我的飞书账号'}</button>{status.authorization.status !== 'disconnected' && <button type="button" className="text-button" disabled={!!busy} onClick={() => void action('disconnect', async () => { await execute('disconnect_feishu'); setAuthUrl(''); await refresh(); setNotice('个人授权已断开，自动回复已停止。'); })}><Unplug size={13} />断开授权</button>}</div>
           {dirty && <p className="field-hint">请先保存设置，再连接个人账号。</p>}
@@ -179,27 +170,34 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
           <div className="feishu-section-heading"><h3>选择回复的群与项目</h3><button type="button" className="text-button tiny" disabled={!!busy || !connected} onClick={() => void action('chats', async () => { const result = await execute<{ chats: Array<{ chatId: string; name: string }> }>('list_feishu_chats'); setChats(result.chats); setNotice(result.chats.length ? '已读取群列表，可选择或输入群 ID。' : '没有找到可用群，可手动输入群 ID。'); })}>{busy === 'chats' ? <Spinner /> : <RefreshCw size={12} />}读取群列表</button></div>
           <p className="field-hint">仅回复启用后，指定群中 @你的新消息。项目中全部已确认记忆都可能用于回答，请选择可与群成员分享的项目。</p>
           <datalist id="feishu-chat-options">{chats.map((chat) => <option key={chat.chatId} value={chat.chatId}>{chat.name}</option>)}</datalist>
-          <div className="feishu-bindings">{form.bindings.length === 0 && <div className="feishu-empty"><MessageCircle size={25} strokeWidth={1.5} /><p>还没有绑定群</p><span>添加群并选择项目，助理就能按项目记忆回答。</span></div>}{form.bindings.map((binding, index) => <div className="feishu-binding" key={index}>
+          <div className="feishu-bindings">{form.bindings.filter((binding) => binding.chatType !== 'p2p').length === 0 && <div className="feishu-empty"><MessageCircle size={25} strokeWidth={1.5} /><p>还没有绑定群</p><span>添加群并选择项目，助理就能按项目记忆回答。</span></div>}{form.bindings.map((binding, index) => binding.chatType !== 'p2p' && <div className="feishu-binding" key={index}>
             <div className="feishu-binding-fields"><label><span className="field-label">群 ID{chats.find((chat) => chat.chatId === binding.chatId)?.name && <span>{chats.find((chat) => chat.chatId === binding.chatId)?.name}</span>}</span><input aria-label={`第 ${index + 1} 个群 ID`} list="feishu-chat-options" value={binding.chatId} placeholder="oc_…（可手动填写）" onChange={(event) => updateBinding(index, { chatId: event.target.value })} disabled={!!busy} spellCheck={false} /></label><label><span className="field-label">项目</span><select aria-label={`第 ${index + 1} 个群绑定的项目`} value={binding.projectId} onChange={(event) => updateBinding(index, { projectId: event.target.value })} disabled={!!busy}><option value="">选择项目</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label></div>
             <div className="feishu-binding-actions"><label className="settings-check"><input type="checkbox" checked={binding.enabled} onChange={(event) => updateBinding(index, { enabled: event.target.checked })} disabled={!!busy} /><span>在此群回复</span></label><button type="button" className="icon-button small" title="移除群绑定" aria-label={`移除第 ${index + 1} 个群绑定`} disabled={!!busy} onClick={() => patch({ bindings: form.bindings.filter((_, position) => position !== index) })}><Trash2 size={14} /></button></div>
           </div>)}</div>
           <button type="button" className="button secondary compact" disabled={!!busy || !projects.length} onClick={() => patch({ bindings: [...form.bindings, { chatId: '', projectId: projects[0]?.id ?? '', enabled: true }] })}><Plus size={14} />添加群</button>
+          <div className="feishu-section-heading feishu-section-spaced"><h3>自动回复同事私聊</h3><button type="button" className="text-button tiny" disabled={!!busy || !connected || appChanged || !!secret.trim()} onClick={() => void action('private-chats', async () => {
+            const result = await execute<{ chats: FeishuPrivateChat[]; hasMore: boolean }>('list_feishu_private_chats');
+            setPrivateChats(result.chats);
+            setNotice(result.chats.length ? `已读取 ${result.chats.length} 个最近私聊。${result.hasMore ? '仅展示最近 500 条消息涉及的会话，也可手动填写。' : ''}` : '最近 30 天没有可读取的私聊，可手动填写会话 ID 和同事 Open ID。');
+          })}>{busy === 'private-chats' ? <Spinner /> : <RefreshCw size={12} />}读取最近私聊</button></div>
+          <p className="field-hint">仅回复已启用同事发来的新文字、富文本消息，无需 @你。每个私聊绑定一个项目，该项目的全部已确认记忆都可能用于回答。首次使用请增加私聊读取权限并重新授权。</p>
+          {(appChanged || !!secret.trim()) && <p className="field-hint">先保存应用凭据，再读取最近私聊。</p>}
+          <div className="feishu-bindings">{!form.bindings.some((binding) => binding.chatType === 'p2p') && <div className="feishu-empty"><MessageCircle size={25} strokeWidth={1.5} /><p>还没有绑定同事私聊</p><span>添加同事并选择可用于回答的项目。</span></div>}{form.bindings.map((binding, index) => binding.chatType === 'p2p' && <div className="feishu-binding" key={index}>
+            <div className="feishu-binding-fields"><label><span className="field-label">同事（最近 30 天的私聊）</span><select aria-label={`第 ${index + 1} 个私聊同事`} value={privateChats.some((chat) => chat.chatId === binding.chatId) ? binding.chatId : ''} disabled={!!busy} onChange={(event) => {
+              const chat = privateChats.find((item) => item.chatId === event.target.value);
+              if (chat) updateBinding(index, { chatId: chat.chatId, peerId: chat.peerId, name: chat.name });
+            }}><option value="">{binding.chatId ? binding.name || binding.peerId || '已绑定私聊' : '先读取最近私聊，或手动填写'}</option>{privateChats.map((chat) => <option key={chat.chatId} value={chat.chatId}>{chat.name} · {chat.peerId}</option>)}</select></label><label><span className="field-label">允许回答的项目</span><select aria-label={`第 ${index + 1} 个私聊绑定的项目`} value={binding.projectId} onChange={(event) => updateBinding(index, { projectId: event.target.value })} disabled={!!busy}><option value="">选择项目</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label></div>
+            <details className="advanced-settings" open={!binding.chatId || !binding.peerId}><summary>手动填写私聊信息</summary><div className="settings-columns"><label><span className="field-label">私聊会话 ID</span><input aria-label={`第 ${index + 1} 个私聊会话 ID`} value={binding.chatId} onChange={(event) => updateBinding(index, { chatId: event.target.value })} placeholder="oc_…" spellCheck={false} disabled={!!busy} /></label><label><span className="field-label">同事 Open ID</span><input aria-label={`第 ${index + 1} 个同事 Open ID`} value={binding.peerId ?? ''} onChange={(event) => updateBinding(index, { peerId: event.target.value, name: '' })} placeholder="ou_…" spellCheck={false} disabled={!!busy} /></label></div></details>
+            <div className="feishu-binding-actions"><label className="settings-check"><input type="checkbox" checked={binding.enabled} onChange={(event) => updateBinding(index, { enabled: event.target.checked })} disabled={!!busy} /><span>回复此同事私聊</span></label><button type="button" className="icon-button small" aria-label={`移除第 ${index + 1} 个私聊绑定`} title="移除私聊绑定" disabled={!!busy} onClick={() => patch({ bindings: form.bindings.filter((_, position) => position !== index) })}><Trash2 size={14} /></button></div>
+          </div>)}</div>
+          <button type="button" className="button secondary compact" disabled={!!busy || !projects.length} onClick={() => patch({ bindings: [...form.bindings, { chatType: 'p2p', chatId: '', peerId: '', name: '', projectId: projects[0]?.id ?? '', enabled: true }] })}><Plus size={14} />添加同事私聊</button>
           {!projects.length && <p className="field-hint">请先在工作区创建项目并确认记忆。</p>}
           {bindingError && <p className="settings-inline-error field-hint">{bindingError}</p>}
           <div className="feishu-section-heading feishu-section-spaced"><h3>自动回复</h3></div>
           <label className="settings-check feishu-enable"><input type="checkbox" checked={form.enabled} onChange={(event) => patch({ enabled: event.target.checked })} disabled={!!busy} /><span><strong>用我的账号自动回复</strong><small>保存后生效，需保持应用运行和账号授权。受飞书消息索引影响，回复可能延迟。</small></span></label>
           <details className="advanced-settings" open={!intervalValid}><summary>回复设置</summary><div className="settings-columns"><label><span className="field-label">检查间隔（秒）</span><input type="number" aria-label="检查间隔秒数" min={30} max={3600} step={1} value={Number.isFinite(form.pollIntervalSeconds) ? form.pollIntervalSeconds : ''} onChange={(event) => patch({ pollIntervalSeconds: Number(event.target.value) })} disabled={!!busy} required /></label><label><span className="field-label">回复前缀 <span>可选</span></span><input aria-label="回复前缀" value={form.replyPrefix} maxLength={200} onChange={(event) => patch({ replyPrefix: event.target.value })} placeholder="例如：助理代答：" disabled={!!busy} /></label></div></details>
           {!intervalValid && <p className="field-hint settings-inline-error">检查间隔需要是 30～3600 秒之间的整数。</p>}
-          <p className="field-hint feishu-model-note">问题与相关记忆会发送至已配置的模型服务，回答将发给群成员。建议先在「回答预览」中试问。</p>
-        </>}
-        {tab === 'history' && <>
-          <div className="feishu-section-heading"><h3>最近处理的提问</h3><button type="button" className="button secondary compact" disabled={!!busy || !connected || !savedBindings || status.runtime.polling || dirty} onClick={() => void checkNow()}>{busy === 'poll' || status.runtime.polling ? <Spinner /> : <RefreshCw size={14} />}立即检查</button></div>
-          <p className="field-hint">上次检查：{displayTime(status.runtime.lastPollAt)} · {dirty ? '请先保存修改' : '自动更新'}</p>
-          {status.runtime.lastError && <div className="form-error" role="alert"><CircleAlert size={17} /><p>{status.runtime.lastError}</p></div>}
-          <div className="feishu-history">{status.recentMessages.length ? status.recentMessages.map((message) => <article className="feishu-message" key={message.id}>
-            <div className="feishu-message-meta"><span className={message.status === 'failed' ? 'text-error' : ''}>{MESSAGE_LABELS[message.status] ?? message.status}</span><span>{projects.find((project) => project.id === message.projectId)?.name ?? '未绑定项目'}</span><time>{displayTime(message.createdAt)}</time></div>
-            <p className="feishu-question">{message.question || '无可用的文本提问'}</p>{message.answer && <p className="feishu-answer">{message.answer}</p>}{message.error && <p className="settings-inline-error">{message.error}</p>}<small className="feishu-message-chat">群：{chats.find((chat) => chat.chatId === message.chatId)?.name ?? message.chatId}</small>
-          </article>) : <div className="feishu-empty"><MessageCircle size={25} strokeWidth={1.5} /><p>还没有处理记录</p><span>完成授权并启用群绑定后，新的 @你消息会显示在这里。</span></div>}</div>
+          <p className="field-hint feishu-model-note">问题与相关记忆会发送至已配置的模型服务，回答将发给绑定群成员或指定私聊同事。建议先在「回答预览」中试问。</p>
         </>}
         {tab === 'preview' && <>
           <div className="feishu-section-heading"><h3>试问一个项目问题</h3></div><p className="field-hint">使用与自动回复相同的项目记忆生成回答，预览结果仅在此显示。</p>
@@ -208,10 +206,11 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
           <button type="button" className="button secondary feishu-preview-button" disabled={!!busy || !previewProjectId || !question.trim()} onClick={() => void testAnswer()}>{busy === 'preview' ? <Spinner /> : <Send size={14} />}预览回答</button>
           {preview && <div className="feishu-preview-result"><div className="feishu-section-heading"><h3>回复预览</h3><span className="field-hint">{preview.grounded ? `${preview.citations.length} 条记忆依据` : '未找到足够依据'}</span></div><p>{preview.answer}</p>{preview.citations.length > 0 && <details><summary>查看引用的记忆与原文</summary>{preview.citations.map((citation) => <div className="feishu-citation" key={`${citation.memoryId}-${citation.revision}`}><strong>{citation.sourceTitle} · 记忆 v{citation.revision}</strong><p>{citation.content}</p>{citation.evidence.map((evidence) => <blockquote key={evidence.segmentId}><span>{evidence.sourceTitle} · {evidence.locator}</span>{evidence.text}</blockquote>)}</div>)}</details>}</div>}
         </>}
+        {status.runtime.lastError && <div className="form-error" role="alert"><CircleAlert size={17} /><p>{status.runtime.lastError}</p></div>}
         {error && <div className="form-error" role="alert"><CircleAlert size={17} /><p>{error}</p></div>}
         {notice && <div className="settings-result" role="status"><Check size={17} /><p>{notice}</p></div>}
       </div>
-      <div className="dialog-footer settings-footer"><span className="footer-note">{dirty ? '有未保存的修改' : `${savedBindings} 个群已启用`}</span><button type="button" className="button secondary" disabled={!!busy} onClick={close}>关闭</button><button type="submit" className="button primary" disabled={!!busy || !dirty || !!bindingError || !intervalValid || needsNewSecret}>{busy === 'save' ? <Spinner /> : <Check size={15} />}保存设置</button></div>
+      <div className="dialog-footer settings-footer"><span className="footer-note">{dirty ? '有未保存的修改' : `${savedGroups} 个群、${savedPrivateChats} 个私聊已启用`}</span><button type="button" className="button secondary" disabled={!!busy} onClick={close}>关闭</button><button type="submit" className="button primary" disabled={!!busy || !dirty || !!bindingError || !intervalValid || needsNewSecret}>{busy === 'save' ? <Spinner /> : <Check size={15} />}保存设置</button></div>
     </form>}
   </Dialog>;
 }

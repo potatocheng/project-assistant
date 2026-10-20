@@ -73,7 +73,7 @@ fn workspace_lock_and_reopen() {
     let reopened = Engine::open(dir.path()).unwrap();
     assert_eq!(
         call(&reopened, "get_state", json!({}))["workspace"]["schemaVersion"],
-        7
+        8
     );
 }
 #[test]

@@ -356,6 +356,7 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
         crate::governance::validate_backup(&conn)?;
         crate::change_control::validate_backup(&conn)?;
         crate::coordination::validate_backup(&conn)?;
+        crate::proactive::validate_backup(&conn)?;
         return Ok(Validated {
             stage,
             manifest,
@@ -370,6 +371,7 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
     crate::governance::validate_backup(&conn)?;
     crate::change_control::validate_backup(&conn)?;
     crate::coordination::validate_backup(&conn)?;
+    crate::proactive::validate_backup(&conn)?;
     Ok(Validated {
         stage,
         manifest,
@@ -629,6 +631,9 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
         "UPDATE planning_drafts SET status='stale' WHERE status='pending'",
         [],
     )?;
+    // Keep the action/audit trail, but restored authority never starts a patrol.
+    // Re-enabling explicitly performs a fresh scan against the restored sources.
+    crate::proactive::pause_after_restore(&db.conn)?;
     db.recovered_jobs=db.conn.execute("UPDATE jobs SET status='queued',stage='等待恢复',recovered=1,generation=generation+1,updated_at=? WHERE kind='import' AND status IN ('queued','running')",[now()])?;
     // The journal is the commit marker. A process crash before removal always rolls back.
     db.conn.execute_batch("PRAGMA wal_checkpoint(FULL);")?;

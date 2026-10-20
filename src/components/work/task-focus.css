@@ -1,0 +1,278 @@
+.task-focus-page .work-page-heading {
+  padding-top: 28px;
+  padding-bottom: 19px;
+}
+
+.task-focus-page .work-page-heading h2 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.4;
+}
+
+.task-focus-controls {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.task-focus-page .task-focus-controls .work-filters {
+  border: 0;
+  padding-bottom: 17px;
+}
+
+.task-focus-page .task-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 7px 9px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 6px;
+  color: var(--secondary);
+  background: transparent;
+  font-size: 12px;
+}
+
+.task-focus-page .task-filter-toggle:hover,
+.task-focus-page .task-filter-toggle[aria-expanded='true'] {
+  background: #eef3ed;
+}
+
+.task-focus-page .task-filter-toggle.is-active {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.task-filter-toggle > svg:last-child,
+.task-progress-details > summary > svg:last-child {
+  transition: transform .16s ease;
+}
+
+.task-filter-toggle[aria-expanded='true'] > svg:last-child,
+.task-progress-details[open] > summary > svg:last-child {
+  transform: rotate(180deg);
+}
+
+.task-focus-filter-panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 36px 16px;
+  animation: task-filter-reveal .16s ease-out;
+}
+
+.task-focus-page .task-focus-filter-panel > select {
+  width: auto;
+  min-width: 125px;
+  min-height: 35px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.task-filter-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 230px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  background: #fff;
+}
+
+.task-focus-page .task-filter-search input:not([type='checkbox']):not([type='file']) {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.task-filter-search:focus-within {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px #4f79550e;
+}
+
+.task-filter-day {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.task-focus-page .task-filter-day input:not([type='checkbox']):not([type='file']) {
+  width: 130px;
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
+.task-focus-page .task-list-toolbar {
+  gap: 15px;
+  padding-top: 16px;
+  padding-bottom: 12px;
+}
+
+.task-focus-page .task-table-head { padding-top: 9px; padding-bottom: 9px; }
+
+.task-focus-page .task-list-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  white-space: normal;
+}
+
+.task-focus-page .task-list-heading h3 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.task-focus-page .task-list-heading > span {
+  padding: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.task-arrange-button {
+  flex-shrink: 0;
+}
+
+.task-focus-page .task-row {
+  padding-top: 17px;
+  padding-bottom: 17px;
+  transition: background-color .14s ease, box-shadow .14s ease;
+}
+
+.task-focus-page .planning-row-reason {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.task-focus-page .task-inspector {
+  scroll-margin-top: 15px;
+}
+
+.task-focus-page .task-detail-heading {
+  padding-top: 22px;
+}
+
+.task-focus-page .task-detail-heading h3 {
+  margin-top: 7px;
+  font-size: 18px;
+}
+
+.task-focus-page .task-attributes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px 20px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.task-focus-page .task-attributes > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0;
+}
+
+.task-focus-page .task-attributes dt {
+  font-size: 11px;
+}
+
+.task-focus-page .task-attributes dd {
+  text-align: left;
+  font-size: 12px;
+}
+
+.task-progress-details > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  list-style: none;
+  color: var(--secondary);
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+}
+
+.task-progress-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.task-progress-details > summary > span {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.task-focus-page .daily-report-link {
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding-top: 15px;
+}
+
+.task-focus-page button:focus-visible,
+.task-focus-page summary:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+
+@keyframes task-filter-reveal {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (min-width: 1500px) {
+  .task-focus-filter-panel { padding-left: 44px; padding-right: 44px; }
+}
+
+@media (max-width: 1170px) {
+  .task-focus-filter-panel { padding-left: 27px; padding-right: 27px; }
+}
+
+@media (max-width: 700px) {
+  .task-focus-page .work-page-heading {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding-top: 22px;
+    padding-bottom: 18px;
+  }
+
+  .task-focus-page .work-page-heading h2 { font-size: 24px; }
+  .task-focus-page .work-heading-actions .button { padding: 8px 11px; }
+  .task-focus-filter-panel { padding-left: 22px; padding-right: 22px; }
+  .task-focus-page .task-focus-controls .work-filters { gap: 9px; }
+  .task-focus-page .task-focus-controls .work-project-select { flex: 1; min-width: 0; max-width: none; }
+  .task-focus-page .task-focus-controls .work-date-controls { justify-content: space-between; }
+  .task-filter-search { flex: 1; width: auto; min-width: 150px; }
+  .task-focus-page .task-focus-filter-panel > select { min-width: 105px; }
+  .task-focus-page .task-list-toolbar { flex-wrap: nowrap; align-items: center; }
+  .task-focus-page .task-list-heading { flex-direction: column; gap: 4px; padding: 0; }
+  .task-focus-page .task-arrange-button { font-size: 11px; }
+  .task-focus-page .task-row { padding-top: 16px; padding-bottom: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-focus-page *, .task-focus-page *::before, .task-focus-page *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

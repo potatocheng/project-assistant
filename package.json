@@ -14,7 +14,8 @@
     "qa:bridge": "node scripts/qa-bridge.mjs",
     "verify:ai": "node scripts/verify-ai.mjs",
     "verify:workflow": "node scripts/verify-workflow.mjs",
-    "verify:planning": "node scripts/verify-planning.mjs"
+    "verify:planning": "node scripts/verify-planning.mjs",
+    "verify:proactive": "node scripts/verify-proactive.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
