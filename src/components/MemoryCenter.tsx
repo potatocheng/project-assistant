@@ -4,6 +4,7 @@ import { Check, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { execute, asError } from '../api';
 import type { Project, MemoryDetail, SourceDetail } from '../types';
 import { Dialog, Spinner } from './ui';
+import { MemoryQualityPanel } from './MemoryWorkbench';
 
 interface Policy { enabled: boolean; idleSeconds: number; dailyCalls: number; autoNew: boolean }
 interface Subscription { kind: 'chat' | 'document'; target: string; projectId: string; enabled: boolean; historyDays: number }
@@ -65,7 +66,7 @@ function ReviewCard({ review, projects, disabled, resolve, recompare }: { review
 }
 
 export function MemoryCenter({ projects, close, onSaved }: { projects: Project[]; close: () => void; onSaved: () => Promise<unknown> }) {
-  const [tab, setTab] = useState<'sources' | 'policy' | 'reviews' | 'history'>('sources');
+  const [tab, setTab] = useState<'sources' | 'policy' | 'reviews' | 'history' | 'quality'>('sources');
   const [data, setData] = useState<Maintenance | null>(null);
   const [sync, setSync] = useState<SyncStatus | null>(null);
   const [policy, setPolicy] = useState<Policy | null>(null);
@@ -106,7 +107,7 @@ export function MemoryCenter({ projects, close, onSaved }: { projects: Project[]
     <div className="dialog-body memory-center">
       <div className="segmented-control" role="tablist" aria-label="记忆中心" onKeyDown={navigateTabs}>{([['sources', '资料来源'], ['policy', '自动整理'], ['reviews', `待确认 ${data?.reviews.length ?? 0}`], ['history', '整理记录']] as const).map(([id, label]) => <button type="button" role="tab" tabIndex={tab === id ? 0 : -1} aria-selected={tab === id} aria-controls={`memory-panel-${id}`} id={`memory-tab-${id}`} key={id} className={tab === id ? 'selected' : ''} onClick={() => setTab(id)}>{label}</button>)}</div>
       {error && <p className="inline-error" role="alert">{error}</p>}{notice && <p className="inline-success" role="status">{notice}</p>}
-      {!data || !form || !policy ? <p className="field-hint"><Spinner /> 正在读取记忆设置…</p> : <div role="tabpanel" id={`memory-panel-${tab}`} aria-labelledby={`memory-tab-${tab}`}>
+      {tab === 'quality' ? <div role="tabpanel" id="memory-panel-quality" aria-labelledby="memory-tab-quality"><MemoryQualityPanel projects={projects} /></div> : !data || !form || !policy ? <p className="field-hint"><Spinner /> 正在读取记忆设置…</p> : <div role="tabpanel" id={`memory-panel-${tab}`} aria-labelledby={`memory-tab-${tab}`}>
         {tab === 'sources' && <>
           <p className="field-hint">添加需要同步的群或文档，保存到对应项目。请先在「飞书助理」中连接账号。</p>
           {sync?.lastError && <p className="inline-error">{sync.lastError}</p>}

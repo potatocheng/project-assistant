@@ -1,0 +1,13 @@
+{
+  "version": "qa-structured-performance-audit-v1",
+  "createdAt": "2026-10-23T03:45:01.823Z",
+  "sameSelectedReferences": true,
+  "comparisons": 80,
+  "beforeMs": 64008,
+  "afterMs": 11469,
+  "ordinaryRustTests": 400,
+  "ignoredDiagnosticTests": 1,
+  "nodeTests": 207,
+  "binarySha256": "f72ec4422c5112235e32c513206daff0c6bb3190c3947eff3e159de02cc9f3e5",
+  "methodology": "Sequential local debug-build diagnostic of the same frozen source workspaces; full selected records compared exactly. This is not a production latency guarantee."
+}

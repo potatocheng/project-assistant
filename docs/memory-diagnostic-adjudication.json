@@ -1,0 +1,1518 @@
+{
+  "version": "memory-diagnostic-adjudication-v1",
+  "createdAt": "2026-10-26T08:43:39.382Z",
+  "review": {
+    "type": "agent_review",
+    "reviewer": "Codex retrieval_audit agent",
+    "humanReviewed": false,
+    "independentHumanValidation": false,
+    "modelProviderCalls": 0,
+    "method": "Read-only comparison of the exact local QASPER source, original human annotations, frozen imported segments, and existing v2 answers. Interpretive conclusions are agent judgments, not new human gold or paid model regrading."
+  },
+  "scope": {
+    "questions": 5,
+    "selection": "Five previously identified disputed development questions, selected after seeing results; not a blind test or unbiased sample.",
+    "historicalAutomaticScoresChanged": false,
+    "historicalCasesExcluded": 0,
+    "newAccuracyComputed": false,
+    "productionOrFrozenEvaluationChanged": false,
+    "note": "Recommendations apply only to a separately declared future diagnostic rubric. All original 20 cases, denominators and grades remain unchanged."
+  },
+  "inputs": {
+    "manifest": {
+      "file": "docs/memory-public-dataset-manifest.json",
+      "sha256": "3c4b365b3407dc42a7dc0038d7e1cf1b09ad9f17c7025886f8d05d2d6885ff5d"
+    },
+    "fixture": {
+      "file": ".local-data\\open-benchmarks\\qasper-memory-v1.json",
+      "sha256": "803537c32e89dce765c8e6cef6484f332d6ef5a9c91b726a4ea957e68b461d87"
+    },
+    "originalQasperValidation": {
+      "file": ".local-data/open-benchmarks/qasper-dev-v0.3.json",
+      "sha256": "2ae7ee62a65b1c4225791c70de80c2aad4e8998cf1fd4f09a53103db4f21af93"
+    },
+    "architectureV2Metrics": {
+      "file": "docs/memory-architecture-dev-v2-metrics.json",
+      "sha256": "8f7d0a075b607fc02450435d92d0eaf58cddfca953509cc2c0923ae4ad131c23"
+    },
+    "architectureV2AuditedReport": {
+      "file": "docs\\memory-architecture-dev-v2-audited-results.json",
+      "sha256": "7be6f419796585e2dd182a2f612699859edc780db8a59777df2e5ab92a8ad77e"
+    }
+  },
+  "attribution": {
+    "dataset": "QASPER v0.3 validation",
+    "citation": "Dasigi et al. (2021), A Dataset of Information-Seeking Questions and Answers Anchored in Research Papers.",
+    "license": "CC-BY-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "note": "Exact excerpts/full paragraphs are from the locally supplied CC-BY-4.0 QASPER adaptation; raw BIBREF/INLINEFORM/TABREF markers and spelling are preserved."
+  },
+  "diagnosticProtocol": {
+    "goldUnion": {
+      "definition": "For every question flatten acceptableEvidenceSets by two levels, deduplicate IDs, and take complete matching document paragraphs in original document order. This is the unchanged historical judge evidence selection, not a guarantee that the gold resolves the question.",
+      "code": "const ids = new Set(question.acceptableEvidenceSets.flat(2)); const paragraphs = doc.paragraphs.filter(p => ids.has(p.id));"
+    },
+    "agentReviewContext": {
+      "definition": "For these five audited cases only, use the explicitly listed full source paragraphs in original document order, including all gold paragraphs and separately justified disambiguating passages. Freeze before the diagnostic API calls; report separately from gold_union.",
+      "evidenceOnly": true,
+      "reviewTextMustNotEnterGeneration": true,
+      "humanGoldAnswersMustNotEnterGeneration": true,
+      "ambiguousQuestionMayRemainAmbiguous": true
+    },
+    "frozenSourceMapping": {
+      "definition": "Map paragraphId to the frozen paper.segments row. Use segment.text unchanged, including the [[QASPER:<id>]] prefix and terminal newline, when constructing source_passage references. Bind projectId, sourceId, segmentId, sourceHash and SHA256(segment.text).",
+      "warning": "Pure fixture content is not byte-identical to imported segment.text; it must not be labeled as the existing source_passage without its original exact content."
+    },
+    "attributionLimits": [
+      "Keep model/version, question, prompt, generation/review policy and budgets matched; change only the evidence arm where possible.",
+      "An oracle success versus normal retrieval failure is evidence of an evidence-selection/context effect, not proof of a pure retrieval defect.",
+      "An oracle failure may reflect reading/reasoning, prompt/review policy or ambiguous gold; it does not alone prove a model capability ceiling.",
+      "Questions and interpretations inspected during development cannot be described as unseen personal long-term memory testing.",
+      "Do not raise measured accuracy by dropping difficult cases retrospectively; retain original reporting and identify any future ambiguity slice in advance."
+    ]
+  },
+  "cases": [
+    {
+      "questionId": "521280a87c43fcdf9f577da235e7072a23f0673e",
+      "paperId": "1902.09666",
+      "paperTitle": "Predicting the Type and Target of Offensive Posts in Social Media",
+      "question": "How many annotators participated?",
+      "topic": "标注人数与阶段范围",
+      "gold": {
+        "answerable": true,
+        "expectedAnswers": [
+          {
+            "unanswerable": false,
+            "extractiveSpans": [
+              "five annotators"
+            ],
+            "yesNo": null,
+            "freeForm": ""
+          }
+        ],
+        "acceptableEvidenceSets": [
+          [
+            [
+              "1902.09666:s6:p0"
+            ]
+          ]
+        ],
+        "goldParagraphIds": [
+          "1902.09666:s6:p0"
+        ],
+        "originalAnnotations": [
+          {
+            "annotationId": "4001453e026a63ebbce59e23f86431dad1a12d37",
+            "answer": {
+              "unanswerable": false,
+              "extractive_spans": [
+                "five annotators"
+              ],
+              "yes_no": null,
+              "free_form_answer": "",
+              "evidence": [
+                "The data included in OLID has been collected from Twitter. We retrieved the data using the Twitter API by searching for keywords and constructions that are often included in offensive messages, such as `she is' or `to:BreitBartNews'. We carried out a first round of trial annotation of 300 instances with six experts. The goal of the trial annotation was to 1) evaluate the proposed tagset; 2) evaluate the data retrieval method; and 3) create a gold standard with instances that could be used as test questions in the training and test setting annotation which was carried out using crowdsourcing. The breakdown of keywords and their offensive content in the trial data of 300 tweets is shown in Table TABREF14 . We included a left (@NewYorker) and far-right (@BreitBartNews) news accounts because there tends to be political offense in the comments. One of the best offensive keywords was tweets that were flagged as not being safe by the Twitter `safe' filter (the `-' indicates `not safe'). The vast majority of content on Twitter is not offensive so we tried different strategies to keep a reasonable number of tweets in the offensive class amounting to around 30% of the dataset including excluding some keywords that were not high in offensive content such as `they are` and `to:NewYorker`. Although `he is' is lower in offensive content we kept it as a keyword to avoid gender bias. In addition to the keywords in the trial set, we searched for more political keywords which tend to be higher in offensive content, and sampled our dataset such that 50% of the the tweets come from political keywords and 50% come from non-political keywords. In addition to the keywords `gun control', and `to:BreitbartNews', political keywords used to collect these tweets are `MAGA', `antifa', `conservative' and `liberal'. We computed Fliess' INLINEFORM0 on the trial set for the five annotators on 21 of the tweets. INLINEFORM1 is .83 for Layer A (OFF vs NOT) indicating high agreement. As to normalization and anonymization, no user metadata or Twitter IDs have been stored, and URLs and Twitter mentions have been substituted to placeholders. We follow prior work in related areas (burnap2015cyber,davidson2017automated) and annotate our data using crowdsourcing using the platform Figure Eight. We ensure data quality by: 1) we only received annotations from individuals who were experienced in the platform; and 2) we used test questions to discard annotations of individuals who did not reach a certain threshold. Each instance in the dataset was annotated by multiple annotators and inter-annotator agreement has been calculated. We first acquired two annotations for each instance. In case of 100% agreement, we considered these as acceptable annotations, and in case of disagreement, we requested more annotations until the agreement was above 66%. After the crowdsourcing annotation, we used expert adjudication to guarantee the quality of the annotation. The breakdown of the data into training and testing for the labels from each level is shown in Table TABREF15 ."
+              ],
+              "highlighted_evidence": [
+                "We computed Fliess' INLINEFORM0 on the trial set for the five annotators on 21 of the tweets. INLINEFORM1 is .83 for Layer A (OFF vs NOT) indicating high agreement. As to normalization and anonymization, no user metadata or Twitter IDs have been stored, and URLs and Twitter mentions have been substituted to placeholders. "
+              ]
+            }
+          }
+        ]
+      },
+      "sourceEvidence": [
+        {
+          "paragraphId": "1902.09666:s6:p0",
+          "section": "Data Collection",
+          "role": "gold_and_disambiguation",
+          "isHumanGoldParagraph": true,
+          "originalPointer": "/1902.09666/full_text/6/paragraphs/0",
+          "content": "The data included in OLID has been collected from Twitter. We retrieved the data using the Twitter API by searching for keywords and constructions that are often included in offensive messages, such as `she is' or `to:BreitBartNews'. We carried out a first round of trial annotation of 300 instances with six experts. The goal of the trial annotation was to 1) evaluate the proposed tagset; 2) evaluate the data retrieval method; and 3) create a gold standard with instances that could be used as test questions in the training and test setting annotation which was carried out using crowdsourcing. The breakdown of keywords and their offensive content in the trial data of 300 tweets is shown in Table TABREF14 . We included a left (@NewYorker) and far-right (@BreitBartNews) news accounts because there tends to be political offense in the comments. One of the best offensive keywords was tweets that were flagged as not being safe by the Twitter `safe' filter (the `-' indicates `not safe'). The vast majority of content on Twitter is not offensive so we tried different strategies to keep a reasonable number of tweets in the offensive class amounting to around 30% of the dataset including excluding some keywords that were not high in offensive content such as `they are` and `to:NewYorker`. Although `he is' is lower in offensive content we kept it as a keyword to avoid gender bias. In addition to the keywords in the trial set, we searched for more political keywords which tend to be higher in offensive content, and sampled our dataset such that 50% of the the tweets come from political keywords and 50% come from non-political keywords. In addition to the keywords `gun control', and `to:BreitbartNews', political keywords used to collect these tweets are `MAGA', `antifa', `conservative' and `liberal'. We computed Fliess' INLINEFORM0 on the trial set for the five annotators on 21 of the tweets. INLINEFORM1 is .83 for Layer A (OFF vs NOT) indicating high agreement. As to normalization and anonymization, no user metadata or Twitter IDs have been stored, and URLs and Twitter mentions have been substituted to placeholders. We follow prior work in related areas (burnap2015cyber,davidson2017automated) and annotate our data using crowdsourcing using the platform Figure Eight. We ensure data quality by: 1) we only received annotations from individuals who were experienced in the platform; and 2) we used test questions to discard annotations of individuals who did not reach a certain threshold. Each instance in the dataset was annotated by multiple annotators and inter-annotator agreement has been calculated. We first acquired two annotations for each instance. In case of 100% agreement, we considered these as acceptable annotations, and in case of disagreement, we requested more annotations until the agreement was above 66%. After the crowdsourcing annotation, we used expert adjudication to guarantee the quality of the annotation. The breakdown of the data into training and testing for the labels from each level is shown in Table TABREF15 .",
+          "contentSha256": "76666945857efb980e2c21f399e949f1225e1610c1a9ae6c382cfc051829edbf",
+          "quotes": [
+            {
+              "text": "We carried out a first round of trial annotation of 300 instances with six experts.",
+              "utf16Start": 234,
+              "utf16End": 317
+            },
+            {
+              "text": "We computed Fliess' INLINEFORM0 on the trial set for the five annotators on 21 of the tweets.",
+              "utf16Start": 1817,
+              "utf16End": 1910
+            },
+            {
+              "text": "Each instance in the dataset was annotated by multiple annotators and inter-annotator agreement has been calculated.",
+              "utf16Start": 2514,
+              "utf16End": 2630
+            },
+            {
+              "text": "We first acquired two annotations for each instance. In case of 100% agreement, we considered these as acceptable annotations, and in case of disagreement, we requested more annotations until the agreement was above 66%.",
+              "utf16Start": 2631,
+              "utf16End": 2851
+            }
+          ],
+          "frozenSource": {
+            "projectId": "fab12600-c703-4e3a-899a-2bf9f4916e5a",
+            "sourceId": "8409a569-0324-46d0-bffd-9d47b7137952",
+            "segmentId": "825727d6-ee14-43bf-a9c7-a03cfc481d1a",
+            "referenceId": "source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a",
+            "sourceHash": "bc34098486568375af8a5a1643fb8e7c78233de17d235a3dbecfc924847ac3dc",
+            "segmentContentHash": "95664a67896fe2b7b3d8ddc19e8be827da9f60ab1c6904ab0bb130dc7346836f",
+            "segmentText": "[[QASPER:1902.09666:s6:p0]] The data included in OLID has been collected from Twitter. We retrieved the data using the Twitter API by searching for keywords and constructions that are often included in offensive messages, such as `she is' or `to:BreitBartNews'. We carried out a first round of trial annotation of 300 instances with six experts. The goal of the trial annotation was to 1) evaluate the proposed tagset; 2) evaluate the data retrieval method; and 3) create a gold standard with instances that could be used as test questions in the training and test setting annotation which was carried out using crowdsourcing. The breakdown of keywords and their offensive content in the trial data of 300 tweets is shown in Table TABREF14 . We included a left (@NewYorker) and far-right (@BreitBartNews) news accounts because there tends to be political offense in the comments. One of the best offensive keywords was tweets that were flagged as not being safe by the Twitter `safe' filter (the `-' indicates `not safe'). The vast majority of content on Twitter is not offensive so we tried different strategies to keep a reasonable number of tweets in the offensive class amounting to around 30% of the dataset including excluding some keywords that were not high in offensive content such as `they are` and `to:NewYorker`. Although `he is' is lower in offensive content we kept it as a keyword to avoid gender bias. In addition to the keywords in the trial set, we searched for more political keywords which tend to be higher in offensive content, and sampled our dataset such that 50% of the the tweets come from political keywords and 50% come from non-political keywords. In addition to the keywords `gun control', and `to:BreitbartNews', political keywords used to collect these tweets are `MAGA', `antifa', `conservative' and `liberal'. We computed Fliess' INLINEFORM0 on the trial set for the five annotators on 21 of the tweets. INLINEFORM1 is .83 for Layer A (OFF vs NOT) indicating high agreement. As to normalization and anonymization, no user metadata or Twitter IDs have been stored, and URLs and Twitter mentions have been substituted to placeholders. We follow prior work in related areas (burnap2015cyber,davidson2017automated) and annotate our data using crowdsourcing using the platform Figure Eight. We ensure data quality by: 1) we only received annotations from individuals who were experienced in the platform; and 2) we used test questions to discard annotations of individuals who did not reach a certain threshold. Each instance in the dataset was annotated by multiple annotators and inter-annotator agreement has been calculated. We first acquired two annotations for each instance. In case of 100% agreement, we considered these as acceptable annotations, and in case of disagreement, we requested more annotations until the agreement was above 66%. After the crowdsourcing annotation, we used expert adjudication to guarantee the quality of the annotation. The breakdown of the data into training and testing for the labels from each level is shown in Table TABREF15 .\n"
+          }
+        }
+      ],
+      "interpretation": "人工答案只取一致性统计语境中的 five annotators。同一原段落也明确说首次300条试标注由six experts进行，随后还有众包。题干没有指定阶段；这不证明论文自相矛盾，五人可能是特定统计子集，不能擅自推断六人/五人身份或全部参与总数。",
+      "acceptableScope": [
+        "若按人工gold定位：说明五名标注者参与21条推文的Fleiss统计。",
+        "若解释整项标注工作：同时区分首次试标注六名专家、统计五名标注者，以及未给总人数的众包；不要把六与五相加，也不要把两条标注等同于两名固定参与者。"
+      ],
+      "unacceptableInferences": [
+        "无范围地将五或六宣称为整个项目全部标注者总数。",
+        "声称已有证据证明六人与五人的人员关系。"
+      ],
+      "latestAnswers": {
+        "desktop": {
+          "answer": "在试验集上，对21条推文计算Fleiss' kappa时涉及五名标注者。 [1][2]\n试验标注阶段由六名专家对300条实例进行了第一轮标注。 [2]\n正式数据集通过众包（Figure Eight平台）标注，每个实例先获得两条标注；若不一致则继续请求更多标注，直到一致率高于66%。 [2]\n尚待确认：众包标注阶段实际参与标注者的总人数未记录。；How many annotators participated?",
+          "status": "partial",
+          "historicalAutomaticGrade": "partial",
+          "historicalAutomaticReason": "Mentions five annotators but adds six experts and crowdsourcing details; the gold answer is simply five annotators.",
+          "historicalReasonPointer": "stages.answer.systems.system1.desktop",
+          "memoryJudge": "yes",
+          "memoryJudgeReason": "Memory 456534e2 (and duplicate 8d491585) explicitly states 'five annotators' on the trial set, matching the human answer 'five annotators'.",
+          "retrievalJudge": "yes",
+          "retrievalJudgeReason": "References include the sentence 'We computed Fliess' ... for the five annotators,' which directly states five annotators, matching the gold answer.",
+          "agentAssessment": "已明确给出gold的五人及其21条推文统计范围，也正确区分六名专家和众包；自动partial主要惩罚额外范围与unknown，不能据此断言缺少答案事实。回答可更简洁，不应重复原题。",
+          "evidenceVisibility": [
+            {
+              "paragraphId": "1902.09666:s6:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "We carried out a first round of trial annotation of 300 instances with six experts.",
+                  "referenceIds": [
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a"
+                  ]
+                },
+                {
+                  "quote": "We computed Fliess' INLINEFORM0 on the trial set for the five annotators on 21 of the tweets.",
+                  "referenceIds": [
+                    "memory:8d491585-d1f9-4cd5-a67a-3caf9e1e8181",
+                    "memory:456534e2-363e-42bf-aa90-6bc2464185cf",
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a"
+                  ]
+                },
+                {
+                  "quote": "Each instance in the dataset was annotated by multiple annotators and inter-annotator agreement has been calculated.",
+                  "referenceIds": [
+                    "memory:2c7b1555-a67f-4742-aede-e03ce44ae1cd",
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a"
+                  ]
+                },
+                {
+                  "quote": "We first acquired two annotations for each instance. In case of 100% agreement, we considered these as acceptable annotations, and in case of disagreement, we requested more annotations until the agreement was above 66%.",
+                  "referenceIds": [
+                    "memory:f2e38b45-08db-4167-be70-8507d0463933",
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "connector": {
+          "answer": "数据收集阶段进行了第一轮试验标注，由六名专家标注300条实例。 [1]\n尚待确认：正式众包标注阶段参与标注者的总人数未记录。；How many annotators participated?\n\n依据：\n[1] Predicting the Type and Target of Offensive Posts in Social Media · 导入原文（非正式记忆）（第 23 行）（第 23 行）",
+          "status": "partial",
+          "historicalAutomaticGrade": "partial",
+          "historicalAutomaticReason": "Gives six experts for trial annotation instead of the gold five annotators, so the key number is wrong/incomplete.",
+          "historicalReasonPointer": "stages.answer.systems.system1.connector",
+          "memoryJudge": "yes",
+          "memoryJudgeReason": "Memory 456534e2 (and duplicate 8d491585) explicitly states 'five annotators' on the trial set, matching the human answer 'five annotators'.",
+          "retrievalJudge": "yes",
+          "retrievalJudgeReason": "Connector references contain the same 'five annotators' sentence, supplying the needed count.",
+          "agentAssessment": "六名专家这个事实有来源，但只选首次试标注范围，遗漏gold期望的五人统计范围；属于问题范围选择不足，不是所答六人事实凭空捏造。",
+          "evidenceVisibility": [
+            {
+              "paragraphId": "1902.09666:s6:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "We carried out a first round of trial annotation of 300 instances with six experts.",
+                  "referenceIds": [
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a"
+                  ]
+                },
+                {
+                  "quote": "We computed Fliess' INLINEFORM0 on the trial set for the five annotators on 21 of the tweets.",
+                  "referenceIds": [
+                    "8d491585-d1f9-4cd5-a67a-3caf9e1e8181",
+                    "456534e2-363e-42bf-aa90-6bc2464185cf",
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a"
+                  ]
+                },
+                {
+                  "quote": "Each instance in the dataset was annotated by multiple annotators and inter-annotator agreement has been calculated.",
+                  "referenceIds": [
+                    "2c7b1555-a67f-4742-aede-e03ce44ae1cd",
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a"
+                  ]
+                },
+                {
+                  "quote": "We first acquired two annotations for each instance. In case of 100% agreement, we considered these as acceptable annotations, and in case of disagreement, we requested more annotations until the agreement was above 66%.",
+                  "referenceIds": [
+                    "f2e38b45-08db-4167-be70-8507d0463933",
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "recommendation": {
+        "classification": "annotation_phase_ambiguity",
+        "ambiguity": "high",
+        "excludeFromHistorical": false,
+        "excludeFromFutureUnambiguousSlice": true,
+        "action": "保留原20题历史分母与分数；未来预先标为阶段歧义题并单列，或把问题明确改为21条推文一致性统计的标注人数。新问题必须有新ID。"
+      },
+      "oracleEvidence": {
+        "goldUnionParagraphIds": [
+          "1902.09666:s6:p0"
+        ],
+        "agentReviewContextParagraphIds": [
+          "1902.09666:s6:p0"
+        ],
+        "note": "gold_union已包含六人、五人及众包全部事实；即使直接给gold段落也不能消除原题的阶段歧义。"
+      }
+    },
+    {
+      "questionId": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+      "paperId": "1902.09666",
+      "paperTitle": "Predicting the Type and Target of Offensive Posts in Social Media",
+      "question": "What is the definition of offensive language?",
+      "topic": "宽泛概念与操作性定义",
+      "gold": {
+        "answerable": true,
+        "expectedAnswers": [
+          {
+            "unanswerable": false,
+            "extractiveSpans": [
+              " Most prior work focuses on a different aspect of offensive language such as abusive language BIBREF0 , BIBREF1 , (cyber-)aggression BIBREF2 , (cyber-)bullying BIBREF3 , BIBREF4 , toxic comments INLINEFORM0 , hate speech BIBREF5 , BIBREF6 , BIBREF7 , BIBREF8 , BIBREF9 , BIBREF10 , and offensive language BIBREF11 . Prior work has focused on these aspects of offensive language in Twitter BIBREF3 , BIBREF7 , BIBREF8 , BIBREF11 , Wikipedia comments, and Facebook posts BIBREF2 ."
+            ],
+            "yesNo": null,
+            "freeForm": ""
+          }
+        ],
+        "acceptableEvidenceSets": [
+          [
+            [
+              "1902.09666:s0:p0"
+            ]
+          ]
+        ],
+        "goldParagraphIds": [
+          "1902.09666:s0:p0"
+        ],
+        "originalAnnotations": [
+          {
+            "annotationId": "8caf66b3081c2546f5b6b4549641f10ef2f62d77",
+            "answer": {
+              "unanswerable": false,
+              "extractive_spans": [
+                " Most prior work focuses on a different aspect of offensive language such as abusive language BIBREF0 , BIBREF1 , (cyber-)aggression BIBREF2 , (cyber-)bullying BIBREF3 , BIBREF4 , toxic comments INLINEFORM0 , hate speech BIBREF5 , BIBREF6 , BIBREF7 , BIBREF8 , BIBREF9 , BIBREF10 , and offensive language BIBREF11 . Prior work has focused on these aspects of offensive language in Twitter BIBREF3 , BIBREF7 , BIBREF8 , BIBREF11 , Wikipedia comments, and Facebook posts BIBREF2 ."
+              ],
+              "yes_no": null,
+              "free_form_answer": "",
+              "evidence": [
+                "Offensive content has become pervasive in social media and a reason of concern for government organizations, online communities, and social media platforms. One of the most common strategies to tackle the problem is to train systems capable of recognizing offensive content, which then can be deleted or set aside for human moderation. In the last few years, there have been several studies published on the application of computational methods to deal with this problem. Most prior work focuses on a different aspect of offensive language such as abusive language BIBREF0 , BIBREF1 , (cyber-)aggression BIBREF2 , (cyber-)bullying BIBREF3 , BIBREF4 , toxic comments INLINEFORM0 , hate speech BIBREF5 , BIBREF6 , BIBREF7 , BIBREF8 , BIBREF9 , BIBREF10 , and offensive language BIBREF11 . Prior work has focused on these aspects of offensive language in Twitter BIBREF3 , BIBREF7 , BIBREF8 , BIBREF11 , Wikipedia comments, and Facebook posts BIBREF2 ."
+              ],
+              "highlighted_evidence": [
+                "Most prior work focuses on a different aspect of offensive language such as abusive language BIBREF0 , BIBREF1 , (cyber-)aggression BIBREF2 , (cyber-)bullying BIBREF3 , BIBREF4 , toxic comments INLINEFORM0 , hate speech BIBREF5 , BIBREF6 , BIBREF7 , BIBREF8 , BIBREF9 , BIBREF10 , and offensive language BIBREF11 . Prior work has focused on these aspects of offensive language in Twitter BIBREF3 , BIBREF7 , BIBREF8 , BIBREF11 , Wikipedia comments, and Facebook posts BIBREF2 ."
+              ]
+            }
+          }
+        ]
+      },
+      "sourceEvidence": [
+        {
+          "paragraphId": "1902.09666:s0:p0",
+          "section": "Introduction",
+          "role": "gold",
+          "isHumanGoldParagraph": true,
+          "originalPointer": "/1902.09666/full_text/0/paragraphs/0",
+          "content": "Offensive content has become pervasive in social media and a reason of concern for government organizations, online communities, and social media platforms. One of the most common strategies to tackle the problem is to train systems capable of recognizing offensive content, which then can be deleted or set aside for human moderation. In the last few years, there have been several studies published on the application of computational methods to deal with this problem. Most prior work focuses on a different aspect of offensive language such as abusive language BIBREF0 , BIBREF1 , (cyber-)aggression BIBREF2 , (cyber-)bullying BIBREF3 , BIBREF4 , toxic comments INLINEFORM0 , hate speech BIBREF5 , BIBREF6 , BIBREF7 , BIBREF8 , BIBREF9 , BIBREF10 , and offensive language BIBREF11 . Prior work has focused on these aspects of offensive language in Twitter BIBREF3 , BIBREF7 , BIBREF8 , BIBREF11 , Wikipedia comments, and Facebook posts BIBREF2 .",
+          "contentSha256": "59c58a623f006d69a957da9a3ea25c0aac83e3c38d0899685f812b230b96f48f",
+          "quotes": [
+            {
+              "text": "Most prior work focuses on a different aspect of offensive language such as abusive language BIBREF0 , BIBREF1 , (cyber-)aggression BIBREF2 , (cyber-)bullying BIBREF3 , BIBREF4 , toxic comments INLINEFORM0 , hate speech BIBREF5 , BIBREF6 , BIBREF7 , BIBREF8 , BIBREF9 , BIBREF10 , and offensive language BIBREF11 .",
+              "utf16Start": 472,
+              "utf16End": 786
+            }
+          ],
+          "frozenSource": {
+            "projectId": "fab12600-c703-4e3a-899a-2bf9f4916e5a",
+            "sourceId": "8409a569-0324-46d0-bffd-9d47b7137952",
+            "segmentId": "4c5f116f-d5bd-44f2-aa2a-4f13a9af6628",
+            "referenceId": "source:8409a569-0324-46d0-bffd-9d47b7137952:4c5f116f-d5bd-44f2-aa2a-4f13a9af6628",
+            "sourceHash": "bc34098486568375af8a5a1643fb8e7c78233de17d235a3dbecfc924847ac3dc",
+            "segmentContentHash": "5acd85bd19ce6f0a995eb4b80750189f65f23e6aafff19210974de5cd9ac5370",
+            "segmentText": "[[QASPER:1902.09666:s0:p0]] Offensive content has become pervasive in social media and a reason of concern for government organizations, online communities, and social media platforms. One of the most common strategies to tackle the problem is to train systems capable of recognizing offensive content, which then can be deleted or set aside for human moderation. In the last few years, there have been several studies published on the application of computational methods to deal with this problem. Most prior work focuses on a different aspect of offensive language such as abusive language BIBREF0 , BIBREF1 , (cyber-)aggression BIBREF2 , (cyber-)bullying BIBREF3 , BIBREF4 , toxic comments INLINEFORM0 , hate speech BIBREF5 , BIBREF6 , BIBREF7 , BIBREF8 , BIBREF9 , BIBREF10 , and offensive language BIBREF11 . Prior work has focused on these aspects of offensive language in Twitter BIBREF3 , BIBREF7 , BIBREF8 , BIBREF11 , Wikipedia comments, and Facebook posts BIBREF2 .\n"
+          }
+        },
+        {
+          "paragraphId": "1902.09666:s3:p3",
+          "section": "Level A: Offensive language Detection",
+          "role": "disambiguation",
+          "isHumanGoldParagraph": false,
+          "originalPointer": "/1902.09666/full_text/3/paragraphs/3",
+          "content": "Offensive (OFF): We label a post as offensive if it contains any form of non-acceptable language (profanity) or a targeted offense, which can be veiled or direct. This category includes insults, threats, and posts containing profane language or swear words.",
+          "contentSha256": "9887fc28e5449d1a3fad154bb22bcb5c30ab384fd56f0ed87591ff64df3827ca",
+          "quotes": [
+            {
+              "text": "Offensive (OFF): We label a post as offensive if it contains any form of non-acceptable language (profanity) or a targeted offense, which can be veiled or direct. This category includes insults, threats, and posts containing profane language or swear words.",
+              "utf16Start": 0,
+              "utf16End": 257
+            }
+          ],
+          "frozenSource": {
+            "projectId": "fab12600-c703-4e3a-899a-2bf9f4916e5a",
+            "sourceId": "8409a569-0324-46d0-bffd-9d47b7137952",
+            "segmentId": "bfcb4271-e131-4566-829a-aae00871c19e",
+            "referenceId": "source:8409a569-0324-46d0-bffd-9d47b7137952:bfcb4271-e131-4566-829a-aae00871c19e",
+            "sourceHash": "bc34098486568375af8a5a1643fb8e7c78233de17d235a3dbecfc924847ac3dc",
+            "segmentContentHash": "ae3f10516b73309b72d69fce036880448e7766c3476769d23028596694a24183",
+            "segmentText": "[[QASPER:1902.09666:s3:p3]] Offensive (OFF): We label a post as offensive if it contains any form of non-acceptable language (profanity) or a targeted offense, which can be veiled or direct. This category includes insults, threats, and posts containing profane language or swear words.\n"
+          }
+        }
+      ],
+      "interpretation": "gold抽取的是引言对既有研究所涉辱骂、攻击、霸凌、有毒评论、仇恨言论等方面的列举；正文另有明确标题为Offensive (OFF)的标注定义。题干只问definition，没有限定必须回答引言的相关工作。两个入口都准确限定“OLID标注”，属于有来源且切题的一种解释；将其判no有gold范围不匹配的证据。",
+      "acceptableScope": [
+        "以OLID操作性定义回答：不可接受语言/脏话或隐晦、直接的针对性冒犯，包括侮辱、威胁和粗口。",
+        "若同时概述引言：说明论文把辱骂、攻击、霸凌、有毒评论和仇恨言论等作为相关研究方面，不把这些方面说成互斥标签或正式穷尽定义。",
+        "最稳妥是区分“引言广义相关方面”与“本文OFF标注定义”。"
+      ],
+      "unacceptableInferences": [
+        "将intro列举误称为论文的完整正式分类体系。",
+        "把论文明确给出的OFF定义判成没有原文依据。"
+      ],
+      "latestAnswers": {
+        "desktop": {
+          "answer": "在 OLID 数据集中，一条帖子若包含任何形式的不可接受语言（脏话）或带有针对性的冒犯（可以是隐晦或直接的），就被标注为冒犯性（OFF）。 [1]\n该冒犯性类别包括侮辱、威胁以及含有脏话或粗口的帖子。 [1]",
+          "status": "answered",
+          "historicalAutomaticGrade": "no",
+          "historicalAutomaticReason": "Provides OLID labeling definition rather than the paper's introduction-level description of offensive language; does not match human evidence.",
+          "historicalReasonPointer": "stages.answer.systems.system2.desktop",
+          "memoryJudge": "yes",
+          "memoryJudgeReason": "Memory c4ea03f2 explicitly defines offensive (OFF) as containing non-acceptable language (profanity) or targeted offense, including insults, threats, and profane/swear words, matching the human evidence span about offensive language aspects.",
+          "retrievalJudge": "yes",
+          "retrievalJudgeReason": "Includes the explicit definition: a post is offensive if it contains non-acceptable language (profanity) or a targeted offense, including insults, threats, and profane/swear words.",
+          "agentAssessment": "答案与OFF原段落一致且明确限定OLID，不能把历史no解读成编造或记忆缺失；缺少intro枚举仅是与gold所选范围不同。",
+          "evidenceVisibility": [
+            {
+              "paragraphId": "1902.09666:s0:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "Most prior work focuses on a different aspect of offensive language such as abusive language BIBREF0 , BIBREF1 , (cyber-)aggression BIBREF2 , (cyber-)bullying BIBREF3 , BIBREF4 , toxic comments INLINEFORM0 , hate speech BIBREF5 , BIBREF6 , BIBREF7 , BIBREF8 , BIBREF9 , BIBREF10 , and offensive language BIBREF11 .",
+                  "referenceIds": [
+                    "memory:21c1425e-bf4e-434f-9ff0-035a28822d76",
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:4c5f116f-d5bd-44f2-aa2a-4f13a9af6628"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1902.09666:s3:p3",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "Offensive (OFF): We label a post as offensive if it contains any form of non-acceptable language (profanity) or a targeted offense, which can be veiled or direct. This category includes insults, threats, and posts containing profane language or swear words.",
+                  "referenceIds": [
+                    "memory:c4ea03f2-bfab-4a4c-8f9c-d6532e86205b",
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:bfcb4271-e131-4566-829a-aae00871c19e"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "connector": {
+          "answer": "在OLID的标注中，Offensive（OFF）指帖子含有任何形式的不可接受语言（脏话）或带有针对性的冒犯（可为隐晦或直接）；该类别包括侮辱、威胁以及含脏话或粗口的帖子。 [1][2]\n与之相对，Not Offensive（NOT）指不含冒犯或脏话的帖子。 [3]\n\n依据：\n[1] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 15 行）\n[2] Predicting the Type and Target of Offensive Posts in Social Media · 导入原文（非正式记忆）（第 15 行）（第 15 行）\n[3] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 14 行）",
+          "status": "answered",
+          "historicalAutomaticGrade": "no",
+          "historicalAutomaticReason": "Same OLID definition plus NOT contrast; still not the introduction's broad characterization of offensive language.",
+          "historicalReasonPointer": "stages.answer.systems.system2.connector",
+          "memoryJudge": "yes",
+          "memoryJudgeReason": "Memory c4ea03f2 explicitly defines offensive (OFF) as containing non-acceptable language (profanity) or targeted offense, including insults, threats, and profane/swear words, matching the human evidence span about offensive language aspects.",
+          "retrievalJudge": "yes",
+          "retrievalJudgeReason": "Contains the same explicit OFF definition covering non-acceptable language/profanity or targeted offense, with insults, threats, and swear words.",
+          "agentAssessment": "同样给出有来源的OFF定义，并补充NOT对照；是否需要intro枚举取决于预先确定的题目范围。",
+          "evidenceVisibility": [
+            {
+              "paragraphId": "1902.09666:s0:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "Most prior work focuses on a different aspect of offensive language such as abusive language BIBREF0 , BIBREF1 , (cyber-)aggression BIBREF2 , (cyber-)bullying BIBREF3 , BIBREF4 , toxic comments INLINEFORM0 , hate speech BIBREF5 , BIBREF6 , BIBREF7 , BIBREF8 , BIBREF9 , BIBREF10 , and offensive language BIBREF11 .",
+                  "referenceIds": [
+                    "21c1425e-bf4e-434f-9ff0-035a28822d76",
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:4c5f116f-d5bd-44f2-aa2a-4f13a9af6628"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1902.09666:s3:p3",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "Offensive (OFF): We label a post as offensive if it contains any form of non-acceptable language (profanity) or a targeted offense, which can be veiled or direct. This category includes insults, threats, and posts containing profane language or swear words.",
+                  "referenceIds": [
+                    "c4ea03f2-bfab-4a4c-8f9c-d6532e86205b",
+                    "source:8409a569-0324-46d0-bffd-9d47b7137952:bfcb4271-e131-4566-829a-aae00871c19e"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "recommendation": {
+        "classification": "gold_question_scope_mismatch",
+        "ambiguity": "high",
+        "excludeFromHistorical": false,
+        "excludeFromFutureUnambiguousSlice": true,
+        "action": "历史分数不改；未来严格无歧义正确率应暂不纳入本题，保留为范围消歧诊断。可分别定义“本文OFF标注定义”和“引言列举哪些冒犯性研究方面”的新题。"
+      },
+      "oracleEvidence": {
+        "goldUnionParagraphIds": [
+          "1902.09666:s0:p0"
+        ],
+        "agentReviewContextParagraphIds": [
+          "1902.09666:s0:p0",
+          "1902.09666:s3:p3"
+        ],
+        "note": "gold_union只含引言，容易奖励照抄相关工作而非正式定义。agent_review_context必须同时保留intro与OFF定义并明确该选择不是人工gold。"
+      }
+    },
+    {
+      "questionId": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "paperId": "1603.01514",
+      "paperTitle": "A Bayesian Model of Multilingual Unsupervised Semantic Role Induction",
+      "question": "Which parallel corpora are used?",
+      "topic": "全部实验语料与平行语料",
+      "gold": {
+        "answerable": true,
+        "expectedAnswers": [
+          {
+            "unanswerable": false,
+            "extractiveSpans": [
+              "English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13",
+              "EN-DE section of the Europarl corpus BIBREF14"
+            ],
+            "yesNo": null,
+            "freeForm": ""
+          },
+          {
+            "unanswerable": false,
+            "extractiveSpans": [
+              "the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 "
+            ],
+            "yesNo": null,
+            "freeForm": ""
+          }
+        ],
+        "acceptableEvidenceSets": [
+          [
+            [
+              "1603.01514:s8:p0"
+            ]
+          ],
+          [
+            [
+              "1603.01514:s8:p0"
+            ]
+          ]
+        ],
+        "goldParagraphIds": [
+          "1603.01514:s8:p0"
+        ],
+        "originalAnnotations": [
+          {
+            "annotationId": "60b2bb2329e1f2f71e9b7126429c4770d6f3d8ae",
+            "answer": {
+              "unanswerable": false,
+              "extractive_spans": [
+                "English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13",
+                "EN-DE section of the Europarl corpus BIBREF14"
+              ],
+              "yes_no": null,
+              "free_form_answer": "",
+              "evidence": [
+                "Following titovcrosslingual, we run our experiments on the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 . We get about 40k EN and 36k DE sentences from the CoNLL 2009 training set, and about 1.5M parallel EN-DE sentences from Europarl. For appropriate comparison, we keep the same setting as in BIBREF6 for automatic parses and argument identification, which we briefly describe here. The EN sentences are parsed syntactically using MaltParser BIBREF15 and DE using LTH parser BIBREF16 . All the non-auxiliary verbs are selected as predicates. In CoNLL data, this gives us about 3k EN and 500 DE predicates. The total number of predicate instances are 3.4M in EN (89k CoNLL + 3.3M Europarl) and 2.62M in DE (17k CoNLL + 2.6M Europarl). The arguments for EN are identified using the heuristics proposed by lang2011unsupervised. However, we get an F1 score of 85.1% for argument identification on CoNLL 2009 EN data as opposed to 80.7% reported by titovcrosslingual. This could be due to implementation differences, which unfortunately makes our EN results incomparable. For DE, the arguments are identified using the LTH system BIBREF16 , which gives an F1 score of 86.5% on the CoNLL 2009 DE data. The word alignments for the EN-DE parallel Europarl corpus are computed using GIZA++ BIBREF17 . For high-precision, only the intersecting alignments in the two directions are kept. We define two semantic arguments as aligned if their head-words are aligned. In total we get 9.3M arguments for EN (240k CoNLL + 9.1M Europarl) and 4.43M for DE (32k CoNLL + 4.4M Europarl). Out of these, 0.76M arguments are aligned."
+              ],
+              "highlighted_evidence": [
+                "Following titovcrosslingual, we run our experiments on the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 ."
+              ]
+            }
+          },
+          {
+            "annotationId": "66c611bd74e45a0574911316fccfed801cb65213",
+            "answer": {
+              "unanswerable": false,
+              "extractive_spans": [
+                "the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 "
+              ],
+              "yes_no": null,
+              "free_form_answer": "",
+              "evidence": [
+                "Following titovcrosslingual, we run our experiments on the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 . We get about 40k EN and 36k DE sentences from the CoNLL 2009 training set, and about 1.5M parallel EN-DE sentences from Europarl. For appropriate comparison, we keep the same setting as in BIBREF6 for automatic parses and argument identification, which we briefly describe here. The EN sentences are parsed syntactically using MaltParser BIBREF15 and DE using LTH parser BIBREF16 . All the non-auxiliary verbs are selected as predicates. In CoNLL data, this gives us about 3k EN and 500 DE predicates. The total number of predicate instances are 3.4M in EN (89k CoNLL + 3.3M Europarl) and 2.62M in DE (17k CoNLL + 2.6M Europarl). The arguments for EN are identified using the heuristics proposed by lang2011unsupervised. However, we get an F1 score of 85.1% for argument identification on CoNLL 2009 EN data as opposed to 80.7% reported by titovcrosslingual. This could be due to implementation differences, which unfortunately makes our EN results incomparable. For DE, the arguments are identified using the LTH system BIBREF16 , which gives an F1 score of 86.5% on the CoNLL 2009 DE data. The word alignments for the EN-DE parallel Europarl corpus are computed using GIZA++ BIBREF17 . For high-precision, only the intersecting alignments in the two directions are kept. We define two semantic arguments as aligned if their head-words are aligned. In total we get 9.3M arguments for EN (240k CoNLL + 9.1M Europarl) and 4.43M for DE (32k CoNLL + 4.4M Europarl). Out of these, 0.76M arguments are aligned."
+              ],
+              "highlighted_evidence": [
+                "Following titovcrosslingual, we run our experiments on the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 . We get about 40k EN and 36k DE sentences from the CoNLL 2009 training set, and about 1.5M parallel EN-DE sentences from Europarl. For appropriate comparison, we keep the same setting as in BIBREF6 for automatic parses and argument identification, which we briefly describe here. The EN sentences are parsed syntactically using MaltParser BIBREF15 and DE using LTH parser BIBREF16 . All the non-auxiliary verbs are selected as predicates. In CoNLL data, this gives us about 3k EN and 500 DE predicates. The total number of predicate instances are 3.4M in EN (89k CoNLL + 3.3M Europarl) and 2.62M in DE (17k CoNLL + 2.6M Europarl)."
+              ]
+            }
+          }
+        ]
+      },
+      "sourceEvidence": [
+        {
+          "paragraphId": "1603.01514:s8:p0",
+          "section": "Data",
+          "role": "gold_and_disambiguation",
+          "isHumanGoldParagraph": true,
+          "originalPointer": "/1603.01514/full_text/8/paragraphs/0",
+          "content": "Following titovcrosslingual, we run our experiments on the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 . We get about 40k EN and 36k DE sentences from the CoNLL 2009 training set, and about 1.5M parallel EN-DE sentences from Europarl. For appropriate comparison, we keep the same setting as in BIBREF6 for automatic parses and argument identification, which we briefly describe here. The EN sentences are parsed syntactically using MaltParser BIBREF15 and DE using LTH parser BIBREF16 . All the non-auxiliary verbs are selected as predicates. In CoNLL data, this gives us about 3k EN and 500 DE predicates. The total number of predicate instances are 3.4M in EN (89k CoNLL + 3.3M Europarl) and 2.62M in DE (17k CoNLL + 2.6M Europarl). The arguments for EN are identified using the heuristics proposed by lang2011unsupervised. However, we get an F1 score of 85.1% for argument identification on CoNLL 2009 EN data as opposed to 80.7% reported by titovcrosslingual. This could be due to implementation differences, which unfortunately makes our EN results incomparable. For DE, the arguments are identified using the LTH system BIBREF16 , which gives an F1 score of 86.5% on the CoNLL 2009 DE data. The word alignments for the EN-DE parallel Europarl corpus are computed using GIZA++ BIBREF17 . For high-precision, only the intersecting alignments in the two directions are kept. We define two semantic arguments as aligned if their head-words are aligned. In total we get 9.3M arguments for EN (240k CoNLL + 9.1M Europarl) and 4.43M for DE (32k CoNLL + 4.4M Europarl). Out of these, 0.76M arguments are aligned.",
+          "contentSha256": "c39f98aeec7ee06b54959f6a541295d7bc53c2a30281c42afac3e434618d7300",
+          "quotes": [
+            {
+              "text": "Following titovcrosslingual, we run our experiments on the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 .",
+              "utf16Start": 0,
+              "utf16End": 184
+            },
+            {
+              "text": "We get about 40k EN and 36k DE sentences from the CoNLL 2009 training set, and about 1.5M parallel EN-DE sentences from Europarl.",
+              "utf16Start": 185,
+              "utf16End": 314
+            },
+            {
+              "text": "The word alignments for the EN-DE parallel Europarl corpus are computed using GIZA++ BIBREF17 .",
+              "utf16Start": 1277,
+              "utf16End": 1372
+            }
+          ],
+          "frozenSource": {
+            "projectId": "2547c0c0-34f6-43a1-9daf-dfe30dce0a04",
+            "sourceId": "f77eab74-a2c6-488c-8db3-e82073df8b78",
+            "segmentId": "b7753349-dc33-4de6-8d42-0f8cda9a463b",
+            "referenceId": "source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b",
+            "sourceHash": "2a417d7d096a98465a92c12e8f86217e17eba495b72ce08ed5f5e8267ff66a86",
+            "segmentContentHash": "bb5fae32a82225d8615ad14b4ff190c209ddfe3ce1b0cb2b1e00274525fd69b0",
+            "segmentText": "[[QASPER:1603.01514:s8:p0]] Following titovcrosslingual, we run our experiments on the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 . We get about 40k EN and 36k DE sentences from the CoNLL 2009 training set, and about 1.5M parallel EN-DE sentences from Europarl. For appropriate comparison, we keep the same setting as in BIBREF6 for automatic parses and argument identification, which we briefly describe here. The EN sentences are parsed syntactically using MaltParser BIBREF15 and DE using LTH parser BIBREF16 . All the non-auxiliary verbs are selected as predicates. In CoNLL data, this gives us about 3k EN and 500 DE predicates. The total number of predicate instances are 3.4M in EN (89k CoNLL + 3.3M Europarl) and 2.62M in DE (17k CoNLL + 2.6M Europarl). The arguments for EN are identified using the heuristics proposed by lang2011unsupervised. However, we get an F1 score of 85.1% for argument identification on CoNLL 2009 EN data as opposed to 80.7% reported by titovcrosslingual. This could be due to implementation differences, which unfortunately makes our EN results incomparable. For DE, the arguments are identified using the LTH system BIBREF16 , which gives an F1 score of 86.5% on the CoNLL 2009 DE data. The word alignments for the EN-DE parallel Europarl corpus are computed using GIZA++ BIBREF17 . For high-precision, only the intersecting alignments in the two directions are kept. We define two semantic arguments as aligned if their head-words are aligned. In total we get 9.3M arguments for EN (240k CoNLL + 9.1M Europarl) and 4.43M for DE (32k CoNLL + 4.4M Europarl). Out of these, 0.76M arguments are aligned.\n"
+          }
+        },
+        {
+          "paragraphId": "1603.01514:s9:p1",
+          "section": "Main Results",
+          "role": "disambiguation",
+          "isHumanGoldParagraph": false,
+          "originalPointer": "/1603.01514/full_text/9/paragraphs/1",
+          "content": "In the first setting (Line 1), we train and test the monolingual model on the CoNLL data. We observe significant improvements in F1 score over the Baseline (Line 0) in both languages. Using the CoNLL 2009 dataset alone, titovcrosslingual report an F1 score of 80.9% (PU=86.8%, CO=75.7%) for German. Thus, our monolingual model outperforms their monolingual model in German. For English, they report an F1 score of 83.6% (PU=87.5%, CO=80.1%), but note that our English results are not directly comparable to theirs due to differences argument identification, as discussed in section SECREF25 . As their argument identification score is lower, perhaps their system is discarding “difficult” arguments which leads to a higher clustering score.",
+          "contentSha256": "a0fb4b4616dc87e5cb88450f6f5355e6b230178c309a19b37bf7799ed5cd7e70",
+          "quotes": [
+            {
+              "text": "In the first setting (Line 1), we train and test the monolingual model on the CoNLL data.",
+              "utf16Start": 0,
+              "utf16End": 89
+            }
+          ],
+          "frozenSource": {
+            "projectId": "2547c0c0-34f6-43a1-9daf-dfe30dce0a04",
+            "sourceId": "f77eab74-a2c6-488c-8db3-e82073df8b78",
+            "segmentId": "26324fc6-c046-4abc-a1db-2327858857ff",
+            "referenceId": "source:f77eab74-a2c6-488c-8db3-e82073df8b78:26324fc6-c046-4abc-a1db-2327858857ff",
+            "sourceHash": "2a417d7d096a98465a92c12e8f86217e17eba495b72ce08ed5f5e8267ff66a86",
+            "segmentContentHash": "c6a4b3f2b40ff0094c0e299d82b9fede165ef49c39908e3bd160bc528d7b156b",
+            "segmentText": "[[QASPER:1603.01514:s9:p1]] In the first setting (Line 1), we train and test the monolingual model on the CoNLL data. We observe significant improvements in F1 score over the Baseline (Line 0) in both languages. Using the CoNLL 2009 dataset alone, titovcrosslingual report an F1 score of 80.9% (PU=86.8%, CO=75.7%) for German. Thus, our monolingual model outperforms their monolingual model in German. For English, they report an F1 score of 83.6% (PU=87.5%, CO=80.1%), but note that our English results are not directly comparable to theirs due to differences argument identification, as discussed in section SECREF25 . As their argument identification score is lower, perhaps their system is discarding “difficult” arguments which leads to a higher clustering score.\n"
+          }
+        }
+      ],
+      "interpretation": "两个独立人工答案均列CoNLL 2009 EN/DE与Europarl EN-DE，按gold完整性必须给出两者。但原文明确称约150万Europarl EN-DE句子为parallel，并将CoNLL用于单语模型；题干“parallel corpora”比gold的“实验用语料”窄。只答Europarl在字面范围下有根据，不能把这简化为纯事实错误或纯检索失败。",
+      "acceptableScope": [
+        "基准兼容且语义清晰：实验用了CoNLL 2009英语/德语部分和Europarl EN-DE；其中明确的英德平行语料是Europarl。",
+        "若严格只答平行句来源，可答Europarl EN-DE，但应指出CoNLL也是实验用语料，以避免与题目可能意图冲突。"
+      ],
+      "unacceptableInferences": [
+        "未经依据将CoNLL英德部分声称为相互句对齐的平行翻译语料。",
+        "在要求“全部实验语料”的明确问题中只列Europarl。"
+      ],
+      "latestAnswers": {
+        "desktop": {
+          "answer": "实验使用 CoNLL 2009 语料的英语（EN）和德语（DE）部分，以及 Europarl 语料的 EN-DE 部分。 [1][2]\n其中平行语料是 Europarl 的 EN-DE 部分，约 150 万句平行英德句子。 [1][3]",
+          "status": "answered",
+          "historicalAutomaticGrade": "yes",
+          "historicalAutomaticReason": "Correctly names CoNLL 2009 EN/DE sections and Europarl EN-DE section.",
+          "historicalReasonPointer": "stages.answer.systems.system2.desktop",
+          "memoryJudge": "yes",
+          "memoryJudgeReason": "Memory 2de559bb explicitly states experiments use the English and German sections of CoNLL 2009 and the EN-DE section of Europarl, matching both human answer alternatives.",
+          "retrievalJudge": "yes",
+          "retrievalJudgeReason": "Reference memory:2de559bb states experiments use EN/DE sections of CoNLL 2009 and EN-DE section of Europarl, matching the gold answer.",
+          "agentAssessment": "同时列两语料并区分真正明确的平行部分，既覆盖gold又避免把CoNLL说成平行翻译语料，范围处理充分。",
+          "evidenceVisibility": [
+            {
+              "paragraphId": "1603.01514:s8:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "Following titovcrosslingual, we run our experiments on the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 .",
+                  "referenceIds": [
+                    "memory:2de559bb-8eaa-4b58-8710-4214cfc155d8",
+                    "source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b"
+                  ]
+                },
+                {
+                  "quote": "We get about 40k EN and 36k DE sentences from the CoNLL 2009 training set, and about 1.5M parallel EN-DE sentences from Europarl.",
+                  "referenceIds": [
+                    "memory:0beb06b1-8c30-4baf-beb7-4ee76e276a7a",
+                    "source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b"
+                  ]
+                },
+                {
+                  "quote": "The word alignments for the EN-DE parallel Europarl corpus are computed using GIZA++ BIBREF17 .",
+                  "referenceIds": [
+                    "memory:5e70f537-7766-4b5c-9e97-2ba9db2c61ee",
+                    "source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1603.01514:s9:p1",
+              "exactFullFrozenSourceShown": false,
+              "quoteMatches": [
+                {
+                  "quote": "In the first setting (Line 1), we train and test the monolingual model on the CoNLL data.",
+                  "referenceIds": []
+                }
+              ]
+            }
+          ]
+        },
+        "connector": {
+          "answer": "实验使用 Europarl 语料的 EN-DE 部分作为平行语料。 [1][2]\n从 Europarl 获取约 150 万条 EN-DE 平行句。 [3][2]\nEN-DE 平行 Europarl 语料的词对齐用 GIZA++ 计算，并只保留双向交集对齐以提高精度。 [4][2]\n\n依据：\n[1] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 34 行）\n[2] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 导入原文（非正式记忆）（第 34 行）（第 34 行）\n[3] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 34 行）\n[4] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 34 行）",
+          "status": "answered",
+          "historicalAutomaticGrade": "partial",
+          "historicalAutomaticReason": "Correctly identifies Europarl EN-DE but omits CoNLL 2009 EN/DE corpus.",
+          "historicalReasonPointer": "stages.answer.systems.system2.connector",
+          "memoryJudge": "yes",
+          "memoryJudgeReason": "Memory 2de559bb explicitly states experiments use the English and German sections of CoNLL 2009 and the EN-DE section of Europarl, matching both human answer alternatives.",
+          "retrievalJudge": "yes",
+          "retrievalJudgeReason": "Connector includes the same CoNLL 2009 EN/DE and Europarl EN-DE corpus statement, fully covering the gold answer.",
+          "agentAssessment": "输出Europarl、数量与对齐方式都有来源；按gold漏CoNLL，但按题干的parallel限定可辩护。其参考已含两者，因此改善方向是范围说明与完整列举，不是只增召回。",
+          "evidenceVisibility": [
+            {
+              "paragraphId": "1603.01514:s8:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "Following titovcrosslingual, we run our experiments on the English (EN) and German (DE) sections of the CoNLL 2009 corpus BIBREF13 , and EN-DE section of the Europarl corpus BIBREF14 .",
+                  "referenceIds": [
+                    "2de559bb-8eaa-4b58-8710-4214cfc155d8",
+                    "source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b"
+                  ]
+                },
+                {
+                  "quote": "We get about 40k EN and 36k DE sentences from the CoNLL 2009 training set, and about 1.5M parallel EN-DE sentences from Europarl.",
+                  "referenceIds": [
+                    "0beb06b1-8c30-4baf-beb7-4ee76e276a7a",
+                    "source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b"
+                  ]
+                },
+                {
+                  "quote": "The word alignments for the EN-DE parallel Europarl corpus are computed using GIZA++ BIBREF17 .",
+                  "referenceIds": [
+                    "5e70f537-7766-4b5c-9e97-2ba9db2c61ee",
+                    "source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1603.01514:s9:p1",
+              "exactFullFrozenSourceShown": false,
+              "quoteMatches": [
+                {
+                  "quote": "In the first setting (Line 1), we train and test the monolingual model on the CoNLL data.",
+                  "referenceIds": []
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "recommendation": {
+        "classification": "narrow_question_broad_gold",
+        "ambiguity": "moderate",
+        "excludeFromHistorical": false,
+        "excludeFromFutureUnambiguousSlice": false,
+        "action": "历史partial不改；未来保留并标记措辞歧义，预先接受“列两者并说明Europarl为平行部分”。若要无歧义测试全集覆盖，另建“实验使用哪些语料及各自用途”的新题。"
+      },
+      "oracleEvidence": {
+        "goldUnionParagraphIds": [
+          "1603.01514:s8:p0"
+        ],
+        "agentReviewContextParagraphIds": [
+          "1603.01514:s8:p0",
+          "1603.01514:s9:p1"
+        ],
+        "note": "gold_union的完整Data段落本身已足够同时给出二语料和其区别；补充单语CoNLL段落仅用于消歧审查，不应暗改gold。"
+      }
+    },
+    {
+      "questionId": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "paperId": "1908.07245",
+      "paperTitle": "GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge",
+      "question": "How does the neural network architecture accomodate an unknown amount of senses per word?",
+      "topic": "GlossBERT机制与相关工作的目标错位",
+      "gold": {
+        "answerable": true,
+        "expectedAnswers": [
+          {
+            "unanswerable": false,
+            "extractiveSpans": [
+              "converts WSD to a sequence learning task",
+              " leverage gloss knowledge",
+              "by extending gloss knowledge"
+            ],
+            "yesNo": null,
+            "freeForm": ""
+          }
+        ],
+        "acceptableEvidenceSets": [
+          [
+            [
+              "1908.07245:s16:p4"
+            ]
+          ]
+        ],
+        "goldParagraphIds": [
+          "1908.07245:s16:p4"
+        ],
+        "originalAnnotations": [
+          {
+            "annotationId": "9d28821616f01cc231834ea6d64d300d24fbc83a",
+            "answer": {
+              "unanswerable": false,
+              "extractive_spans": [
+                "converts WSD to a sequence learning task",
+                " leverage gloss knowledge",
+                "by extending gloss knowledge"
+              ],
+              "yes_no": null,
+              "free_form_answer": "",
+              "evidence": [
+                "The fourth block shows several recent neural-based methods. Bi-LSTM BIBREF11 is a baseline for neural models. Bi-LSTM$_{+ att. + LEX + POS}$ BIBREF10 is a multi-task learning framework for WSD, POS tagging, and LEX with self-attention mechanism, which converts WSD to a sequence learning task. GAS$_{ext}$ BIBREF12 is a variant of GAS which is a gloss-augmented variant of the memory network by extending gloss knowledge. CAN$^s$ and HCAN BIBREF13 are sentence-level and hierarchical co-attention neural network models which leverage gloss knowledge."
+              ],
+              "highlighted_evidence": [
+                "Bi-LSTM BIBREF11 is a baseline for neural models. Bi-LSTM$_{+ att. + LEX + POS}$ BIBREF10 is a multi-task learning framework for WSD, POS tagging, and LEX with self-attention mechanism, which converts WSD to a sequence learning task. GAS$_{ext}$ BIBREF12 is a variant of GAS which is a gloss-augmented variant of the memory network by extending gloss knowledge. CAN$^s$ and HCAN BIBREF13 are sentence-level and hierarchical co-attention neural network models which leverage gloss knowledge."
+              ]
+            }
+          }
+        ]
+      },
+      "sourceEvidence": [
+        {
+          "paragraphId": "1908.07245:s16:p4",
+          "section": "Experiments ::: Results",
+          "role": "gold",
+          "isHumanGoldParagraph": true,
+          "originalPointer": "/1908.07245/full_text/16/paragraphs/4",
+          "content": "The fourth block shows several recent neural-based methods. Bi-LSTM BIBREF11 is a baseline for neural models. Bi-LSTM$_{+ att. + LEX + POS}$ BIBREF10 is a multi-task learning framework for WSD, POS tagging, and LEX with self-attention mechanism, which converts WSD to a sequence learning task. GAS$_{ext}$ BIBREF12 is a variant of GAS which is a gloss-augmented variant of the memory network by extending gloss knowledge. CAN$^s$ and HCAN BIBREF13 are sentence-level and hierarchical co-attention neural network models which leverage gloss knowledge.",
+          "contentSha256": "60b84f8df7c6af865d3412be035eb664e63c9f426f1955e75f0fe437f0855ca0",
+          "quotes": [
+            {
+              "text": "The fourth block shows several recent neural-based methods.",
+              "utf16Start": 0,
+              "utf16End": 59
+            },
+            {
+              "text": "which converts WSD to a sequence learning task.",
+              "utf16Start": 246,
+              "utf16End": 293
+            },
+            {
+              "text": "GAS$_{ext}$ BIBREF12 is a variant of GAS which is a gloss-augmented variant of the memory network by extending gloss knowledge.",
+              "utf16Start": 294,
+              "utf16End": 421
+            },
+            {
+              "text": "CAN$^s$ and HCAN BIBREF13 are sentence-level and hierarchical co-attention neural network models which leverage gloss knowledge.",
+              "utf16Start": 422,
+              "utf16End": 550
+            }
+          ],
+          "frozenSource": {
+            "projectId": "87f1e73f-1bfd-4736-be76-7f4263ea9c0b",
+            "sourceId": "55a90925-b81f-4148-9d51-243dbb5273e4",
+            "segmentId": "d28436f7-a2ad-4fff-8c64-1e4fe0d4b417",
+            "referenceId": "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417",
+            "sourceHash": "534b67ae25bde5c7689d40b3e096eb2a3dfdc543b2364c41cda65f3ca5161c7e",
+            "segmentContentHash": "95fb01e68d2d5ecf468a0c98c530ed86b4279a50620ccfe53e5e00d6fe372f36",
+            "segmentText": "[[QASPER:1908.07245:s16:p4]] The fourth block shows several recent neural-based methods. Bi-LSTM BIBREF11 is a baseline for neural models. Bi-LSTM$_{+ att. + LEX + POS}$ BIBREF10 is a multi-task learning framework for WSD, POS tagging, and LEX with self-attention mechanism, which converts WSD to a sequence learning task. GAS$_{ext}$ BIBREF12 is a variant of GAS which is a gloss-augmented variant of the memory network by extending gloss knowledge. CAN$^s$ and HCAN BIBREF13 are sentence-level and hierarchical co-attention neural network models which leverage gloss knowledge.\n"
+          }
+        },
+        {
+          "paragraphId": "1908.07245:s5:p0",
+          "section": "Methodology ::: GlossBERT",
+          "role": "disambiguation",
+          "isHumanGoldParagraph": false,
+          "originalPointer": "/1908.07245/full_text/5/paragraphs/0",
+          "content": "BERT can explicitly model the relationship of a pair of texts, which has shown to be beneficial to many pair-wise natural language understanding tasks. In order to fully leverage gloss information, we propose GlossBERT to construct context-gloss pairs from all possible senses of the target word in WordNet, thus treating WSD task as a sentence-pair classification problem.",
+          "contentSha256": "be52c05bb6778f1f91711b7052165f5ce8e95b500f5eccb6fcc0f4b7cd0f317f",
+          "quotes": [
+            {
+              "text": "we propose GlossBERT to construct context-gloss pairs from all possible senses of the target word in WordNet, thus treating WSD task as a sentence-pair classification problem.",
+              "utf16Start": 198,
+              "utf16End": 373
+            }
+          ],
+          "frozenSource": {
+            "projectId": "87f1e73f-1bfd-4736-be76-7f4263ea9c0b",
+            "sourceId": "55a90925-b81f-4148-9d51-243dbb5273e4",
+            "segmentId": "d5697473-b601-4526-a5f0-93970bb30f4f",
+            "referenceId": "source:55a90925-b81f-4148-9d51-243dbb5273e4:d5697473-b601-4526-a5f0-93970bb30f4f",
+            "sourceHash": "534b67ae25bde5c7689d40b3e096eb2a3dfdc543b2364c41cda65f3ca5161c7e",
+            "segmentContentHash": "1f3e3dcbbc822bc1aa56f7b136413fc0d6035736f89d3db8325a8f662c525e81",
+            "segmentText": "[[QASPER:1908.07245:s5:p0]] BERT can explicitly model the relationship of a pair of texts, which has shown to be beneficial to many pair-wise natural language understanding tasks. In order to fully leverage gloss information, we propose GlossBERT to construct context-gloss pairs from all possible senses of the target word in WordNet, thus treating WSD task as a sentence-pair classification problem.\n"
+          }
+        },
+        {
+          "paragraphId": "1908.07245:s6:p0",
+          "section": "Methodology ::: GlossBERT ::: Context-Gloss Pairs",
+          "role": "disambiguation",
+          "isHumanGoldParagraph": false,
+          "originalPointer": "/1908.07245/full_text/6/paragraphs/0",
+          "content": "The sentence containing target words is denoted as context sentence. For each target word, we extract glosses of all $N$ possible senses (here $N=4$) of the target word (research) in WordNet to obtain the gloss sentence. [CLS] and [SEP] marks are added to the context-gloss pairs to make it suitable for the input of BERT model. A similar idea is also used in aspect-based sentiment analysis BIBREF16.",
+          "contentSha256": "2009411d59ddaaf5f0426e1cf88d84c1901e88d73b860091455f68d9c16de32f",
+          "quotes": [
+            {
+              "text": "For each target word, we extract glosses of all $N$ possible senses (here $N=4$) of the target word (research) in WordNet to obtain the gloss sentence.",
+              "utf16Start": 69,
+              "utf16End": 220
+            }
+          ],
+          "frozenSource": {
+            "projectId": "87f1e73f-1bfd-4736-be76-7f4263ea9c0b",
+            "sourceId": "55a90925-b81f-4148-9d51-243dbb5273e4",
+            "segmentId": "dfadc7f4-ecb8-468b-be1a-f0349812e1ba",
+            "referenceId": "source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba",
+            "sourceHash": "534b67ae25bde5c7689d40b3e096eb2a3dfdc543b2364c41cda65f3ca5161c7e",
+            "segmentContentHash": "c878bfe3e60469a63380d58f91d7e10606745937f894fc99ae5df2517938033c",
+            "segmentText": "[[QASPER:1908.07245:s6:p0]] The sentence containing target words is denoted as context sentence. For each target word, we extract glosses of all $N$ possible senses (here $N=4$) of the target word (research) in WordNet to obtain the gloss sentence. [CLS] and [SEP] marks are added to the context-gloss pairs to make it suitable for the input of BERT model. A similar idea is also used in aspect-based sentiment analysis BIBREF16.\n"
+          }
+        },
+        {
+          "paragraphId": "1908.07245:s7:p1",
+          "section": "Methodology ::: GlossBERT ::: Context-Gloss Pairs with Weak Supervision",
+          "role": "disambiguation",
+          "isHumanGoldParagraph": false,
+          "originalPointer": "/1908.07245/full_text/7/paragraphs/1",
+          "content": "Therefore, each target word has $N$ context-gloss pair training instances ($label\\in \\lbrace yes, no\\rbrace $). When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word. We experiment with three GlossBERT models:",
+          "contentSha256": "12d2023ff001dfcf40d2810f2c5a151d6382610aa7701d9575263c2183441bc3",
+          "quotes": [
+            {
+              "text": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+              "utf16Start": 112,
+              "utf16End": 299
+            }
+          ],
+          "frozenSource": {
+            "projectId": "87f1e73f-1bfd-4736-be76-7f4263ea9c0b",
+            "sourceId": "55a90925-b81f-4148-9d51-243dbb5273e4",
+            "segmentId": "d59306f7-3e04-49d5-8e3a-5b6044cf66a0",
+            "referenceId": "source:55a90925-b81f-4148-9d51-243dbb5273e4:d59306f7-3e04-49d5-8e3a-5b6044cf66a0",
+            "sourceHash": "534b67ae25bde5c7689d40b3e096eb2a3dfdc543b2364c41cda65f3ca5161c7e",
+            "segmentContentHash": "1623af533952c59076368ad922830f6ee402e4aa3fdecb45b0f3ef4b6b0c3a5b",
+            "segmentText": "[[QASPER:1908.07245:s7:p1]] Therefore, each target word has $N$ context-gloss pair training instances ($label\\in \\lbrace yes, no\\rbrace $). When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word. We experiment with three GlossBERT models:\n"
+          }
+        },
+        {
+          "paragraphId": "1908.07245:s17:p0",
+          "section": "Experiments ::: Discussion",
+          "role": "disambiguation",
+          "isHumanGoldParagraph": false,
+          "originalPointer": "/1908.07245/full_text/17/paragraphs/0",
+          "content": "There are two main reasons for the great improvements of our experimental results. First, we construct context-gloss pairs and convert WSD problem to a sentence-pair classification task which is similar to NLI tasks and train only one classifier, which is equivalent to expanding the corpus. Second, we leverage BERT BIBREF15 to better exploit the gloss information. BERT model shows its advantage in dealing with sentence-pair classification tasks by its amazing improvement on QA and NLI tasks. This advantage comes from both of its two novel unsupervised prediction tasks.",
+          "contentSha256": "7ce2132b582df96af9285f8b6390756dd30450d4ec7e8bc8a9e5884aac21d4a4",
+          "quotes": [
+            {
+              "text": "First, we construct context-gloss pairs and convert WSD problem to a sentence-pair classification task which is similar to NLI tasks and train only one classifier, which is equivalent to expanding the corpus.",
+              "utf16Start": 83,
+              "utf16End": 291
+            }
+          ],
+          "frozenSource": {
+            "projectId": "87f1e73f-1bfd-4736-be76-7f4263ea9c0b",
+            "sourceId": "55a90925-b81f-4148-9d51-243dbb5273e4",
+            "segmentId": "125d9fea-210f-41d2-b692-7098b482a56e",
+            "referenceId": "source:55a90925-b81f-4148-9d51-243dbb5273e4:125d9fea-210f-41d2-b692-7098b482a56e",
+            "sourceHash": "534b67ae25bde5c7689d40b3e096eb2a3dfdc543b2364c41cda65f3ca5161c7e",
+            "segmentContentHash": "fa16039864b070e7ac257a83b7218d5e466c61a06cc0a4a1fa15f2366c1527da",
+            "segmentText": "[[QASPER:1908.07245:s17:p0]] There are two main reasons for the great improvements of our experimental results. First, we construct context-gloss pairs and convert WSD problem to a sentence-pair classification task which is similar to NLI tasks and train only one classifier, which is equivalent to expanding the corpus. Second, we leverage BERT BIBREF15 to better exploit the gloss information. BERT model shows its advantage in dealing with sentence-pair classification tasks by its amazing improvement on QA and NLI tasks. This advantage comes from both of its two novel unsupervised prediction tasks.\n"
+          }
+        },
+        {
+          "paragraphId": "1908.07245:s17:p1",
+          "section": "Experiments ::: Discussion",
+          "role": "disambiguation",
+          "isHumanGoldParagraph": false,
+          "originalPointer": "/1908.07245/full_text/17/paragraphs/1",
+          "content": "Compared with traditional word expert supervised methods, our GlossBERT shows its effectiveness to alleviate the effort of feature engineering and does not require training a dedicated classifier for every target lemma. Up to now, it can be said that the neural network method can totally beat the traditional word expert method. Compared with recent neural-based methods, our solution is more intuitive and can make better use of gloss knowledge. Besides, our approach demonstrates that when we fine-tune BERT on a downstream task, converting it into a sentence-pair classification task may be a good choice.",
+          "contentSha256": "79fefefd645edc0db3e927c72b9d03b336bdd53c9f30df91b6a099c0c7c7b702",
+          "quotes": [
+            {
+              "text": "does not require training a dedicated classifier for every target lemma.",
+              "utf16Start": 147,
+              "utf16End": 219
+            }
+          ],
+          "frozenSource": {
+            "projectId": "87f1e73f-1bfd-4736-be76-7f4263ea9c0b",
+            "sourceId": "55a90925-b81f-4148-9d51-243dbb5273e4",
+            "segmentId": "ff2aeb65-abca-4ba3-838f-7849f4c810d8",
+            "referenceId": "source:55a90925-b81f-4148-9d51-243dbb5273e4:ff2aeb65-abca-4ba3-838f-7849f4c810d8",
+            "sourceHash": "534b67ae25bde5c7689d40b3e096eb2a3dfdc543b2364c41cda65f3ca5161c7e",
+            "segmentContentHash": "21814f45a29e7c5ef79a7c71008a8ed055c0d9e34b59e5922283405c7c29b2e0",
+            "segmentText": "[[QASPER:1908.07245:s17:p1]] Compared with traditional word expert supervised methods, our GlossBERT shows its effectiveness to alleviate the effort of feature engineering and does not require training a dedicated classifier for every target lemma. Up to now, it can be said that the neural network method can totally beat the traditional word expert method. Compared with recent neural-based methods, our solution is more intuitive and can make better use of gloss knowledge. Besides, our approach demonstrates that when we fine-tune BERT on a downstream task, converting it into a sentence-pair classification task may be a good choice.\n"
+          }
+        }
+      ],
+      "interpretation": "人工gold位于Results对Bi-LSTM多任务、GAS_ext、CAN/HCAN等已有工作的比较，三段extractive spans属于不同方法；它不是对本文GlossBERT如何支持可变候选义项数的直接说明。题干未指明哪种network。本文方法段落提供N个context-gloss对、一个分类器、每对yes概率及取最大义项。由此说明候选数变化改变处理的对数而非固定义项类别输出，是有原文支持的组合推理；“未知”不能扩大为无WordNet候选集或零样本识别全新义项。",
+      "acceptableScope": [
+        "若指GlossBERT：从WordNet全部N个候选义项构造N个context-gloss对，用单个二分类器分别评分，选择yes概率最高者；明确变的是候选对数，说明这是从流程推得。",
+        "若指gold中的先前神经方法：按名称分别说明序列学习、扩展gloss的记忆网络和co-attention利用gloss；不能合并为一个网络机制。",
+        "允许先指出题干未指定网络，再区分本文方法与相关工作。"
+      ],
+      "unacceptableInferences": [
+        "把gold三段不同baseline的性质合成GlossBERT的架构。",
+        "宣称模型无需枚举候选义项、能直接识别任意未知词义，或虚构padding/固定最大义项槽位。"
+      ],
+      "latestAnswers": {
+        "desktop": {
+          "answer": "GlossBERT 将 WSD 视为句对分类问题：它从目标词在 WordNet 中的所有可能义项的释义（gloss）出发，构造 context-gloss 对。 [1][2]\n对每个目标词，系统提取其全部 N 个可能义项的释义（文中示例 N=4）以得到 gloss 句子。 [3][4]\n在 context-gloss 对中加入 [CLS] 和 [SEP] 标记，使其适合作为 BERT 模型的输入。 [3][5]\n所用 BERT 架构是多层双向 Transformer 编码器，并在 WSD 任务上对预训练 BERT 进行微调。 [6]\n由于每个义项分别与上下文组成一个句对，义项数量可变时输入的是逐义项构造的句对集合，而非固定数量的义项槽位。 [1][3]\nGlossBERT 将 WSD 视为句对分类问题：它从目标词在 WordNet 中的所有可能义项的释义（gloss）出发，构造 context-gloss 对。 [2][7]\n对每个目标词，系统提取其全部 N 个可能义项的释义（文中示例 N=4）以得到 gloss 句子。 [4][3]\n在 context-gloss 对中加入 [CLS] 和 [SEP] 标记，使其适合作为 BERT 模型的输入。 [5][3]\n所用 BERT 架构是多层双向 Transformer 编码器，并在 WSD 任务上对预训练 BERT 进行微调。 [8][9]\n由于每个义项分别与上下文组成一个句对，义项数量可变时输入的是逐义项构造的句对集合，而非固定数量的义项槽位。 [2][10]\n测试时，系统输出每个 context-gloss 对 label=yes 的概率，并选择概率最高的义项作为目标词的预测标签。 [11]",
+          "status": "answered",
+          "historicalAutomaticGrade": "yes",
+          "historicalAutomaticReason": "Correctly explains that each sense forms its own context-gloss pair, so variable sense counts become a set of pairs rather than fixed slots.",
+          "historicalReasonPointer": "stages.answer.systems.system2.desktop",
+          "memoryJudge": "partial",
+          "memoryJudgeReason": "Memories cover converting WSD to sequence/sentence-pair classification and constructing context-gloss pairs from all N senses, which handles variable sense counts, but they do not explicitly state the architecture accommodates an unknown/variable number of senses per word.",
+          "retrievalJudge": "partial",
+          "retrievalJudgeReason": "Selected references include the gold paragraph and gloss-pair construction (all N senses, sentence-pair classification), but do not clearly explain how the architecture handles a variable/unknown number of senses per word.",
+          "agentAssessment": "已补出逐义项句对集合而非固定槽位的推理，且有N对、句对分类及最高概率原文支持；重复两个生成内容影响简洁性，不改变该核心机制有据。",
+          "evidenceVisibility": [
+            {
+              "paragraphId": "1908.07245:s16:p4",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "The fourth block shows several recent neural-based methods.",
+                  "referenceIds": [
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417"
+                  ]
+                },
+                {
+                  "quote": "which converts WSD to a sequence learning task.",
+                  "referenceIds": [
+                    "memory:b4cc3302-85d7-44ac-a4fa-b0f67b5506b8",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417"
+                  ]
+                },
+                {
+                  "quote": "GAS$_{ext}$ BIBREF12 is a variant of GAS which is a gloss-augmented variant of the memory network by extending gloss knowledge.",
+                  "referenceIds": [
+                    "memory:6c3ed545-f648-4935-b869-ec82ac1871a5",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417"
+                  ]
+                },
+                {
+                  "quote": "CAN$^s$ and HCAN BIBREF13 are sentence-level and hierarchical co-attention neural network models which leverage gloss knowledge.",
+                  "referenceIds": [
+                    "memory:474536bd-8bbd-4048-b60a-0865f26dff55",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417",
+                    "memory:474536bd-8bbd-4048-b60a-0865f26dff55"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1908.07245:s5:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "we propose GlossBERT to construct context-gloss pairs from all possible senses of the target word in WordNet, thus treating WSD task as a sentence-pair classification problem.",
+                  "referenceIds": [
+                    "memory:61be16c5-c21f-4977-9f4b-db33a6ebb214",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d5697473-b601-4526-a5f0-93970bb30f4f"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1908.07245:s6:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "For each target word, we extract glosses of all $N$ possible senses (here $N=4$) of the target word (research) in WordNet to obtain the gloss sentence.",
+                  "referenceIds": [
+                    "memory:5e3dd8dd-b6a1-44e0-80da-37443d35e338",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba",
+                    "memory:5e3dd8dd-b6a1-44e0-80da-37443d35e338",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1908.07245:s7:p1",
+              "exactFullFrozenSourceShown": false,
+              "quoteMatches": [
+                {
+                  "quote": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                  "referenceIds": [
+                    "memory:b4a30216-ee93-4f27-b816-0d16801da663"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1908.07245:s17:p0",
+              "exactFullFrozenSourceShown": false,
+              "quoteMatches": [
+                {
+                  "quote": "First, we construct context-gloss pairs and convert WSD problem to a sentence-pair classification task which is similar to NLI tasks and train only one classifier, which is equivalent to expanding the corpus.",
+                  "referenceIds": []
+                }
+              ]
+            },
+            {
+              "paragraphId": "1908.07245:s17:p1",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "does not require training a dedicated classifier for every target lemma.",
+                  "referenceIds": [
+                    "memory:7806b838-f0b6-4753-ad54-f77110b7501a",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:ff2aeb65-abca-4ba3-838f-7849f4c810d8"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "connector": {
+          "answer": "GlossBERT 将 WSD 任务转化为句对分类问题：从目标词在 WordNet 中所有可能词义的释义（gloss）构造 context-gloss 对。 [1][2]\n对每个目标词，抽取其在 WordNet 中全部 N 个可能词义的释义（文中示例 N=4）以得到 gloss 句子。 [3][4]\n在 context-gloss 对中加入 [CLS] 和 [SEP] 标记，使其适合作为 BERT 模型的输入。 [5][4]\n方法对预训练 BERT 模型在 WSD 任务上进行微调。 [6][2]\nGlossBERT 将 WSD 转化为句对分类问题：从目标词在 WordNet 中所有可能词义的释义构造 context-gloss 对。 [7][1]\n对每个目标词，抽取其在 WordNet 中全部 N 个可能词义的释义（示例中 N=4）得到 gloss 句子，因此每个目标词有 N 个 context-gloss 对训练实例（标签为 yes/no）。 [3][8]\n在 context-gloss 对中加入 [CLS] 和 [SEP] 标记，使其适合作为 BERT 模型的输入。 [5]\n模型取首个 token [CLS] 的最终隐状态并加分类层（标签为 yes/no）进行句对分类。 [9]\n测试时，对每个 context-gloss 对输出 label=yes 的概率，并选择概率最高的词义作为该目标词的预测标签。 [10]\n\n依据：\n[1] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 6 行）\n[2] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 导入原文（非正式记忆）（第 6 行）（第 6 行）\n[3] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 15 行）\n[4] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 导入原文（非正式记忆）（第 15 行）（第 15 行）\n[5] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 15 行）\n[6] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 11 行）\n[7] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 13 行）\n[8] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 17 行）\n[9] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 20 行）\n[10] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 17 行）",
+          "status": "answered",
+          "historicalAutomaticGrade": "partial",
+          "historicalAutomaticReason": "Covers per-sense context-gloss pairs and N instances but does not explicitly state how variable sense counts are accommodated.",
+          "historicalReasonPointer": "stages.answer.systems.system2.connector",
+          "memoryJudge": "partial",
+          "memoryJudgeReason": "Memories cover converting WSD to sequence/sentence-pair classification and constructing context-gloss pairs from all N senses, which handles variable sense counts, but they do not explicitly state the architecture accommodates an unknown/variable number of senses per word.",
+          "retrievalJudge": "partial",
+          "retrievalJudgeReason": "Connector references include context-gloss pairs from all possible senses and N training instances, but lack a clear statement of how the architecture accommodates a variable number of senses per word.",
+          "agentAssessment": "已给N个句对、二分类、最高概率选择，事实基本覆盖本文方法；缺少一句明确连接“候选数可变→处理对数可变”的总结。历史partial可描述显式解释不足，但不等于关键方法证据丢失。",
+          "evidenceVisibility": [
+            {
+              "paragraphId": "1908.07245:s16:p4",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "The fourth block shows several recent neural-based methods.",
+                  "referenceIds": [
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417"
+                  ]
+                },
+                {
+                  "quote": "which converts WSD to a sequence learning task.",
+                  "referenceIds": [
+                    "b4cc3302-85d7-44ac-a4fa-b0f67b5506b8",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417"
+                  ]
+                },
+                {
+                  "quote": "GAS$_{ext}$ BIBREF12 is a variant of GAS which is a gloss-augmented variant of the memory network by extending gloss knowledge.",
+                  "referenceIds": [
+                    "6c3ed545-f648-4935-b869-ec82ac1871a5",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417",
+                    "6c3ed545-f648-4935-b869-ec82ac1871a5",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417"
+                  ]
+                },
+                {
+                  "quote": "CAN$^s$ and HCAN BIBREF13 are sentence-level and hierarchical co-attention neural network models which leverage gloss knowledge.",
+                  "referenceIds": [
+                    "474536bd-8bbd-4048-b60a-0865f26dff55",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417",
+                    "474536bd-8bbd-4048-b60a-0865f26dff55",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1908.07245:s5:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "we propose GlossBERT to construct context-gloss pairs from all possible senses of the target word in WordNet, thus treating WSD task as a sentence-pair classification problem.",
+                  "referenceIds": [
+                    "61be16c5-c21f-4977-9f4b-db33a6ebb214",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d5697473-b601-4526-a5f0-93970bb30f4f"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1908.07245:s6:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "For each target word, we extract glosses of all $N$ possible senses (here $N=4$) of the target word (research) in WordNet to obtain the gloss sentence.",
+                  "referenceIds": [
+                    "5e3dd8dd-b6a1-44e0-80da-37443d35e338",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba",
+                    "5e3dd8dd-b6a1-44e0-80da-37443d35e338"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1908.07245:s7:p1",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                  "referenceIds": [
+                    "b4a30216-ee93-4f27-b816-0d16801da663",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:d59306f7-3e04-49d5-8e3a-5b6044cf66a0"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1908.07245:s17:p0",
+              "exactFullFrozenSourceShown": false,
+              "quoteMatches": [
+                {
+                  "quote": "First, we construct context-gloss pairs and convert WSD problem to a sentence-pair classification task which is similar to NLI tasks and train only one classifier, which is equivalent to expanding the corpus.",
+                  "referenceIds": []
+                }
+              ]
+            },
+            {
+              "paragraphId": "1908.07245:s17:p1",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "does not require training a dedicated classifier for every target lemma.",
+                  "referenceIds": [
+                    "7806b838-f0b6-4753-ad54-f77110b7501a",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:ff2aeb65-abca-4ba3-838f-7849f4c810d8",
+                    "source:55a90925-b81f-4148-9d51-243dbb5273e4:ff2aeb65-abca-4ba3-838f-7849f4c810d8"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "recommendation": {
+        "classification": "unspecified_model_and_gold_target_mismatch",
+        "ambiguity": "high",
+        "excludeFromHistorical": false,
+        "excludeFromFutureUnambiguousSlice": true,
+        "action": "历史分数不改；未来无歧义严格正确率暂不纳入原题，将本文GlossBERT机制与相关工作分别建立清楚指向的新题。原题保留作目标识别/组合推理诊断。"
+      },
+      "oracleEvidence": {
+        "goldUnionParagraphIds": [
+          "1908.07245:s16:p4"
+        ],
+        "agentReviewContextParagraphIds": [
+          "1908.07245:s5:p0",
+          "1908.07245:s6:p0",
+          "1908.07245:s7:p1",
+          "1908.07245:s16:p4",
+          "1908.07245:s17:p0",
+          "1908.07245:s17:p1"
+        ],
+        "note": "仅gold_union只能保证看见已有工作段落，不能把它当本文机制的正确证据上界。agent_review_context需保留gold并加入本文N对、选择与单分类器段落；结果应单列，不能与gold-only混算。"
+      }
+    },
+    {
+      "questionId": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "paperId": "1806.00738",
+      "paperTitle": "Contextualize, Show and Tell: A Neural Visual Storyteller",
+      "question": "Do the decoder LSTMs all have the same weights?",
+      "topic": "独立解码器到不共享权重的结构推断",
+      "gold": {
+        "answerable": true,
+        "expectedAnswers": [
+          {
+            "unanswerable": false,
+            "extractiveSpans": [],
+            "yesNo": false,
+            "freeForm": ""
+          },
+          {
+            "unanswerable": false,
+            "extractiveSpans": [],
+            "yesNo": false,
+            "freeForm": ""
+          }
+        ],
+        "acceptableEvidenceSets": [
+          [
+            [
+              "1806.00738:s4:p1"
+            ]
+          ],
+          [
+            [
+              "1806.00738:s4:p1"
+            ]
+          ]
+        ],
+        "goldParagraphIds": [
+          "1806.00738:s4:p1"
+        ],
+        "originalAnnotations": [
+          {
+            "annotationId": "68e5b6e2318ffbc944b327f6d9b993bf29823a75",
+            "answer": {
+              "unanswerable": false,
+              "extractive_spans": [],
+              "yes_no": false,
+              "free_form_answer": "",
+              "evidence": [
+                "Our model contains five independent decoders, one for each image in the sequence. All the 5 decoders use the last hidden state of the encoder (i.e. the context) as its first hidden state and take the corresponding image embedding as its first input. In this way, the first decoder generates the sequence of words for the first image in the sequence, the second decoder for the second image in the sequence, and so on. This allows each decoder to learn a specific language model for each position of the sequence. For instance, the first decoder will learn the opening sentences of the story while the last decoder the closing sentences. The word embeddings were computed using word2vec BIBREF8 ."
+              ],
+              "highlighted_evidence": [
+                "Our model contains five independent decoders, one for each image in the sequence.",
+                "This allows each decoder to learn a specific language model for each position of the sequence."
+              ]
+            }
+          },
+          {
+            "annotationId": "abfce23f61dc2054947059ea728270da766992f8",
+            "answer": {
+              "unanswerable": false,
+              "extractive_spans": [],
+              "yes_no": false,
+              "free_form_answer": "",
+              "evidence": [
+                "Our model contains five independent decoders, one for each image in the sequence. All the 5 decoders use the last hidden state of the encoder (i.e. the context) as its first hidden state and take the corresponding image embedding as its first input. In this way, the first decoder generates the sequence of words for the first image in the sequence, the second decoder for the second image in the sequence, and so on. This allows each decoder to learn a specific language model for each position of the sequence. For instance, the first decoder will learn the opening sentences of the story while the last decoder the closing sentences. The word embeddings were computed using word2vec BIBREF8 ."
+              ],
+              "highlighted_evidence": [
+                "All the 5 decoders use the last hidden state of the encoder (i.e. the context) as its first hidden state and take the corresponding image embedding as its first input. In this way, the first decoder generates the sequence of words for the first image in the sequence, the second decoder for the second image in the sequence, and so on. This allows each decoder to learn a specific language model for each position of the sequence. For instance, the first decoder will learn the opening sentences of the story while the last decoder the closing sentences."
+              ]
+            }
+          }
+        ]
+      },
+      "sourceEvidence": [
+        {
+          "paragraphId": "1806.00738:s4:p1",
+          "section": "Decoder",
+          "role": "gold_and_inference",
+          "isHumanGoldParagraph": true,
+          "originalPointer": "/1806.00738/full_text/4/paragraphs/1",
+          "content": "Our model contains five independent decoders, one for each image in the sequence. All the 5 decoders use the last hidden state of the encoder (i.e. the context) as its first hidden state and take the corresponding image embedding as its first input. In this way, the first decoder generates the sequence of words for the first image in the sequence, the second decoder for the second image in the sequence, and so on. This allows each decoder to learn a specific language model for each position of the sequence. For instance, the first decoder will learn the opening sentences of the story while the last decoder the closing sentences. The word embeddings were computed using word2vec BIBREF8 .",
+          "contentSha256": "5e0e88517e76dd64de6e01b1f28ed0b19523d69948993cc6b35db0818033c1fd",
+          "quotes": [
+            {
+              "text": "Our model contains five independent decoders, one for each image in the sequence.",
+              "utf16Start": 0,
+              "utf16End": 81
+            },
+            {
+              "text": "All the 5 decoders use the last hidden state of the encoder (i.e. the context) as its first hidden state and take the corresponding image embedding as its first input.",
+              "utf16Start": 82,
+              "utf16End": 249
+            },
+            {
+              "text": "This allows each decoder to learn a specific language model for each position of the sequence.",
+              "utf16Start": 418,
+              "utf16End": 512
+            }
+          ],
+          "frozenSource": {
+            "projectId": "cd40206c-5ca3-4edd-a481-60c476ae68af",
+            "sourceId": "0056b867-8122-4004-bc43-25fd67204dda",
+            "segmentId": "99a5dba5-48ff-48dd-9e38-78acdc8b7b29",
+            "referenceId": "source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29",
+            "sourceHash": "b86b2b265424f0222a298aa3fe31187fa710ecdb025cb7f94f2a56d26df2a93a",
+            "segmentContentHash": "4b402419780d56bb9f922505b77153b4a50107956b9a78e7c5262528c7e89a2e",
+            "segmentText": "[[QASPER:1806.00738:s4:p1]] Our model contains five independent decoders, one for each image in the sequence. All the 5 decoders use the last hidden state of the encoder (i.e. the context) as its first hidden state and take the corresponding image embedding as its first input. In this way, the first decoder generates the sequence of words for the first image in the sequence, the second decoder for the second image in the sequence, and so on. This allows each decoder to learn a specific language model for each position of the sequence. For instance, the first decoder will learn the opening sentences of the story while the last decoder the closing sentences. The word embeddings were computed using word2vec BIBREF8 .\n"
+          }
+        },
+        {
+          "paragraphId": "1806.00738:s7:p0",
+          "section": "Conclusions and Future Work",
+          "role": "corroboration",
+          "isHumanGoldParagraph": false,
+          "originalPointer": "/1806.00738/full_text/7/paragraphs/0",
+          "content": "Our visual storyteller incorporates a context encoder and multiple independent decoders to the image description architecture by BIBREF0 to generate stories from image sequences. Having an independent decoder for each position of the image sequence, allowed our visual storyteller to build more specific language models using the context vector as its first state and the image embedding as its first input. In the internal track of the Visual Storytelling Challenge 2018, we obtained competitive METEOR scores in both the public and hidden test sets and performed well in the human evaluation.",
+          "contentSha256": "b616125b48a6cf0e9ffd4d0a78605292b5eb9eb8eb7b9963ef39190c30a0bc5a",
+          "quotes": [
+            {
+              "text": "Having an independent decoder for each position of the image sequence, allowed our visual storyteller to build more specific language models using the context vector as its first state and the image embedding as its first input.",
+              "utf16Start": 179,
+              "utf16End": 407
+            }
+          ],
+          "frozenSource": {
+            "projectId": "cd40206c-5ca3-4edd-a481-60c476ae68af",
+            "sourceId": "0056b867-8122-4004-bc43-25fd67204dda",
+            "segmentId": "21f3eabb-4486-4b12-a466-7200557be9ea",
+            "referenceId": "source:0056b867-8122-4004-bc43-25fd67204dda:21f3eabb-4486-4b12-a466-7200557be9ea",
+            "sourceHash": "b86b2b265424f0222a298aa3fe31187fa710ecdb025cb7f94f2a56d26df2a93a",
+            "segmentContentHash": "f0bbb34c3485fbf5e7ddb86f3e7ce1e950a5b98300972d120adb8bdb71a6ca0e",
+            "segmentText": "[[QASPER:1806.00738:s7:p0]] Our visual storyteller incorporates a context encoder and multiple independent decoders to the image description architecture by BIBREF0 to generate stories from image sequences. Having an independent decoder for each position of the image sequence, allowed our visual storyteller to build more specific language models using the context vector as its first state and the image embedding as its first input. In the internal track of the Visual Storytelling Challenge 2018, we obtained competitive METEOR scores in both the public and hidden test sets and performed well in the human evaluation.\n"
+          }
+        }
+      ],
+      "interpretation": "两个人工答案均为No。gold段落描述五个independent decoders及各自位置特定语言模型，支持通常的架构理解：解码器并非权重绑定的同一模型。段落没有直接写weight sharing，且“共享encoder上下文作初始隐状态”不等于共享参数；不能将缺少weights字面词机械视为完全不可答。这是结构推断题，不是纯逐字抽取题，也不能由自然语言段落证明每一张量绝不共享。",
+      "acceptableScope": [
+        "回答No，并说明依据是五个独立、位置特定的解码器；注明这是架构描述所支持的推断，而不是论文逐字声明所有参数细节。",
+        "可补充所有解码器共享encoder上下文初始化，但不要把共同输入/初始化误当参数共享。"
+      ],
+      "unacceptableInferences": [
+        "因为都使用encoder最后隐状态而回答权重相同。",
+        "无依据声称所有embedding、所有层参数或训练初始化的具体共享细节。"
+      ],
+      "latestAnswers": {
+        "desktop": {
+          "answer": "No. The model contains five independent decoders, one for each image in the sequence, and each decoder learns a specific language model for its position. [1]\nThe decoders are described as independent and position-specific rather than as sharing weights; the record does not state that they share weights. [1][2]",
+          "status": "answered",
+          "historicalAutomaticGrade": "yes",
+          "historicalAutomaticReason": "Correctly answers No, citing five independent decoders each learning a position-specific language model, matching the gold passage.",
+          "historicalReasonPointer": "stages.answer.systems.system1.desktop",
+          "memoryJudge": "no",
+          "memoryJudgeReason": "Memories state five independent decoders each learn a specific language model, but none explicitly say whether the decoder LSTMs share the same weights; the gold paragraph also does not directly answer this.",
+          "retrievalJudge": "no",
+          "retrievalJudgeReason": "Selected references mention five independent decoders but never state whether they share weights; the gold paragraph says each decoder learns a specific language model, implying different weights, but this is not shown.",
+          "agentAssessment": "No与人工gold一致，引用独立且位置特定的解码器并说明并非直接共享权重声明；是有据的结构推断。",
+          "evidenceVisibility": [
+            {
+              "paragraphId": "1806.00738:s4:p1",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "Our model contains five independent decoders, one for each image in the sequence.",
+                  "referenceIds": [
+                    "memory:e3d697ce-b87a-4cf9-a00e-8e3a179155dd",
+                    "source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29"
+                  ]
+                },
+                {
+                  "quote": "All the 5 decoders use the last hidden state of the encoder (i.e. the context) as its first hidden state and take the corresponding image embedding as its first input.",
+                  "referenceIds": [
+                    "source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29"
+                  ]
+                },
+                {
+                  "quote": "This allows each decoder to learn a specific language model for each position of the sequence.",
+                  "referenceIds": [
+                    "source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1806.00738:s7:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "Having an independent decoder for each position of the image sequence, allowed our visual storyteller to build more specific language models using the context vector as its first state and the image embedding as its first input.",
+                  "referenceIds": [
+                    "source:0056b867-8122-4004-bc43-25fd67204dda:21f3eabb-4486-4b12-a466-7200557be9ea"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "connector": {
+          "answer": "项目记忆中没有足够依据，暂不自动回复。",
+          "status": "unknown",
+          "historicalAutomaticGrade": "no",
+          "historicalAutomaticReason": "Refuses/abstains despite the question being answerable; not a correct answer.",
+          "historicalReasonPointer": "stages.answer.systems.system1.connector",
+          "memoryJudge": "no",
+          "memoryJudgeReason": "Memories state five independent decoders each learn a specific language model, but none explicitly say whether the decoder LSTMs share the same weights; the gold paragraph also does not directly answer this.",
+          "retrievalJudge": "no",
+          "retrievalJudgeReason": "Connector references include the gold paragraph about five independent decoders learning specific language models, but none explicitly state whether decoder LSTM weights are shared or distinct.",
+          "agentAssessment": "最终拒答体现保守门槛，未利用independent decoders与位置特定模型作有限推断；可判未完成可答任务，但不能据此说数据库没有存下原句。",
+          "evidenceVisibility": [
+            {
+              "paragraphId": "1806.00738:s4:p1",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "Our model contains five independent decoders, one for each image in the sequence.",
+                  "referenceIds": [
+                    "e3d697ce-b87a-4cf9-a00e-8e3a179155dd",
+                    "source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29"
+                  ]
+                },
+                {
+                  "quote": "All the 5 decoders use the last hidden state of the encoder (i.e. the context) as its first hidden state and take the corresponding image embedding as its first input.",
+                  "referenceIds": [
+                    "source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29"
+                  ]
+                },
+                {
+                  "quote": "This allows each decoder to learn a specific language model for each position of the sequence.",
+                  "referenceIds": [
+                    "source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29"
+                  ]
+                }
+              ]
+            },
+            {
+              "paragraphId": "1806.00738:s7:p0",
+              "exactFullFrozenSourceShown": true,
+              "quoteMatches": [
+                {
+                  "quote": "Having an independent decoder for each position of the image sequence, allowed our visual storyteller to build more specific language models using the context vector as its first state and the image embedding as its first input.",
+                  "referenceIds": [
+                    "source:0056b867-8122-4004-bc43-25fd67204dda:21f3eabb-4486-4b12-a466-7200557be9ea"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "recommendation": {
+        "classification": "architectural_inference_required",
+        "ambiguity": "limited",
+        "excludeFromHistorical": false,
+        "excludeFromFutureUnambiguousSlice": false,
+        "action": "保留该题并预先标注允许有据结构推断；区分参数与状态。无需仅因没有weights字面句就剔除。"
+      },
+      "oracleEvidence": {
+        "goldUnionParagraphIds": [
+          "1806.00738:s4:p1"
+        ],
+        "agentReviewContextParagraphIds": [
+          "1806.00738:s4:p1",
+          "1806.00738:s7:p0"
+        ],
+        "note": "gold_union已含独立/位置特定描述；oracle仍需推理，不能要求所有正确答案必须原文逐字同义。"
+      }
+    }
+  ]
+}

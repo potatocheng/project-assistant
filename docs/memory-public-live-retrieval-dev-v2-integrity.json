@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-10-20T12:51:11.619Z",
+  "checks": [
+    "frozen dataset/source/binary hashes",
+    "no key in reports/transcripts",
+    "unique receipt indices/request hashes/provider usage",
+    "gold absent from production input envelope",
+    "complete paragraph provenance",
+    "both entries and project scope",
+    "unchanged confirmed facts/facets",
+    "read-only QA",
+    "strict judge memory ID whitelist",
+    "shared request budget"
+  ],
+  "results": [
+    {
+      "file": "docs/memory-public-live-retrieval-dev-v2-results.json",
+      "sha256": "d27065eff53d3c43bad2aa9c9536ff804eaf2f1fe70e400792a183c89f625fe6",
+      "transcriptSha256": "6472ae3e1f6237a4beed2161ed3afb4e3002f88b2a9aca6d5b7d2bbfb6fec242",
+      "requests": 263,
+      "totalTokens": 1379151,
+      "questions": 20,
+      "segments": 501,
+      "formalMemories": 931,
+      "rejectedJudgeOutputs": 0,
+      "passed": true
+    }
+  ]
+}

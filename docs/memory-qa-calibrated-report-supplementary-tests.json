@@ -1,0 +1,13 @@
+{
+  "version": "memory-qa-calibrated-report-supplementary-tests-v1",
+  "recordedAt": "2026-10-20T17:13:01.850Z",
+  "command": "node --test scripts/report-memory-qa-calibrated.test.mjs",
+  "passed": true,
+  "tests": 27,
+  "failures": 0,
+  "sha256": {
+    "scripts/report-memory-qa-calibrated.mjs": "30846f29fbe9fdb08d47ab4db4d4c281326cc5cf9532ba52b8e3b3fa3243cee4",
+    "scripts/report-memory-qa-calibrated.test.mjs": "a85bb4dcf3b0b65c06303272e1515e1498be4be656deec30aedbd06ae080a329"
+  },
+  "scope": "Report-only supplementary validation after pre-live deterministic evidence; does not replace the 286 Rust / 140 Node pre-live regression proof or alter any of the 16 live evaluation files."
+}

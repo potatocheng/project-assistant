@@ -1,0 +1,53 @@
+{
+  "recordedAt": "2026-10-20T08:18:45.2578955+00:00",
+  "rust": {
+    "command": "cargo test -p project-assistant-core --locked --no-fail-fast",
+    "passed": 185,
+    "failed": 0,
+    "unit": 114,
+    "integration": 71,
+    "logSha256": "fcc8ef9aea10dfce02bd0cd2a416a64ccc9d762bc83fe35cd153b15d3f67750f"
+  },
+  "checks": [
+    {
+      "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+      "passed": true
+    },
+    {
+      "passed": true,
+      "note": "Vite chunk-size warning remains",
+      "command": "npm run build"
+    },
+    {
+      "command": "npm run typecheck",
+      "passed": true
+    },
+    {
+      "command": "node --check scripts/evaluate-memory-live.mjs",
+      "passed": true
+    },
+    {
+      "command": "node --check scripts/report-memory-nonvector.mjs",
+      "passed": true
+    }
+  ],
+  "process": [
+    {
+      "command": "npm run verify:restart",
+      "passed": true
+    },
+    {
+      "passed": true,
+      "usesRealModel": false,
+      "command": "npm run verify:ai"
+    }
+  ],
+  "codeSha256": {
+    "crates/core/src/search.rs": "09aabc06d446067a87516d70545c73e07537cd23eccd4fb6f8233586c218856e",
+    "crates/core/src/memory_query.rs": "4856f8e46bbb865d6375082d9a1e6ee75ef1726242f27a1ae2bc9bfc0a513673",
+    "crates/core/src/question_flow.rs": "9de914b38cea73d562f7ca52765868df1e31ea6814bc1e7cd34078545bf0b29a",
+    "crates/core/src/qa.rs": "eb49c512dd6befb0328ac4cba5237fde3873caadcaeac601ae2c1615e73a1805",
+    "crates/core/src/assistant_qa.rs": "1d92147a50dc56db87fd4fecd27ea079d0efce1bc9bbae2ff072799fd521ef18",
+    "scripts/evaluate-memory-live.mjs": "4d8c36e1f3239a4940f8334c6bebcf9e9ea572b1be17a0d6934cdc9b68a2399d"
+  }
+}

@@ -1,0 +1,542 @@
+{
+  "version": "memory-qa-efficient-development-gate-v1",
+  "passed": true,
+  "recordedAt": "2026-10-20T15:00:33.739Z",
+  "datasetSha256": "803537c32e89dce765c8e6cef6484f332d6ef5a9c91b726a4ea957e68b461d87",
+  "workspace": ".local-data\\public-memory-live-VtyS0h",
+  "productionSha256": {
+    "ai.rs": "3955214b5d9eb0b4a427f40e9c3fd954eac4835b24687924a83980426d38f17e",
+    "answer_contract.rs": "30ddea16243de153f0281db1eb62c9194b5b2d2053901078a24d8c6a04f4c3e2",
+    "assistant_qa.rs": "2f4aa507c9eced426a04e1ac4b67f8622904d076160a0018d417cbbe269a6a1c",
+    "backup.rs": "54df70f761956d2096622f3e20e14905484206f3d1a67b23f278780b1ec07a9e",
+    "bin\\pm-host.rs": "eb36bfd48207dca3b9694efd5bcde70316c466746c736efbeba99e40521937aa",
+    "change_control.rs": "9e8bf7c92d5ec3cb30e8d48c4411a4684169952d5d2c803478b04e37fdb014b2",
+    "coordination.rs": "551852f9918597e85407fd2d10647e5a7ea52df3a8bfdf604d62c3267210a703",
+    "db.rs": "9d2504455d03b8493be24f51fb30ad64013b6a0faeb43a3c687a160121704319",
+    "delivery.rs": "3036ea1f332c6a757946df25c48ec682211e188a1ca10065bbf5548e99a0aa49",
+    "extraction_store.rs": "013aa5df7efe9051bdab8c96d0084e37ffd4a3c33ca6a1e12f3fb51a3a9aecbc",
+    "feishu.rs": "f909f9368448aee02312b32130b319e45bd3b0a2e558dfb680cdec16ab28a6d1",
+    "feishu\\knowledge.rs": "b98b21b69564801a09ef5bf005e217c164e0d3b323bbf6662f31c1380147fdf4",
+    "governance.rs": "fbc8b6bdc3b5d619f806433967ef561370a6801c357911e2421a47a1eaf2e180",
+    "lib.rs": "c7aa2928ec0bdce1cbbded3a16a288b0d0db3e0017805c49fd620bfdf3a0f681",
+    "maintenance.rs": "797fa3deb63fa364efecc8e84627a45564985f4b1b7e733847fbce2db2a7f907",
+    "management.rs": "3ef4b58e1c5e09ca728157797192d6d6fcf8a27fda375d918e8b6b80124a6aad",
+    "memory.rs": "d0fd214f460c5e217c8720355754d2e66138922da0d1a00ded4dd6a7d35afea8",
+    "memory_evaluation.rs": "d229ba9f7a5110747bf2e536bc48425b5739882e380f060c2c66b9969e9cd8c9",
+    "memory_facts.rs": "86bbc4b9f74d5e74ac5fa46029364e7de051ab7d6d19149271b0a6a4b3d50d62",
+    "memory_query.rs": "34ce10df7b64bd710aa295f1f48b29ea3c28a4b9c6d2166bdcd0b5036bd21e17",
+    "memory_workbench.rs": "be51d0a44fe1b2b6b35ac6c1fc3fd6b4977a8a1ad829542c5e2fd85f4554a856",
+    "parse.rs": "4ed5828c2445639784ff0c997d78ce3c4113712848e7fe788734bc2ebb9b4c58",
+    "planning.rs": "1b06c2662ad5e3ee85fc286264dd04ad5702f96473145031d4288f9f837ad405",
+    "qa.rs": "649c5d59973c8cf5c9a3f7a1dba39ab9c666a594c881566a1271fcfd28679ac7",
+    "question_flow.rs": "685a4fa8024d215a136798a8588325bf0610332640124aa6e1c77e14452d85ec",
+    "search.rs": "5b1567beeca4a66c9ffd1a613ee8705ff28a95f194e260dbf3cb8427eeb061c1",
+    "settings.rs": "373c0139373a061fca84eccccc700abc5bff0e261950aca631616f4bdb463117",
+    "tasks.rs": "861efd389b78a55c0bb2a46f6fa4cf420ce879e9dc68720fe4191a8b473e01ca"
+  },
+  "binarySha256": "57248d7658e4b18cf03bfcaa2a75fbc4848b5c4f09e82aeec3ccf5b392d82f89",
+  "methodology": "Thresholds registered before live development execution. Integrity plus regression evidence is mandatory. Semantic scores use isolated contexts but the same model and remain provisional.",
+  "checks": [
+    {
+      "name": "frozen_development_scope",
+      "passed": true,
+      "actual": {
+        "papers": 6,
+        "questions": 20,
+        "answerable": 19,
+        "unanswerable": 1
+      },
+      "required": "6 development papers / 20 questions / 19 answerable / 1 unanswerable"
+    },
+    {
+      "name": "complete_run",
+      "passed": true,
+      "actual": {
+        "complete": true,
+        "haltReason": null
+      },
+      "required": "complete without halted budget/network or harness failure"
+    },
+    {
+      "name": "extraction_jobs_completed",
+      "passed": true,
+      "actual": 6,
+      "required": "6/6 succeeded; no unrecovered truncation or harness error"
+    },
+    {
+      "name": "nonempty_confirmed_memory_per_paper",
+      "passed": true,
+      "actual": [
+        {
+          "id": "1603.01514",
+          "memories": 129
+        },
+        {
+          "id": "1902.09666",
+          "memories": 77
+        },
+        {
+          "id": "1806.00738",
+          "memories": 50
+        },
+        {
+          "id": "1908.07245",
+          "memories": 72
+        },
+        {
+          "id": "1902.09243",
+          "memories": 134
+        },
+        {
+          "id": "1705.01214",
+          "memories": 482
+        }
+      ],
+      "required": "at least one actual extracted formal memory in every paper"
+    },
+    {
+      "name": "integrity_verified",
+      "passed": true,
+      "actual": [
+        {
+          "file": "docs/memory-public-live-qa-efficient-dev-v2-results.json",
+          "passed": true
+        }
+      ],
+      "required": "source/binary/data hashes; source quotes; confirmation/facet/scope/gold isolation checks all pass"
+    },
+    {
+      "name": "deterministic_regressions_passed",
+      "passed": true,
+      "actual": [
+        {
+          "command": "cargo.exe test -p project-assistant-core --locked",
+          "exitCode": 0,
+          "elapsedMs": 74796,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\1.log"
+        },
+        {
+          "command": "cargo.exe clippy -p project-assistant-core --locked --lib --tests -- -D warnings",
+          "exitCode": 0,
+          "elapsedMs": 760,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\2.log"
+        },
+        {
+          "command": "cargo.exe build -p project-assistant-core --bin pm-host --locked",
+          "exitCode": 0,
+          "elapsedMs": 631,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\3.log"
+        },
+        {
+          "command": "powershell.exe -NoProfile -Command npm run build",
+          "exitCode": 0,
+          "elapsedMs": 11973,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\4.log"
+        },
+        {
+          "command": "node.exe --test scripts/check-memory-public-development.test.mjs scripts/check-memory-qa-efficient-development.test.mjs scripts/check-memory-retrieval-development.test.mjs scripts/evaluate-memory-quality.test.mjs scripts/memory-public-live-options.test.mjs scripts/memory-qa-efficient-evaluation.test.mjs scripts/report-memory-extraction-optimized.test.mjs scripts/report-memory-qa-efficient.test.mjs scripts/report-memory-retrieval-optimized.test.mjs scripts/score-memory-public-live.test.mjs",
+          "exitCode": 0,
+          "elapsedMs": 414,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\5.log"
+        },
+        {
+          "command": "node.exe scripts/verify-restart.mjs",
+          "exitCode": 0,
+          "elapsedMs": 3503,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\6.log"
+        },
+        {
+          "command": "node.exe scripts/verify-extraction-recovery.mjs",
+          "exitCode": 0,
+          "elapsedMs": 4184,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\7.log"
+        },
+        {
+          "command": "node.exe scripts/verify-memory-public-live.mjs --no-write",
+          "exitCode": 0,
+          "elapsedMs": 733,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\8.log"
+        },
+        {
+          "command": "node.exe scripts/verify-memory-public-live.mjs docs/memory-public-live-retrieval-dev-v2-results.json --no-write",
+          "exitCode": 0,
+          "elapsedMs": 375,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\9.log"
+        },
+        {
+          "command": "node.exe scripts/verify-memory-public-live.mjs docs/memory-public-live-retrieval-full-results.json --no-write",
+          "exitCode": 0,
+          "elapsedMs": 1254,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\10.log"
+        },
+        {
+          "command": "cargo.exe test -p project-assistant-core --lib --locked diagnose_public_live_retrieval -- --ignored --nocapture",
+          "exitCode": 0,
+          "elapsedMs": 9519,
+          "log": ".local-data\\qa-efficient-regressions-gtMExO\\11.log"
+        }
+      ],
+      "required": "all recorded test/build/lint/process-proof commands exited 0"
+    },
+    {
+      "name": "no_cross_project_citations",
+      "passed": true,
+      "actual": 0,
+      "required": 0
+    },
+    {
+      "name": "all_isolated_judgments_available",
+      "passed": true,
+      "actual": 20,
+      "required": "20/20; same-model automatic estimates, not independent human review"
+    },
+    {
+      "name": "question_information_retained",
+      "passed": true,
+      "actual": 18,
+      "required": "at least 15/19 yes or partial from isolated memory-only evaluation; citation provenance alone does not count"
+    },
+    {
+      "name": "desktop_complete_answers",
+      "passed": true,
+      "actual": 13,
+      "required": "at least 5/19 (ceil(70% of previous 7/19 paragraph control))"
+    },
+    {
+      "name": "desktop_correct_abstention",
+      "passed": true,
+      "actual": 1,
+      "required": "1/1; limited sample, not a general abstention accuracy claim"
+    },
+    {
+      "name": "connector_complete_answers",
+      "passed": true,
+      "actual": 14,
+      "required": "at least 5/19 (ceil(70% of previous 7/19 paragraph control))"
+    },
+    {
+      "name": "connector_correct_abstention",
+      "passed": true,
+      "actual": 1,
+      "required": "1/1; limited sample, not a general abstention accuracy claim"
+    },
+    {
+      "name": "qa_efficient_registered_thresholds",
+      "passed": true,
+      "actual": {
+        "retainedYesOrPartial": 15,
+        "desktopComplete": 11,
+        "connectorComplete": 13,
+        "desktopReferencesSufficient": 15,
+        "connectorReferencesSufficient": 15,
+        "desktopCorrectAbstention": 1,
+        "connectorCorrectAbstention": 1,
+        "desktopPairedNetImprovement": 1,
+        "connectorPairedNetImprovement": 0,
+        "combinedPairedNetImprovement": 2,
+        "maxQaProtocolErrors": 0,
+        "maxSupplementProtocolFailures": 1,
+        "minQaTokenReductionFraction": 0.15,
+        "maxCombinedQaTokens": 439346
+      },
+      "required": {
+        "retainedYesOrPartial": 15,
+        "desktopComplete": 11,
+        "connectorComplete": 13,
+        "desktopReferencesSufficient": 15,
+        "connectorReferencesSufficient": 15,
+        "desktopCorrectAbstention": 1,
+        "connectorCorrectAbstention": 1,
+        "desktopPairedNetImprovement": 1,
+        "connectorPairedNetImprovement": 0,
+        "combinedPairedNetImprovement": 2,
+        "maxQaProtocolErrors": 0,
+        "maxSupplementProtocolFailures": 1,
+        "minQaTokenReductionFraction": 0.15,
+        "maxCombinedQaTokens": 439346
+      }
+    },
+    {
+      "name": "registration_and_tests_before_development",
+      "passed": true,
+      "actual": {
+        "registration": "2026-10-20T14:18:33.793Z",
+        "tests": "2026-10-20T14:53:28.618Z",
+        "live": "2026-10-20T14:53:38.701Z"
+      },
+      "required": "registration and passing deterministic checks precede fresh development"
+    },
+    {
+      "name": "registered_dataset_model_and_previous_baseline",
+      "passed": true,
+      "actual": {
+        "file": "docs\\memory-public-live-retrieval-dev-v2-results.json",
+        "workspace": ".local-data\\public-memory-live-RRTTuu",
+        "binarySha256": "5b86a9f0fe696084e5eae15371d936424ab43d35c2ee6dcc16bb8f6a8c2526b0"
+      },
+      "required": "same frozen dataset/model, paired exactly against the registered previous retrieval-dev-v2 artifact"
+    },
+    {
+      "name": "same_twenty_development_questions",
+      "passed": true,
+      "actual": [
+        "747b847d687f703cc20a87877c5b138f26ff137d",
+        "111afb77cfbf4c98e0458606378fa63a0e965e36",
+        "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+        "6bf5620f295b5243230bc97b340fae6e92304595",
+        "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+        "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+        "521280a87c43fcdf9f577da235e7072a23f0673e",
+        "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+        "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+        "584af673429c7f8621c6bf83362a37048daa0e5d",
+        "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+        "b08f88d1facefceb87e134ba2c1fa90035018e83",
+        "10fb7dc031075946153baf0a0599e126de29e3a4",
+        "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+        "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+        "d28d86524292506d4b24ae2d486725a6d57a3db3",
+        "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+        "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+        "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+        "dd76130ec5fac477123fe8880472d03fbafddef6"
+      ],
+      "required": "same 20 IDs, paper ownership, text and answerability"
+    },
+    {
+      "name": "extraction_sources_unchanged",
+      "passed": true,
+      "actual": {
+        "ai.rs": "3955214b5d9eb0b4a427f40e9c3fd954eac4835b24687924a83980426d38f17e",
+        "answer_contract.rs": "30ddea16243de153f0281db1eb62c9194b5b2d2053901078a24d8c6a04f4c3e2",
+        "assistant_qa.rs": "2f4aa507c9eced426a04e1ac4b67f8622904d076160a0018d417cbbe269a6a1c",
+        "backup.rs": "54df70f761956d2096622f3e20e14905484206f3d1a67b23f278780b1ec07a9e",
+        "bin\\pm-host.rs": "eb36bfd48207dca3b9694efd5bcde70316c466746c736efbeba99e40521937aa",
+        "change_control.rs": "9e8bf7c92d5ec3cb30e8d48c4411a4684169952d5d2c803478b04e37fdb014b2",
+        "coordination.rs": "551852f9918597e85407fd2d10647e5a7ea52df3a8bfdf604d62c3267210a703",
+        "db.rs": "9d2504455d03b8493be24f51fb30ad64013b6a0faeb43a3c687a160121704319",
+        "delivery.rs": "3036ea1f332c6a757946df25c48ec682211e188a1ca10065bbf5548e99a0aa49",
+        "extraction_store.rs": "013aa5df7efe9051bdab8c96d0084e37ffd4a3c33ca6a1e12f3fb51a3a9aecbc",
+        "feishu.rs": "f909f9368448aee02312b32130b319e45bd3b0a2e558dfb680cdec16ab28a6d1",
+        "feishu\\knowledge.rs": "b98b21b69564801a09ef5bf005e217c164e0d3b323bbf6662f31c1380147fdf4",
+        "governance.rs": "fbc8b6bdc3b5d619f806433967ef561370a6801c357911e2421a47a1eaf2e180",
+        "lib.rs": "c7aa2928ec0bdce1cbbded3a16a288b0d0db3e0017805c49fd620bfdf3a0f681",
+        "maintenance.rs": "797fa3deb63fa364efecc8e84627a45564985f4b1b7e733847fbce2db2a7f907",
+        "management.rs": "3ef4b58e1c5e09ca728157797192d6d6fcf8a27fda375d918e8b6b80124a6aad",
+        "memory.rs": "d0fd214f460c5e217c8720355754d2e66138922da0d1a00ded4dd6a7d35afea8",
+        "memory_evaluation.rs": "d229ba9f7a5110747bf2e536bc48425b5739882e380f060c2c66b9969e9cd8c9",
+        "memory_facts.rs": "86bbc4b9f74d5e74ac5fa46029364e7de051ab7d6d19149271b0a6a4b3d50d62",
+        "memory_query.rs": "34ce10df7b64bd710aa295f1f48b29ea3c28a4b9c6d2166bdcd0b5036bd21e17",
+        "memory_workbench.rs": "be51d0a44fe1b2b6b35ac6c1fc3fd6b4977a8a1ad829542c5e2fd85f4554a856",
+        "parse.rs": "4ed5828c2445639784ff0c997d78ce3c4113712848e7fe788734bc2ebb9b4c58",
+        "planning.rs": "1b06c2662ad5e3ee85fc286264dd04ad5702f96473145031d4288f9f837ad405",
+        "qa.rs": "649c5d59973c8cf5c9a3f7a1dba39ab9c666a594c881566a1271fcfd28679ac7",
+        "question_flow.rs": "685a4fa8024d215a136798a8588325bf0610332640124aa6e1c77e14452d85ec",
+        "search.rs": "5b1567beeca4a66c9ffd1a613ee8705ff28a95f194e260dbf3cb8427eeb061c1",
+        "settings.rs": "373c0139373a061fca84eccccc700abc5bff0e261950aca631616f4bdb463117",
+        "tasks.rs": "861efd389b78a55c0bb2a46f6fa4cf420ce879e9dc68720fe4191a8b473e01ca"
+      },
+      "required": "extraction frozen; QA, target diversity/navigation, context assembly and output format may change"
+    },
+    {
+      "name": "tested_source_binary_and_evaluation_match",
+      "passed": true,
+      "actual": {
+        "binary": "57248d7658e4b18cf03bfcaa2a75fbc4848b5c4f09e82aeec3ccf5b392d82f89",
+        "evaluation": {
+          "scripts/evaluate-memory-public-live.mjs": "6502c73a0d6b1c8664ac1c8db5deab7493d570fbad496be7863a6a7995c7817d",
+          "scripts/memory-evaluation-round.mjs": "27d91948deabddc4eafe1a6f7addb0d1d0c3aab841fc4791ebae4bcebcb024f3",
+          "scripts/memory-public-live-judges.mjs": "09cca6b4c8ea7fecffbfe6c1fdc7d4c320cf56a817587bfb0a196ba9eba1d70c",
+          "scripts/memory-public-live-options.mjs": "57f001110417f318ec5dff909388fd4911b7fc78aa189eecd063f5df283d1e61",
+          "scripts/memory-public-live-io.mjs": "e6f1b2d4576661ffaabaffa71dbb7c2ad32a4233783a511a06ccc196e02cc74d",
+          "scripts/score-memory-public-live.mjs": "1ecfb56f62e690662e172dcaa737eba848694db3e2e9f119b8b79d3ed9385293",
+          "scripts/compare-memory-public-live.mjs": "2699e6c1c044221602c2b9aac8e1dd745676747f08ae23b7600194aba72bc834",
+          "scripts/check-memory-public-development.mjs": "a01c4f7c59a75c8dbe9563878fa535acae9e6333ee2a661c33e0dbe4f84b171c",
+          "scripts/check-memory-qa-efficient-development.mjs": "672914c7376bd8e9b1f0b04fdeb2f58452084f54882fb9fa8a53491d4e905a57",
+          "scripts/memory-qa-efficient-evaluation-files.mjs": "3f72f462f743f29026fe13724d2014465eccf002c3933be6d278e19f0ee0a435",
+          "docs/memory-qa-efficient-preregistration.json": "52c22592ef95ddda299c4f8e7e9a39115ae7d2db294a6b88d18d238ba3cb949e",
+          "scripts/verify-memory-public-live.mjs": "ee595e6b47cc934700d356b951ad51d8fade1f76a74018a7e781c8f39f916dac",
+          "scripts/capture-memory-evaluation-references.mjs": "a6c7fa49265d5d11e14d7180b2b7cd403690c2e04f061ebcd85334c2e7c576e3",
+          "docs/memory-qa-efficient-format-adaptation.md": "8d99e717531929bb30e10cfd5473d151b117310982b27e17f2fbfea4217b02b3"
+        }
+      },
+      "required": "exact passing test source/binary/new-round evaluation manifest; unchanged during development"
+    },
+    {
+      "name": "desktop_complete_answer_floor",
+      "passed": true,
+      "actual": 13,
+      "required": ">=11/19; previous original 9/19"
+    },
+    {
+      "name": "desktop_references_preserved",
+      "passed": true,
+      "actual": 16,
+      "required": ">=15/19; previous original 16/19"
+    },
+    {
+      "name": "desktop_correct_refusal",
+      "passed": true,
+      "actual": 1,
+      "required": "1/1; small-sample guard, not general refusal reliability"
+    },
+    {
+      "name": "desktop_all_twenty_anonymously_paired",
+      "passed": true,
+      "actual": 20,
+      "required": "20/20 paired previous/current answers"
+    },
+    {
+      "name": "desktop_paired_correctness_guard",
+      "passed": true,
+      "actual": {
+        "current": 13,
+        "previousPaired": 9,
+        "net": 4
+      },
+      "required": "net>=1"
+    },
+    {
+      "name": "connector_complete_answer_floor",
+      "passed": true,
+      "actual": 14,
+      "required": ">=13/19; previous original 13/19"
+    },
+    {
+      "name": "connector_references_preserved",
+      "passed": true,
+      "actual": 16,
+      "required": ">=15/19; previous original 16/19"
+    },
+    {
+      "name": "connector_correct_refusal",
+      "passed": true,
+      "actual": 1,
+      "required": "1/1; small-sample guard, not general refusal reliability"
+    },
+    {
+      "name": "connector_all_twenty_anonymously_paired",
+      "passed": true,
+      "actual": 20,
+      "required": "20/20 paired previous/current answers"
+    },
+    {
+      "name": "connector_paired_correctness_guard",
+      "passed": true,
+      "actual": {
+        "current": 14,
+        "previousPaired": 13,
+        "net": 1
+      },
+      "required": "net>=0"
+    },
+    {
+      "name": "combined_paired_improvement",
+      "passed": true,
+      "actual": 5,
+      "required": ">=2 net additional correct entry-answers vs same-call paired baseline"
+    },
+    {
+      "name": "all_forty_production_entries",
+      "passed": true,
+      "actual": 40,
+      "required": "40 real production entry results retained; no skipped questions"
+    },
+    {
+      "name": "no_top_level_qa_protocol_errors",
+      "passed": true,
+      "actual": 0,
+      "required": "0; errors cannot lower token cost by avoiding valid answers"
+    },
+    {
+      "name": "supplement_protocol_failures_not_worse",
+      "passed": true,
+      "actual": 0,
+      "required": "<=1 previous-development supplemental binding/schema failure; safe fallbacks still counted"
+    },
+    {
+      "name": "qa_token_usage_complete",
+      "passed": true,
+      "actual": {
+        "requests": 83,
+        "currentComplete": true,
+        "baselineComplete": true
+      },
+      "required": "actual provider usage for every QA request, including failed attempts; no zero-cost imputation"
+    },
+    {
+      "name": "qa_cost_baseline_is_registered_previous_development",
+      "passed": true,
+      "actual": 516878,
+      "required": "516878 actual QA tokens from previous 20-question development run"
+    },
+    {
+      "name": "combined_qa_tokens_at_least_fifteen_percent_lower",
+      "passed": true,
+      "actual": {
+        "previousTokens": 516878,
+        "currentTokens": 262191,
+        "reductionFraction": 0.4927410336675192
+      },
+      "required": "<=439346 QA tokens, >=15% less than the same previous 20-question development baseline"
+    },
+    {
+      "name": "shared_registered_development_budget",
+      "passed": true,
+      "actual": {
+        "currentRequests": 243,
+        "priorRequests": 252,
+        "currentTokens": 1128989,
+        "priorTokens": 1162094,
+        "declaredLimits": {
+          "requests": 348,
+          "observedTotalTokens": 1837906,
+          "concurrentWorkers": 3,
+          "automaticRetries": 0
+        }
+      },
+      "required": "all current and declared prior pilot usage fits registered 600 requests / 3000000 tokens; no expanded replacement budget"
+    }
+  ],
+  "evaluationSha256": {
+    "scripts/evaluate-memory-public-live.mjs": "6502c73a0d6b1c8664ac1c8db5deab7493d570fbad496be7863a6a7995c7817d",
+    "scripts/memory-evaluation-round.mjs": "27d91948deabddc4eafe1a6f7addb0d1d0c3aab841fc4791ebae4bcebcb024f3",
+    "scripts/memory-public-live-judges.mjs": "09cca6b4c8ea7fecffbfe6c1fdc7d4c320cf56a817587bfb0a196ba9eba1d70c",
+    "scripts/memory-public-live-options.mjs": "57f001110417f318ec5dff909388fd4911b7fc78aa189eecd063f5df283d1e61",
+    "scripts/memory-public-live-io.mjs": "e6f1b2d4576661ffaabaffa71dbb7c2ad32a4233783a511a06ccc196e02cc74d",
+    "scripts/score-memory-public-live.mjs": "1ecfb56f62e690662e172dcaa737eba848694db3e2e9f119b8b79d3ed9385293",
+    "scripts/compare-memory-public-live.mjs": "2699e6c1c044221602c2b9aac8e1dd745676747f08ae23b7600194aba72bc834",
+    "scripts/check-memory-public-development.mjs": "a01c4f7c59a75c8dbe9563878fa535acae9e6333ee2a661c33e0dbe4f84b171c",
+    "scripts/check-memory-qa-efficient-development.mjs": "672914c7376bd8e9b1f0b04fdeb2f58452084f54882fb9fa8a53491d4e905a57",
+    "scripts/memory-qa-efficient-evaluation-files.mjs": "3f72f462f743f29026fe13724d2014465eccf002c3933be6d278e19f0ee0a435",
+    "docs/memory-qa-efficient-preregistration.json": "52c22592ef95ddda299c4f8e7e9a39115ae7d2db294a6b88d18d238ba3cb949e",
+    "scripts/verify-memory-public-live.mjs": "ee595e6b47cc934700d356b951ad51d8fade1f76a74018a7e781c8f39f916dac",
+    "scripts/capture-memory-evaluation-references.mjs": "a6c7fa49265d5d11e14d7180b2b7cd403690c2e04f061ebcd85334c2e7c576e3",
+    "docs/memory-qa-efficient-format-adaptation.md": "8d99e717531929bb30e10cfd5473d151b117310982b27e17f2fbfea4217b02b3"
+  },
+  "registration": {
+    "registeredAt": "2026-10-20T14:18:33.793Z",
+    "thresholds": {
+      "retainedYesOrPartial": 15,
+      "desktopComplete": 11,
+      "connectorComplete": 13,
+      "desktopReferencesSufficient": 15,
+      "connectorReferencesSufficient": 15,
+      "desktopCorrectAbstention": 1,
+      "connectorCorrectAbstention": 1,
+      "desktopPairedNetImprovement": 1,
+      "connectorPairedNetImprovement": 0,
+      "combinedPairedNetImprovement": 2,
+      "maxQaProtocolErrors": 0,
+      "maxSupplementProtocolFailures": 1,
+      "minQaTokenReductionFraction": 0.15,
+      "maxCombinedQaTokens": 439346
+    },
+    "baselineDevelopment": {
+      "file": "docs/memory-public-live-retrieval-dev-v2-results.json",
+      "sha256": "d27065eff53d3c43bad2aa9c9536ff804eaf2f1fe70e400792a183c89f625fe6"
+    },
+    "sha256": "52c22592ef95ddda299c4f8e7e9a39115ae7d2db294a6b88d18d238ba3cb949e"
+  },
+  "report": "docs\\memory-public-live-qa-efficient-dev-v2-results.json"
+}

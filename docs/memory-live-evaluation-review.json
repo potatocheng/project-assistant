@@ -1,0 +1,30 @@
+{
+  "reviewer": "coding_assistant",
+  "independentHumanEvaluation": false,
+  "scope": "逐题查看本轮两组标准记忆问答及5道端到端回答，针对明显的过度因果推断单独标注；不是独立人工盲评，也不代替真实业务样本验收。",
+  "findings": [
+    {
+      "track": "desktop",
+      "caseId": "semantic_signature",
+      "severity": "unsupported_causal_link",
+      "automatedClaimCheckPassed": true,
+      "note": "回答将供应商账单缺失→对账核验受阻→客户签字暂缓串成明确因果链。资料只分别记录了供应商账单缺失和客户账单差额未核对，没有声明两者是同一问题或前者导致客户签字暂缓。不能把相关记录的连接当成已确认原因。"
+    },
+    {
+      "track": "desktop",
+      "caseId": "multi_cause",
+      "severity": "unsupported_premise_and_causality",
+      "automatedClaimCheckPassed": true,
+      "note": "回答接受“上线已延后”的问题前提，并列入客户签字问题作为原因。资料明确了上线前置依赖和对账阻塞，但没有记录实际延期或客户签字是上线路径的前置条件；应区分潜在影响与已证实延期原因。"
+    },
+    {
+      "track": "connector",
+      "caseId": "multi_cause",
+      "severity": "unsupported_premise",
+      "automatedClaimCheckPassed": true,
+      "note": "回答用“上线延后的原因”承接了未经资料证实的延期前提，并附带客户签字信息；应说明只知道前置依赖与现有阻塞，无法确认实际延期及全部原因。"
+    }
+  ],
+  "conclusion": "关键事实命中和引用齐全仅是必要检查。上述3条均能通过规则评分，但仍应复核语义与因果支持，不把自动命中率称为最终回答正确率。",
+  "reviewedResultsSha256": "4036096962c79f61eb238ff43be779ecf7bf735de8e3649a79c8dc0e116e68ce"
+}

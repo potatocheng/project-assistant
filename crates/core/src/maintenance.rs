@@ -83,10 +83,11 @@ impl Worker {
                     memory::Task::Extract {
                         job, epoch, task, ..
                     } => {
-                        let result = ai::extract(
+                        let result = ai::extract_with_checkpoints(
                             &task.settings.config(),
                             task.settings.api_key.as_deref(),
                             &task.segments,
+                            &task.checkpoints,
                             |done, total| {
                                 if !alive() {
                                     return false;
@@ -106,7 +107,17 @@ impl Worker {
                                 {
                                     return false;
                                 }
-                                done == total || reserve()
+                                true
+                            },
+                            |checkpoint| {
+                                if !alive() || (checkpoint.status == "started" && !reserve()) {
+                                    return false;
+                                }
+                                let (tx,rx)=mpsc::channel();
+                                if sender.send(Message::CheckpointExtract(job.clone(),epoch,task.generation,checkpoint.clone(),tx)).is_err() {
+                                    return false;
+                                }
+                                rx.recv().unwrap_or(false)
                             },
                         );
                         memory::Output::Extract(job, epoch, task.generation, result)
@@ -189,6 +200,45 @@ mod tests {
             thread::sleep(Duration::from_millis(30));
         }
     }
+    #[test]
+    fn polling_memory_workbench_does_not_reset_idle_or_cancel_work() {
+        let dir = tempfile::tempdir().unwrap();
+        let engine = Engine::open(dir.path()).unwrap();
+        let project = call(&engine, "create_project", json!({"name":"只读轮询"}));
+        let before = Instant::now() - Duration::from_secs(31);
+        *engine.inner.maintenance.last.lock().unwrap() = before;
+        let generation = engine.inner.maintenance.generation.load(Ordering::SeqCst);
+        for command in [
+            "get_project_brief",
+            "get_assistant_preferences",
+            "get_memory_quality",
+        ] {
+            call(
+                &engine,
+                command,
+                json!({"projectId":project["id"],"date":"2026-10-20"}),
+            );
+            assert_eq!(
+                *engine.inner.maintenance.last.lock().unwrap(),
+                before,
+                "{command} postponed idle work"
+            );
+            assert!(
+                engine.inner.maintenance.is_current(generation),
+                "{command} cancelled work as user activity"
+            );
+        }
+        call(
+            &engine,
+            "clear_assistant_preferences",
+            json!({"baseVersion":0}),
+        );
+        assert!(
+            !engine.inner.maintenance.is_current(generation),
+            "a user write must still count as activity"
+        );
+    }
+
     #[test]
     fn actual_idle_worker_pauses_on_activity_then_resumes_through_evidence_to_memory() {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();

@@ -527,11 +527,11 @@ fn schema_five_workspace_migrates_without_changing_existing_projects_and_tasks()
     );
     drop(engine);
     let conn = rusqlite::Connection::open(dir.path().join("workspace.sqlite")).unwrap();
-    conn.execute_batch("DROP TABLE coordination_action_versions;DROP TABLE coordination_actions;DROP TABLE coordination_meeting_versions;DROP TABLE coordination_meetings;DROP TABLE coordination_report_versions;DROP TABLE coordination_reports;DROP TABLE deliverable_history;DROP TABLE deliverables;DROP TABLE change_request_history;DROP TABLE change_requests;DROP TABLE governance_revisions;DROP TABLE governance_items;DROP TABLE milestone_tasks;DROP TABLE milestones;DROP TABLE task_follow_ups;DROP TABLE task_follow_up_state;DROP TABLE project_profiles;PRAGMA user_version=5;").unwrap();
+    conn.execute_batch("DROP TABLE extraction_drafts;DROP TABLE extraction_batches;DROP TABLE extraction_budget;DROP TABLE memory_lexical;DROP TABLE memory_lexical_state;DROP TABLE revision_facets;DROP TABLE proposal_facets;DROP TABLE extraction_assessments;DROP TABLE memory_corrections;DROP TABLE project_briefs;DROP TABLE assistant_preferences;DROP TABLE coordination_action_versions;DROP TABLE coordination_actions;DROP TABLE coordination_meeting_versions;DROP TABLE coordination_meetings;DROP TABLE coordination_report_versions;DROP TABLE coordination_reports;DROP TABLE deliverable_history;DROP TABLE deliverables;DROP TABLE change_request_history;DROP TABLE change_requests;DROP TABLE governance_revisions;DROP TABLE governance_items;DROP TABLE milestone_tasks;DROP TABLE milestones;DROP TABLE task_follow_ups;DROP TABLE task_follow_up_state;DROP TABLE project_profiles;PRAGMA user_version=5;").unwrap();
     drop(conn);
     let engine = Engine::open(dir.path()).unwrap();
     let state = call(&engine, "get_state", json!({}));
-    assert_eq!(state["workspace"]["schemaVersion"], 7);
+    assert_eq!(state["workspace"]["schemaVersion"], 10);
     assert_eq!(state["tasks"][0], task);
     let overview = call(
         &engine,

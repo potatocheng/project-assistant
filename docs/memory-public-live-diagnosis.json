@@ -1,0 +1,261 @@
+{
+  "recordedAt": "2026-10-20T10:19:16.799Z",
+  "realRequests": 760,
+  "realTokens": 4863352,
+  "extractionCandidateValidation": {
+    "parsedCandidates": 2104,
+    "accepted": 1,
+    "overlappingIssues": {
+      "facets_not_in_content_or_invalid": 1976,
+      "facets_not_in_quotes_or_invalid": 2086,
+      "source_quote_mismatch": 11
+    },
+    "note": "Only complete JSON responses; excludes 17 truncated responses. Validation acceptance is not semantic precision. Failed jobs can lose earlier batches; discardedCount on terminal jobs undercounts captured rejections."
+  },
+  "answerProtocolValidation": {
+    "failedGenerations": 25,
+    "overlappingIssues": {
+      "answered_with_unknowns": 22,
+      "quote_not_in_current_content": 3,
+      "root_citation_union_mismatch": 1
+    },
+    "cases": [
+      {
+        "receiptId": 1,
+        "entry": "desktop",
+        "questionId": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 2,
+        "entry": "desktop",
+        "questionId": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+        "issues": [
+          "quote_not_in_current_content"
+        ]
+      },
+      {
+        "receiptId": 12,
+        "entry": "desktop",
+        "questionId": "584af673429c7f8621c6bf83362a37048daa0e5d",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 18,
+        "entry": "connector",
+        "questionId": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 25,
+        "entry": "desktop",
+        "questionId": "521280a87c43fcdf9f577da235e7072a23f0673e",
+        "issues": [
+          "quote_not_in_current_content"
+        ]
+      },
+      {
+        "receiptId": 47,
+        "entry": "connector",
+        "questionId": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 61,
+        "entry": "desktop",
+        "questionId": "2ea4347f1992b0b3958c4844681ff0fe4d0dd1dd",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 73,
+        "entry": "desktop",
+        "questionId": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 79,
+        "entry": "desktop",
+        "questionId": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 82,
+        "entry": "desktop",
+        "questionId": "dd76130ec5fac477123fe8880472d03fbafddef6",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 100,
+        "entry": "desktop",
+        "questionId": "3355918bbdccac644afe441f085d0ffbbad565d7",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 103,
+        "entry": "connector",
+        "questionId": "bc4dca3e1e83f3b4bbb53a31557fc5d8971603b2",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 107,
+        "entry": "desktop",
+        "questionId": "0d34c0812f1e69ea33f76ca8c24c23b0415ebc8d",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 106,
+        "entry": "desktop",
+        "questionId": "126ff22bfcc14a2f7e1a06a91ba7b646003e9cf0",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 122,
+        "entry": "desktop",
+        "questionId": "6844683935d0d8f588fa06530f5068bf3e1ed0c0",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 201,
+        "entry": "desktop",
+        "questionId": "0689904db9b00a814e3109fb1698086370a28fa2",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 223,
+        "entry": "desktop",
+        "questionId": "c0bee6539eb6956a7347daa9d2419b367bd02064",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 256,
+        "entry": "desktop",
+        "questionId": "4e1a67f8dc68b55a5ce18e6cd385ae9ab90d891f",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 264,
+        "entry": "desktop",
+        "questionId": "b1ce129678e37070e69f01332f1a8587e18e06b0",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 305,
+        "entry": "desktop",
+        "questionId": "e3a2d8886f03e78ed5e138df870f48635875727e",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 303,
+        "entry": "desktop",
+        "questionId": "f2155dc4aeab86bf31a838c8ff388c85440fce6e",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 316,
+        "entry": "desktop",
+        "questionId": "22732cb9476e521452bf0538f3fdb94cf3867651",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 320,
+        "entry": "connector",
+        "questionId": "ed6a15f0f7fa4594e51d5bde21cc0c6c1bedbfdc",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 319,
+        "entry": "desktop",
+        "questionId": "4d47bef19afd70c10bbceafd1846516546641a2f",
+        "issues": [
+          "answered_with_unknowns"
+        ]
+      },
+      {
+        "receiptId": 363,
+        "entry": "connector",
+        "questionId": "876700622bd6811d903e65314ac75971bbe23dcc",
+        "issues": [
+          "quote_not_in_current_content",
+          "root_citation_union_mismatch"
+        ]
+      }
+    ]
+  },
+  "facetQueryAblation": {
+    "cases": 200,
+    "changedSelectedIdSequences": 0,
+    "restoredGoldenEvidence": 0,
+    "note": "Main experiment has only one formal memory; no evidence that query-time facet filtering is the current loss. This cannot validate metadata quality in a larger corpus."
+  },
+  "judgeStageAudit": {
+    "excluded": [
+      "memorySufficiency",
+      "retrievalSufficiency"
+    ],
+    "reason": "Inspection found stage conflation in the joint judge. Use original gold paragraph mapping/full content and production validation replay for stage diagnosis. Final answer correctness remains provisional same-model scoring.",
+    "examples": [
+      {
+        "id": "bc4dca3e1e83f3b4bbb53a31557fc5d8971603b2",
+        "reportedMemorySufficiency": "partial",
+        "reason": "Memories contain both the semantics paragraph (69aabc68) and syntax paragraph (60df3e6e), so full answer is available; both attempts retrieved only the syntax paragraph, yielding partial answers that omit semantic probes.",
+        "objectiveGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": {
+          "desktop": false,
+          "connector": false
+        }
+      },
+      {
+        "id": "6a31db1aca57a818f36bba9002561724655372a7",
+        "reportedMemorySufficiency": "partial",
+        "reason": "Gold answer is 32,595 posts (s7:p2), which is present in memory 73923922 but was not retrieved or stated; memories otherwise support the user-count claims.",
+        "objectiveGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": {
+          "desktop": false,
+          "connector": false
+        }
+      }
+    ]
+  }
+}

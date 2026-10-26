@@ -20,7 +20,7 @@ pub(crate) enum Task {
         run: String,
         job: String,
         epoch: u64,
-        task: crate::db::AiTask,
+        task: Box<crate::db::AiTask>,
         guard: Value,
     },
     Compare {
@@ -206,7 +206,7 @@ impl Database {
                     run,
                     job,
                     epoch: self.epoch,
-                    task,
+                    task: Box::new(task),
                     guard,
                 }));
             }
@@ -445,6 +445,13 @@ impl Database {
                 params![revision, memory, number, content, reason, origin, at],
             )?;
             if action == "mergeEvidence" {
+                tx.execute("INSERT INTO revision_facets SELECT ?,f.facets FROM revision_facets f JOIN revisions r ON r.id=f.revision_id WHERE r.memory_id=? AND r.number=?",params![revision,memory,number-1])?;
+            } else if let Some(facets) = p.get("facets") {
+                crate::memory_facts::save(&tx, &revision, facets, content)?;
+            } else {
+                crate::memory_facts::promote(&tx, &row.0, &revision, content)?;
+            }
+            if action == "mergeEvidence" {
                 tx.execute("INSERT OR IGNORE INTO revision_evidence SELECT ?,e.segment_id FROM revision_evidence e JOIN revisions r ON r.id=e.revision_id WHERE r.memory_id=? AND r.number=?",params![revision,memory,number-1])?;
             }
             for segment in segments {
@@ -636,6 +643,7 @@ mod tests {
             .unwrap();
         let result = ai::ExtractionResult {
             candidates: vec![ai::Candidate {
+                facets: Default::default(),
                 kind: "decision".into(),
                 content: text.into(),
                 evidence: vec![ai::CandidateEvidence {

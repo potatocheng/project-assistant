@@ -1,19 +1,34 @@
 mod ai;
+mod answer_contract;
+mod answer_repair;
 mod assistant_qa;
 mod backup;
 mod change_control;
 mod coordination;
 mod db;
 mod delivery;
+mod evidence_pack;
+mod extraction_store;
 mod feishu;
 mod governance;
 mod maintenance;
 mod management;
 mod memory;
+#[cfg(test)]
+mod memory_evaluation;
+mod memory_facts;
+mod memory_links;
+mod memory_query;
+mod memory_workbench;
 mod parse;
 mod planning;
 mod qa;
+mod question_flow;
+mod question_plan;
+mod question_target;
+mod search;
 mod settings;
+mod source_passages;
 mod tasks;
 
 use serde::{Deserialize, Serialize};
@@ -116,6 +131,13 @@ enum Message {
     ClaimExtract(String, u64, mpsc::Sender<Result<Option<db::AiTask>>>),
     ProgressExtract(String, u64, i64, usize, usize, mpsc::Sender<bool>),
     CompleteExtract(String, u64, i64, Result<ai::ExtractionResult>),
+    CheckpointExtract(
+        String,
+        u64,
+        i64,
+        ai::ExtractionCheckpoint,
+        mpsc::Sender<bool>,
+    ),
     ClaimMaintenance(mpsc::Sender<Result<Option<memory::Task>>>),
     CompleteMaintenance(String, Value, memory::Output, Arc<maintenance::Worker>, u64),
     Shutdown,
@@ -205,6 +227,17 @@ impl Engine {
                                 .progress_extract(&job, epoch, generation, done, total)
                                 .unwrap_or(false);
                             let _ = reply.send(alive);
+                        }
+                        Message::CheckpointExtract(job, epoch, generation, checkpoint, reply) => {
+                            let saved = crate::extraction_store::persist(
+                                &mut db,
+                                &job,
+                                epoch,
+                                generation,
+                                &checkpoint,
+                            )
+                            .unwrap_or(false);
+                            let _ = reply.send(saved);
                         }
                         Message::CompleteExtract(job, epoch, generation, result) => {
                             if let Err(error) = db.complete_extract(&job, epoch, generation, result)
@@ -341,11 +374,28 @@ impl Engine {
                                 };
                                 let result =
                                     std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                                        ai::extract(
+                                        ai::extract_with_checkpoints(
                                             &task.settings.config(),
                                             task.settings.api_key.as_deref(),
                                             &task.segments,
+                                            &task.checkpoints,
                                             progress,
+                                            |checkpoint| {
+                                                let (tx, rx) = mpsc::channel();
+                                                if ai_sender
+                                                    .send(Message::CheckpointExtract(
+                                                        job.clone(),
+                                                        epoch,
+                                                        task.generation,
+                                                        checkpoint.clone(),
+                                                        tx,
+                                                    ))
+                                                    .is_err()
+                                                {
+                                                    return false;
+                                                }
+                                                rx.recv().unwrap_or(false)
+                                            },
                                         )
                                     }))
                                     .unwrap_or_else(|_| {
@@ -448,6 +498,9 @@ impl Engine {
             request.command.as_str(),
             "get_state"
                 | "get_memory_maintenance"
+                | "get_project_brief"
+                | "get_assistant_preferences"
+                | "get_memory_quality"
                 | "get_feishu_status"
                 | "get_feishu_sources"
                 | "get_daily_planning"
@@ -551,23 +604,30 @@ impl Engine {
 fn ask_project(sender: &mpsc::SyncSender<Message>, root: &Path, payload: &Value) -> Result<Value> {
     // Take a project-scoped snapshot on the database actor; network I/O stays outside it.
     let configuration = settings::load(root)?;
-    let mut context = actor_call(
-        sender,
-        Request {
-            command: "_retrieve_qa_context".into(),
-            payload: payload.clone(),
+    question_flow::run(
+        &configuration,
+        payload,
+        false,
+        |payload| {
+            actor_call(
+                sender,
+                Request {
+                    command: "_retrieve_qa_context".into(),
+                    payload,
+                },
+            )
         },
-    )?;
-    context["modelRevision"] = json!(configuration.revision);
-    let answer = qa::answer(&configuration, &context)?;
-    actor_call(
-        sender,
-        Request {
-            command: "_validate_qa_context".into(),
-            payload: context,
+        |context| {
+            actor_call(
+                sender,
+                Request {
+                    command: "_validate_qa_context".into(),
+                    payload: context.clone(),
+                },
+            )
+            .map(|_| ())
         },
-    )?;
-    Ok(answer)
+    )
 }
 fn actor_call(sender: &mpsc::SyncSender<Message>, request: Request) -> Result<Value> {
     let (tx, rx) = mpsc::channel();

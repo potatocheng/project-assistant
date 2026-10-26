@@ -1,0 +1,654 @@
+{
+  "version": "memory-qa-targeted-final-audit-v1",
+  "recordedAt": "2026-10-21T03:50:07.240Z",
+  "readOnly": true,
+  "apiCallsMade": 0,
+  "passed": true,
+  "auditMeaning": "Passing means observed raw provenance, costs, anonymous/producer mapping and reporting agree. It does not mean production quality or review protocol succeeded.",
+  "developmentGatePassed": false,
+  "fullExecuted": false,
+  "quality": {
+    "currentComplete": {
+      "desktop": 13,
+      "connector": 15
+    },
+    "currentReferences": {
+      "desktop": 15,
+      "connector": 15
+    },
+    "previousHistoricalComplete": {
+      "desktop": 13,
+      "connector": 16
+    },
+    "sameCallPairedPreviousComplete": {
+      "desktop": 12,
+      "connector": 14
+    },
+    "correctRefusalsPerEntry": {
+      "desktop": {
+        "correct": 1,
+        "total": 1
+      },
+      "connector": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "formalMemories": 938,
+    "retention": {
+      "yes": 17,
+      "partial": 1,
+      "no": 1
+    },
+    "reviewProtocolFailures": 2,
+    "supplementalProtocolFailures": 1
+  },
+  "attempts": {
+    "authorized": 4,
+    "executed": 4,
+    "remainingFreshAttempts": 0,
+    "automaticBudgetExtension": false
+  },
+  "cost": {
+    "totalCurrent": {
+      "requests": 248,
+      "tokens": 1133889
+    },
+    "phases": {
+      "extraction": {
+        "requests": 100,
+        "tokens": 435533
+      },
+      "qa": {
+        "requests": 88,
+        "tokens": 259312
+      },
+      "judge": {
+        "requests": 60,
+        "tokens": 439044
+      }
+    },
+    "qaTasks": {
+      "generation": {
+        "requests": 44,
+        "tokens": 180928
+      },
+      "answer_review": {
+        "requests": 41,
+        "tokens": 73522
+      },
+      "query_rewrite": {
+        "requests": 3,
+        "tokens": 4862
+      }
+    },
+    "qaPerEntry": {
+      "desktop": {
+        "requests": 44,
+        "tokens": 126798
+      },
+      "connector": {
+        "requests": 44,
+        "tokens": 132514
+      }
+    },
+    "qualityBaselineQA": {
+      "requests": 121,
+      "tokens": 333357
+    },
+    "efficientReferenceQA": {
+      "requests": 83,
+      "tokens": 262191
+    },
+    "vsC": {
+      "savedTokens": 74045,
+      "reductionFraction": 0.2221192295347031
+    },
+    "vsEfficient": {
+      "savedTokens": 2879,
+      "reductionFraction": 0.01098054471740062
+    },
+    "currentRoundPrior": {
+      "requests": 729,
+      "tokens": 3346785
+    },
+    "currentRoundCumulative": {
+      "requests": 977,
+      "tokens": 4480674
+    },
+    "remaining": {
+      "requests": 223,
+      "tokens": 1519326,
+      "freshAttempts": 0
+    },
+    "historical": {
+      "requests": 829,
+      "tokens": 3652548
+    },
+    "crossRound": {
+      "requests": 1806,
+      "tokens": 8133222
+    },
+    "remainingNote": "All four registered fresh20 attempts are spent; unspent token/request allowance does not authorize a fifth attempt or full100 after failed gates."
+  },
+  "rawCoverage": {
+    "rawReceipts": 248,
+    "generations": 44,
+    "reviews": 41,
+    "questionEntryProducers": 40,
+    "anonymousQuestions": 20,
+    "isolatedJudgeStages": 60
+  },
+  "offlineChecks": {
+    "completion": 813,
+    "report": 26,
+    "final": 26
+  },
+  "rawInputs": [
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-results.json",
+      "sha256": "d001e988b60f4860d4509975ece4b26c7699354621b6c07f08c633751db11699",
+      "detailFile": ".local-data/public-memory-live-8GVUFM/results.json",
+      "detailSha256": "ea2e910abf653a64294dd6a2e92c17ee016bcec0328ec6c651b7d900eb40878c",
+      "transcriptFile": ".local-data/public-memory-live-8GVUFM/receipts.jsonl",
+      "transcriptSha256": "5abedefeb02a04ab2921c9d33896b646c995b411a68109f7f86e4074114344e9",
+      "workspace": ".local-data\\public-memory-live-8GVUFM",
+      "outputTag": "qa-targeted-dev",
+      "startedAt": "2026-10-21T02:15:29.997Z",
+      "finishedAt": "2026-10-21T02:21:57.719Z",
+      "requests": 238,
+      "totalTokens": 1102421
+    },
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-v2-results.json",
+      "sha256": "c1f8aa858d2140d33137b28e1bc6b0b5a186329f7208327481a43d56aadc2947",
+      "detailFile": ".local-data/public-memory-live-yzBgdm/results.json",
+      "detailSha256": "076241f8cbd614648bd1b6b32533b7883d9be7260f8865c1a6f28795817fd21e",
+      "transcriptFile": ".local-data/public-memory-live-yzBgdm/receipts.jsonl",
+      "transcriptSha256": "892ea515064ed23fffed1cec9ca2661a62afcba3c6a360dd995fbe729aedebab",
+      "workspace": ".local-data\\public-memory-live-yzBgdm",
+      "outputTag": "qa-targeted-dev-v2",
+      "startedAt": "2026-10-21T02:39:05.623Z",
+      "finishedAt": "2026-10-21T02:48:00.911Z",
+      "requests": 240,
+      "totalTokens": 1103818
+    },
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-v3-results.json",
+      "sha256": "10ade340b4bf9addb71263e0cb189cef878a5bdee308f471228bda105850d56c",
+      "detailFile": ".local-data/public-memory-live-uNLtnq/results.json",
+      "detailSha256": "9d8c96bd6665c98ffec62fb9970ec118e9517e039ea394dd7f0f5d990a7c0fdc",
+      "transcriptFile": ".local-data/public-memory-live-uNLtnq/receipts.jsonl",
+      "transcriptSha256": "e20754a42a06ab67d29ac212506cf789d223a8d6b80213f895bf5dc24fb4c0f9",
+      "workspace": ".local-data\\public-memory-live-uNLtnq",
+      "outputTag": "qa-targeted-dev-v3",
+      "startedAt": "2026-10-21T03:13:52.199Z",
+      "finishedAt": "2026-10-21T03:20:53.636Z",
+      "requests": 251,
+      "totalTokens": 1140546
+    },
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-v4-results.json",
+      "sha256": "486bdbe6236f70f81ad50098a6253cd82592ed0b5c870d33466e8d8b8dc0b023",
+      "detailFile": ".local-data/public-memory-live-fqAaH5/results.json",
+      "detailSha256": "fdd3981bbc04e8131e0052e4ecb53963c3f900b377ea01bfff28d6f78f26948c",
+      "transcriptFile": ".local-data/public-memory-live-fqAaH5/receipts.jsonl",
+      "transcriptSha256": "398ebcb87ee84ff8d3e1c57db6f91bf0be3d4b81381c67671b5f2a4719675039",
+      "workspace": ".local-data\\public-memory-live-fqAaH5",
+      "outputTag": "qa-targeted-dev-v4",
+      "startedAt": "2026-10-21T03:36:01.284Z",
+      "finishedAt": "2026-10-21T03:42:23.941Z",
+      "requests": 248,
+      "totalTokens": 1133889
+    }
+  ],
+  "rawLedgerSha256": "61657ded1c06b0008ce038f597bbb3a6aed6470a8f74113a564c1ce693fc96cd",
+  "artifacts": [
+    {
+      "file": "docs/memory-qa-targeted-fourth-completion-audit.json",
+      "sha256": "6a32635ad2c1f46d911249987dd3e8a13af5e2af3c7015ce66a0c7eec7fe5fdf"
+    },
+    {
+      "file": "docs/memory-qa-targeted-fourth-case-audit.json",
+      "sha256": "01af20f12cc5a9e5fce13ad07aaa8b6b151e1371e0d308890eaf33d8421a4f39"
+    },
+    {
+      "file": "docs/memory-qa-targeted-report.md",
+      "sha256": "afa8af440ce022c3f177ac0e4b77e3c4cae4f24acec9a1a8b60e9bb9fa4c6387"
+    },
+    {
+      "file": "docs/memory-qa-targeted-metrics.json",
+      "sha256": "2b298519f152deeb5bc9825226cd59f17d28e9ac69b3aec7b469bde363ceb95a"
+    },
+    {
+      "file": "README.md",
+      "sha256": "30c5fd4e2e36b87a79fb2724ebcf9866857b2f2f220eba3558fff1f32e74024b"
+    },
+    {
+      "file": "docs/memory-qa-targeted-fourth-live-audit.json",
+      "sha256": "fed77d8365d261dcd5ac3151883b3ea79915108fb56b4385a807ad7e052f5197"
+    },
+    {
+      "file": "docs/memory-qa-targeted-fourth-live-regressions.json",
+      "sha256": "c52dd6287a13840c390b93ecb8ff2ae5dd0628fd2427b9b74376c58a4742dcc5"
+    },
+    {
+      "file": "docs/memory-qa-targeted-v4-final-pre-live-audit.json",
+      "sha256": "ac4b96bd2ccaf58395555dfb64acf8dd9e2fe887360e1067275766bb2187f1aa"
+    }
+  ],
+  "gates": [
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-gate.json",
+      "sha256": "6a77e1a0c55be497a0e6f27a0973fa7cc66c8f7e433271f56ead715cf7dc743f",
+      "passed": false,
+      "failedChecks": [
+        {
+          "name": "desktop_complete_answer_floor",
+          "actual": 13,
+          "required": ">=14/19; previous original 13/19"
+        },
+        {
+          "name": "desktop_references_preserved",
+          "actual": 16,
+          "required": ">=17/19; previous original 17/19"
+        },
+        {
+          "name": "connector_complete_answer_floor",
+          "actual": 11,
+          "required": ">=16/19; previous original 16/19"
+        },
+        {
+          "name": "connector_references_preserved",
+          "actual": 16,
+          "required": ">=17/19; previous original 17/19"
+        },
+        {
+          "name": "connector_paired_correctness_guard",
+          "actual": {
+            "current": 11,
+            "previousPaired": 13,
+            "net": -2
+          },
+          "required": "net>=0"
+        },
+        {
+          "name": "combined_paired_improvement",
+          "actual": -1,
+          "required": ">=1 net additional correct entry-answers vs same-call paired baseline"
+        }
+      ]
+    },
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-v2-gate.json",
+      "sha256": "be1f084c16dfc08ea433ed67b1cd6d0af27bb00e80d1c7c2efd4b413f87bd266",
+      "passed": false,
+      "failedChecks": [
+        {
+          "name": "desktop_references_preserved",
+          "actual": 16,
+          "required": ">=17/19; previous original 17/19"
+        },
+        {
+          "name": "connector_complete_answer_floor",
+          "actual": 11,
+          "required": ">=16/19; previous original 16/19"
+        },
+        {
+          "name": "connector_references_preserved",
+          "actual": 15,
+          "required": ">=17/19; previous original 17/19"
+        },
+        {
+          "name": "connector_paired_correctness_guard",
+          "actual": {
+            "current": 11,
+            "previousPaired": 12,
+            "net": -1
+          },
+          "required": "net>=0"
+        },
+        {
+          "name": "combined_paired_improvement",
+          "actual": 0,
+          "required": ">=1 net additional correct entry-answers vs same-call paired baseline"
+        }
+      ]
+    },
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-v3-gate.json",
+      "sha256": "e54d99210f120badd4ef3eb08d961816cf4835b4bb37b2099a4496551ac433a8",
+      "passed": false,
+      "failedChecks": [
+        {
+          "name": "desktop_complete_answer_floor",
+          "actual": 13,
+          "required": ">=14/19; previous original 13/19"
+        },
+        {
+          "name": "desktop_references_preserved",
+          "actual": 14,
+          "required": ">=17/19; previous original 17/19"
+        },
+        {
+          "name": "connector_complete_answer_floor",
+          "actual": 15,
+          "required": ">=16/19; previous original 16/19"
+        },
+        {
+          "name": "connector_references_preserved",
+          "actual": 14,
+          "required": ">=17/19; previous original 17/19"
+        }
+      ]
+    },
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-v4-gate.json",
+      "sha256": "012a31e2314f892e842dc67d657aaf1ad8ea78f52b2e0db7c6e9f4f631bfbc6d",
+      "passed": false,
+      "failedChecks": [
+        {
+          "name": "desktop_complete_answer_floor",
+          "actual": 13,
+          "required": ">=14/19; previous original 13/19"
+        },
+        {
+          "name": "desktop_references_preserved",
+          "actual": 15,
+          "required": ">=17/19; previous original 17/19"
+        },
+        {
+          "name": "connector_complete_answer_floor",
+          "actual": 15,
+          "required": ">=16/19; previous original 16/19"
+        },
+        {
+          "name": "connector_references_preserved",
+          "actual": 15,
+          "required": ">=17/19; previous original 17/19"
+        },
+        {
+          "name": "no_review_protocol_failures",
+          "actual": 2,
+          "required": "0 entries with unavailable protocol/schema/JSON review in any retrieval round, including safe fallbacks"
+        },
+        {
+          "name": "supplement_protocol_failures_not_worse",
+          "actual": 1,
+          "required": "0 supplemental binding/schema/protocol failures; safe fallbacks still counted"
+        }
+      ]
+    }
+  ],
+  "plannerReliability": {
+    "calls": 3,
+    "allValid": true,
+    "searchPlanErrors": [],
+    "realReviewFailures": [
+      {
+        "questionId": "10fb7dc031075946153baf0a0599e126de29e3a4",
+        "entry": "desktop",
+        "receipt": 89,
+        "errorCode": "QA_REVIEW_SCHEMA",
+        "missingUnknownIndices": [
+          4
+        ],
+        "obligationCount": 1,
+        "maxObligations": 6,
+        "allAnsweredWithExplicitMissing": false,
+        "final": {
+          "status": "partial",
+          "grounded": true,
+          "selectedGenerationIndex": 0,
+          "reviewedPartialFallback": true,
+          "supplementStatus": "QA_REVIEW_SCHEMA",
+          "unknowns": [
+            "未记录该架构如何具体处理每个词未知数量（非固定N）的义项，例如是否逐义项独立配对、如何批处理或编码可变数量义项。",
+            "逐义项独立配对",
+            "可变数量义项的批处理或编码方式"
+          ]
+        }
+      },
+      {
+        "questionId": "dd76130ec5fac477123fe8880472d03fbafddef6",
+        "entry": "connector",
+        "receipt": 188,
+        "errorCode": "QA_REVIEW_SCHEMA",
+        "missingUnknownIndices": [],
+        "obligationCount": 7,
+        "maxObligations": 6,
+        "allAnsweredWithExplicitMissing": true,
+        "final": {
+          "status": "unknown",
+          "grounded": false,
+          "selectedGenerationIndex": 0,
+          "reviewedPartialFallback": false,
+          "supplementStatus": null,
+          "unknowns": []
+        }
+      }
+    ]
+  },
+  "calibration": {
+    "literalQuestionGapGuardReviewCount": 0,
+    "attribution": "No observed quality or token gain is attributed to the literal-question-gap guard; it fired zero times. Sequence gains came with current first-generation sequence/context facts; causal isolation is not established across fresh extraction runs.",
+    "unitRisk": "Desktop still mixes whole-model CLV composition with correct base-model identity; an automatic yes is not proof that subject mixing is fixed. Connector correction retains necessary uncertainty."
+  },
+  "humanReviewed": false,
+  "limitations": [
+    "All four public development runs informed iteration; scores are not a blinded held-out evaluation.",
+    "Same-model isolated judges and fresh extraction can drift. Raw answer reasons and selected actual producer references are retained; observed grader disagreements are not regraded.",
+    "The main-task b1 case and holdout80/full100 were not rerun. No full100 comparison or target attainment is claimed.",
+    "Unspent token/request allowance cannot authorize a fifth development attempt after the registered four-attempt cap.",
+    "README check covers current-round core numbers and cautions, not every historic paragraph or all prose.",
+    "No source, 18-file evaluation manifest, result, judge label, gate or report code was modified during this audit."
+  ],
+  "checks": [
+    {
+      "name": "raw_completion_checks",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "case_coverage",
+      "passed": true,
+      "actual": [
+        9,
+        40
+      ],
+      "expected": [
+        9,
+        40
+      ]
+    },
+    {
+      "name": "final_ledger_all_four",
+      "passed": true,
+      "actual": [
+        4,
+        977,
+        4480674
+      ],
+      "expected": [
+        4,
+        977,
+        4480674
+      ]
+    },
+    {
+      "name": "report_costs_match_ledger",
+      "passed": true,
+      "actual": [
+        977,
+        4480674
+      ],
+      "expected": [
+        977,
+        4480674
+      ]
+    },
+    {
+      "name": "cross_round_costs",
+      "passed": true,
+      "actual": [
+        1806,
+        8133222
+      ],
+      "expected": [
+        1806,
+        8133222
+      ]
+    },
+    {
+      "name": "attempts_exhausted",
+      "passed": true,
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "name": "gate_failed:qa-targeted-dev",
+      "passed": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "gate_matches_run:qa-targeted-dev",
+      "passed": true,
+      "actual": "D:\\project\\project-assistant\\.local-data\\public-memory-live-8GVUFM",
+      "expected": "D:\\project\\project-assistant\\.local-data\\public-memory-live-8GVUFM"
+    },
+    {
+      "name": "gate_failed:qa-targeted-dev-v2",
+      "passed": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "gate_matches_run:qa-targeted-dev-v2",
+      "passed": true,
+      "actual": "D:\\project\\project-assistant\\.local-data\\public-memory-live-yzBgdm",
+      "expected": "D:\\project\\project-assistant\\.local-data\\public-memory-live-yzBgdm"
+    },
+    {
+      "name": "gate_failed:qa-targeted-dev-v3",
+      "passed": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "gate_matches_run:qa-targeted-dev-v3",
+      "passed": true,
+      "actual": "D:\\project\\project-assistant\\.local-data\\public-memory-live-uNLtnq",
+      "expected": "D:\\project\\project-assistant\\.local-data\\public-memory-live-uNLtnq"
+    },
+    {
+      "name": "gate_failed:qa-targeted-dev-v4",
+      "passed": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "gate_matches_run:qa-targeted-dev-v4",
+      "passed": true,
+      "actual": "D:\\project\\project-assistant\\.local-data\\public-memory-live-fqAaH5",
+      "expected": "D:\\project\\project-assistant\\.local-data\\public-memory-live-fqAaH5"
+    },
+    {
+      "name": "no_targeted_full_artifact",
+      "passed": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "no_fabricated_full_metrics",
+      "passed": true,
+      "actual": [
+        null,
+        null,
+        null
+      ],
+      "expected": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "current_quality",
+      "passed": true,
+      "actual": [
+        13,
+        15,
+        15,
+        15
+      ],
+      "expected": [
+        13,
+        15,
+        15,
+        15
+      ]
+    },
+    {
+      "name": "paired_baseline",
+      "passed": true,
+      "actual": [
+        12,
+        14
+      ],
+      "expected": [
+        12,
+        14
+      ]
+    },
+    {
+      "name": "formal_memories",
+      "passed": true,
+      "actual": 938,
+      "expected": 938
+    },
+    {
+      "name": "readme_table:| 本轮开发1 | 13/19 | 11/19 | 16/19、16/19 | 227088 | 未通过 |",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "readme_table:| 本轮开发2 | 14/19 | 11/19 | 16/19、15/19 | 233064 | 未通过 |",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "readme_table:| 本轮开发3 | 13/19 | 15/19 | 14/19、14/19 | 261437 | 未通过 |",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "readme_table:| 本轮开发4（当前源码） | 13/19 | 15/19 | 15/19、15/19 | 259312 | 未通过 |",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "readme_current_totals",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "readme_no_full_claim",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "readme_real_protocol_failures",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    }
+  ]
+}

@@ -57,6 +57,11 @@ pub(crate) fn create(db: &mut Database) -> Result<Value> {
     let snapshot = stage.0.join("workspace.sqlite");
     let mut target = Connection::open(&snapshot)?;
     Backup::new(&db.conn, &mut target)?.run_to_completion(128, Duration::from_millis(5), None)?;
+    // Derived search caches are rebuilt from canonical revisions. Compact the
+    // private snapshot so cached terms do not inflate archives or survive in
+    // free pages; the live index remains available to queries.
+    target
+        .execute_batch("DELETE FROM memory_lexical; DELETE FROM memory_lexical_state; VACUUM;")?;
     drop(target);
     let mut paths = vec![("workspace.sqlite".to_owned(), snapshot)];
     let mut stmt = db
@@ -356,6 +361,9 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
         crate::governance::validate_backup(&conn)?;
         crate::change_control::validate_backup(&conn)?;
         crate::coordination::validate_backup(&conn)?;
+        crate::memory_workbench::validate_backup(&conn)?;
+        crate::memory_facts::validate_backup(&conn)?;
+        crate::extraction_store::validate_backup(&conn)?;
         return Ok(Validated {
             stage,
             manifest,
@@ -370,6 +378,9 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
     crate::governance::validate_backup(&conn)?;
     crate::change_control::validate_backup(&conn)?;
     crate::coordination::validate_backup(&conn)?;
+    crate::memory_workbench::validate_backup(&conn)?;
+    crate::memory_facts::validate_backup(&conn)?;
+    crate::extraction_store::validate_backup(&conn)?;
     Ok(Validated {
         stage,
         manifest,
@@ -502,7 +513,7 @@ fn validate_ai_rows(conn: &Connection) -> Result<()> {
     }
     for sql in [
         "SELECT count(*) FROM jobs WHERE attempts<1 OR completed_batches>total_batches OR auto_extract NOT IN (0,1) OR recovered NOT IN (0,1) OR (kind='extract' AND (provider NOT IN ('openai_compatible','ollama') OR provider IS NULL OR model IS NULL OR trim(model)='' OR prompt_version IS NULL OR config_revision IS NULL)) OR (kind='extract' AND status IN ('running','succeeded') AND (input_hash IS NULL OR source_hash IS NULL))",
-        "SELECT count(*) FROM proposals p WHERE origin NOT IN ('manual','ai') OR edited NOT IN (0,1) OR (origin='manual' AND (provider IS NOT NULL OR model IS NOT NULL OR prompt_version IS NOT NULL OR extraction_job_id IS NOT NULL OR fingerprint IS NOT NULL OR quotes<>'[]')) OR (origin='ai' AND (provider IS NULL OR model IS NULL OR prompt_version IS NULL OR extraction_job_id IS NULL OR fingerprint IS NULL OR NOT EXISTS(SELECT 1 FROM jobs j WHERE j.id=p.extraction_job_id AND j.kind='extract' AND j.source_id=p.source_id AND j.status='succeeded' AND j.provider=p.provider AND j.model=p.model AND j.prompt_version=p.prompt_version)))",
+        "SELECT count(*) FROM proposals p WHERE origin NOT IN ('manual','ai') OR edited NOT IN (0,1) OR (origin='manual' AND (provider IS NOT NULL OR model IS NOT NULL OR prompt_version IS NOT NULL OR extraction_job_id IS NOT NULL OR fingerprint IS NOT NULL OR quotes<>'[]')) OR (origin='ai' AND (provider IS NULL OR model IS NULL OR prompt_version IS NULL OR extraction_job_id IS NULL OR fingerprint IS NULL OR NOT EXISTS(SELECT 1 FROM jobs j WHERE j.id=p.extraction_job_id AND j.kind='extract' AND j.source_id=p.source_id AND j.status IN ('running','failed','cancelled','queued','succeeded') AND j.provider=p.provider AND j.model=p.model AND j.prompt_version=p.prompt_version)))",
         "SELECT count(*) FROM jobs j WHERE kind='extract' AND candidate_count<>(SELECT count(*) FROM proposals p WHERE p.extraction_job_id=j.id)",
     ] {if conn.query_row(sql,[],|row|row.get::<_,i64>(0))?!=0{return Err(AppError::new("INVALID_BACKUP","AI 作业或来源信息不一致"));}}
     let mut statement = conn.prepare("SELECT id,source_id,quotes,origin FROM proposals")?;
@@ -569,6 +580,7 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
         ));
     }
     let data = validate(&db.root, p)?;
+    let old_extraction_budget = crate::extraction_store::budget_records(&db.conn)?;
     let old_budget = {
         let mut statement = db.conn.prepare("SELECT day,calls FROM memory_budget")?;
         let rows = statement
@@ -606,6 +618,8 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
         let _ = fs::rename(old_originals, db.root.join("originals"));
         return Err(error);
     }
+    db.conn
+        .execute_batch("DELETE FROM memory_lexical; DELETE FROM memory_lexical_state;")?;
     db.epoch += 1;
     db.conn
         .execute_batch("PRAGMA foreign_keys=ON; PRAGMA trusted_schema=OFF;")?;
@@ -616,6 +630,7 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
     for (day, calls) in old_budget {
         db.conn.execute("INSERT INTO memory_budget VALUES(?,?) ON CONFLICT(day) DO UPDATE SET calls=max(calls,excluded.calls)",params![day,calls])?;
     }
+    crate::extraction_store::preserve_budgets(&db.conn,&old_extraction_budget)?;
     db.conn.execute("UPDATE jobs SET status='cancelled',stage='还原后已暂停，请手动重试',error=NULL,error_code='RESTORED_PAUSED',generation=generation+1,updated_at=? WHERE kind='extract' AND status IN ('queued','running')",[now()])?;
     // Parsing may resume, but a restored import must never inherit authority to send material.
     db.conn
@@ -707,6 +722,7 @@ pub(crate) fn recover_interrupted(root: &Path) -> Result<()> {
     fs::copy(data.stage.0.join("workspace.sqlite"), &database)?;
     crate::sync_file(&database)?;
     let conn = Connection::open(&database)?;
+    conn.execute_batch("DELETE FROM memory_lexical; DELETE FROM memory_lexical_state;")?;
     insert_record(&conn, &journal.safety_backup)?;
     conn.execute("UPDATE jobs SET status='cancelled',stage='恢复中断后已暂停，请手动重试',error=NULL,error_code='RESTORED_PAUSED',generation=generation+1,updated_at=? WHERE kind='extract' AND status IN ('queued','running')",[now()])?;
     conn.execute("UPDATE jobs SET auto_extract=0 WHERE kind='import'", [])?;

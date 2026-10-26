@@ -1,0 +1,22 @@
+{
+  "version": "memory-qa-efficient-final-node-validation-v1",
+  "startedAt": "2026-10-20T15:34:56.398Z",
+  "finishedAt": "2026-10-20T15:34:56.676Z",
+  "command": "node --test --test-reporter=tap scripts/check-memory-public-development.test.mjs scripts/check-memory-qa-efficient-development.test.mjs scripts/check-memory-retrieval-development.test.mjs scripts/evaluate-memory-quality.test.mjs scripts/memory-public-live-options.test.mjs scripts/memory-qa-efficient-evaluation.test.mjs scripts/report-memory-extraction-optimized.test.mjs scripts/report-memory-qa-efficient.test.mjs scripts/report-memory-retrieval-optimized.test.mjs scripts/score-memory-public-live.test.mjs",
+  "exitCode": 0,
+  "passed": true,
+  "tests": 95,
+  "passedTests": 95,
+  "summary": [
+    "# tests 95",
+    "# pass 95",
+    "# fail 0",
+    "# cancelled 0",
+    "# skipped 0",
+    "# duration_ms 217.5326"
+  ],
+  "log": ".local-data/qa-efficient-final-node-6pb9qn/node-tests.log",
+  "preLiveEvidence": "docs/memory-qa-efficient-regressions.json",
+  "purpose": "Post-live report helper supplementary validation; pre-live evidence not overwritten",
+  "reportGeneratorSha256": "1cb8aa954a53b82bdac9275fd480bec52de99f1cb3a17f951afb76e27ea0a787"
+}

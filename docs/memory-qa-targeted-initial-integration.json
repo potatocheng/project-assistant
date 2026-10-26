@@ -1,0 +1,28 @@
+{
+  "version": "qa-targeted-initial-integration-v1",
+  "checkedAt": "2026-10-21T01:58:59.672Z",
+  "sessionId": 14643,
+  "exitCode": 1,
+  "assistantTests": {
+    "passed": 7,
+    "failed": 0
+  },
+  "nonvectorTests": {
+    "passed": 16,
+    "failed": 2
+  },
+  "failures": [
+    {
+      "test": "invalid_rewrite_stops_without_a_second_search_or_any_write",
+      "actualRetrievalRounds": 2,
+      "oldExpected": 1
+    },
+    {
+      "test": "one_rewrite_recalls_old_memory_outside_desktop_initial_window_and_preserves_scope",
+      "actualRetrievalRounds": 3,
+      "oldExpected": 2
+    }
+  ],
+  "repair": "Update fixtures to count the new read-only literal probe; keep model-call caps and all scope/write assertions, add explicit before/after domain-state equality to invalid planner test.",
+  "realApiCalls": 0
+}

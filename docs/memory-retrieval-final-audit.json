@@ -1,0 +1,117 @@
+{
+  "version": "memory-retrieval-final-audit-v1",
+  "checkedAt": "2026-10-20T13:22:12.630Z",
+  "independentReadOnlyAgentAudit": true,
+  "source": "Direct re-computation of stored reports and provider receipts; no model calls, grade changes or human annotation",
+  "passed": true,
+  "checks": [
+    "100 questions, 200 entries and anonymous answer mappings match",
+    "Historical original and same-call paired baseline grades remain distinct",
+    "Same 100-run split is 20 plus 80, not stitched from separate development run",
+    "1381 full requests and 7262899 reported tokens match raw receipts",
+    "1915 calls and 10062795 tokens include failed pilot once",
+    "Frozen production, binary, 12 evaluation hashes and pre-full gate order match",
+    "Previous round baseline artifacts unchanged",
+    "One full judge-only format repair preserved, one top-level QA grounding error retained",
+    "63 final Node tests and git diff --check passed"
+  ],
+  "fullIntegrity": "docs/memory-public-live-retrieval-full-integrity.json",
+  "prerequisiteRegression": "docs/memory-retrieval-optimized-regressions.json",
+  "supplementalNodeValidation": "docs/memory-retrieval-report-validation.json",
+  "humanReviewSample": {
+    "file": ".local-data/public-memory-live-mtzTag/review-sample.json",
+    "items": 30,
+    "status": "unreviewed",
+    "semanticAssertionPrecision": null
+  },
+  "fullComplete": true,
+  "execution": {
+    "developmentComplete": true,
+    "developmentScopeValid": true,
+    "developmentGatePassed": true,
+    "gateMatchesDevelopment": true,
+    "fullRunProvided": true,
+    "fullRunExecuted": true,
+    "full100QuestionsPresent": true,
+    "fullComplete": true,
+    "sameFrozenProduction": true,
+    "fullGateMatches": true,
+    "fullGateProvenance": "docs\\memory-public-live-retrieval-dev-v2-gate.json",
+    "gateThresholdsUnchangedSinceInitial": null,
+    "failedGateChecks": [],
+    "sameEvaluationRules": true,
+    "registrationMatchesGate": true,
+    "gatePrecedesFull": true,
+    "fullAuthorizedWithFrozenRules": true
+  },
+  "hashes": {
+    "docs/memory-retrieval-optimized-report.md": "0dddd3faaa4a6da8c7a9bdf7c9a22ddc4393aacae6b0acdd55d114498d6a0925",
+    "docs/memory-retrieval-optimized-metrics.json": "8606ac33303db17b2c784d2f3b82d0dcfd8a0b9befd1a0436efda6bfc27f920b",
+    "docs/memory-public-live-retrieval-full-results.json": "644ddb956958b52ede5b54a9ac3e657bd7e138fada20df9b15ab688b4b7a097d",
+    "docs/memory-public-live-retrieval-full-integrity.json": "de2521188babaa6077f02587e6d7ed56caaf5373ec7ee7c327ff8ff1d11086fa",
+    "docs/memory-public-live-retrieval-dev-v2-gate.json": "16243f6934dc34c0844a4b7d1486dbed89e16248f64ed94882bcf2605a666bcd",
+    ".local-data/public-memory-live-mtzTag/receipts.jsonl": "44bd72406963a781fa97f3bd7753156a3bf5072a1cff89fa0c51ceceeec1c975"
+  },
+  "readOnlyLossDiagnosis": {
+    "humanReviewed": false,
+    "source": "Raw full-run generation/review receipts; hypotheses preserve all original automatic grades",
+    "observedFirstLoss": {
+      "desktop": {
+        "answerErrorOrRefusal": 14,
+        "retrievalContextLoss": 12,
+        "memoryContentMissing": 9,
+        "groundingProtocolError": 1
+      },
+      "connector": {
+        "answerErrorOrRefusal": 15,
+        "retrievalContextLoss": 13,
+        "memoryContentMissing": 8,
+        "groundingProtocolError": 0
+      }
+    },
+    "caveat": "Same-model stage labels can disagree; the categories are observed labels, not independently established causal attribution",
+    "cases": [
+      {
+        "questionId": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+        "receiptIds": [
+          144,
+          146,
+          151
+        ],
+        "observation": "Initial generation states ROUGE average33.33; review accepts direct answer but adds submetric/identity gaps; subsequent review rejects and final answer is unknown",
+        "hypothesis": "Unasked detail requirements and review instability may discard a useful partial answer",
+        "humanAssessment": null
+      },
+      {
+        "questionId": "b1ce129678e37070e69f01332f1a8587e18e06b0",
+        "receiptIds": [
+          828,
+          829,
+          837,
+          838
+        ],
+        "observation": "Answers use3216 sentiment-submodel tweets; formal memory contains250000 total tweets absent from final shown references; review accepts subgroup answer",
+        "hypothesis": "Main task/submodel ambiguity combines target retrieval omission with over-accepting review; automatic reference-sufficient labels appear optimistic",
+        "humanAssessment": null
+      },
+      {
+        "questionId": "876700622bd6811d903e65314ac75971bbe23dcc",
+        "receiptIds": [
+          1012
+        ],
+        "observation": "Generation supportQuote omits the word the between and/development compared to current reference content",
+        "hypothesis": "Exact support-anchor copy failure; preserve strict matching",
+        "humanAssessment": null
+      },
+      {
+        "questionId": "56b7319be68197727baa7d498fa38af0a8440fe4",
+        "receiptIds": [
+          609
+        ],
+        "observation": "Supplement citations and quotes are valid; one unknowns item has301characters against a300 limit, producing ASSISTANT_GROUNDING and final unknown",
+        "hypothesis": "Output-schema reliability; this hidden supplemental failure is not a quote-binding failure",
+        "humanAssessment": null
+      }
+    ]
+  }
+}

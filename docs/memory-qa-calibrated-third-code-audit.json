@@ -1,0 +1,20 @@
+{
+  "version": "memory-qa-calibrated-third-code-audit-v1",
+  "auditedAt": "2026-10-20T16:51:55.975Z",
+  "reviewer": "Independent retrieval agent; did not implement question_flow.rs/answer_contract.rs changes",
+  "comparison": ".local-data/public-memory-live-KVjDa6/production",
+  "mode": "Read-only source review; no API or additional tests",
+  "issues": [],
+  "checks": {
+    "claimIndexMatchesOriginalClaimOrder": true,
+    "compactAndLegacyBranchesIndexed": true,
+    "actualIndexEnumAndRuntimeRangeUniquenessRetained": true,
+    "invalidIndexCannotClearRequiredUnknown": true,
+    "sourceInheritanceRequiresExactNonemptyProjectAndTitle": true,
+    "missingMetadataExplicitNull": true,
+    "runtimeSupportBodiesFacetsCitationsUnchanged": true,
+    "unknownCoverageRetentionAndCompleteConflictGuardsUnchanged": true,
+    "fullContextEqualityAndCurrentVersionRevalidationRetained": true
+  },
+  "limitations": "Source review is not a human semantic evaluation of model answers."
+}

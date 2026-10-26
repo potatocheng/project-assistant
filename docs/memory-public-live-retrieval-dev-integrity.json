@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-20T12:40:42.862Z",
+  "results": [
+    {
+      "file": "docs/memory-public-live-retrieval-dev-results.json",
+      "passed": false,
+      "error": "Report complete=false: one answer judge still fails schema after the one permitted explicit re-evaluation; no production pipeline errors.",
+      "log": ".local-data/public-memory-live-PUltaf/pilot-integrity-failure.log"
+    }
+  ]
+}

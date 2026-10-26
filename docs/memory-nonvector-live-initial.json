@@ -1,0 +1,2418 @@
+{
+  "version": "memory-live-evaluation-v1",
+  "startedAt": "2026-10-20T07:51:11.390Z",
+  "usesRealModel": true,
+  "upstream": "https://api.deepseek.com/chat/completions",
+  "requestedModel": "deepseek-flash",
+  "datasetSha256": "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+  "liveDatasetSha256": "952bf055b070627d42cee31cfdfbc300e32709cb3fa371061f9d5f82080a727f",
+  "methodology": "Production pm-host/Engine; synthetic sources only; live upstream unchanged response bodies via authenticated loopback usage observer. thinking=disabled matches the production DeepSeek adapter. No automatic network retry; accepted extraction candidates explicitly confirmed only inside this isolated evaluation.",
+  "workspace": ".local-data\\live-memory-MbbTET",
+  "goldQa": {
+    "connector": [
+      {
+        "id": "exact_owner",
+        "category": "exact",
+        "question": "支付接口验收由谁负责？",
+        "elapsedMs": 1073.5368999999992,
+        "modelCalls": 1,
+        "grounded": true,
+        "answer": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。\n\n依据：\n[1] 项目确认纪要 · 记忆 v2 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "c0e00596-b48b-4f31-96bb-427c0443db97",
+                "sourceId": "ed1d9bdc-8314-41b8-a148-c00898154ede",
+                "sourceTitle": "项目确认纪要",
+                "text": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+                "textHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "bdc455a1-3850-4411-a20d-ef67329c0cb0",
+            "origin": "user_correction",
+            "revision": 2,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "retrievedGoldenIds": [
+          "owner",
+          "launch",
+          "contact",
+          "recovery",
+          "challenge_progress"
+        ],
+        "citedGoldenIds": [
+          "owner"
+        ],
+        "goldEvidence": [
+          "owner"
+        ],
+        "claimChecks": [
+          {
+            "pattern": "陈雨",
+            "passed": true
+          }
+        ],
+        "queryTrace": {
+          "elapsedMs": 1057,
+          "inputChars": 6258,
+          "maxInputChars": 120000,
+          "maxModelCalls": 4,
+          "maxOutputCharsPerCall": 16000,
+          "modelCalls": 1,
+          "rounds": [
+            {
+              "limited": false,
+              "matched": 5,
+              "ranking": [
+                {
+                  "id": "bdc455a1-3850-4411-a20d-ef67329c0cb0",
+                  "score": 56.96387798286264
+                },
+                {
+                  "id": "e84610b3-0e30-4663-a076-35e9cca07a0e",
+                  "score": 33.71074594621368
+                },
+                {
+                  "id": "269f68fb-0cba-4352-91bc-a1993ad1f795",
+                  "score": 5.569008919028427
+                },
+                {
+                  "id": "d2891c4a-652a-49a0-b581-5b32c7456867",
+                  "score": 2.801385258038606
+                },
+                {
+                  "id": "f78e5363-0e3a-41e7-803e-db8bda654a3a",
+                  "score": 2.7665110498593135
+                }
+              ],
+              "returned": 5,
+              "scanned": 143,
+              "version": "nonvector-memory-v1"
+            }
+          ],
+          "searchQueries": [],
+          "timeoutSeconds": 120
+        },
+        "expectedClaimsPresent": true,
+        "allGoldEvidenceCited": true,
+        "correctAbstention": null,
+        "scopeViolation": false
+      },
+      {
+        "id": "alias_pool_missing",
+        "category": "cross_language",
+        "question": "数据库连接池的最大容量是多少？",
+        "elapsedMs": 877.0060000000012,
+        "modelCalls": 1,
+        "grounded": true,
+        "answer": "PostgreSQL 连接池的最大容量是 64。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "PostgreSQL connection pool maximum size is 64.",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "435c9130-8f26-485c-b471-b6d89cccef66",
+                "sourceId": "cb2ef1d8-aa6d-4e22-9302-789b0b831bcc",
+                "sourceTitle": "项目确认纪要",
+                "text": "PostgreSQL connection pool maximum size is 64.",
+                "textHash": "d1c49c60695e9a46818644e8372ebe4508e1a3ec93537967cc732f0ebf38ddf3",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "4b5c8b7d-b688-48e3-985c-7d1b4fe6992c",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "retrievedGoldenIds": [
+          "pool"
+        ],
+        "citedGoldenIds": [
+          "pool"
+        ],
+        "goldEvidence": [
+          "pool"
+        ],
+        "claimChecks": [
+          {
+            "pattern": "64|六十四",
+            "passed": true
+          }
+        ],
+        "queryTrace": {
+          "elapsedMs": 862,
+          "inputChars": 2529,
+          "maxInputChars": 120000,
+          "maxModelCalls": 4,
+          "maxOutputCharsPerCall": 16000,
+          "modelCalls": 1,
+          "rounds": [
+            {
+              "limited": false,
+              "matched": 1,
+              "ranking": [
+                {
+                  "id": "4b5c8b7d-b688-48e3-985c-7d1b4fe6992c",
+                  "score": 3.9145754421717065
+                }
+              ],
+              "returned": 1,
+              "scanned": 143,
+              "version": "nonvector-memory-v1"
+            }
+          ],
+          "searchQueries": [],
+          "timeoutSeconds": 120
+        },
+        "expectedClaimsPresent": true,
+        "allGoldEvidenceCited": true,
+        "correctAbstention": null,
+        "scopeViolation": false
+      },
+      {
+        "id": "paraphrase_export",
+        "category": "paraphrase",
+        "question": "批量导出安排在哪个阶段？",
+        "elapsedMs": 1121.586900000002,
+        "modelCalls": 1,
+        "grounded": true,
+        "answer": "批量导出功能仅在第二阶段实施，首期不交付。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "批量导出功能仅在第二阶段实施，首期不交付。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "9c8ad4c6-a758-4525-a617-752f104bba77",
+                "sourceId": "d3c5075d-39fe-44f5-98e3-4be8cc9df56b",
+                "sourceTitle": "项目确认纪要",
+                "text": "批量导出功能仅在第二阶段实施，首期不交付。",
+                "textHash": "6107d1c8b0b76b0e62cb8c3947a1e29f6bcbe8d955c21647709c06f35dbe2f55",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "fef2c1c4-22c2-45aa-84e5-8b025bdae1ca",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "retrievedGoldenIds": [
+          "export",
+          "8cd284b5-c808-46be-a385-30ee4128dac0",
+          "2c3474e7-7eb2-4236-bda6-59b050be659f",
+          "f2dbe3ab-dba6-4a9e-8c17-725805043cb1",
+          "a11681b5-53e6-4f3f-abdb-000bd015a651",
+          "79e5fab5-63c9-4902-8541-109247c1f363"
+        ],
+        "citedGoldenIds": [
+          "export"
+        ],
+        "goldEvidence": [
+          "export"
+        ],
+        "claimChecks": [
+          {
+            "pattern": "第二阶段|二期|阶段二",
+            "passed": true
+          }
+        ],
+        "queryTrace": {
+          "elapsedMs": 1106,
+          "inputChars": 7040,
+          "maxInputChars": 120000,
+          "maxModelCalls": 4,
+          "maxOutputCharsPerCall": 16000,
+          "modelCalls": 1,
+          "rounds": [
+            {
+              "limited": true,
+              "matched": 121,
+              "ranking": [
+                {
+                  "id": "fef2c1c4-22c2-45aa-84e5-8b025bdae1ca",
+                  "score": 19.18930055036336
+                },
+                {
+                  "id": "8cd284b5-c808-46be-a385-30ee4128dac0",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "2c3474e7-7eb2-4236-bda6-59b050be659f",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "f2dbe3ab-dba6-4a9e-8c17-725805043cb1",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "a11681b5-53e6-4f3f-abdb-000bd015a651",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "79e5fab5-63c9-4902-8541-109247c1f363",
+                  "score": 0.06330873947042502
+                }
+              ],
+              "returned": 6,
+              "scanned": 143,
+              "version": "nonvector-memory-v1"
+            }
+          ],
+          "searchQueries": [],
+          "timeoutSeconds": 120
+        },
+        "expectedClaimsPresent": true,
+        "allGoldEvidenceCited": true,
+        "correctAbstention": null,
+        "scopeViolation": false
+      },
+      {
+        "id": "semantic_signature",
+        "category": "semantic_gap",
+        "question": "商务确认为什么迟迟没有完成？",
+        "elapsedMs": 2442.8705000000045,
+        "modelCalls": 3,
+        "grounded": false,
+        "answer": "项目记忆中没有足够依据，暂不自动回复。",
+        "citations": [],
+        "retrievedGoldenIds": [
+          "incident",
+          "launch",
+          "challenge_progress",
+          "8cd284b5-c808-46be-a385-30ee4128dac0",
+          "2c3474e7-7eb2-4236-bda6-59b050be659f",
+          "f2dbe3ab-dba6-4a9e-8c17-725805043cb1"
+        ],
+        "citedGoldenIds": [],
+        "goldEvidence": [
+          "signature"
+        ],
+        "claimChecks": [
+          {
+            "pattern": "账单|对账",
+            "passed": false
+          }
+        ],
+        "queryTrace": {
+          "elapsedMs": 2427,
+          "inputChars": 14872,
+          "maxInputChars": 120000,
+          "maxModelCalls": 4,
+          "maxOutputCharsPerCall": 16000,
+          "modelCalls": 3,
+          "rounds": [
+            {
+              "limited": true,
+              "matched": 122,
+              "ranking": [
+                {
+                  "id": "e84610b3-0e30-4663-a076-35e9cca07a0e",
+                  "score": 1.7281563343679014
+                },
+                {
+                  "id": "f78e5363-0e3a-41e7-803e-db8bda654a3a",
+                  "score": 1.2879660430517352
+                },
+                {
+                  "id": "8cd284b5-c808-46be-a385-30ee4128dac0",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "2c3474e7-7eb2-4236-bda6-59b050be659f",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "f2dbe3ab-dba6-4a9e-8c17-725805043cb1",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "a11681b5-53e6-4f3f-abdb-000bd015a651",
+                  "score": 0.06330873947042502
+                }
+              ],
+              "returned": 6,
+              "scanned": 143,
+              "version": "nonvector-memory-v1"
+            },
+            {
+              "limited": true,
+              "matched": 123,
+              "ranking": [
+                {
+                  "id": "e6b50c10-24f3-4d63-9ad6-8a6fae5c3f46",
+                  "score": 3.321329847803712
+                },
+                {
+                  "id": "e84610b3-0e30-4663-a076-35e9cca07a0e",
+                  "score": 1.7281563343679014
+                },
+                {
+                  "id": "f78e5363-0e3a-41e7-803e-db8bda654a3a",
+                  "score": 1.2879660430517352
+                },
+                {
+                  "id": "8cd284b5-c808-46be-a385-30ee4128dac0",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "2c3474e7-7eb2-4236-bda6-59b050be659f",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "f2dbe3ab-dba6-4a9e-8c17-725805043cb1",
+                  "score": 0.06330873947042502
+                }
+              ],
+              "returned": 6,
+              "scanned": 143,
+              "version": "nonvector-memory-v1"
+            }
+          ],
+          "searchQueries": [
+            "商务确认 未完成 原因",
+            "商务确认 延迟 流程",
+            "business confirmation pending delay"
+          ],
+          "timeoutSeconds": 120
+        },
+        "expectedClaimsPresent": false,
+        "allGoldEvidenceCited": false,
+        "correctAbstention": null,
+        "scopeViolation": false
+      }
+    ],
+    "desktop": [
+      {
+        "id": "exact_owner",
+        "category": "exact",
+        "question": "支付接口验收由谁负责？",
+        "elapsedMs": 2383.0907000000007,
+        "modelCalls": 1,
+        "grounded": true,
+        "mode": "model",
+        "answer": "支付接口验收由陈雨负责；王敏负责联调，验收截止日期为2026-10-23。另有一条相关要求：上线前必须完成支付接口验收，且验收需要先完成对账核验。客户验收联系人为赵岚，但记录未说明其是否负责支付接口验收。",
+        "citations": [
+          {
+            "content": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "c0e00596-b48b-4f31-96bb-427c0443db97",
+                "sourceId": "ed1d9bdc-8314-41b8-a148-c00898154ede",
+                "sourceTitle": "项目确认纪要",
+                "text": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+                "textHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+                "truncated": false
+              }
+            ],
+            "id": "memory:bdc455a1-3850-4411-a20d-ef67329c0cb0",
+            "kind": "memory",
+            "memoryId": "bdc455a1-3850-4411-a20d-ef67329c0cb0",
+            "projectId": "a28b3832-f890-46f2-9ef3-b01c75796982",
+            "record": {
+              "content": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+              "contentHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "c0e00596-b48b-4f31-96bb-427c0443db97",
+                  "sourceId": "ed1d9bdc-8314-41b8-a148-c00898154ede",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+                  "textHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+                  "truncated": false
+                }
+              ],
+              "id": "bdc455a1-3850-4411-a20d-ef67329c0cb0",
+              "kind": "fact",
+              "memoryId": "bdc455a1-3850-4411-a20d-ef67329c0cb0",
+              "origin": "user_correction",
+              "projectId": "a28b3832-f890-46f2-9ef3-b01c75796982",
+              "revision": 2,
+              "revisionId": "3eb4db0d-f1c5-4b5d-8d4c-9bd173f5a84b",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T07:51:14.241Z"
+            },
+            "revision": 2,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T07:51:14.241Z"
+          },
+          {
+            "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "9269985f-15bd-4659-8636-0eb4e180384b",
+                "sourceId": "df510440-766c-4c55-874f-9888b3ed1b6e",
+                "sourceTitle": "项目确认纪要",
+                "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                "truncated": false
+              }
+            ],
+            "id": "memory:e84610b3-0e30-4663-a076-35e9cca07a0e",
+            "kind": "memory",
+            "memoryId": "e84610b3-0e30-4663-a076-35e9cca07a0e",
+            "projectId": "a28b3832-f890-46f2-9ef3-b01c75796982",
+            "record": {
+              "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+              "contentHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "9269985f-15bd-4659-8636-0eb4e180384b",
+                  "sourceId": "df510440-766c-4c55-874f-9888b3ed1b6e",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                  "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                  "truncated": false
+                }
+              ],
+              "id": "e84610b3-0e30-4663-a076-35e9cca07a0e",
+              "kind": "requirement",
+              "memoryId": "e84610b3-0e30-4663-a076-35e9cca07a0e",
+              "origin": "confirmation",
+              "projectId": "a28b3832-f890-46f2-9ef3-b01c75796982",
+              "revision": 1,
+              "revisionId": "8e1b9ed8-ae08-49ad-a556-cdcf2df9a186",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T07:51:27.191Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T07:51:27.191Z"
+          },
+          {
+            "content": "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "77eeb51a-f360-44e7-a37e-0b50bf1a8537",
+                "sourceId": "2e286538-ed12-4caa-817f-98d02a8b34a3",
+                "sourceTitle": "项目确认纪要",
+                "text": "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+                "textHash": "7a295a9c38e8d07c04d8b9e0da2ea8b1c23d0e457e88af4d5e13d5b0f3624c0a",
+                "truncated": false
+              }
+            ],
+            "id": "memory:269f68fb-0cba-4352-91bc-a1993ad1f795",
+            "kind": "memory",
+            "memoryId": "269f68fb-0cba-4352-91bc-a1993ad1f795",
+            "projectId": "a28b3832-f890-46f2-9ef3-b01c75796982",
+            "record": {
+              "content": "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+              "contentHash": "7a295a9c38e8d07c04d8b9e0da2ea8b1c23d0e457e88af4d5e13d5b0f3624c0a",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "77eeb51a-f360-44e7-a37e-0b50bf1a8537",
+                  "sourceId": "2e286538-ed12-4caa-817f-98d02a8b34a3",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+                  "textHash": "7a295a9c38e8d07c04d8b9e0da2ea8b1c23d0e457e88af4d5e13d5b0f3624c0a",
+                  "truncated": false
+                }
+              ],
+              "id": "269f68fb-0cba-4352-91bc-a1993ad1f795",
+              "kind": "fact",
+              "memoryId": "269f68fb-0cba-4352-91bc-a1993ad1f795",
+              "origin": "confirmation",
+              "projectId": "a28b3832-f890-46f2-9ef3-b01c75796982",
+              "revision": 1,
+              "revisionId": "1a96f534-7109-4ce5-99e3-36a648491a43",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T07:51:32.105Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T07:51:32.105Z"
+          }
+        ],
+        "retrievedGoldenIds": [
+          "owner",
+          "launch",
+          "contact",
+          "recovery",
+          "challenge_progress",
+          "511b4d25-0744-40a2-8d14-770f1173898e",
+          "384b2304-231a-42be-87dc-24a55f5bafd2",
+          "d17432b6-4e15-4c25-becd-e9dcdf0b1a8c",
+          "64f5fe39-2dcb-4521-9dcc-f139a9ba2c28",
+          "13ca4e10-4ae7-429a-a88d-748164deffb9",
+          "0b17c8ee-58ca-40af-86f8-3c9932e192cb",
+          "1577dfc3-74fd-411d-88c3-f1ab4c61aada",
+          "64b3fca1-c4a1-41b2-b13a-dd47ecf7ef65",
+          "d4d9253f-16e5-4179-b99b-b73176220cc8",
+          "77d03a96-015a-46df-bc3a-2e50f73dac64",
+          "3d462de3-f525-4431-af30-32a6a094731e",
+          "934f0679-ef7d-469e-b2a1-402eb031032f",
+          "c688aef8-7a8e-4f8c-904d-b54e6d1b97ad",
+          "d8c029e3-9ffd-4355-b89f-67c22e568d8b",
+          "c2595d3e-3434-459b-96ed-1f6123f7bd81",
+          "58a4f09a-ceea-4db9-9e87-29835812dd88",
+          "781a2788-2ded-4909-a64b-4f7952a51815",
+          "e11f168f-f3f8-44ca-b739-7ca1485c4927",
+          "fe235e1c-99d7-4713-84e8-425f44c16f9e",
+          "b87f5f51-7b99-4d33-bf09-7ec53b5b7d80",
+          "a73d643e-5d76-41b6-8ed0-7b0770c0b48a",
+          "ed715177-a85a-434b-891c-f6864b7d2869",
+          "91f8c6e2-8529-447d-a652-5a9da5f21ead",
+          "3653faa3-501e-428b-ae73-79ab8e3c3d1f",
+          "3792c8e7-5eee-4a8f-871d-70690476cfeb",
+          "d154c6c3-ba20-4061-a557-f4bf5005eabc",
+          "e700a26a-4f75-476a-ba86-20aab8a41776",
+          "e1e34f42-29bb-4814-9ff1-c2978b53b310",
+          "52e2c8e8-5c6e-4898-8abd-6bdc70119ceb",
+          "603d9f9f-9512-4028-90c8-0ba8ec7f40f4",
+          "74921aa4-d736-4a16-83fb-9bae6abe9fff",
+          "f5483be7-5c84-4357-bd9f-cba3f9e50694",
+          "e4460476-4fb3-484a-a0fc-c661a5416426",
+          "a3aff795-e96b-471b-b19b-94aa401eb0fd",
+          "950aa8e3-0f8c-4737-ab79-0936dc0b5550",
+          "a374e5e1-3dc9-497f-8532-c0cfc86f8d90",
+          "1455f15a-d9ff-4c96-996d-874712003a4e",
+          "1e94ab89-f059-4ac4-9b51-cd30e585e556",
+          "af803b81-4f65-436f-9f97-dce0c11639d6",
+          "0710c3f1-7730-4297-910e-f60ed0f56948",
+          "238fb988-93fb-4815-87a1-3fe0eba240fb",
+          "0d230600-e5cf-4b4b-b660-86ca0f859808",
+          "cfbe8a65-6f62-4072-ab5b-293f3cbb842d",
+          "fa74526a-6153-4570-b056-0801a5f2df84",
+          "52348108-4275-4d8d-840f-e80e4d387365",
+          "56c34e3d-f868-4b10-a320-5a84a3edc867",
+          "995959eb-5c3b-478e-b68b-e00addbda695",
+          "2b0842e4-3289-46d1-b8ea-e18c27eca5dd",
+          "7eb647f9-999c-4596-b95f-bef26a23f3ec",
+          "ae78b07b-f696-4cfd-8db9-eadb64e75724",
+          "e2b82f93-a34c-4aab-bca5-d943fa6dfea9",
+          "8cb9cb01-8779-4d7e-9b80-a215a74364f3",
+          "41879c69-7fff-4ee4-a0e3-63adec126868",
+          "56f62cad-bdf3-4c80-a0c4-b51e2f4c64bf",
+          "fdf40ee1-37a1-48ae-afb6-65c985fcb5ce",
+          "9e17301b-3f85-4e3f-b920-cec3c0efeb10",
+          "5adce531-b7d3-403c-ac87-94a8ee95fbb1",
+          "ad1f3def-d9cd-4471-ac4f-ed4cfb04ca22",
+          "44663340-48f7-4321-9ae4-6eae929cabee",
+          "0ee8fe73-2336-45e1-8ac0-a1304b04d23e",
+          "3e3f47de-b562-4b69-a499-dd7c7c9f0267",
+          "ea4f7c9c-df2f-4068-b196-68e03ff322f4",
+          "2824331c-ea73-48d9-843c-e9c7e4953937",
+          "732c04cd-168b-4ef8-9eed-b45462b0fb16",
+          "514305eb-ddba-42ff-9bdb-f06acb885a59",
+          "b3c3fb39-6396-436b-8b78-afcf5d9dc5d7",
+          "534ab8c2-c631-4dbd-8e17-22675fcf59f1",
+          "770d7c67-d6f5-49eb-bbfc-13828a2f8c28",
+          "11ae4907-95de-4950-abdf-fb67204ea144",
+          "75643f9f-127a-41d4-9144-5e2b605e1613",
+          "830fe75d-8ff7-43e7-9b75-a7244eeed032",
+          "4ad1ad71-bce0-4be8-87c4-a1baf447691d",
+          "3ec4d74b-b830-413e-874c-c951aebd5aec",
+          "34927dbb-b3fe-466f-8b55-36655a5e7c51",
+          "498abc41-3825-47a2-b676-1ed29494e20e"
+        ],
+        "citedGoldenIds": [
+          "owner",
+          "launch",
+          "contact"
+        ],
+        "goldEvidence": [
+          "owner"
+        ],
+        "claimChecks": [
+          {
+            "pattern": "陈雨",
+            "passed": true
+          }
+        ],
+        "queryTrace": {
+          "elapsedMs": 2318,
+          "inputChars": 9732,
+          "maxInputChars": 120000,
+          "maxModelCalls": 4,
+          "maxOutputCharsPerCall": 16000,
+          "modelCalls": 1,
+          "rounds": [
+            {
+              "limited": true,
+              "matched": 5,
+              "ranking": [
+                {
+                  "id": "bdc455a1-3850-4411-a20d-ef67329c0cb0",
+                  "score": 56.96387798286264
+                },
+                {
+                  "id": "e84610b3-0e30-4663-a076-35e9cca07a0e",
+                  "score": 33.71074594621368
+                },
+                {
+                  "id": "269f68fb-0cba-4352-91bc-a1993ad1f795",
+                  "score": 5.569008919028427
+                },
+                {
+                  "id": "d2891c4a-652a-49a0-b581-5b32c7456867",
+                  "score": 2.801385258038606
+                },
+                {
+                  "id": "f78e5363-0e3a-41e7-803e-db8bda654a3a",
+                  "score": 2.7665110498593135
+                },
+                {
+                  "id": "511b4d25-0744-40a2-8d14-770f1173898e",
+                  "score": 0
+                },
+                {
+                  "id": "384b2304-231a-42be-87dc-24a55f5bafd2",
+                  "score": 0
+                },
+                {
+                  "id": "d17432b6-4e15-4c25-becd-e9dcdf0b1a8c",
+                  "score": 0
+                },
+                {
+                  "id": "64f5fe39-2dcb-4521-9dcc-f139a9ba2c28",
+                  "score": 0
+                },
+                {
+                  "id": "13ca4e10-4ae7-429a-a88d-748164deffb9",
+                  "score": 0
+                },
+                {
+                  "id": "0b17c8ee-58ca-40af-86f8-3c9932e192cb",
+                  "score": 0
+                },
+                {
+                  "id": "1577dfc3-74fd-411d-88c3-f1ab4c61aada",
+                  "score": 0
+                },
+                {
+                  "id": "64b3fca1-c4a1-41b2-b13a-dd47ecf7ef65",
+                  "score": 0
+                },
+                {
+                  "id": "d4d9253f-16e5-4179-b99b-b73176220cc8",
+                  "score": 0
+                },
+                {
+                  "id": "77d03a96-015a-46df-bc3a-2e50f73dac64",
+                  "score": 0
+                },
+                {
+                  "id": "3d462de3-f525-4431-af30-32a6a094731e",
+                  "score": 0
+                },
+                {
+                  "id": "934f0679-ef7d-469e-b2a1-402eb031032f",
+                  "score": 0
+                },
+                {
+                  "id": "c688aef8-7a8e-4f8c-904d-b54e6d1b97ad",
+                  "score": 0
+                },
+                {
+                  "id": "d8c029e3-9ffd-4355-b89f-67c22e568d8b",
+                  "score": 0
+                },
+                {
+                  "id": "c2595d3e-3434-459b-96ed-1f6123f7bd81",
+                  "score": 0
+                },
+                {
+                  "id": "58a4f09a-ceea-4db9-9e87-29835812dd88",
+                  "score": 0
+                },
+                {
+                  "id": "781a2788-2ded-4909-a64b-4f7952a51815",
+                  "score": 0
+                },
+                {
+                  "id": "e11f168f-f3f8-44ca-b739-7ca1485c4927",
+                  "score": 0
+                },
+                {
+                  "id": "fe235e1c-99d7-4713-84e8-425f44c16f9e",
+                  "score": 0
+                },
+                {
+                  "id": "b87f5f51-7b99-4d33-bf09-7ec53b5b7d80",
+                  "score": 0
+                },
+                {
+                  "id": "a73d643e-5d76-41b6-8ed0-7b0770c0b48a",
+                  "score": 0
+                },
+                {
+                  "id": "ed715177-a85a-434b-891c-f6864b7d2869",
+                  "score": 0
+                },
+                {
+                  "id": "91f8c6e2-8529-447d-a652-5a9da5f21ead",
+                  "score": 0
+                },
+                {
+                  "id": "3653faa3-501e-428b-ae73-79ab8e3c3d1f",
+                  "score": 0
+                },
+                {
+                  "id": "3792c8e7-5eee-4a8f-871d-70690476cfeb",
+                  "score": 0
+                },
+                {
+                  "id": "d154c6c3-ba20-4061-a557-f4bf5005eabc",
+                  "score": 0
+                },
+                {
+                  "id": "e700a26a-4f75-476a-ba86-20aab8a41776",
+                  "score": 0
+                },
+                {
+                  "id": "e1e34f42-29bb-4814-9ff1-c2978b53b310",
+                  "score": 0
+                },
+                {
+                  "id": "52e2c8e8-5c6e-4898-8abd-6bdc70119ceb",
+                  "score": 0
+                },
+                {
+                  "id": "603d9f9f-9512-4028-90c8-0ba8ec7f40f4",
+                  "score": 0
+                },
+                {
+                  "id": "74921aa4-d736-4a16-83fb-9bae6abe9fff",
+                  "score": 0
+                },
+                {
+                  "id": "f5483be7-5c84-4357-bd9f-cba3f9e50694",
+                  "score": 0
+                },
+                {
+                  "id": "e4460476-4fb3-484a-a0fc-c661a5416426",
+                  "score": 0
+                },
+                {
+                  "id": "a3aff795-e96b-471b-b19b-94aa401eb0fd",
+                  "score": 0
+                },
+                {
+                  "id": "950aa8e3-0f8c-4737-ab79-0936dc0b5550",
+                  "score": 0
+                },
+                {
+                  "id": "a374e5e1-3dc9-497f-8532-c0cfc86f8d90",
+                  "score": 0
+                },
+                {
+                  "id": "1455f15a-d9ff-4c96-996d-874712003a4e",
+                  "score": 0
+                },
+                {
+                  "id": "1e94ab89-f059-4ac4-9b51-cd30e585e556",
+                  "score": 0
+                },
+                {
+                  "id": "af803b81-4f65-436f-9f97-dce0c11639d6",
+                  "score": 0
+                },
+                {
+                  "id": "0710c3f1-7730-4297-910e-f60ed0f56948",
+                  "score": 0
+                },
+                {
+                  "id": "238fb988-93fb-4815-87a1-3fe0eba240fb",
+                  "score": 0
+                },
+                {
+                  "id": "0d230600-e5cf-4b4b-b660-86ca0f859808",
+                  "score": 0
+                },
+                {
+                  "id": "cfbe8a65-6f62-4072-ab5b-293f3cbb842d",
+                  "score": 0
+                },
+                {
+                  "id": "fa74526a-6153-4570-b056-0801a5f2df84",
+                  "score": 0
+                },
+                {
+                  "id": "52348108-4275-4d8d-840f-e80e4d387365",
+                  "score": 0
+                },
+                {
+                  "id": "56c34e3d-f868-4b10-a320-5a84a3edc867",
+                  "score": 0
+                },
+                {
+                  "id": "995959eb-5c3b-478e-b68b-e00addbda695",
+                  "score": 0
+                },
+                {
+                  "id": "2b0842e4-3289-46d1-b8ea-e18c27eca5dd",
+                  "score": 0
+                },
+                {
+                  "id": "7eb647f9-999c-4596-b95f-bef26a23f3ec",
+                  "score": 0
+                },
+                {
+                  "id": "ae78b07b-f696-4cfd-8db9-eadb64e75724",
+                  "score": 0
+                },
+                {
+                  "id": "e2b82f93-a34c-4aab-bca5-d943fa6dfea9",
+                  "score": 0
+                },
+                {
+                  "id": "8cb9cb01-8779-4d7e-9b80-a215a74364f3",
+                  "score": 0
+                },
+                {
+                  "id": "41879c69-7fff-4ee4-a0e3-63adec126868",
+                  "score": 0
+                },
+                {
+                  "id": "56f62cad-bdf3-4c80-a0c4-b51e2f4c64bf",
+                  "score": 0
+                },
+                {
+                  "id": "fdf40ee1-37a1-48ae-afb6-65c985fcb5ce",
+                  "score": 0
+                },
+                {
+                  "id": "9e17301b-3f85-4e3f-b920-cec3c0efeb10",
+                  "score": 0
+                },
+                {
+                  "id": "5adce531-b7d3-403c-ac87-94a8ee95fbb1",
+                  "score": 0
+                },
+                {
+                  "id": "ad1f3def-d9cd-4471-ac4f-ed4cfb04ca22",
+                  "score": 0
+                },
+                {
+                  "id": "44663340-48f7-4321-9ae4-6eae929cabee",
+                  "score": 0
+                },
+                {
+                  "id": "0ee8fe73-2336-45e1-8ac0-a1304b04d23e",
+                  "score": 0
+                },
+                {
+                  "id": "3e3f47de-b562-4b69-a499-dd7c7c9f0267",
+                  "score": 0
+                },
+                {
+                  "id": "ea4f7c9c-df2f-4068-b196-68e03ff322f4",
+                  "score": 0
+                },
+                {
+                  "id": "2824331c-ea73-48d9-843c-e9c7e4953937",
+                  "score": 0
+                },
+                {
+                  "id": "732c04cd-168b-4ef8-9eed-b45462b0fb16",
+                  "score": 0
+                },
+                {
+                  "id": "514305eb-ddba-42ff-9bdb-f06acb885a59",
+                  "score": 0
+                },
+                {
+                  "id": "b3c3fb39-6396-436b-8b78-afcf5d9dc5d7",
+                  "score": 0
+                },
+                {
+                  "id": "534ab8c2-c631-4dbd-8e17-22675fcf59f1",
+                  "score": 0
+                },
+                {
+                  "id": "770d7c67-d6f5-49eb-bbfc-13828a2f8c28",
+                  "score": 0
+                },
+                {
+                  "id": "11ae4907-95de-4950-abdf-fb67204ea144",
+                  "score": 0
+                },
+                {
+                  "id": "75643f9f-127a-41d4-9144-5e2b605e1613",
+                  "score": 0
+                },
+                {
+                  "id": "830fe75d-8ff7-43e7-9b75-a7244eeed032",
+                  "score": 0
+                },
+                {
+                  "id": "4ad1ad71-bce0-4be8-87c4-a1baf447691d",
+                  "score": 0
+                },
+                {
+                  "id": "3ec4d74b-b830-413e-874c-c951aebd5aec",
+                  "score": 0
+                },
+                {
+                  "id": "34927dbb-b3fe-466f-8b55-36655a5e7c51",
+                  "score": 0
+                },
+                {
+                  "id": "498abc41-3825-47a2-b676-1ed29494e20e",
+                  "score": 0
+                },
+                {
+                  "id": "4a130398-8cff-42e7-825a-d79eab9e8272",
+                  "score": 0
+                }
+              ],
+              "returned": 81,
+              "scanned": 143,
+              "version": "nonvector-memory-v1"
+            }
+          ],
+          "searchQueries": [],
+          "timeoutSeconds": 120
+        },
+        "expectedClaimsPresent": true,
+        "allGoldEvidenceCited": true,
+        "correctAbstention": null,
+        "scopeViolation": false
+      },
+      {
+        "id": "alias_pool_missing",
+        "category": "cross_language",
+        "question": "数据库连接池的最大容量是多少？",
+        "elapsedMs": 910.2289000000019,
+        "modelCalls": 1,
+        "grounded": true,
+        "mode": "model",
+        "answer": "根据项目确认纪要，PostgreSQL 连接池的最大容量为 64。",
+        "citations": [
+          {
+            "content": "PostgreSQL connection pool maximum size is 64.",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "435c9130-8f26-485c-b471-b6d89cccef66",
+                "sourceId": "cb2ef1d8-aa6d-4e22-9302-789b0b831bcc",
+                "sourceTitle": "项目确认纪要",
+                "text": "PostgreSQL connection pool maximum size is 64.",
+                "textHash": "d1c49c60695e9a46818644e8372ebe4508e1a3ec93537967cc732f0ebf38ddf3",
+                "truncated": false
+              }
+            ],
+            "id": "memory:4b5c8b7d-b688-48e3-985c-7d1b4fe6992c",
+            "kind": "memory",
+            "memoryId": "4b5c8b7d-b688-48e3-985c-7d1b4fe6992c",
+            "projectId": "a28b3832-f890-46f2-9ef3-b01c75796982",
+            "record": {
+              "content": "PostgreSQL connection pool maximum size is 64.",
+              "contentHash": "d1c49c60695e9a46818644e8372ebe4508e1a3ec93537967cc732f0ebf38ddf3",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "435c9130-8f26-485c-b471-b6d89cccef66",
+                  "sourceId": "cb2ef1d8-aa6d-4e22-9302-789b0b831bcc",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "PostgreSQL connection pool maximum size is 64.",
+                  "textHash": "d1c49c60695e9a46818644e8372ebe4508e1a3ec93537967cc732f0ebf38ddf3",
+                  "truncated": false
+                }
+              ],
+              "id": "4b5c8b7d-b688-48e3-985c-7d1b4fe6992c",
+              "kind": "fact",
+              "memoryId": "4b5c8b7d-b688-48e3-985c-7d1b4fe6992c",
+              "origin": "confirmation",
+              "projectId": "a28b3832-f890-46f2-9ef3-b01c75796982",
+              "revision": 1,
+              "revisionId": "5f9c10bc-f178-4521-85f9-e830322d1841",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T07:51:16.250Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T07:51:16.250Z"
+          }
+        ],
+        "retrievedGoldenIds": [
+          "pool",
+          "511b4d25-0744-40a2-8d14-770f1173898e",
+          "384b2304-231a-42be-87dc-24a55f5bafd2",
+          "d17432b6-4e15-4c25-becd-e9dcdf0b1a8c",
+          "64f5fe39-2dcb-4521-9dcc-f139a9ba2c28",
+          "13ca4e10-4ae7-429a-a88d-748164deffb9",
+          "0b17c8ee-58ca-40af-86f8-3c9932e192cb",
+          "1577dfc3-74fd-411d-88c3-f1ab4c61aada",
+          "64b3fca1-c4a1-41b2-b13a-dd47ecf7ef65",
+          "d4d9253f-16e5-4179-b99b-b73176220cc8",
+          "77d03a96-015a-46df-bc3a-2e50f73dac64",
+          "3d462de3-f525-4431-af30-32a6a094731e",
+          "934f0679-ef7d-469e-b2a1-402eb031032f",
+          "c688aef8-7a8e-4f8c-904d-b54e6d1b97ad",
+          "d8c029e3-9ffd-4355-b89f-67c22e568d8b",
+          "c2595d3e-3434-459b-96ed-1f6123f7bd81",
+          "58a4f09a-ceea-4db9-9e87-29835812dd88",
+          "781a2788-2ded-4909-a64b-4f7952a51815",
+          "e11f168f-f3f8-44ca-b739-7ca1485c4927",
+          "fe235e1c-99d7-4713-84e8-425f44c16f9e",
+          "b87f5f51-7b99-4d33-bf09-7ec53b5b7d80",
+          "a73d643e-5d76-41b6-8ed0-7b0770c0b48a",
+          "ed715177-a85a-434b-891c-f6864b7d2869",
+          "91f8c6e2-8529-447d-a652-5a9da5f21ead",
+          "3653faa3-501e-428b-ae73-79ab8e3c3d1f",
+          "3792c8e7-5eee-4a8f-871d-70690476cfeb",
+          "d154c6c3-ba20-4061-a557-f4bf5005eabc",
+          "e700a26a-4f75-476a-ba86-20aab8a41776",
+          "e1e34f42-29bb-4814-9ff1-c2978b53b310",
+          "52e2c8e8-5c6e-4898-8abd-6bdc70119ceb",
+          "603d9f9f-9512-4028-90c8-0ba8ec7f40f4",
+          "74921aa4-d736-4a16-83fb-9bae6abe9fff",
+          "f5483be7-5c84-4357-bd9f-cba3f9e50694",
+          "e4460476-4fb3-484a-a0fc-c661a5416426",
+          "a3aff795-e96b-471b-b19b-94aa401eb0fd",
+          "950aa8e3-0f8c-4737-ab79-0936dc0b5550",
+          "a374e5e1-3dc9-497f-8532-c0cfc86f8d90",
+          "1455f15a-d9ff-4c96-996d-874712003a4e",
+          "1e94ab89-f059-4ac4-9b51-cd30e585e556",
+          "af803b81-4f65-436f-9f97-dce0c11639d6",
+          "0710c3f1-7730-4297-910e-f60ed0f56948",
+          "238fb988-93fb-4815-87a1-3fe0eba240fb",
+          "0d230600-e5cf-4b4b-b660-86ca0f859808",
+          "cfbe8a65-6f62-4072-ab5b-293f3cbb842d",
+          "fa74526a-6153-4570-b056-0801a5f2df84",
+          "52348108-4275-4d8d-840f-e80e4d387365",
+          "56c34e3d-f868-4b10-a320-5a84a3edc867",
+          "995959eb-5c3b-478e-b68b-e00addbda695",
+          "2b0842e4-3289-46d1-b8ea-e18c27eca5dd",
+          "7eb647f9-999c-4596-b95f-bef26a23f3ec",
+          "ae78b07b-f696-4cfd-8db9-eadb64e75724",
+          "e2b82f93-a34c-4aab-bca5-d943fa6dfea9",
+          "8cb9cb01-8779-4d7e-9b80-a215a74364f3",
+          "41879c69-7fff-4ee4-a0e3-63adec126868",
+          "56f62cad-bdf3-4c80-a0c4-b51e2f4c64bf",
+          "fdf40ee1-37a1-48ae-afb6-65c985fcb5ce",
+          "9e17301b-3f85-4e3f-b920-cec3c0efeb10",
+          "5adce531-b7d3-403c-ac87-94a8ee95fbb1",
+          "ad1f3def-d9cd-4471-ac4f-ed4cfb04ca22",
+          "44663340-48f7-4321-9ae4-6eae929cabee",
+          "0ee8fe73-2336-45e1-8ac0-a1304b04d23e",
+          "3e3f47de-b562-4b69-a499-dd7c7c9f0267",
+          "ea4f7c9c-df2f-4068-b196-68e03ff322f4",
+          "2824331c-ea73-48d9-843c-e9c7e4953937",
+          "732c04cd-168b-4ef8-9eed-b45462b0fb16",
+          "514305eb-ddba-42ff-9bdb-f06acb885a59",
+          "b3c3fb39-6396-436b-8b78-afcf5d9dc5d7",
+          "534ab8c2-c631-4dbd-8e17-22675fcf59f1",
+          "770d7c67-d6f5-49eb-bbfc-13828a2f8c28",
+          "11ae4907-95de-4950-abdf-fb67204ea144",
+          "75643f9f-127a-41d4-9144-5e2b605e1613",
+          "830fe75d-8ff7-43e7-9b75-a7244eeed032",
+          "4ad1ad71-bce0-4be8-87c4-a1baf447691d",
+          "3ec4d74b-b830-413e-874c-c951aebd5aec",
+          "34927dbb-b3fe-466f-8b55-36655a5e7c51",
+          "498abc41-3825-47a2-b676-1ed29494e20e",
+          "4a130398-8cff-42e7-825a-d79eab9e8272",
+          "60898202-0b53-4ee6-bb92-9d628bdcb0e9",
+          "90abf7eb-cc05-4172-adc2-546b8f59529d",
+          "0d6f71fa-066a-4c17-93cd-66389acbd861"
+        ],
+        "citedGoldenIds": [
+          "pool"
+        ],
+        "goldEvidence": [
+          "pool"
+        ],
+        "claimChecks": [
+          {
+            "pattern": "64|六十四",
+            "passed": true
+          }
+        ],
+        "queryTrace": {
+          "elapsedMs": 849,
+          "inputChars": 3391,
+          "maxInputChars": 120000,
+          "maxModelCalls": 4,
+          "maxOutputCharsPerCall": 16000,
+          "modelCalls": 1,
+          "rounds": [
+            {
+              "limited": true,
+              "matched": 1,
+              "ranking": [
+                {
+                  "id": "4b5c8b7d-b688-48e3-985c-7d1b4fe6992c",
+                  "score": 3.9145754421717065
+                },
+                {
+                  "id": "511b4d25-0744-40a2-8d14-770f1173898e",
+                  "score": 0
+                },
+                {
+                  "id": "384b2304-231a-42be-87dc-24a55f5bafd2",
+                  "score": 0
+                },
+                {
+                  "id": "d17432b6-4e15-4c25-becd-e9dcdf0b1a8c",
+                  "score": 0
+                },
+                {
+                  "id": "64f5fe39-2dcb-4521-9dcc-f139a9ba2c28",
+                  "score": 0
+                },
+                {
+                  "id": "13ca4e10-4ae7-429a-a88d-748164deffb9",
+                  "score": 0
+                },
+                {
+                  "id": "0b17c8ee-58ca-40af-86f8-3c9932e192cb",
+                  "score": 0
+                },
+                {
+                  "id": "1577dfc3-74fd-411d-88c3-f1ab4c61aada",
+                  "score": 0
+                },
+                {
+                  "id": "64b3fca1-c4a1-41b2-b13a-dd47ecf7ef65",
+                  "score": 0
+                },
+                {
+                  "id": "d4d9253f-16e5-4179-b99b-b73176220cc8",
+                  "score": 0
+                },
+                {
+                  "id": "77d03a96-015a-46df-bc3a-2e50f73dac64",
+                  "score": 0
+                },
+                {
+                  "id": "3d462de3-f525-4431-af30-32a6a094731e",
+                  "score": 0
+                },
+                {
+                  "id": "934f0679-ef7d-469e-b2a1-402eb031032f",
+                  "score": 0
+                },
+                {
+                  "id": "c688aef8-7a8e-4f8c-904d-b54e6d1b97ad",
+                  "score": 0
+                },
+                {
+                  "id": "d8c029e3-9ffd-4355-b89f-67c22e568d8b",
+                  "score": 0
+                },
+                {
+                  "id": "c2595d3e-3434-459b-96ed-1f6123f7bd81",
+                  "score": 0
+                },
+                {
+                  "id": "58a4f09a-ceea-4db9-9e87-29835812dd88",
+                  "score": 0
+                },
+                {
+                  "id": "781a2788-2ded-4909-a64b-4f7952a51815",
+                  "score": 0
+                },
+                {
+                  "id": "e11f168f-f3f8-44ca-b739-7ca1485c4927",
+                  "score": 0
+                },
+                {
+                  "id": "fe235e1c-99d7-4713-84e8-425f44c16f9e",
+                  "score": 0
+                },
+                {
+                  "id": "b87f5f51-7b99-4d33-bf09-7ec53b5b7d80",
+                  "score": 0
+                },
+                {
+                  "id": "a73d643e-5d76-41b6-8ed0-7b0770c0b48a",
+                  "score": 0
+                },
+                {
+                  "id": "ed715177-a85a-434b-891c-f6864b7d2869",
+                  "score": 0
+                },
+                {
+                  "id": "91f8c6e2-8529-447d-a652-5a9da5f21ead",
+                  "score": 0
+                },
+                {
+                  "id": "3653faa3-501e-428b-ae73-79ab8e3c3d1f",
+                  "score": 0
+                },
+                {
+                  "id": "3792c8e7-5eee-4a8f-871d-70690476cfeb",
+                  "score": 0
+                },
+                {
+                  "id": "d154c6c3-ba20-4061-a557-f4bf5005eabc",
+                  "score": 0
+                },
+                {
+                  "id": "e700a26a-4f75-476a-ba86-20aab8a41776",
+                  "score": 0
+                },
+                {
+                  "id": "e1e34f42-29bb-4814-9ff1-c2978b53b310",
+                  "score": 0
+                },
+                {
+                  "id": "52e2c8e8-5c6e-4898-8abd-6bdc70119ceb",
+                  "score": 0
+                },
+                {
+                  "id": "603d9f9f-9512-4028-90c8-0ba8ec7f40f4",
+                  "score": 0
+                },
+                {
+                  "id": "74921aa4-d736-4a16-83fb-9bae6abe9fff",
+                  "score": 0
+                },
+                {
+                  "id": "f5483be7-5c84-4357-bd9f-cba3f9e50694",
+                  "score": 0
+                },
+                {
+                  "id": "e4460476-4fb3-484a-a0fc-c661a5416426",
+                  "score": 0
+                },
+                {
+                  "id": "a3aff795-e96b-471b-b19b-94aa401eb0fd",
+                  "score": 0
+                },
+                {
+                  "id": "950aa8e3-0f8c-4737-ab79-0936dc0b5550",
+                  "score": 0
+                },
+                {
+                  "id": "a374e5e1-3dc9-497f-8532-c0cfc86f8d90",
+                  "score": 0
+                },
+                {
+                  "id": "1455f15a-d9ff-4c96-996d-874712003a4e",
+                  "score": 0
+                },
+                {
+                  "id": "1e94ab89-f059-4ac4-9b51-cd30e585e556",
+                  "score": 0
+                },
+                {
+                  "id": "af803b81-4f65-436f-9f97-dce0c11639d6",
+                  "score": 0
+                },
+                {
+                  "id": "0710c3f1-7730-4297-910e-f60ed0f56948",
+                  "score": 0
+                },
+                {
+                  "id": "238fb988-93fb-4815-87a1-3fe0eba240fb",
+                  "score": 0
+                },
+                {
+                  "id": "0d230600-e5cf-4b4b-b660-86ca0f859808",
+                  "score": 0
+                },
+                {
+                  "id": "cfbe8a65-6f62-4072-ab5b-293f3cbb842d",
+                  "score": 0
+                },
+                {
+                  "id": "fa74526a-6153-4570-b056-0801a5f2df84",
+                  "score": 0
+                },
+                {
+                  "id": "52348108-4275-4d8d-840f-e80e4d387365",
+                  "score": 0
+                },
+                {
+                  "id": "56c34e3d-f868-4b10-a320-5a84a3edc867",
+                  "score": 0
+                },
+                {
+                  "id": "995959eb-5c3b-478e-b68b-e00addbda695",
+                  "score": 0
+                },
+                {
+                  "id": "2b0842e4-3289-46d1-b8ea-e18c27eca5dd",
+                  "score": 0
+                },
+                {
+                  "id": "7eb647f9-999c-4596-b95f-bef26a23f3ec",
+                  "score": 0
+                },
+                {
+                  "id": "ae78b07b-f696-4cfd-8db9-eadb64e75724",
+                  "score": 0
+                },
+                {
+                  "id": "e2b82f93-a34c-4aab-bca5-d943fa6dfea9",
+                  "score": 0
+                },
+                {
+                  "id": "8cb9cb01-8779-4d7e-9b80-a215a74364f3",
+                  "score": 0
+                },
+                {
+                  "id": "41879c69-7fff-4ee4-a0e3-63adec126868",
+                  "score": 0
+                },
+                {
+                  "id": "56f62cad-bdf3-4c80-a0c4-b51e2f4c64bf",
+                  "score": 0
+                },
+                {
+                  "id": "fdf40ee1-37a1-48ae-afb6-65c985fcb5ce",
+                  "score": 0
+                },
+                {
+                  "id": "9e17301b-3f85-4e3f-b920-cec3c0efeb10",
+                  "score": 0
+                },
+                {
+                  "id": "5adce531-b7d3-403c-ac87-94a8ee95fbb1",
+                  "score": 0
+                },
+                {
+                  "id": "ad1f3def-d9cd-4471-ac4f-ed4cfb04ca22",
+                  "score": 0
+                },
+                {
+                  "id": "44663340-48f7-4321-9ae4-6eae929cabee",
+                  "score": 0
+                },
+                {
+                  "id": "0ee8fe73-2336-45e1-8ac0-a1304b04d23e",
+                  "score": 0
+                },
+                {
+                  "id": "3e3f47de-b562-4b69-a499-dd7c7c9f0267",
+                  "score": 0
+                },
+                {
+                  "id": "ea4f7c9c-df2f-4068-b196-68e03ff322f4",
+                  "score": 0
+                },
+                {
+                  "id": "2824331c-ea73-48d9-843c-e9c7e4953937",
+                  "score": 0
+                },
+                {
+                  "id": "732c04cd-168b-4ef8-9eed-b45462b0fb16",
+                  "score": 0
+                },
+                {
+                  "id": "514305eb-ddba-42ff-9bdb-f06acb885a59",
+                  "score": 0
+                },
+                {
+                  "id": "b3c3fb39-6396-436b-8b78-afcf5d9dc5d7",
+                  "score": 0
+                },
+                {
+                  "id": "534ab8c2-c631-4dbd-8e17-22675fcf59f1",
+                  "score": 0
+                },
+                {
+                  "id": "770d7c67-d6f5-49eb-bbfc-13828a2f8c28",
+                  "score": 0
+                },
+                {
+                  "id": "11ae4907-95de-4950-abdf-fb67204ea144",
+                  "score": 0
+                },
+                {
+                  "id": "75643f9f-127a-41d4-9144-5e2b605e1613",
+                  "score": 0
+                },
+                {
+                  "id": "830fe75d-8ff7-43e7-9b75-a7244eeed032",
+                  "score": 0
+                },
+                {
+                  "id": "4ad1ad71-bce0-4be8-87c4-a1baf447691d",
+                  "score": 0
+                },
+                {
+                  "id": "3ec4d74b-b830-413e-874c-c951aebd5aec",
+                  "score": 0
+                },
+                {
+                  "id": "34927dbb-b3fe-466f-8b55-36655a5e7c51",
+                  "score": 0
+                },
+                {
+                  "id": "498abc41-3825-47a2-b676-1ed29494e20e",
+                  "score": 0
+                },
+                {
+                  "id": "4a130398-8cff-42e7-825a-d79eab9e8272",
+                  "score": 0
+                },
+                {
+                  "id": "60898202-0b53-4ee6-bb92-9d628bdcb0e9",
+                  "score": 0
+                },
+                {
+                  "id": "90abf7eb-cc05-4172-adc2-546b8f59529d",
+                  "score": 0
+                },
+                {
+                  "id": "0d6f71fa-066a-4c17-93cd-66389acbd861",
+                  "score": 0
+                },
+                {
+                  "id": "98994cdc-e769-4774-b273-4bbb394e6d5c",
+                  "score": 0
+                }
+              ],
+              "returned": 81,
+              "scanned": 143,
+              "version": "nonvector-memory-v1"
+            }
+          ],
+          "searchQueries": [],
+          "timeoutSeconds": 120
+        },
+        "expectedClaimsPresent": true,
+        "allGoldEvidenceCited": true,
+        "correctAbstention": null,
+        "scopeViolation": false
+      },
+      {
+        "id": "paraphrase_export",
+        "category": "paraphrase",
+        "question": "批量导出安排在哪个阶段？",
+        "elapsedMs": 1961.4676000000036,
+        "modelCalls": 2,
+        "grounded": false,
+        "mode": "model",
+        "answer": "现有记录不足以支持完整结论或问题前提，请核对原文或补充记录。",
+        "citations": [],
+        "retrievedGoldenIds": [
+          "export",
+          "8cd284b5-c808-46be-a385-30ee4128dac0",
+          "2c3474e7-7eb2-4236-bda6-59b050be659f",
+          "f2dbe3ab-dba6-4a9e-8c17-725805043cb1",
+          "a11681b5-53e6-4f3f-abdb-000bd015a651",
+          "79e5fab5-63c9-4902-8541-109247c1f363",
+          "fbaab5f8-ba92-4d8f-b8a3-78891b9d70b8",
+          "5edff6f1-5a61-4eff-8780-612dbad59275",
+          "2c555014-253b-470e-b16a-dda6d7e238e5",
+          "8eb1e90c-431b-42e7-af05-86767bf48cc6",
+          "f2de1e47-8a18-4c93-bf94-ab7c3dc246fc",
+          "a73d643e-5d76-41b6-8ed0-7b0770c0b48a",
+          "ed715177-a85a-434b-891c-f6864b7d2869",
+          "91f8c6e2-8529-447d-a652-5a9da5f21ead",
+          "3653faa3-501e-428b-ae73-79ab8e3c3d1f",
+          "3792c8e7-5eee-4a8f-871d-70690476cfeb",
+          "d154c6c3-ba20-4061-a557-f4bf5005eabc",
+          "e700a26a-4f75-476a-ba86-20aab8a41776",
+          "e1e34f42-29bb-4814-9ff1-c2978b53b310",
+          "52e2c8e8-5c6e-4898-8abd-6bdc70119ceb",
+          "603d9f9f-9512-4028-90c8-0ba8ec7f40f4",
+          "74921aa4-d736-4a16-83fb-9bae6abe9fff",
+          "f5483be7-5c84-4357-bd9f-cba3f9e50694",
+          "e4460476-4fb3-484a-a0fc-c661a5416426",
+          "a3aff795-e96b-471b-b19b-94aa401eb0fd",
+          "950aa8e3-0f8c-4737-ab79-0936dc0b5550",
+          "a374e5e1-3dc9-497f-8532-c0cfc86f8d90",
+          "1455f15a-d9ff-4c96-996d-874712003a4e",
+          "1e94ab89-f059-4ac4-9b51-cd30e585e556",
+          "af803b81-4f65-436f-9f97-dce0c11639d6",
+          "0710c3f1-7730-4297-910e-f60ed0f56948",
+          "238fb988-93fb-4815-87a1-3fe0eba240fb",
+          "0d230600-e5cf-4b4b-b660-86ca0f859808",
+          "cfbe8a65-6f62-4072-ab5b-293f3cbb842d",
+          "fa74526a-6153-4570-b056-0801a5f2df84",
+          "52348108-4275-4d8d-840f-e80e4d387365",
+          "56c34e3d-f868-4b10-a320-5a84a3edc867",
+          "995959eb-5c3b-478e-b68b-e00addbda695",
+          "2b0842e4-3289-46d1-b8ea-e18c27eca5dd",
+          "7eb647f9-999c-4596-b95f-bef26a23f3ec",
+          "ae78b07b-f696-4cfd-8db9-eadb64e75724",
+          "e2b82f93-a34c-4aab-bca5-d943fa6dfea9",
+          "8cb9cb01-8779-4d7e-9b80-a215a74364f3",
+          "41879c69-7fff-4ee4-a0e3-63adec126868",
+          "56f62cad-bdf3-4c80-a0c4-b51e2f4c64bf",
+          "fdf40ee1-37a1-48ae-afb6-65c985fcb5ce",
+          "9e17301b-3f85-4e3f-b920-cec3c0efeb10",
+          "5adce531-b7d3-403c-ac87-94a8ee95fbb1",
+          "ad1f3def-d9cd-4471-ac4f-ed4cfb04ca22",
+          "44663340-48f7-4321-9ae4-6eae929cabee",
+          "0ee8fe73-2336-45e1-8ac0-a1304b04d23e",
+          "3e3f47de-b562-4b69-a499-dd7c7c9f0267",
+          "ea4f7c9c-df2f-4068-b196-68e03ff322f4",
+          "2824331c-ea73-48d9-843c-e9c7e4953937",
+          "732c04cd-168b-4ef8-9eed-b45462b0fb16",
+          "514305eb-ddba-42ff-9bdb-f06acb885a59",
+          "b3c3fb39-6396-436b-8b78-afcf5d9dc5d7",
+          "534ab8c2-c631-4dbd-8e17-22675fcf59f1",
+          "770d7c67-d6f5-49eb-bbfc-13828a2f8c28",
+          "11ae4907-95de-4950-abdf-fb67204ea144",
+          "75643f9f-127a-41d4-9144-5e2b605e1613",
+          "830fe75d-8ff7-43e7-9b75-a7244eeed032",
+          "4ad1ad71-bce0-4be8-87c4-a1baf447691d",
+          "3ec4d74b-b830-413e-874c-c951aebd5aec",
+          "34927dbb-b3fe-466f-8b55-36655a5e7c51",
+          "498abc41-3825-47a2-b676-1ed29494e20e",
+          "4a130398-8cff-42e7-825a-d79eab9e8272",
+          "60898202-0b53-4ee6-bb92-9d628bdcb0e9",
+          "90abf7eb-cc05-4172-adc2-546b8f59529d",
+          "0d6f71fa-066a-4c17-93cd-66389acbd861",
+          "98994cdc-e769-4774-b273-4bbb394e6d5c",
+          "b28a0b80-2572-4a5d-9984-2cfe7c2a3b4d",
+          "99d387f8-ad1f-4086-be9d-679e52ed052a",
+          "1436b287-9e8c-4b5e-913a-fd56eba90845",
+          "80bb9947-a020-4c89-9c37-0e2ac14939b0",
+          "2c47be73-7b6a-45de-8856-b1050e728d64",
+          "fbe79523-ccd7-477a-8771-0eebefc40307",
+          "61e3e458-7386-4eba-bc85-ff67e5b93c24",
+          "fe726a5a-45e6-46d9-9f28-45581cf227a5",
+          "6be407d8-fc72-4690-baa5-83ab94fd19e3"
+        ],
+        "citedGoldenIds": [],
+        "goldEvidence": [
+          "export"
+        ],
+        "claimChecks": [
+          {
+            "pattern": "第二阶段|二期|阶段二",
+            "passed": false
+          }
+        ],
+        "queryTrace": {
+          "elapsedMs": 1893,
+          "inputChars": 35536,
+          "maxInputChars": 120000,
+          "maxModelCalls": 4,
+          "maxOutputCharsPerCall": 16000,
+          "modelCalls": 2,
+          "rounds": [
+            {
+              "limited": true,
+              "matched": 121,
+              "ranking": [
+                {
+                  "id": "fef2c1c4-22c2-45aa-84e5-8b025bdae1ca",
+                  "score": 19.18930055036336
+                },
+                {
+                  "id": "8cd284b5-c808-46be-a385-30ee4128dac0",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "2c3474e7-7eb2-4236-bda6-59b050be659f",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "f2dbe3ab-dba6-4a9e-8c17-725805043cb1",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "a11681b5-53e6-4f3f-abdb-000bd015a651",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "79e5fab5-63c9-4902-8541-109247c1f363",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "fbaab5f8-ba92-4d8f-b8a3-78891b9d70b8",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "5edff6f1-5a61-4eff-8780-612dbad59275",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "2c555014-253b-470e-b16a-dda6d7e238e5",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "8eb1e90c-431b-42e7-af05-86767bf48cc6",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "f2de1e47-8a18-4c93-bf94-ab7c3dc246fc",
+                  "score": 0.06330873947042502
+                },
+                {
+                  "id": "a73d643e-5d76-41b6-8ed0-7b0770c0b48a",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "ed715177-a85a-434b-891c-f6864b7d2869",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "91f8c6e2-8529-447d-a652-5a9da5f21ead",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "3653faa3-501e-428b-ae73-79ab8e3c3d1f",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "3792c8e7-5eee-4a8f-871d-70690476cfeb",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "d154c6c3-ba20-4061-a557-f4bf5005eabc",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "e700a26a-4f75-476a-ba86-20aab8a41776",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "e1e34f42-29bb-4814-9ff1-c2978b53b310",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "52e2c8e8-5c6e-4898-8abd-6bdc70119ceb",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "603d9f9f-9512-4028-90c8-0ba8ec7f40f4",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "74921aa4-d736-4a16-83fb-9bae6abe9fff",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "f5483be7-5c84-4357-bd9f-cba3f9e50694",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "e4460476-4fb3-484a-a0fc-c661a5416426",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "a3aff795-e96b-471b-b19b-94aa401eb0fd",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "950aa8e3-0f8c-4737-ab79-0936dc0b5550",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "a374e5e1-3dc9-497f-8532-c0cfc86f8d90",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "1455f15a-d9ff-4c96-996d-874712003a4e",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "1e94ab89-f059-4ac4-9b51-cd30e585e556",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "af803b81-4f65-436f-9f97-dce0c11639d6",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "0710c3f1-7730-4297-910e-f60ed0f56948",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "238fb988-93fb-4815-87a1-3fe0eba240fb",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "0d230600-e5cf-4b4b-b660-86ca0f859808",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "cfbe8a65-6f62-4072-ab5b-293f3cbb842d",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "fa74526a-6153-4570-b056-0801a5f2df84",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "52348108-4275-4d8d-840f-e80e4d387365",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "56c34e3d-f868-4b10-a320-5a84a3edc867",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "995959eb-5c3b-478e-b68b-e00addbda695",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "2b0842e4-3289-46d1-b8ea-e18c27eca5dd",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "7eb647f9-999c-4596-b95f-bef26a23f3ec",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "ae78b07b-f696-4cfd-8db9-eadb64e75724",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "e2b82f93-a34c-4aab-bca5-d943fa6dfea9",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "8cb9cb01-8779-4d7e-9b80-a215a74364f3",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "41879c69-7fff-4ee4-a0e3-63adec126868",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "56f62cad-bdf3-4c80-a0c4-b51e2f4c64bf",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "fdf40ee1-37a1-48ae-afb6-65c985fcb5ce",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "9e17301b-3f85-4e3f-b920-cec3c0efeb10",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "5adce531-b7d3-403c-ac87-94a8ee95fbb1",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "ad1f3def-d9cd-4471-ac4f-ed4cfb04ca22",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "44663340-48f7-4321-9ae4-6eae929cabee",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "0ee8fe73-2336-45e1-8ac0-a1304b04d23e",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "3e3f47de-b562-4b69-a499-dd7c7c9f0267",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "ea4f7c9c-df2f-4068-b196-68e03ff322f4",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "2824331c-ea73-48d9-843c-e9c7e4953937",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "732c04cd-168b-4ef8-9eed-b45462b0fb16",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "514305eb-ddba-42ff-9bdb-f06acb885a59",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "b3c3fb39-6396-436b-8b78-afcf5d9dc5d7",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "534ab8c2-c631-4dbd-8e17-22675fcf59f1",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "770d7c67-d6f5-49eb-bbfc-13828a2f8c28",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "11ae4907-95de-4950-abdf-fb67204ea144",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "75643f9f-127a-41d4-9144-5e2b605e1613",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "830fe75d-8ff7-43e7-9b75-a7244eeed032",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "4ad1ad71-bce0-4be8-87c4-a1baf447691d",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "3ec4d74b-b830-413e-874c-c951aebd5aec",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "34927dbb-b3fe-466f-8b55-36655a5e7c51",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "498abc41-3825-47a2-b676-1ed29494e20e",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "4a130398-8cff-42e7-825a-d79eab9e8272",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "60898202-0b53-4ee6-bb92-9d628bdcb0e9",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "90abf7eb-cc05-4172-adc2-546b8f59529d",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "0d6f71fa-066a-4c17-93cd-66389acbd861",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "98994cdc-e769-4774-b273-4bbb394e6d5c",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "b28a0b80-2572-4a5d-9984-2cfe7c2a3b4d",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "99d387f8-ad1f-4086-be9d-679e52ed052a",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "1436b287-9e8c-4b5e-913a-fd56eba90845",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "80bb9947-a020-4c89-9c37-0e2ac14939b0",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "2c47be73-7b6a-45de-8856-b1050e728d64",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "fbe79523-ccd7-477a-8771-0eebefc40307",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "61e3e458-7386-4eba-bc85-ff67e5b93c24",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "fe726a5a-45e6-46d9-9f28-45581cf227a5",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "6be407d8-fc72-4690-baa5-83ab94fd19e3",
+                  "score": 0.0628710908978692
+                },
+                {
+                  "id": "02d3052a-1c78-49db-8db6-67d74f66a1cb",
+                  "score": 0.0628710908978692
+                }
+              ],
+              "returned": 81,
+              "scanned": 143,
+              "version": "nonvector-memory-v1"
+            }
+          ],
+          "searchQueries": [],
+          "timeoutSeconds": 120
+        },
+        "qualityReview": {
+          "errorCode": "MODEL_REQUEST",
+          "status": "unavailable",
+          "supported": false
+        },
+        "expectedClaimsPresent": false,
+        "allGoldEvidenceCited": false,
+        "correctAbstention": null,
+        "scopeViolation": false
+      }
+    ]
+  },
+  "extraction": [],
+  "endToEnd": [],
+  "receipts": [
+    {
+      "index": 1,
+      "group": "connector",
+      "phase": "gold_qa",
+      "caseId": "exact_owner",
+      "startedAt": "2026-10-20T07:52:12.553Z",
+      "requestSha256": "d39e0562349d0be6b6808bcca7e89d9afceefd37f9194ea3a777fd10cc43d6ce",
+      "referenceIds": [
+        "bdc455a1-3850-4411-a20d-ef67329c0cb0",
+        "e84610b3-0e30-4663-a076-35e9cca07a0e",
+        "269f68fb-0cba-4352-91bc-a1993ad1f795",
+        "d2891c4a-652a-49a0-b581-5b32c7456867",
+        "f78e5363-0e3a-41e7-803e-db8bda654a3a"
+      ],
+      "stage": "nonvector",
+      "task": "generation",
+      "inputChars": 5991,
+      "status": 200,
+      "actualModel": "deepseek-flash",
+      "responseId": "f8faaaa3-6036-45f5-a7b3-4ac4aaa3769e",
+      "usage": {
+        "prompt_tokens": 2520,
+        "completion_tokens": 62,
+        "total_tokens": 2582,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 2520
+      },
+      "finishReason": "stop",
+      "modelOutput": {
+        "grounded": true,
+        "answer": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+        "citationIds": [
+          "bdc455a1-3850-4411-a20d-ef67329c0cb0"
+        ]
+      },
+      "elapsedMs": 1035.4317999999985
+    },
+    {
+      "index": 2,
+      "group": "desktop",
+      "phase": "gold_qa",
+      "caseId": "exact_owner",
+      "startedAt": "2026-10-20T07:52:12.621Z",
+      "requestSha256": "249c8b9b3dd249961a558adb76f126949d909d1eff6147bd9407aa78912e064b",
+      "referenceIds": [
+        "memory:bdc455a1-3850-4411-a20d-ef67329c0cb0",
+        "memory:e84610b3-0e30-4663-a076-35e9cca07a0e",
+        "memory:269f68fb-0cba-4352-91bc-a1993ad1f795",
+        "memory:d2891c4a-652a-49a0-b581-5b32c7456867",
+        "memory:f78e5363-0e3a-41e7-803e-db8bda654a3a"
+      ],
+      "stage": "nonvector",
+      "task": "generation",
+      "inputChars": 9430,
+      "status": 200,
+      "actualModel": "deepseek-flash",
+      "responseId": "f28a2f47-a075-47f5-8fa8-dd84af579f06",
+      "usage": {
+        "prompt_tokens": 3997,
+        "completion_tokens": 153,
+        "total_tokens": 4150,
+        "prompt_tokens_details": {
+          "cached_tokens": 128
+        },
+        "prompt_cache_hit_tokens": 128,
+        "prompt_cache_miss_tokens": 3869
+      },
+      "finishReason": "stop",
+      "modelOutput": {
+        "grounded": true,
+        "answer": "支付接口验收由陈雨负责；王敏负责联调，验收截止日期为2026-10-23。另有一条相关要求：上线前必须完成支付接口验收，且验收需要先完成对账核验。客户验收联系人为赵岚，但记录未说明其是否负责支付接口验收。",
+        "citationIds": [
+          "memory:bdc455a1-3850-4411-a20d-ef67329c0cb0",
+          "memory:e84610b3-0e30-4663-a076-35e9cca07a0e",
+          "memory:269f68fb-0cba-4352-91bc-a1993ad1f795"
+        ]
+      },
+      "elapsedMs": 2202.9679000000033
+    },
+    {
+      "index": 3,
+      "group": "connector",
+      "phase": "gold_qa",
+      "caseId": "alias_pool_missing",
+      "startedAt": "2026-10-20T07:52:13.623Z",
+      "requestSha256": "3271a43fb1eff9bf6e1a2458bffc6f75521f3e373348fdcc7714b0a2aff45117",
+      "referenceIds": [
+        "4b5c8b7d-b688-48e3-985c-7d1b4fe6992c"
+      ],
+      "stage": "nonvector",
+      "task": "generation",
+      "inputChars": 2418,
+      "status": 200,
+      "actualModel": "deepseek-flash",
+      "responseId": "eb1431e5-7c6a-4413-8fcd-d5790cfaad53",
+      "usage": {
+        "prompt_tokens": 922,
+        "completion_tokens": 53,
+        "total_tokens": 975,
+        "prompt_tokens_details": {
+          "cached_tokens": 128
+        },
+        "prompt_cache_hit_tokens": 128,
+        "prompt_cache_miss_tokens": 794
+      },
+      "finishReason": "stop",
+      "modelOutput": {
+        "grounded": true,
+        "answer": "PostgreSQL 连接池的最大容量是 64。",
+        "citationIds": [
+          "4b5c8b7d-b688-48e3-985c-7d1b4fe6992c"
+        ]
+      },
+      "elapsedMs": 850.3999999999942
+    },
+    {
+      "index": 4,
+      "group": "connector",
+      "phase": "gold_qa",
+      "caseId": "paraphrase_export",
+      "startedAt": "2026-10-20T07:52:14.497Z",
+      "requestSha256": "033c105fb8705d512be0386c61b73c46861da672aab319d31d9d9a78b899e457",
+      "referenceIds": [
+        "fef2c1c4-22c2-45aa-84e5-8b025bdae1ca",
+        "8cd284b5-c808-46be-a385-30ee4128dac0",
+        "2c3474e7-7eb2-4236-bda6-59b050be659f",
+        "f2dbe3ab-dba6-4a9e-8c17-725805043cb1",
+        "a11681b5-53e6-4f3f-abdb-000bd015a651",
+        "79e5fab5-63c9-4902-8541-109247c1f363"
+      ],
+      "stage": "nonvector",
+      "task": "generation",
+      "inputChars": 6734,
+      "status": 200,
+      "actualModel": "deepseek-flash",
+      "responseId": "9f41f6f4-d1d4-4a44-8986-1c9a65882e91",
+      "usage": {
+        "prompt_tokens": 2821,
+        "completion_tokens": 53,
+        "total_tokens": 2874,
+        "prompt_tokens_details": {
+          "cached_tokens": 128
+        },
+        "prompt_cache_hit_tokens": 128,
+        "prompt_cache_miss_tokens": 2693
+      },
+      "finishReason": "stop",
+      "modelOutput": {
+        "grounded": true,
+        "answer": "批量导出功能仅在第二阶段实施，首期不交付。",
+        "citationIds": [
+          "fef2c1c4-22c2-45aa-84e5-8b025bdae1ca"
+        ]
+      },
+      "elapsedMs": 1097.844799999999
+    },
+    {
+      "index": 5,
+      "group": "desktop",
+      "phase": "gold_qa",
+      "caseId": "alias_pool_missing",
+      "startedAt": "2026-10-20T07:52:14.988Z",
+      "requestSha256": "711c7cb1c09f61637aa5ec9abab7beb393c32ce049c8e5bafb0dfc4a89a97451",
+      "referenceIds": [
+        "memory:4b5c8b7d-b688-48e3-985c-7d1b4fe6992c"
+      ],
+      "stage": "nonvector",
+      "task": "generation",
+      "inputChars": 3273,
+      "status": 200,
+      "actualModel": "deepseek-flash",
+      "responseId": "a2ebc336-d0b6-4a95-b868-776116715d6d",
+      "usage": {
+        "prompt_tokens": 1254,
+        "completion_tokens": 60,
+        "total_tokens": 1314,
+        "prompt_tokens_details": {
+          "cached_tokens": 256
+        },
+        "prompt_cache_hit_tokens": 256,
+        "prompt_cache_miss_tokens": 998
+      },
+      "finishReason": "stop",
+      "modelOutput": {
+        "grounded": true,
+        "answer": "根据项目确认纪要，PostgreSQL 连接池的最大容量为 64。",
+        "citationIds": [
+          "memory:4b5c8b7d-b688-48e3-985c-7d1b4fe6992c"
+        ]
+      },
+      "elapsedMs": 742.037900000003
+    },
+    {
+      "index": 6,
+      "group": "connector",
+      "phase": "gold_qa",
+      "caseId": "semantic_signature",
+      "startedAt": "2026-10-20T07:52:15.620Z",
+      "requestSha256": "6103ab8cdc2830ccf5d497324de630de069d489d0cb128874f1795be647554cc",
+      "referenceIds": [
+        "e84610b3-0e30-4663-a076-35e9cca07a0e",
+        "f78e5363-0e3a-41e7-803e-db8bda654a3a",
+        "8cd284b5-c808-46be-a385-30ee4128dac0",
+        "2c3474e7-7eb2-4236-bda6-59b050be659f",
+        "f2dbe3ab-dba6-4a9e-8c17-725805043cb1",
+        "a11681b5-53e6-4f3f-abdb-000bd015a651"
+      ],
+      "stage": "nonvector",
+      "task": "generation",
+      "inputChars": 6787,
+      "status": 200,
+      "actualModel": "deepseek-flash",
+      "responseId": "4a99177f-7493-4955-be79-fe7da41daac0",
+      "usage": {
+        "prompt_tokens": 2840,
+        "completion_tokens": 14,
+        "total_tokens": 2854,
+        "prompt_tokens_details": {
+          "cached_tokens": 128
+        },
+        "prompt_cache_hit_tokens": 128,
+        "prompt_cache_miss_tokens": 2712
+      },
+      "finishReason": "stop",
+      "modelOutput": {
+        "grounded": false,
+        "answer": "",
+        "citationIds": []
+      },
+      "elapsedMs": 945.9069999999992
+    },
+    {
+      "index": 7,
+      "group": "desktop",
+      "phase": "gold_qa",
+      "caseId": "paraphrase_export",
+      "startedAt": "2026-10-20T07:52:15.934Z",
+      "requestSha256": "a0758810861877e7a72580b011561980f363bc3c74bbd589e1276adcd6dda2d8",
+      "referenceIds": [
+        "memory:fef2c1c4-22c2-45aa-84e5-8b025bdae1ca",
+        "memory:0710c3f1-7730-4297-910e-f60ed0f56948",
+        "memory:0d230600-e5cf-4b4b-b660-86ca0f859808",
+        "memory:0d6f71fa-066a-4c17-93cd-66389acbd861",
+        "memory:0ee8fe73-2336-45e1-8ac0-a1304b04d23e",
+        "memory:11ae4907-95de-4950-abdf-fb67204ea144",
+        "memory:1436b287-9e8c-4b5e-913a-fd56eba90845",
+        "memory:1455f15a-d9ff-4c96-996d-874712003a4e",
+        "memory:1e94ab89-f059-4ac4-9b51-cd30e585e556",
+        "memory:238fb988-93fb-4815-87a1-3fe0eba240fb",
+        "memory:2824331c-ea73-48d9-843c-e9c7e4953937",
+        "memory:2b0842e4-3289-46d1-b8ea-e18c27eca5dd",
+        "memory:2c3474e7-7eb2-4236-bda6-59b050be659f",
+        "memory:2c47be73-7b6a-45de-8856-b1050e728d64",
+        "memory:2c555014-253b-470e-b16a-dda6d7e238e5",
+        "memory:34927dbb-b3fe-466f-8b55-36655a5e7c51",
+        "memory:3653faa3-501e-428b-ae73-79ab8e3c3d1f",
+        "memory:3792c8e7-5eee-4a8f-871d-70690476cfeb",
+        "memory:3e3f47de-b562-4b69-a499-dd7c7c9f0267",
+        "memory:3ec4d74b-b830-413e-874c-c951aebd5aec"
+      ],
+      "stage": "nonvector",
+      "task": "generation",
+      "inputChars": 31745,
+      "status": 200,
+      "actualModel": "deepseek-flash",
+      "responseId": "e7ab2d72-72f4-4ba4-9741-104812bfef4a",
+      "usage": {
+        "prompt_tokens": 13538,
+        "completion_tokens": 112,
+        "total_tokens": 13650,
+        "prompt_tokens_details": {
+          "cached_tokens": 256
+        },
+        "prompt_cache_hit_tokens": 256,
+        "prompt_cache_miss_tokens": 13282
+      },
+      "finishReason": "stop",
+      "modelOutput": {
+        "grounded": true,
+        "answer": "根据《项目确认纪要》中的决策记录，批量导出功能仅在第二阶段实施，首期不交付。因此，批量导出安排在第二阶段。\n\n说明：其余检索到的记录均为“例行同步记录”，内容为“资料已整理，沟通安排另行确认”，未涉及批量导出的阶段安排，不能作为该问题的依据。",
+        "citationIds": [
+          "memory:fef2c1c4-22c2-45aa-84e5-8b025bdae1ca"
+        ]
+      },
+      "elapsedMs": 1584.264900000002
+    },
+    {
+      "index": 8,
+      "group": "connector",
+      "phase": "gold_qa",
+      "caseId": "semantic_signature",
+      "startedAt": "2026-10-20T07:52:16.574Z",
+      "requestSha256": "13b3b5f69ba48048c7aaad1f3d717432541c44aa5cdffe6436631f0d27f7647d",
+      "referenceIds": [],
+      "stage": "nonvector",
+      "task": "query_rewrite",
+      "inputChars": 649,
+      "status": 200,
+      "actualModel": "deepseek-flash",
+      "responseId": "4e622604-9969-4f7e-8096-9a49ede41d9b",
+      "usage": {
+        "prompt_tokens": 191,
+        "completion_tokens": 26,
+        "total_tokens": 217,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 191
+      },
+      "finishReason": "stop",
+      "modelOutput": {
+        "queries": [
+          "商务确认 未完成 原因",
+          "商务确认 延迟 流程",
+          "business confirmation pending delay"
+        ]
+      },
+      "elapsedMs": 906.537700000008
+    },
+    {
+      "index": 9,
+      "group": "connector",
+      "phase": "gold_qa",
+      "caseId": "semantic_signature",
+      "startedAt": "2026-10-20T07:52:17.537Z",
+      "requestSha256": "a47906cccc548c80cec640ffc1f96ef6f6bab8ad864769f3f4bd05db11d732bf",
+      "referenceIds": [
+        "e6b50c10-24f3-4d63-9ad6-8a6fae5c3f46",
+        "e84610b3-0e30-4663-a076-35e9cca07a0e",
+        "f78e5363-0e3a-41e7-803e-db8bda654a3a",
+        "8cd284b5-c808-46be-a385-30ee4128dac0",
+        "2c3474e7-7eb2-4236-bda6-59b050be659f",
+        "f2dbe3ab-dba6-4a9e-8c17-725805043cb1"
+      ],
+      "stage": "nonvector",
+      "task": "generation",
+      "inputChars": 6803,
+      "status": 200,
+      "actualModel": "deepseek-flash",
+      "responseId": "7ddb3990-55e7-4b43-bb91-f8186cfadcb2",
+      "usage": {
+        "prompt_tokens": 2862,
+        "completion_tokens": 14,
+        "total_tokens": 2876,
+        "prompt_tokens_details": {
+          "cached_tokens": 128
+        },
+        "prompt_cache_hit_tokens": 128,
+        "prompt_cache_miss_tokens": 2734
+      },
+      "finishReason": "stop",
+      "modelOutput": {
+        "grounded": false,
+        "answer": "",
+        "citationIds": []
+      },
+      "elapsedMs": 500.3512999999948
+    },
+    {
+      "index": 10,
+      "group": "desktop",
+      "phase": "gold_qa",
+      "caseId": "paraphrase_export",
+      "startedAt": "2026-10-20T07:52:17.609Z",
+      "requestSha256": "e6ad5a4b54361970a451ebe954c6dca89be1b5bc9a08fc5b86952cad43b3b1ec",
+      "referenceIds": [
+        "memory:fef2c1c4-22c2-45aa-84e5-8b025bdae1ca"
+      ],
+      "stage": "nonvector",
+      "task": "answer_review",
+      "inputChars": 2675,
+      "status": 400,
+      "error": "Upstream HTTP 400",
+      "elapsedMs": 84.15529999999853
+    }
+  ],
+  "nonvector": {
+    "challengeDatasetSha256": "fc9a35e838c9ab6a966268ec23646cf21e46819c3a63493c3491b1ea0b69680f",
+    "queryCountPerEntry": 18,
+    "skipsExtraction": true,
+    "maxUpstreamRequests": 90,
+    "version": "nonvector-memory-v1",
+    "description": "12 known development queries plus 6 newly authored synthetic challenges; no embeddings or reranker; one bounded rewrite and causal review through production Engine."
+  },
+  "goldMapping": {
+    "projectId": "a28b3832-f890-46f2-9ef3-b01c75796982",
+    "memoryMap": {
+      "audit": "a6608508-5bfc-4911-8338-a48fd9e85a0f",
+      "login": "7528aef4-00a7-4a02-beef-9dd400eccf34",
+      "owner": "bdc455a1-3850-4411-a20d-ef67329c0cb0",
+      "signature": "aa649b81-5218-4f92-9084-9a75b1b202cb",
+      "recovery": "d2891c4a-652a-49a0-b581-5b32c7456867",
+      "pool": "4b5c8b7d-b688-48e3-985c-7d1b4fe6992c",
+      "export": "fef2c1c4-22c2-45aa-84e5-8b025bdae1ca",
+      "lockout": "c88f1247-1f0c-4383-abe3-b743421c794c",
+      "rollback": "04bfbf15-002e-4042-bb61-fc84265a70dc",
+      "budget": "268c103a-4727-4357-856c-6e7a106ad969",
+      "sms": "ea92b0b1-7ac6-48f8-af75-b7241277dd02",
+      "launch": "e84610b3-0e30-4663-a076-35e9cca07a0e",
+      "reconcile": "23e60bbb-ca6a-40ef-885a-b7416118eab4",
+      "incident": "e6b50c10-24f3-4d63-9ad6-8a6fae5c3f46",
+      "contact": "269f68fb-0cba-4352-91bc-a1993ad1f795",
+      "offline": "b48cb2ee-63b0-470c-960a-bdaa088e6849",
+      "long": "b54d55dc-60ee-43df-b830-802b94595d17",
+      "title_only": "762d40a5-95b5-49ff-834b-de1cafb1570c",
+      "conflicted": "4b30698d-be3f-4ad1-a9c8-395a2afeb59b",
+      "challenge_reward": "0c6c1890-469a-47db-918e-c3955edd6234",
+      "challenge_mfa": "03ee4c72-d766-4f39-bd37-b40a01e472ed",
+      "challenge_archive": "596f3434-48aa-4f5b-b290-2be64d92ff52",
+      "challenge_progress": "f78e5363-0e3a-41e7-803e-db8bda654a3a",
+      "challenge_release": "a97da1be-fde5-4fc5-92fd-d3cbc2eff4fa"
+    }
+  },
+  "desktopReadOnly": true,
+  "connectorReadOnly": true,
+  "finishedAt": "2026-10-20T07:52:18.136Z",
+  "summary": {
+    "connector": {
+      "cases": 4,
+      "errors": 0,
+      "answerable": 4,
+      "groundedAnswerable": 3,
+      "expectedClaimsPresent": 3,
+      "allGoldEvidenceCited": 3,
+      "unanswerable": 0,
+      "correctAbstentions": 0,
+      "scopeViolations": 0,
+      "p50Ms": 1073.5368999999992,
+      "p95Ms": 2442.8705000000045
+    },
+    "desktop": {
+      "cases": 3,
+      "errors": 0,
+      "answerable": 3,
+      "groundedAnswerable": 2,
+      "expectedClaimsPresent": 2,
+      "allGoldEvidenceCited": 2,
+      "unanswerable": 0,
+      "correctAbstentions": 0,
+      "scopeViolations": 0,
+      "p50Ms": 1961.4676000000036,
+      "p95Ms": 2383.0907000000007
+    }
+  },
+  "actualModels": [
+    "deepseek-flash"
+  ],
+  "usage": {
+    "prompt_tokens": 30945,
+    "completion_tokens": 547,
+    "total_tokens": 31492,
+    "prompt_cache_hit_tokens": 1152,
+    "prompt_cache_miss_tokens": 29793
+  },
+  "requestCount": 10,
+  "halted": true
+}

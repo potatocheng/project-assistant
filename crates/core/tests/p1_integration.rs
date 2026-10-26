@@ -145,11 +145,11 @@ fn schema_six_migrates_without_changing_delivery_state() {
     let t = task(&e, &p);
     drop(e);
     let conn = rusqlite::Connection::open(dir.path().join("workspace.sqlite")).unwrap();
-    conn.execute_batch("DROP TABLE coordination_action_versions;DROP TABLE coordination_actions;DROP TABLE coordination_meeting_versions;DROP TABLE coordination_meetings;DROP TABLE coordination_report_versions;DROP TABLE coordination_reports;DROP TABLE deliverable_history;DROP TABLE deliverables;DROP TABLE change_request_history;DROP TABLE change_requests;DROP TABLE governance_revisions;DROP TABLE governance_items;PRAGMA user_version=6;").unwrap();
+    conn.execute_batch("DROP TABLE extraction_drafts;DROP TABLE extraction_batches;DROP TABLE extraction_budget;DROP TABLE memory_lexical;DROP TABLE memory_lexical_state;DROP TABLE revision_facets;DROP TABLE proposal_facets;DROP TABLE extraction_assessments;DROP TABLE memory_corrections;DROP TABLE project_briefs;DROP TABLE assistant_preferences;DROP TABLE coordination_action_versions;DROP TABLE coordination_actions;DROP TABLE coordination_meeting_versions;DROP TABLE coordination_meetings;DROP TABLE coordination_report_versions;DROP TABLE coordination_reports;DROP TABLE deliverable_history;DROP TABLE deliverables;DROP TABLE change_request_history;DROP TABLE change_requests;DROP TABLE governance_revisions;DROP TABLE governance_items;PRAGMA user_version=6;").unwrap();
     drop(conn);
     let e = Engine::open(dir.path()).unwrap();
     let state = call(&e, "get_state", json!({}));
-    assert_eq!(state["workspace"]["schemaVersion"], 7);
+    assert_eq!(state["workspace"]["schemaVersion"], 10);
     assert_eq!(state["tasks"][0], t);
     assert_eq!(
         call(&e, "get_management_attention", json!({"date":DAY}))["count"],

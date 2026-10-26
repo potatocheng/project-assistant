@@ -1,0 +1,66 @@
+{
+  "version": "memory-qa-calibrated-preregistration-v1",
+  "registeredAt": "2026-10-20T15:57:50.901Z",
+  "datasetSha256": "803537c32e89dce765c8e6cef6484f332d6ef5a9c91b726a4ea957e68b461d87",
+  "model": "deepseek-flash",
+  "baselineDevelopment": {
+    "file": "docs/memory-public-live-qa-efficient-dev-v2-results.json",
+    "sha256": "785c4cb11953cb5533eb7165e81ff49a502a6cf75b56d225a5daccf348ce390f"
+  },
+  "baselineFull": {
+    "file": "docs/memory-public-live-qa-efficient-full-results.json",
+    "sha256": "7bd5f73eebf4a8962c9449722f2f5b8474ff40faa534ac71be3cbe932e06e22a"
+  },
+  "thresholds": {
+    "retainedYesOrPartial": 18,
+    "desktopComplete": 13,
+    "connectorComplete": 14,
+    "desktopReferencesSufficient": 16,
+    "connectorReferencesSufficient": 16,
+    "desktopCorrectAbstention": 1,
+    "connectorCorrectAbstention": 1,
+    "desktopPairedNetImprovement": 0,
+    "connectorPairedNetImprovement": 0,
+    "combinedPairedNetImprovement": 1,
+    "maxQaProtocolErrors": 0,
+    "maxSupplementProtocolFailures": 0,
+    "maxQaTokenGrowthFraction": 0.1,
+    "maxCombinedQaTokens": 288410
+  },
+  "qaCostBaseline": {
+    "desktop": 132336,
+    "connector": 129855,
+    "combined": 262191,
+    "qaRequests": 83,
+    "usageComplete": true
+  },
+  "fullTargets": {
+    "desktopComplete": 62,
+    "connectorComplete": 60,
+    "desktopReferencesSufficient": 69,
+    "connectorReferencesSufficient": 68,
+    "desktopCorrectAbstention": 7,
+    "connectorCorrectAbstention": 7,
+    "maxCombinedQaTokens": 1664381,
+    "baselineCombinedQaTokens": 1513074,
+    "maxQaTokenGrowthFraction": 0.1
+  },
+  "limits": {
+    "development": {
+      "maxRequests": 600,
+      "maxTokens": 3000000
+    },
+    "full": {
+      "maxRequests": 2000,
+      "maxTokens": 12000000
+    }
+  },
+  "productionCaps": {
+    "maxModelCalls": 5,
+    "maxInputChars": 180000,
+    "focusedContextMaxReferences": 24,
+    "focusedContextMaxModelChars": 36000
+  },
+  "methodology": "Fresh question-independent production extraction and organization; both actual production QA entries; same deepseek-flash model and frozen QASPER100 paper-disjoint20/80 split. Same separated answer/memory/retrieval judge prompts, gold and labels. Anonymous previous/current answer pairing; preserve historical original scores separately. Gold never enters production. Complete provider-reported usage for every QA attempt including rejected reviews/fallbacks. No API retry or best-of selection; explicit pre-existing one-time parser/schema-only judge repair policy is unchanged and all costs retained. Failed pilots, if any, share600requests/3M development tokens and remain immutable artifacts. Full targets are registered reporting success targets, not permission to relax a development gate. These questions are fixed examined regressions, not unseen blind evaluation. Human semantic annotation is not complete.",
+  "snapshotPolicy": "Previous qa-efficient production/evaluation snapshots and artifact hashes remain immutable. Shared tag dispatch may gain a new round route, changing its current bytes; the new round records a separate complete evaluation manifest and snapshot. Old artifacts are verified against their original snapshots; no historical fingerprint or result is rewritten."
+}

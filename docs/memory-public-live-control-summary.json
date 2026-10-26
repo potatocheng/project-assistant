@@ -1,0 +1,5869 @@
+{
+  "methodology": "Mutually exclusive observed loss, not causal proof. All answerable cases stay in accuracy denominators; missing/uncertain judges never count as correct. Answer correctness is same-model post-hoc judgment, not independently validated. Joint judge memory/retrieval labels were found confounded and excluded from stage attribution. Paragraph control attribution uses actual gold paragraph links/full text. Missing one gold set does not prove no equivalent evidence existed, and whole paragraph visibility does not prove sufficient reading. Organization errors are not separately blamed without evidence from facet ablation.",
+  "paragraphControl": true,
+  "complete": true,
+  "summary": {
+    "all:desktop": {
+      "cases": 100,
+      "executed": 100,
+      "judged": 100,
+      "answerable": 91,
+      "unanswerable": 9,
+      "fullyCorrectAnswerable": {
+        "count": 41,
+        "denominator": 91,
+        "rate": 0.45054945054945056
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 19,
+        "denominator": 91,
+        "rate": 0.2087912087912088
+      },
+      "correctAbstention": {
+        "count": 3,
+        "denominator": 9,
+        "rate": 0.3333333333333333
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 91,
+          "denominator": 91,
+          "rate": 1
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 51,
+          "denominator": 91,
+          "rate": 0.5604395604395604
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 50,
+          "denominator": 91,
+          "rate": 0.5494505494505495
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 36,
+          "denominator": 50,
+          "rate": 0.72
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": true,
+        "reason": "Inspection of judge reasons found joint judge conflating available full memories with missed retrieval/answer content. These labels are retained for audit only.",
+        "fullMemoryCoverage": {
+          "count": 64,
+          "denominator": 91,
+          "rate": 0.7032967032967034
+        },
+        "fullRetrievalCoverage": {
+          "count": 55,
+          "denominator": 91,
+          "rate": 0.6043956043956044
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 54,
+          "denominator": 64,
+          "rate": 0.84375
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 41,
+          "denominator": 54,
+          "rate": 0.7592592592592593
+        }
+      },
+      "protocolErrors": {
+        "ASSISTANT_GROUNDING": 20
+      },
+      "firstLoss": {
+        "success": 41,
+        "retrieval_evidence_gap": 35,
+        "context_excerpt_gap": 1,
+        "answer_protocol_error": 8,
+        "answer_error_or_refusal": 6
+      },
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": 0,
+      "p50Ms": 3782,
+      "p95Ms": 6260
+    },
+    "all:connector": {
+      "cases": 100,
+      "executed": 100,
+      "judged": 100,
+      "answerable": 91,
+      "unanswerable": 9,
+      "fullyCorrectAnswerable": {
+        "count": 48,
+        "denominator": 91,
+        "rate": 0.5274725274725275
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 30,
+        "denominator": 91,
+        "rate": 0.32967032967032966
+      },
+      "correctAbstention": {
+        "count": 6,
+        "denominator": 9,
+        "rate": 0.6666666666666666
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 91,
+          "denominator": 91,
+          "rate": 1
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 59,
+          "denominator": 91,
+          "rate": 0.6483516483516484
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 59,
+          "denominator": 91,
+          "rate": 0.6483516483516484
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 44,
+          "denominator": 59,
+          "rate": 0.7457627118644068
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": true,
+        "reason": "Inspection of judge reasons found joint judge conflating available full memories with missed retrieval/answer content. These labels are retained for audit only.",
+        "fullMemoryCoverage": {
+          "count": 64,
+          "denominator": 91,
+          "rate": 0.7032967032967034
+        },
+        "fullRetrievalCoverage": {
+          "count": 61,
+          "denominator": 91,
+          "rate": 0.6703296703296703
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 58,
+          "denominator": 64,
+          "rate": 0.90625
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 47,
+          "denominator": 58,
+          "rate": 0.8103448275862069
+        }
+      },
+      "protocolErrors": {
+        "QA_GROUNDING": 5
+      },
+      "firstLoss": {
+        "retrieval_evidence_gap": 28,
+        "success": 48,
+        "answer_protocol_error": 4,
+        "answer_error_or_refusal": 11
+      },
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": 0,
+      "p50Ms": 3151,
+      "p95Ms": 4772
+    },
+    "development:desktop": {
+      "cases": 20,
+      "executed": 20,
+      "judged": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "fullyCorrectAnswerable": {
+        "count": 7,
+        "denominator": 19,
+        "rate": 0.3684210526315789
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 1,
+        "denominator": 19,
+        "rate": 0.05263157894736842
+      },
+      "correctAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 19,
+          "denominator": 19,
+          "rate": 1
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 13,
+          "denominator": 19,
+          "rate": 0.6842105263157895
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 12,
+          "denominator": 19,
+          "rate": 0.631578947368421
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 7,
+          "denominator": 12,
+          "rate": 0.5833333333333334
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": true,
+        "reason": "Inspection of judge reasons found joint judge conflating available full memories with missed retrieval/answer content. These labels are retained for audit only.",
+        "fullMemoryCoverage": {
+          "count": 14,
+          "denominator": 19,
+          "rate": 0.7368421052631579
+        },
+        "fullRetrievalCoverage": {
+          "count": 11,
+          "denominator": 19,
+          "rate": 0.5789473684210527
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 11,
+          "denominator": 14,
+          "rate": 0.7857142857142857
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 7,
+          "denominator": 11,
+          "rate": 0.6363636363636364
+        }
+      },
+      "protocolErrors": {
+        "ASSISTANT_GROUNDING": 7
+      },
+      "firstLoss": {
+        "success": 7,
+        "retrieval_evidence_gap": 6,
+        "context_excerpt_gap": 1,
+        "answer_protocol_error": 3,
+        "answer_error_or_refusal": 2
+      },
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": 0,
+      "p50Ms": 3623,
+      "p95Ms": 4107
+    },
+    "development:connector": {
+      "cases": 20,
+      "executed": 20,
+      "judged": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "fullyCorrectAnswerable": {
+        "count": 7,
+        "denominator": 19,
+        "rate": 0.3684210526315789
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 8,
+        "denominator": 19,
+        "rate": 0.42105263157894735
+      },
+      "correctAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 19,
+          "denominator": 19,
+          "rate": 1
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 14,
+          "denominator": 19,
+          "rate": 0.7368421052631579
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 14,
+          "denominator": 19,
+          "rate": 0.7368421052631579
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 6,
+          "denominator": 14,
+          "rate": 0.42857142857142855
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": true,
+        "reason": "Inspection of judge reasons found joint judge conflating available full memories with missed retrieval/answer content. These labels are retained for audit only.",
+        "fullMemoryCoverage": {
+          "count": 14,
+          "denominator": 19,
+          "rate": 0.7368421052631579
+        },
+        "fullRetrievalCoverage": {
+          "count": 12,
+          "denominator": 19,
+          "rate": 0.631578947368421
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 11,
+          "denominator": 14,
+          "rate": 0.7857142857142857
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 7,
+          "denominator": 11,
+          "rate": 0.6363636363636364
+        }
+      },
+      "protocolErrors": {
+        "QA_GROUNDING": 2
+      },
+      "firstLoss": {
+        "retrieval_evidence_gap": 4,
+        "success": 7,
+        "answer_protocol_error": 2,
+        "answer_error_or_refusal": 6
+      },
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": 0,
+      "p50Ms": 3053,
+      "p95Ms": 3918
+    },
+    "holdout:desktop": {
+      "cases": 80,
+      "executed": 80,
+      "judged": 80,
+      "answerable": 72,
+      "unanswerable": 8,
+      "fullyCorrectAnswerable": {
+        "count": 34,
+        "denominator": 72,
+        "rate": 0.4722222222222222
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 18,
+        "denominator": 72,
+        "rate": 0.25
+      },
+      "correctAbstention": {
+        "count": 2,
+        "denominator": 8,
+        "rate": 0.25
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 72,
+          "denominator": 72,
+          "rate": 1
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 38,
+          "denominator": 72,
+          "rate": 0.5277777777777778
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 38,
+          "denominator": 72,
+          "rate": 0.5277777777777778
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 29,
+          "denominator": 38,
+          "rate": 0.7631578947368421
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": true,
+        "reason": "Inspection of judge reasons found joint judge conflating available full memories with missed retrieval/answer content. These labels are retained for audit only.",
+        "fullMemoryCoverage": {
+          "count": 50,
+          "denominator": 72,
+          "rate": 0.6944444444444444
+        },
+        "fullRetrievalCoverage": {
+          "count": 44,
+          "denominator": 72,
+          "rate": 0.6111111111111112
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 43,
+          "denominator": 50,
+          "rate": 0.86
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 34,
+          "denominator": 43,
+          "rate": 0.7906976744186046
+        }
+      },
+      "protocolErrors": {
+        "ASSISTANT_GROUNDING": 13
+      },
+      "firstLoss": {
+        "retrieval_evidence_gap": 29,
+        "success": 34,
+        "answer_protocol_error": 5,
+        "answer_error_or_refusal": 4
+      },
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": 0,
+      "p50Ms": 3829,
+      "p95Ms": 6260
+    },
+    "holdout:connector": {
+      "cases": 80,
+      "executed": 80,
+      "judged": 80,
+      "answerable": 72,
+      "unanswerable": 8,
+      "fullyCorrectAnswerable": {
+        "count": 41,
+        "denominator": 72,
+        "rate": 0.5694444444444444
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 22,
+        "denominator": 72,
+        "rate": 0.3055555555555556
+      },
+      "correctAbstention": {
+        "count": 5,
+        "denominator": 8,
+        "rate": 0.625
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 72,
+          "denominator": 72,
+          "rate": 1
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 45,
+          "denominator": 72,
+          "rate": 0.625
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 45,
+          "denominator": 72,
+          "rate": 0.625
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 38,
+          "denominator": 45,
+          "rate": 0.8444444444444444
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": true,
+        "reason": "Inspection of judge reasons found joint judge conflating available full memories with missed retrieval/answer content. These labels are retained for audit only.",
+        "fullMemoryCoverage": {
+          "count": 50,
+          "denominator": 72,
+          "rate": 0.6944444444444444
+        },
+        "fullRetrievalCoverage": {
+          "count": 49,
+          "denominator": 72,
+          "rate": 0.6805555555555556
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 47,
+          "denominator": 50,
+          "rate": 0.94
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 40,
+          "denominator": 47,
+          "rate": 0.851063829787234
+        }
+      },
+      "protocolErrors": {
+        "QA_GROUNDING": 3
+      },
+      "firstLoss": {
+        "success": 41,
+        "retrieval_evidence_gap": 24,
+        "answer_error_or_refusal": 5,
+        "answer_protocol_error": 2
+      },
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": 0,
+      "p50Ms": 3172,
+      "p95Ms": 4990
+    }
+  },
+  "extraction": {
+    "papers": 36,
+    "statuses": {
+      "not_measured": 36
+    },
+    "errorCodes": {},
+    "formalMemories": 1686,
+    "discarded": 0,
+    "qaReadOnly": true,
+    "harnessErrors": []
+  },
+  "judgeErrors": [],
+  "cases": [
+    {
+      "id": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1603.01514:s13:p0",
+          "1603.01514:s10:p0",
+          "1603.01514:s8:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1603.01514:s13:p0",
+          "1603.01514:s0:p3",
+          "1603.01514:s10:p0",
+          "1603.01514:s12:p0",
+          "1603.01514:s3:p0",
+          "1603.01514:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1603.01514:s10:p0",
+          "1603.01514:s13:p0",
+          "1603.01514:s0:p6",
+          "1603.01514:s13:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1603.01514:s0:p6",
+          "1603.01514:s10:p0",
+          "1603.01514:s13:p0",
+          "1603.01514:s3:p0",
+          "1603.01514:s1:p1",
+          "1603.01514:s0:p7"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1603.01514:s7:p0",
+          "1603.01514:s9:p1",
+          "1603.01514:s3:p3",
+          "1603.01514:s3:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1603.01514:s0:p6",
+          "1603.01514:s7:p0",
+          "1603.01514:s9:p1",
+          "1603.01514:s3:p3",
+          "1603.01514:s9:p3",
+          "1603.01514:s3:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6bf5620f295b5243230bc97b340fae6e92304595",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1603.01514:s11:p1",
+          "1603.01514:s6:p0",
+          "1603.01514:s9:p1",
+          "1603.01514:s12:p1",
+          "1603.01514:s4:p9"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6bf5620f295b5243230bc97b340fae6e92304595",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1603.01514:s11:p1",
+          "1603.01514:s6:p0",
+          "1603.01514:s9:p0",
+          "1603.01514:s4:p9",
+          "1603.01514:s11:p4",
+          "1603.01514:s9:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09666:s7:p0",
+          "1902.09666:s1:p12",
+          "1902.09666:s11:p0",
+          "1902.09666:s0:p2",
+          "1902.09666:s0:p5"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09666:s11:p0",
+          "1902.09666:s6:p0",
+          "1902.09666:s7:p0",
+          "1902.09666:s1:p12",
+          "1902.09666:s0:p2",
+          "1902.09666:s0:p5"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09666:s1:p8",
+          "1902.09666:s0:p1",
+          "1902.09666:s11:p0",
+          "1902.09666:s1:p6",
+          "1902.09666:s3:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09666:s1:p8",
+          "1902.09666:s0:p1",
+          "1902.09666:s11:p0",
+          "1902.09666:s1:p6",
+          "1902.09666:s3:p0",
+          "1902.09666:s0:p5"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "QA_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "521280a87c43fcdf9f577da235e7072a23f0673e",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "context_excerpt_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09666:s6:p0",
+          "1902.09666:s5:p3",
+          "1902.09666:s0:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "521280a87c43fcdf9f577da235e7072a23f0673e",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09666:s6:p0",
+          "1902.09666:s5:p3",
+          "1902.09666:s0:p1",
+          "1902.09666:s7:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09666:s0:p0",
+          "1902.09666:s1:p8",
+          "1902.09666:s0:p1",
+          "1902.09666:s3:p3",
+          "1902.09666:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09666:s1:p0",
+          "1902.09666:s3:p3",
+          "1902.09666:s2:p0",
+          "1902.09666:s0:p0",
+          "1902.09666:s1:p8",
+          "1902.09666:s0:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s4:p1",
+          "1806.00738:s7:p0",
+          "1806.00738:s3:p0",
+          "1806.00738:s1:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s7:p0",
+          "1806.00738:s4:p1",
+          "1806.00738:s3:p0",
+          "1806.00738:s1:p1",
+          "1806.00738:s4:p0",
+          "1806.00738:s4:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s5:p1",
+          "1806.00738:s4:p0",
+          "1806.00738:s7:p1",
+          "1806.00738:s1:p2",
+          "1806.00738:s1:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s5:p1",
+          "1806.00738:s7:p1",
+          "1806.00738:s4:p0",
+          "1806.00738:s1:p2",
+          "1806.00738:s1:p1",
+          "1806.00738:s0:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s1:p1",
+          "1806.00738:s3:p0",
+          "1806.00738:s2:p0",
+          "1806.00738:s6:p3",
+          "1806.00738:s6:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s1:p1",
+          "1806.00738:s0:p1",
+          "1806.00738:s2:p0",
+          "1806.00738:s3:p0",
+          "1806.00738:s4:p2",
+          "1806.00738:s6:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s4:p1",
+          "1806.00738:s4:p0",
+          "1806.00738:s2:p0",
+          "1806.00738:s4:p2",
+          "1806.00738:s7:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s4:p1",
+          "1806.00738:s7:p1",
+          "1806.00738:s0:p0",
+          "1806.00738:s4:p0",
+          "1806.00738:s2:p0",
+          "1806.00738:s4:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "QA_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.07245:s17:p1",
+          "1908.07245:s16:p4",
+          "1908.07245:s0:p5",
+          "1908.07245:s0:p4",
+          "1908.07245:s5:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.07245:s16:p4",
+          "1908.07245:s17:p1",
+          "1908.07245:s5:p1",
+          "1908.07245:s0:p4",
+          "1908.07245:s0:p5",
+          "1908.07245:s0:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.07245:s15:p0",
+          "1908.07245:s0:p4",
+          "1908.07245:s3:p0",
+          "1908.07245:s17:p1",
+          "1908.07245:s9:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.07245:s15:p0",
+          "1908.07245:s0:p4",
+          "1908.07245:s3:p0",
+          "1908.07245:s0:p3",
+          "1908.07245:s17:p1",
+          "1908.07245:s10:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.07245:s0:p4",
+          "1908.07245:s3:p0",
+          "1908.07245:s5:p0",
+          "1908.07245:s0:p1",
+          "1908.07245:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.07245:s0:p4",
+          "1908.07245:s0:p3",
+          "1908.07245:s0:p1",
+          "1908.07245:s3:p0",
+          "1908.07245:s5:p0",
+          "1908.07245:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09243:s9:p0",
+          "1902.09243:s10:p1",
+          "1902.09243:s6:p7",
+          "1902.09243:s8:p6",
+          "1902.09243:s7:p1"
+        ],
+        "generations": 2
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09243:s9:p0",
+          "1902.09243:s8:p6",
+          "1902.09243:s9:p2",
+          "1902.09243:s9:p3",
+          "1902.09243:s6:p7",
+          "1902.09243:s0:p7"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09243:s6:p6",
+          "1902.09243:s6:p1",
+          "1902.09243:s6:p4",
+          "1902.09243:s5:p10",
+          "1902.09243:s1:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09243:s6:p6",
+          "1902.09243:s5:p10",
+          "1902.09243:s6:p4",
+          "1902.09243:s6:p1",
+          "1902.09243:s8:p4",
+          "1902.09243:s1:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09243:s0:p5",
+          "1902.09243:s11:p1",
+          "1902.09243:s8:p0",
+          "1902.09243:s11:p2",
+          "1902.09243:s7:p0",
+          "1902.09243:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09243:s0:p5",
+          "1902.09243:s11:p1",
+          "1902.09243:s0:p2",
+          "1902.09243:s8:p0",
+          "1902.09243:s9:p3",
+          "1902.09243:s2:p5"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "paperId": "1705.01214",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1705.01214:s0:p5",
+          "1705.01214:s3:p20",
+          "1705.01214:s12:p3",
+          "1705.01214:s6:p7",
+          "1705.01214:s1:p7"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "paperId": "1705.01214",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1705.01214:s0:p5",
+          "1705.01214:s3:p20",
+          "1705.01214:s12:p3",
+          "1705.01214:s6:p7",
+          "1705.01214:s12:p71",
+          "1705.01214:s12:p58"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "78292bc57ee68fdb93ed45430d80acca25a9e916",
+      "paperId": "1911.03343",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1911.03343:s3:p2",
+          "1911.03343:s4:p3",
+          "1911.03343:s3:p4",
+          "1911.03343:s4:p2",
+          "1911.03343:s1:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "78292bc57ee68fdb93ed45430d80acca25a9e916",
+      "paperId": "1911.03343",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1911.03343:s4:p3",
+          "1911.03343:s3:p2",
+          "1911.03343:s3:p4",
+          "1911.03343:s4:p2",
+          "1911.03343:s0:p2",
+          "1911.03343:s1:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "2ea4347f1992b0b3958c4844681ff0fe4d0dd1dd",
+      "paperId": "1904.09535",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1904.09535:s3:p1",
+          "1904.09535:s2:p1",
+          "1904.09535:s3:p4",
+          "1904.09535:s0:p4",
+          "1904.09535:s4:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "2ea4347f1992b0b3958c4844681ff0fe4d0dd1dd",
+      "paperId": "1904.09535",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1904.09535:s3:p1",
+          "1904.09535:s0:p4",
+          "1904.09535:s2:p1",
+          "1904.09535:s3:p4",
+          "1904.09535:s1:p1",
+          "1904.09535:s0:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "7705dd04acedaefee30d8b2c9978537afb2040dc",
+      "paperId": "1604.00727",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1604.00727:s9:p0",
+          "1604.00727:s10:p2",
+          "1604.00727:s1:p4",
+          "1604.00727:s0:p2",
+          "1604.00727:s10:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "7705dd04acedaefee30d8b2c9978537afb2040dc",
+      "paperId": "1604.00727",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1604.00727:s1:p4",
+          "1604.00727:s10:p2",
+          "1604.00727:s9:p0",
+          "1604.00727:s10:p1",
+          "1604.00727:s0:p2",
+          "1604.00727:s13:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "784ce5a983c5f2cc95a2c60ce66f2a8a50f3636f",
+      "paperId": "1604.00727",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1604.00727:s9:p0",
+          "1604.00727:s13:p0",
+          "1604.00727:s0:p4",
+          "1604.00727:s12:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "784ce5a983c5f2cc95a2c60ce66f2a8a50f3636f",
+      "paperId": "1604.00727",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1604.00727:s8:p0",
+          "1604.00727:s0:p4",
+          "1604.00727:s9:p0",
+          "1604.00727:s5:p7",
+          "1604.00727:s10:p0",
+          "1604.00727:s10:p4"
+        ],
+        "generations": 2
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "7595260c5747aede0b32b7414e13899869209506",
+      "paperId": "2003.11645",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.11645:s0:p1",
+          "2003.11645:s2:p2",
+          "2003.11645:s3:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "7595260c5747aede0b32b7414e13899869209506",
+      "paperId": "2003.11645",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.11645:s0:p1",
+          "2003.11645:s1:p2",
+          "2003.11645:s2:p2",
+          "2003.11645:s1:p1",
+          "2003.11645:s3:p0",
+          "2003.11645:s2:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "ef3567ce7301b28e34377e7b62c4ec9b496f00bf",
+      "paperId": "2003.11645",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.11645:s1:p2",
+          "2003.11645:s0:p1",
+          "2003.11645:s2:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "ef3567ce7301b28e34377e7b62c4ec9b496f00bf",
+      "paperId": "2003.11645",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.11645:s1:p2",
+          "2003.11645:s0:p1",
+          "2003.11645:s2:p2",
+          "2003.11645:s3:p0",
+          "2003.11645:s2:p1",
+          "2003.11645:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "3355918bbdccac644afe441f085d0ffbbad565d7",
+      "paperId": "2001.01269",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2001.01269:s5:p0",
+          "2001.01269:s4:p3",
+          "2001.01269:s4:p6",
+          "2001.01269:s1:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "3355918bbdccac644afe441f085d0ffbbad565d7",
+      "paperId": "2001.01269",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2001.01269:s4:p3",
+          "2001.01269:s3:p4",
+          "2001.01269:s5:p0",
+          "2001.01269:s1:p4",
+          "2001.01269:s9:p0",
+          "2001.01269:s4:p6"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "0d34c0812f1e69ea33f76ca8c24c23b0415ebc8d",
+      "paperId": "2001.01269",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "2001.01269:s11:p1",
+          "2001.01269:s2:p0",
+          "2001.01269:s0:p4",
+          "2001.01269:s1:p3",
+          "2001.01269:s0:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "0d34c0812f1e69ea33f76ca8c24c23b0415ebc8d",
+      "paperId": "2001.01269",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2001.01269:s2:p0",
+          "2001.01269:s11:p1",
+          "2001.01269:s1:p3",
+          "2001.01269:s0:p4",
+          "2001.01269:s7:p0",
+          "2001.01269:s0:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "cf171fad0bea5ab985c53d11e48e7883c23cdc44",
+      "paperId": "2001.01269",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2001.01269:s8:p2",
+          "2001.01269:s12:p2",
+          "2001.01269:s11:p2",
+          "2001.01269:s8:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "cf171fad0bea5ab985c53d11e48e7883c23cdc44",
+      "paperId": "2001.01269",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2001.01269:s8:p2",
+          "2001.01269:s12:p2",
+          "2001.01269:s4:p6",
+          "2001.01269:s11:p2",
+          "2001.01269:s8:p3",
+          "2001.01269:s11:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "2a564b092916f2fabbfe893cf13de169945ef2e1",
+      "paperId": "2001.01269",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2001.01269:s8:p2",
+          "2001.01269:s12:p2",
+          "2001.01269:s8:p3",
+          "2001.01269:s8:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "2a564b092916f2fabbfe893cf13de169945ef2e1",
+      "paperId": "2001.01269",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "2001.01269:s8:p2",
+          "2001.01269:s12:p2",
+          "2001.01269:s11:p6",
+          "2001.01269:s4:p6",
+          "2001.01269:s8:p3",
+          "2001.01269:s11:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "bc4dca3e1e83f3b4bbb53a31557fc5d8971603b2",
+      "paperId": "1908.06941",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.06941:s4:p2",
+          "1908.06941:s3:p4",
+          "1908.06941:s4:p1",
+          "1908.06941:s0:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "bc4dca3e1e83f3b4bbb53a31557fc5d8971603b2",
+      "paperId": "1908.06941",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.06941:s4:p2",
+          "1908.06941:s4:p1",
+          "1908.06941:s3:p4",
+          "1908.06941:s0:p2",
+          "1908.06941:s4:p3",
+          "1908.06941:s4:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "QA_GROUNDING",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "6b9b9e5d154cb963f6d921093539490daa5ebbae",
+      "paperId": "1908.06941",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.06941:s1:p1",
+          "1908.06941:s0:p2",
+          "1908.06941:s5:p0",
+          "1908.06941:s4:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "6b9b9e5d154cb963f6d921093539490daa5ebbae",
+      "paperId": "1908.06941",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.06941:s5:p0",
+          "1908.06941:s1:p1",
+          "1908.06941:s3:p1",
+          "1908.06941:s0:p2",
+          "1908.06941:s0:p1",
+          "1908.06941:s4:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "6844683935d0d8f588fa06530f5068bf3e1ed0c0",
+      "paperId": "1908.06941",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.06941:s0:p1",
+          "1908.06941:s3:p3",
+          "1908.06941:s2:p4",
+          "1908.06941:s2:p5",
+          "1908.06941:s3:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6844683935d0d8f588fa06530f5068bf3e1ed0c0",
+      "paperId": "1908.06941",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.06941:s0:p1",
+          "1908.06941:s2:p5",
+          "1908.06941:s4:p3",
+          "1908.06941:s3:p3",
+          "1908.06941:s2:p4",
+          "1908.06941:s3:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "f903396d943541a8cc65edefb04ca37814ed30dd",
+      "paperId": "1907.01468",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": false,
+      "firstLoss": "incorrect_abstention_or_answer",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "f903396d943541a8cc65edefb04ca37814ed30dd",
+      "paperId": "1907.01468",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": false,
+      "firstLoss": "incorrect_abstention_or_answer",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "d6ea7a30b0b61ae126b00b59d2a14fff2ef887bf",
+      "paperId": "1907.01468",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1907.01468:s12:p1",
+          "1907.01468:s15:p2",
+          "1907.01468:s16:p0",
+          "1907.01468:s3:p10"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "d6ea7a30b0b61ae126b00b59d2a14fff2ef887bf",
+      "paperId": "1907.01468",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1907.01468:s12:p1",
+          "1907.01468:s15:p2",
+          "1907.01468:s0:p2",
+          "1907.01468:s16:p0",
+          "1907.01468:s0:p1",
+          "1907.01468:s1:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "b970f48d30775d3468952795bc72976baab3438e",
+      "paperId": "1907.01468",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1907.01468:s0:p5",
+          "1907.01468:s0:p1",
+          "1907.01468:s15:p2",
+          "1907.01468:s12:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "b970f48d30775d3468952795bc72976baab3438e",
+      "paperId": "1907.01468",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1907.01468:s0:p5",
+          "1907.01468:s0:p1",
+          "1907.01468:s0:p2",
+          "1907.01468:s15:p2",
+          "1907.01468:s3:p8",
+          "1907.01468:s0:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "975e60535724f4149c7488699a199ba2920a062c",
+      "paperId": "1907.01468",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": false,
+      "firstLoss": "incorrect_abstention_or_answer",
+      "coverage": null,
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "975e60535724f4149c7488699a199ba2920a062c",
+      "paperId": "1907.01468",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": false,
+      "firstLoss": "incorrect_abstention_or_answer",
+      "coverage": null,
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "126ff22bfcc14a2f7e1a06a91ba7b646003e9cf0",
+      "paperId": "1909.01383",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.01383:s11:p2",
+          "1909.01383:s16:p0",
+          "1909.01383:s18:p2",
+          "1909.01383:s11:p0",
+          "1909.01383:s6:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "126ff22bfcc14a2f7e1a06a91ba7b646003e9cf0",
+      "paperId": "1909.01383",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.01383:s11:p2",
+          "1909.01383:s15:p1",
+          "1909.01383:s14:p0",
+          "1909.01383:s16:p0",
+          "1909.01383:s18:p2",
+          "1909.01383:s11:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "7e4ef0a4debc048b244b61b4f7dc2518b5b466c0",
+      "paperId": "1909.01383",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1909.01383:s0:p4",
+          "1909.01383:s0:p8",
+          "1909.01383:s20:p0",
+          "1909.01383:s10:p0",
+          "1909.01383:s0:p7"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "7e4ef0a4debc048b244b61b4f7dc2518b5b466c0",
+      "paperId": "1909.01383",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1909.01383:s0:p8",
+          "1909.01383:s0:p4",
+          "1909.01383:s20:p0",
+          "1909.01383:s11:p1",
+          "1909.01383:s19:p0",
+          "1909.01383:s9:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "627b8d7b5b985394428c974aca5ba0c1bbbba377",
+      "paperId": "1909.01383",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "627b8d7b5b985394428c974aca5ba0c1bbbba377",
+      "paperId": "1909.01383",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "deb89bca0925657e0f91ab5daca78b9e548de2bd",
+      "paperId": "1904.04358",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1904.04358:s10:p0",
+          "1904.04358:s7:p0",
+          "1904.04358:s9:p2",
+          "1904.04358:s9:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "deb89bca0925657e0f91ab5daca78b9e548de2bd",
+      "paperId": "1904.04358",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1904.04358:s10:p0",
+          "1904.04358:s7:p0",
+          "1904.04358:s9:p2",
+          "1904.04358:s0:p1",
+          "1904.04358:s9:p3",
+          "1904.04358:s3:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "9c33b340aefbc1f15b6eb6fb3e23ee615ce5b570",
+      "paperId": "1904.04358",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1904.04358:s4:p0",
+          "1904.04358:s5:p0",
+          "1904.04358:s0:p1",
+          "1904.04358:s2:p0"
+        ],
+        "generations": 2
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "9c33b340aefbc1f15b6eb6fb3e23ee615ce5b570",
+      "paperId": "1904.04358",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1904.04358:s0:p1",
+          "1904.04358:s8:p0",
+          "1904.04358:s9:p3",
+          "1904.04358:s11:p0",
+          "1904.04358:s5:p0",
+          "1904.04358:s4:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "f9f59c171531c452bd2767dc332dc74cadee5120",
+      "paperId": "1904.04358",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1904.04358:s3:p0",
+          "1904.04358:s0:p2",
+          "1904.04358:s0:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "f9f59c171531c452bd2767dc332dc74cadee5120",
+      "paperId": "1904.04358",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1904.04358:s0:p2",
+          "1904.04358:s3:p0",
+          "1904.04358:s7:p0",
+          "1904.04358:s10:p0",
+          "1904.04358:s0:p1",
+          "1904.04358:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "e6583c60b13b87fc37af75ffc975e7e316d4f4e0",
+      "paperId": "1904.04358",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1904.04358:s8:p0",
+          "1904.04358:s9:p3",
+          "1904.04358:s7:p0",
+          "1904.04358:s0:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "e6583c60b13b87fc37af75ffc975e7e316d4f4e0",
+      "paperId": "1904.04358",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1904.04358:s7:p0",
+          "1904.04358:s8:p0",
+          "1904.04358:s11:p0",
+          "1904.04358:s9:p3",
+          "1904.04358:s0:p1",
+          "1904.04358:s0:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "a253749e3b4c4f340778235f640ce694642a4555",
+      "paperId": "1908.08717",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.08717:s1:p0",
+          "1908.08717:s0:p2",
+          "1908.08717:s2:p3",
+          "1908.08717:s16:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "a253749e3b4c4f340778235f640ce694642a4555",
+      "paperId": "1908.08717",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.08717:s0:p2",
+          "1908.08717:s2:p3",
+          "1908.08717:s1:p0",
+          "1908.08717:s1:p1",
+          "1908.08717:s16:p0",
+          "1908.08717:s4:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "2da4c3679111dd92a1d0869dae353ebe5989dfd2",
+      "paperId": "1908.08717",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.08717:s4:p0",
+          "1908.08717:s1:p1",
+          "1908.08717:s0:p2",
+          "1908.08717:s2:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "2da4c3679111dd92a1d0869dae353ebe5989dfd2",
+      "paperId": "1908.08717",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.08717:s4:p0",
+          "1908.08717:s1:p1",
+          "1908.08717:s0:p2",
+          "1908.08717:s2:p3",
+          "1908.08717:s15:p0",
+          "1908.08717:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "1142784dc4e0e4c0b4eca1feaf1c10dc46dd5891",
+      "paperId": "1908.08717",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.08717:s5:p1",
+          "1908.08717:s7:p0",
+          "1908.08717:s2:p3",
+          "1908.08717:s16:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "1142784dc4e0e4c0b4eca1feaf1c10dc46dd5891",
+      "paperId": "1908.08717",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.08717:s2:p1",
+          "1908.08717:s5:p1",
+          "1908.08717:s7:p0",
+          "1908.08717:s2:p3",
+          "1908.08717:s15:p1",
+          "1908.08717:s16:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "f85f2a532e7e700d9f8f9c09cd08d4e47b87bdd3",
+      "paperId": "1908.08717",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.08717:s15:p1",
+          "1908.08717:s2:p2",
+          "1908.08717:s16:p2",
+          "1908.08717:s2:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "f85f2a532e7e700d9f8f9c09cd08d4e47b87bdd3",
+      "paperId": "1908.08717",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.08717:s15:p1",
+          "1908.08717:s16:p2",
+          "1908.08717:s2:p2",
+          "1908.08717:s0:p1",
+          "1908.08717:s2:p0",
+          "1908.08717:s2:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "adbf33c6144b2f5c40d0c6a328a92687a476f371",
+      "paperId": "1802.07862",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1802.07862:s0:p4",
+          "1802.07862:s9:p0",
+          "1802.07862:s1:p0",
+          "1802.07862:s5:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "adbf33c6144b2f5c40d0c6a328a92687a476f371",
+      "paperId": "1802.07862",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1802.07862:s0:p4",
+          "1802.07862:s9:p0",
+          "1802.07862:s2:p0",
+          "1802.07862:s0:p0",
+          "1802.07862:s5:p0",
+          "1802.07862:s1:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "f7a89b9cd2792f23f2cb43d50a01b8218a6fbb24",
+      "paperId": "1802.07862",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1802.07862:s6:p0",
+          "1802.07862:s0:p3",
+          "1802.07862:s8:p7",
+          "1802.07862:s5:p6"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "f7a89b9cd2792f23f2cb43d50a01b8218a6fbb24",
+      "paperId": "1802.07862",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1802.07862:s6:p0",
+          "1802.07862:s0:p3",
+          "1802.07862:s8:p5",
+          "1802.07862:s8:p0",
+          "1802.07862:s8:p7",
+          "1802.07862:s0:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "7cd22ca9e107d2b13a7cc94252aaa9007976b338",
+      "paperId": "1802.07862",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1802.07862:s8:p5",
+          "1802.07862:s6:p0",
+          "1802.07862:s8:p3",
+          "1802.07862:s4:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "7cd22ca9e107d2b13a7cc94252aaa9007976b338",
+      "paperId": "1802.07862",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1802.07862:s8:p5",
+          "1802.07862:s6:p0",
+          "1802.07862:s5:p0",
+          "1802.07862:s8:p2",
+          "1802.07862:s2:p0",
+          "1802.07862:s8:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "1591068b747c94f45b948e12edafe74b5e721047",
+      "paperId": "1802.07862",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1802.07862:s0:p4",
+          "1802.07862:s6:p0",
+          "1802.07862:s2:p0",
+          "1802.07862:s4:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "1591068b747c94f45b948e12edafe74b5e721047",
+      "paperId": "1802.07862",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1802.07862:s0:p4",
+          "1802.07862:s6:p0",
+          "1802.07862:s2:p0",
+          "1802.07862:s5:p0",
+          "1802.07862:s3:p1",
+          "1802.07862:s4:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "ee7e9a948ee6888aa5830b1a3d0d148ff656d864",
+      "paperId": "1806.11432",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.11432:s6:p3",
+          "1806.11432:s2:p0",
+          "1806.11432:s7:p1",
+          "1806.11432:s0:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "ee7e9a948ee6888aa5830b1a3d0d148ff656d864",
+      "paperId": "1806.11432",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.11432:s6:p3",
+          "1806.11432:s2:p0",
+          "1806.11432:s7:p1",
+          "1806.11432:s0:p1",
+          "1806.11432:s4:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "506d21501d54a12d0c9fd3dbbf19067802439a04",
+      "paperId": "1806.11432",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.11432:s5:p5",
+          "1806.11432:s1:p3",
+          "1806.11432:s5:p4",
+          "1806.11432:s6:p5"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "506d21501d54a12d0c9fd3dbbf19067802439a04",
+      "paperId": "1806.11432",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.11432:s5:p5",
+          "1806.11432:s1:p3",
+          "1806.11432:s5:p4",
+          "1806.11432:s6:p5",
+          "1806.11432:s5:p3",
+          "1806.11432:s1:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "0689904db9b00a814e3109fb1698086370a28fa2",
+      "paperId": "1811.05711",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1811.05711:s0:p3",
+          "1811.05711:s3:p0",
+          "1811.05711:s0:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "0689904db9b00a814e3109fb1698086370a28fa2",
+      "paperId": "1811.05711",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1811.05711:s0:p3",
+          "1811.05711:s3:p0",
+          "1811.05711:s0:p4",
+          "1811.05711:s0:p2",
+          "1811.05711:s1:p0",
+          "1811.05711:s12:p5"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "6cd25c637c6b772ce29e8ee81571e8694549c5ab",
+      "paperId": "1804.07789",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1804.07789:s6:p0",
+          "1804.07789:s10:p0",
+          "1804.07789:s1:p2",
+          "1804.07789:s0:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6cd25c637c6b772ce29e8ee81571e8694549c5ab",
+      "paperId": "1804.07789",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1804.07789:s6:p0",
+          "1804.07789:s10:p0",
+          "1804.07789:s1:p2",
+          "1804.07789:s0:p1",
+          "1804.07789:s8:p0",
+          "1804.07789:s14:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "cb6a8c642575d3577d1840ca2f4cd2cc2c3397c5",
+      "paperId": "1804.07789",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1804.07789:s7:p2",
+          "1804.07789:s14:p1",
+          "1804.07789:s8:p0",
+          "1804.07789:s11:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "cb6a8c642575d3577d1840ca2f4cd2cc2c3397c5",
+      "paperId": "1804.07789",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1804.07789:s7:p2",
+          "1804.07789:s8:p0",
+          "1804.07789:s14:p1",
+          "1804.07789:s3:p1",
+          "1804.07789:s11:p1",
+          "1804.07789:s0:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "c2e475adeddcdc4d637ef0d4f5065b6a9b299827",
+      "paperId": "1804.07789",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1804.07789:s10:p0",
+          "1804.07789:s8:p0",
+          "1804.07789:s14:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "c2e475adeddcdc4d637ef0d4f5065b6a9b299827",
+      "paperId": "1804.07789",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1804.07789:s10:p0",
+          "1804.07789:s8:p0",
+          "1804.07789:s14:p1",
+          "1804.07789:s6:p0",
+          "1804.07789:s4:p4",
+          "1804.07789:s1:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "56b7319be68197727baa7d498fa38af0a8440fe4",
+      "paperId": "1909.06162",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.06162:s0:p4",
+          "1909.06162:s6:p0",
+          "1909.06162:s7:p0",
+          "1909.06162:s5:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "56b7319be68197727baa7d498fa38af0a8440fe4",
+      "paperId": "1909.06162",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.06162:s7:p0",
+          "1909.06162:s2:p1",
+          "1909.06162:s0:p4",
+          "1909.06162:s6:p0",
+          "1909.06162:s5:p0",
+          "1909.06162:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "a1ac2a152710335519c9a907eec60d9f468b19db",
+      "paperId": "1909.06162",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1909.06162:s7:p0",
+          "1909.06162:s0:p4",
+          "1909.06162:s3:p0",
+          "1909.06162:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "a1ac2a152710335519c9a907eec60d9f468b19db",
+      "paperId": "1909.06162",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1909.06162:s7:p0",
+          "1909.06162:s0:p4",
+          "1909.06162:s3:p0",
+          "1909.06162:s6:p0",
+          "1909.06162:s4:p0",
+          "1909.06162:s0:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "c0bee6539eb6956a7347daa9d2419b367bd02064",
+      "paperId": "2003.03106",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "2003.03106:s17:p1",
+          "2003.03106:s16:p1",
+          "2003.03106:s12:p6",
+          "2003.03106:s17:p3",
+          "2003.03106:s8:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "c0bee6539eb6956a7347daa9d2419b367bd02064",
+      "paperId": "2003.03106",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "2003.03106:s16:p1",
+          "2003.03106:s17:p1",
+          "2003.03106:s17:p3",
+          "2003.03106:s12:p6",
+          "2003.03106:s2:p0",
+          "2003.03106:s1:p6"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "3de0487276bb5961586acc6e9f82934ef8cb668c",
+      "paperId": "2003.03106",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.03106:s9:p0",
+          "2003.03106:s3:p0",
+          "2003.03106:s0:p5",
+          "2003.03106:s8:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "3de0487276bb5961586acc6e9f82934ef8cb668c",
+      "paperId": "2003.03106",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.03106:s3:p0",
+          "2003.03106:s9:p0",
+          "2003.03106:s0:p5",
+          "2003.03106:s11:p0",
+          "2003.03106:s2:p0",
+          "2003.03106:s0:p6"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6b53e1f46ae4ba9b75117fc6e593abded89366be",
+      "paperId": "2003.03106",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "2003.03106:s2:p0",
+          "2003.03106:s17:p1",
+          "2003.03106:s17:p2",
+          "2003.03106:s4:p2",
+          "2003.03106:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "6b53e1f46ae4ba9b75117fc6e593abded89366be",
+      "paperId": "2003.03106",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "2003.03106:s2:p0",
+          "2003.03106:s3:p0",
+          "2003.03106:s17:p1",
+          "2003.03106:s17:p2",
+          "2003.03106:s6:p0",
+          "2003.03106:s4:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "01e2d10178347d177519f792f86f25575106ddc7",
+      "paperId": "1703.07476",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1703.07476:s0:p3",
+          "1703.07476:s7:p4",
+          "1703.07476:s0:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "01e2d10178347d177519f792f86f25575106ddc7",
+      "paperId": "1703.07476",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1703.07476:s0:p3",
+          "1703.07476:s7:p4",
+          "1703.07476:s0:p1",
+          "1703.07476:s2:p4",
+          "1703.07476:s2:p7",
+          "1703.07476:s6:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "021bfb7e180d67112b74f05ecb3fa13acc036c86",
+      "paperId": "1703.07476",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1703.07476:s0:p3",
+          "1703.07476:s0:p2",
+          "1703.07476:s3:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "021bfb7e180d67112b74f05ecb3fa13acc036c86",
+      "paperId": "1703.07476",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1703.07476:s0:p3",
+          "1703.07476:s0:p2",
+          "1703.07476:s3:p0",
+          "1703.07476:s4:p0",
+          "1703.07476:s0:p0",
+          "1703.07476:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5c3e98e3cebaecd5d3e75ec2c9fc3dd267ac3c83",
+      "paperId": "1909.06200",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.06200:s13:p0",
+          "1909.06200:s12:p0",
+          "1909.06200:s12:p1",
+          "1909.06200:s12:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "5c3e98e3cebaecd5d3e75ec2c9fc3dd267ac3c83",
+      "paperId": "1909.06200",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.06200:s13:p0",
+          "1909.06200:s12:p0",
+          "1909.06200:s12:p1",
+          "1909.06200:s12:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "62f27fe08ddb67f16857fab2a8a721926ecbb6fb",
+      "paperId": "1909.06200",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1909.06200:s9:p0",
+          "1909.06200:s10:p0",
+          "1909.06200:s11:p0",
+          "1909.06200:s0:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "62f27fe08ddb67f16857fab2a8a721926ecbb6fb",
+      "paperId": "1909.06200",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1909.06200:s10:p1",
+          "1909.06200:s9:p0",
+          "1909.06200:s11:p0",
+          "1909.06200:s9:p1",
+          "1909.06200:s10:p0",
+          "1909.06200:s0:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "14b8ae5656e7d4ee02237288372d9e682b24fdb8",
+      "paperId": "1909.06200",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1909.06200:s2:p1",
+          "1909.06200:s5:p4",
+          "1909.06200:s0:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "14b8ae5656e7d4ee02237288372d9e682b24fdb8",
+      "paperId": "1909.06200",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.06200:s0:p2",
+          "1909.06200:s13:p0",
+          "1909.06200:s5:p4",
+          "1909.06200:s2:p1",
+          "1909.06200:s0:p3",
+          "1909.06200:s3:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "e3a2d8886f03e78ed5e138df870f48635875727e",
+      "paperId": "1909.06200",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1909.06200:s0:p3",
+          "1909.06200:s1:p6",
+          "1909.06200:s14:p0",
+          "1909.06200:s13:p0",
+          "1909.06200:s1:p5"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "e3a2d8886f03e78ed5e138df870f48635875727e",
+      "paperId": "1909.06200",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1909.06200:s0:p3",
+          "1909.06200:s14:p0",
+          "1909.06200:s1:p2",
+          "1909.06200:s1:p6",
+          "1909.06200:s1:p5",
+          "1909.06200:s7:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "4e1a67f8dc68b55a5ce18e6cd385ae9ab90d891f",
+      "paperId": "1703.04001",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1703.04001:s0:p0",
+          "1703.04001:s0:p2",
+          "1703.04001:s0:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "4e1a67f8dc68b55a5ce18e6cd385ae9ab90d891f",
+      "paperId": "1703.04001",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1703.04001:s1:p0",
+          "1703.04001:s0:p0",
+          "1703.04001:s2:p2",
+          "1703.04001:s2:p0",
+          "1703.04001:s0:p2",
+          "1703.04001:s0:p1"
+        ],
+        "generations": 2
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "6c96e910bd98c9fd58ba2050f99b9c9bac69840a",
+      "paperId": "1703.04001",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": false,
+      "firstLoss": "incorrect_abstention_or_answer",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "6c96e910bd98c9fd58ba2050f99b9c9bac69840a",
+      "paperId": "1703.04001",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "bfbd6040cb95b179118557352e8e3899ef25c525",
+      "paperId": "1912.01852",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": false,
+      "firstLoss": "incorrect_abstention_or_answer",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "bfbd6040cb95b179118557352e8e3899ef25c525",
+      "paperId": "1912.01852",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "d6e353e0231d09fd5dcba493544d53706f3fe1ab",
+      "paperId": "1912.01852",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1912.01852:s0:p1",
+          "1912.01852:s2:p10",
+          "1912.01852:s5:p0",
+          "1912.01852:s4:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "d6e353e0231d09fd5dcba493544d53706f3fe1ab",
+      "paperId": "1912.01852",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1912.01852:s2:p10",
+          "1912.01852:s0:p1",
+          "1912.01852:s4:p0",
+          "1912.01852:s5:p0",
+          "1912.01852:s0:p0",
+          "1912.01852:s8:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "b1ce129678e37070e69f01332f1a8587e18e06b0",
+      "paperId": "1610.09225",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1610.09225:s9:p0",
+          "1610.09225:s7:p0",
+          "1610.09225:s10:p0",
+          "1610.09225:s12:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "b1ce129678e37070e69f01332f1a8587e18e06b0",
+      "paperId": "1610.09225",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1610.09225:s7:p0",
+          "1610.09225:s9:p0",
+          "1610.09225:s10:p0",
+          "1610.09225:s12:p1",
+          "1610.09225:s1:p0",
+          "1610.09225:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "4c07c33dfaf4f3e6db55e377da6fa69825d0ba15",
+      "paperId": "1610.09225",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1610.09225:s5:p2",
+          "1610.09225:s6:p0",
+          "1610.09225:s5:p1",
+          "1610.09225:s5:p0",
+          "1610.09225:s12:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "4c07c33dfaf4f3e6db55e377da6fa69825d0ba15",
+      "paperId": "1610.09225",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1610.09225:s5:p2",
+          "1610.09225:s6:p0",
+          "1610.09225:s5:p1",
+          "1610.09225:s12:p1",
+          "1610.09225:s5:p0",
+          "1610.09225:s7:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "9b76f428b7c8c9fc930aa88ee585a03478bff9b3",
+      "paperId": "2003.13032",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.13032:s0:p0",
+          "2003.13032:s12:p0",
+          "2003.13032:s5:p0",
+          "2003.13032:s4:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "9b76f428b7c8c9fc930aa88ee585a03478bff9b3",
+      "paperId": "2003.13032",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.13032:s0:p0",
+          "2003.13032:s12:p0",
+          "2003.13032:s5:p0",
+          "2003.13032:s6:p1",
+          "2003.13032:s4:p0",
+          "2003.13032:s1:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "f2e8497aa16327aa297a7f9f7d156e485fe33945",
+      "paperId": "2003.13032",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.13032:s4:p0",
+          "2003.13032:s1:p0",
+          "2003.13032:s5:p2",
+          "2003.13032:s7:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "f2e8497aa16327aa297a7f9f7d156e485fe33945",
+      "paperId": "2003.13032",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.13032:s4:p0",
+          "2003.13032:s7:p0",
+          "2003.13032:s1:p0",
+          "2003.13032:s5:p2",
+          "2003.13032:s3:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "2916bbdb95ef31ab26527ba67961cf5ec94d6afe",
+      "paperId": "2003.13032",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.13032:s5:p0",
+          "2003.13032:s10:p0",
+          "2003.13032:s0:p0",
+          "2003.13032:s4:p0"
+        ],
+        "generations": 2
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "2916bbdb95ef31ab26527ba67961cf5ec94d6afe",
+      "paperId": "2003.13032",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "2003.13032:s10:p0",
+          "2003.13032:s0:p0",
+          "2003.13032:s5:p3",
+          "2003.13032:s0:p1",
+          "2003.13032:s5:p0",
+          "2003.13032:s12:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6f024d4c952fbb53b6f8cf27020659aa4d9a6590",
+      "paperId": "2001.05865",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "6f024d4c952fbb53b6f8cf27020659aa4d9a6590",
+      "paperId": "2001.05865",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "f2155dc4aeab86bf31a838c8ff388c85440fce6e",
+      "paperId": "1908.11047",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.11047:s12:p1",
+          "1908.11047:s12:p0",
+          "1908.11047:s8:p0",
+          "1908.11047:s5:p0",
+          "1908.11047:s1:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "f2155dc4aeab86bf31a838c8ff388c85440fce6e",
+      "paperId": "1908.11047",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.11047:s12:p0",
+          "1908.11047:s12:p1",
+          "1908.11047:s8:p0",
+          "1908.11047:s0:p1",
+          "1908.11047:s1:p0",
+          "1908.11047:s5:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "ed6a15f0f7fa4594e51d5bde21cc0c6c1bedbfdc",
+      "paperId": "1908.11047",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.11047:s0:p2",
+          "1908.11047:s14:p1",
+          "1908.11047:s0:p1",
+          "1908.11047:s12:p1",
+          "1908.11047:s0:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "ed6a15f0f7fa4594e51d5bde21cc0c6c1bedbfdc",
+      "paperId": "1908.11047",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.11047:s0:p2",
+          "1908.11047:s14:p1",
+          "1908.11047:s4:p2",
+          "1908.11047:s0:p1",
+          "1908.11047:s16:p0",
+          "1908.11047:s12:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "QA_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "86bf75245358f17e35fc133e46a92439ac86d472",
+      "paperId": "1908.11047",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.11047:s0:p1",
+          "1908.11047:s7:p0",
+          "1908.11047:s18:p0",
+          "1908.11047:s12:p1",
+          "1908.11047:s0:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "86bf75245358f17e35fc133e46a92439ac86d472",
+      "paperId": "1908.11047",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.11047:s0:p1",
+          "1908.11047:s7:p0",
+          "1908.11047:s18:p0",
+          "1908.11047:s12:p1",
+          "1908.11047:s4:p0",
+          "1908.11047:s0:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "9132d56e26844dc13b3355448d0f14b95bd2178a",
+      "paperId": "1908.11047",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.11047:s0:p1",
+          "1908.11047:s2:p1",
+          "1908.11047:s6:p0",
+          "1908.11047:s0:p0",
+          "1908.11047:s19:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "9132d56e26844dc13b3355448d0f14b95bd2178a",
+      "paperId": "1908.11047",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.11047:s0:p1",
+          "1908.11047:s6:p0",
+          "1908.11047:s2:p1",
+          "1908.11047:s9:p0",
+          "1908.11047:s0:p0",
+          "1908.11047:s15:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "22732cb9476e521452bf0538f3fdb94cf3867651",
+      "paperId": "1701.05574",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": false,
+      "firstLoss": "answer_protocol_error",
+      "coverage": null,
+      "memorySufficiency": "partial",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "22732cb9476e521452bf0538f3fdb94cf3867651",
+      "paperId": "1701.05574",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "bbb77f2d6685c9257763ca38afaaef29044b4018",
+      "paperId": "1701.05574",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1701.05574:s17:p0",
+          "1701.05574:s11:p0",
+          "1701.05574:s12:p2",
+          "1701.05574:s15:p2",
+          "1701.05574:s15:p4",
+          "1701.05574:s0:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "bbb77f2d6685c9257763ca38afaaef29044b4018",
+      "paperId": "1701.05574",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1701.05574:s11:p0",
+          "1701.05574:s17:p0",
+          "1701.05574:s12:p2",
+          "1701.05574:s0:p4",
+          "1701.05574:s0:p1",
+          "1701.05574:s9:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "4e748cb2b5e74d905d9b24b53be6cfdf326e8054",
+      "paperId": "1701.05574",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": false,
+      "firstLoss": "incorrect_abstention_or_answer",
+      "coverage": null,
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "4e748cb2b5e74d905d9b24b53be6cfdf326e8054",
+      "paperId": "1701.05574",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": false,
+      "firstLoss": "incorrect_abstention_or_answer",
+      "coverage": null,
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "4d47bef19afd70c10bbceafd1846516546641a2f",
+      "paperId": "1903.09722",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1903.09722:s5:p0",
+          "1903.09722:s0:p1",
+          "1903.09722:s4:p5",
+          "1903.09722:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "4d47bef19afd70c10bbceafd1846516546641a2f",
+      "paperId": "1903.09722",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1903.09722:s5:p0",
+          "1903.09722:s0:p1",
+          "1903.09722:s4:p5",
+          "1903.09722:s3:p0",
+          "1903.09722:s2:p0",
+          "1903.09722:s4:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "4fa6fbb9df1a4c32583d4ef70d2b29ece4b3d802",
+      "paperId": "1903.09722",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1903.09722:s0:p1",
+          "1903.09722:s7:p0",
+          "1903.09722:s4:p0",
+          "1903.09722:s0:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "4fa6fbb9df1a4c32583d4ef70d2b29ece4b3d802",
+      "paperId": "1903.09722",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1903.09722:s0:p1",
+          "1903.09722:s7:p0",
+          "1903.09722:s8:p0",
+          "1903.09722:s4:p0",
+          "1903.09722:s0:p0",
+          "1903.09722:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6ca938324dc7e1742a840d0a54dc13cc207394a1",
+      "paperId": "1903.09722",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1903.09722:s4:p5",
+          "1903.09722:s6:p0",
+          "1903.09722:s5:p0",
+          "1903.09722:s7:p5"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "6ca938324dc7e1742a840d0a54dc13cc207394a1",
+      "paperId": "1903.09722",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1903.09722:s4:p5",
+          "1903.09722:s6:p0",
+          "1903.09722:s7:p5",
+          "1903.09722:s5:p0",
+          "1903.09722:s4:p2",
+          "1903.09722:s0:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "20e38438471266ce021817c6364f6a46d01564f2",
+      "paperId": "1911.02855",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1911.02855:s1:p0",
+          "1911.02855:s4:p1",
+          "1911.02855:s6:p4",
+          "1911.02855:s0:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "20e38438471266ce021817c6364f6a46d01564f2",
+      "paperId": "1911.02855",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1911.02855:s1:p0",
+          "1911.02855:s4:p1",
+          "1911.02855:s6:p4",
+          "1911.02855:s0:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "72f7ef55e150e16dcf97fe443aff9971a32414ef",
+      "paperId": "1911.02855",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1911.02855:s15:p0",
+          "1911.02855:s11:p0",
+          "1911.02855:s8:p0",
+          "1911.02855:s12:p0",
+          "1911.02855:s24:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "72f7ef55e150e16dcf97fe443aff9971a32414ef",
+      "paperId": "1911.02855",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1911.02855:s15:p0",
+          "1911.02855:s11:p0",
+          "1911.02855:s8:p0",
+          "1911.02855:s12:p0",
+          "1911.02855:s14:p4",
+          "1911.02855:s19:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "23b2901264bda91045258b5d4120879ae292e950",
+      "paperId": "1911.02855",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1911.02855:s7:p0",
+          "1911.02855:s20:p0",
+          "1911.02855:s15:p0",
+          "1911.02855:s25:p0",
+          "1911.02855:s19:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "23b2901264bda91045258b5d4120879ae292e950",
+      "paperId": "1911.02855",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1911.02855:s22:p0",
+          "1911.02855:s25:p0",
+          "1911.02855:s7:p0",
+          "1911.02855:s15:p0",
+          "1911.02855:s20:p0",
+          "1911.02855:s19:p0"
+        ],
+        "generations": 2
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "b5bc34e1e381dbf972d0b594fe8c66ff75305d71",
+      "paperId": "1911.02855",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1911.02855:s15:p0",
+          "1911.02855:s24:p0",
+          "1911.02855:s12:p0",
+          "1911.02855:s14:p6",
+          "1911.02855:s13:p0",
+          "1911.02855:s14:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "b5bc34e1e381dbf972d0b594fe8c66ff75305d71",
+      "paperId": "1911.02855",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1911.02855:s15:p0",
+          "1911.02855:s24:p0",
+          "1911.02855:s12:p0",
+          "1911.02855:s14:p6",
+          "1911.02855:s13:p0",
+          "1911.02855:s8:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "022c365a14fdec406c7a945a1a18e7e79df37f08",
+      "paperId": "1909.07575",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.07575:s2:p1",
+          "1909.07575:s0:p5",
+          "1909.07575:s0:p4",
+          "1909.07575:s18:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "022c365a14fdec406c7a945a1a18e7e79df37f08",
+      "paperId": "1909.07575",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.07575:s2:p1",
+          "1909.07575:s0:p4",
+          "1909.07575:s0:p5",
+          "1909.07575:s3:p0",
+          "1909.07575:s4:p0",
+          "1909.07575:s0:p6"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "af34051bf3e628c1e2a00b110bb84e5f018b419f",
+      "paperId": "1909.07575",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.07575:s13:p0",
+          "1909.07575:s11:p0",
+          "1909.07575:s13:p5",
+          "1909.07575:s13:p3",
+          "1909.07575:s19:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "af34051bf3e628c1e2a00b110bb84e5f018b419f",
+      "paperId": "1909.07575",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1909.07575:s13:p0",
+          "1909.07575:s11:p0",
+          "1909.07575:s13:p5",
+          "1909.07575:s13:p3",
+          "1909.07575:s19:p0",
+          "1909.07575:s13:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "876700622bd6811d903e65314ac75971bbe23dcc",
+      "paperId": "1707.03569",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1707.03569:s2:p1",
+          "1707.03569:s2:p12",
+          "1707.03569:s1:p2",
+          "1707.03569:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "876700622bd6811d903e65314ac75971bbe23dcc",
+      "paperId": "1707.03569",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1707.03569:s2:p1",
+          "1707.03569:s2:p12",
+          "1707.03569:s1:p2",
+          "1707.03569:s2:p0",
+          "1707.03569:s0:p1",
+          "1707.03569:s2:p6"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "QA_GROUNDING",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "37edc25e39515ffc2d92115d2fcd9e6ceb18898b",
+      "paperId": "1707.03569",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1707.03569:s2:p12",
+          "1707.03569:s2:p11",
+          "1707.03569:s1:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "37edc25e39515ffc2d92115d2fcd9e6ceb18898b",
+      "paperId": "1707.03569",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1707.03569:s1:p2",
+          "1707.03569:s2:p12",
+          "1707.03569:s2:p11"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "e44a6bf67ce3fde0c6608b150030e44d87eb25e3",
+      "paperId": "1611.03599",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1611.03599:s7:p3",
+          "1611.03599:s7:p0",
+          "1611.03599:s10:p1",
+          "1611.03599:s8:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "e44a6bf67ce3fde0c6608b150030e44d87eb25e3",
+      "paperId": "1611.03599",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1611.03599:s7:p3",
+          "1611.03599:s7:p0",
+          "1611.03599:s10:p1",
+          "1611.03599:s8:p2",
+          "1611.03599:s11:p1",
+          "1611.03599:s8:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6a31db1aca57a818f36bba9002561724655372a7",
+      "paperId": "1611.03599",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1611.03599:s7:p0",
+          "1611.03599:s7:p1",
+          "1611.03599:s10:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "6a31db1aca57a818f36bba9002561724655372a7",
+      "paperId": "1611.03599",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_evidence_gap",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1611.03599:s7:p0",
+          "1611.03599:s4:p3",
+          "1611.03599:s7:p1",
+          "1611.03599:s8:p2",
+          "1611.03599:s11:p1",
+          "1611.03599:s7:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "37a79be0148e1751ffb2daabe4c8ec6680036106",
+      "paperId": "1611.03599",
+      "split": "holdout",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1611.03599:s7:p1",
+          "1611.03599:s7:p0",
+          "1611.03599:s10:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "37a79be0148e1751ffb2daabe4c8ec6680036106",
+      "paperId": "1611.03599",
+      "split": "holdout",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1611.03599:s7:p1",
+          "1611.03599:s7:p0",
+          "1611.03599:s11:p1",
+          "1611.03599:s0:p0",
+          "1611.03599:s1:p1",
+          "1611.03599:s11:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    }
+  ]
+}

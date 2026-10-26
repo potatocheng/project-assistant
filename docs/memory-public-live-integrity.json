@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-10-20T10:16:41.658Z",
+  "checks": [
+    "frozen dataset/source/binary hashes",
+    "no key in reports/transcripts",
+    "unique receipt indices/request hashes/provider usage",
+    "gold absent from production input envelope",
+    "complete paragraph provenance",
+    "both entries and project scope",
+    "unchanged confirmed facts/facets",
+    "read-only QA",
+    "strict judge memory ID whitelist",
+    "shared request budget"
+  ],
+  "results": [
+    {
+      "file": "memory-public-live-results.json",
+      "sha256": "f20515c971336ad5d12e7b6ce858da44f71c20a210dc09a2e1965cdd229635e1",
+      "transcriptSha256": "22bf4d885d5840e7f3d3a112d04d2f1e910d5ef17140adcd03d1ec0bbd342513",
+      "requests": 260,
+      "totalTokens": 918333,
+      "questions": 100,
+      "segments": 1686,
+      "formalMemories": 1,
+      "rejectedJudgeOutputs": 4,
+      "passed": true
+    },
+    {
+      "file": "memory-public-live-control-results.json",
+      "sha256": "bfe9ec5232f3ba115329d49b1208eaa2e147eae68203a756c4084352c738f7e5",
+      "transcriptSha256": "22f17845a916a08f4211c00450b7ce98263560fb97631d3fcaaceee61df5d10f",
+      "requests": 500,
+      "totalTokens": 3945019,
+      "questions": 100,
+      "segments": 1686,
+      "formalMemories": 1686,
+      "rejectedJudgeOutputs": 0,
+      "passed": true
+    }
+  ]
+}

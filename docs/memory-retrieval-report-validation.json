@@ -1,0 +1,12 @@
+{
+  "version": "memory-retrieval-report-checks-v1",
+  "finishedAt": "2026-10-20T13:04:56.761Z",
+  "elapsedMs": 252,
+  "passed": true,
+  "passedTests": 63,
+  "exitCode": 0,
+  "command": "node --test scripts/check-memory-public-development.test.mjs scripts/check-memory-retrieval-development.test.mjs scripts/evaluate-memory-quality.test.mjs scripts/memory-public-live-options.test.mjs scripts/report-memory-extraction-optimized.test.mjs scripts/report-memory-retrieval-optimized.test.mjs scripts/score-memory-public-live.test.mjs",
+  "log": ".local-data/retrieval-report-tests-final.log",
+  "reportScriptSha256": "54fc357d83d634635359de10ff560c77dc5118e045fb9d7a51a625d3c2b69f91",
+  "scope": "Additional report-only helper coverage, run after live began; prerequisite production/evaluation regression evidence remains frozen and unchanged."
+}

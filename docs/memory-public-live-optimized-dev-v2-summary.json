@@ -1,0 +1,1577 @@
+{
+  "judgeMode": "separated",
+  "outputTag": "optimized-dev-v2",
+  "methodology": "Mutually exclusive observed loss, not causal proof. All answerable cases stay in accuracy denominators; missing/uncertain judges never count as correct. Answer correctness is same-model post-hoc judgment, not independently validated. Joint judge memory/retrieval labels were found confounded and excluded from stage attribution. Paragraph control attribution uses actual gold paragraph links/full text. Missing one gold set does not prove no equivalent evidence existed, and whole paragraph visibility does not prove sufficient reading. Organization errors are not separately blamed without evidence from facet ablation.",
+  "paragraphControl": false,
+  "complete": true,
+  "summary": {
+    "all:desktop": {
+      "cases": 20,
+      "executed": 20,
+      "judged": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "fullyCorrectAnswerable": {
+        "count": 7,
+        "denominator": 19,
+        "rate": 0.3684210526315789
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 7,
+        "denominator": 19,
+        "rate": 0.3684210526315789
+      },
+      "correctAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 2,
+          "denominator": 19,
+          "rate": 0.10526315789473684
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 11,
+          "denominator": 19,
+          "rate": 0.5789473684210527
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 2,
+          "denominator": 19,
+          "rate": 0.10526315789473684
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 2,
+          "denominator": 2,
+          "rate": 1
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": false,
+        "reason": "Memory and answer judges receive isolated views; retrieval sufficiency is absent unless a third isolated judge ran. These remain automatic estimates.",
+        "fullMemoryCoverage": {
+          "count": 17,
+          "denominator": 19,
+          "rate": 0.8947368421052632
+        },
+        "fullRetrievalCoverage": {
+          "count": 9,
+          "denominator": 19,
+          "rate": 0.47368421052631576
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 9,
+          "denominator": 17,
+          "rate": 0.5294117647058824
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 7,
+          "denominator": 9,
+          "rate": 0.7777777777777778
+        }
+      },
+      "protocolErrors": {
+        "ASSISTANT_GROUNDING": 1
+      },
+      "firstLoss": {
+        "answer_protocol_error": 1,
+        "retrieval_context_loss": 8,
+        "success": 7,
+        "memory_content_missing": 2,
+        "answer_error_or_refusal": 1
+      },
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": null,
+      "claimsSupportEvaluation": "not_run",
+      "p50Ms": 3156,
+      "p95Ms": 4541
+    },
+    "all:connector": {
+      "cases": 20,
+      "executed": 20,
+      "judged": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "fullyCorrectAnswerable": {
+        "count": 7,
+        "denominator": 19,
+        "rate": 0.3684210526315789
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 6,
+        "denominator": 19,
+        "rate": 0.3157894736842105
+      },
+      "correctAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 2,
+          "denominator": 19,
+          "rate": 0.10526315789473684
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 9,
+          "denominator": 19,
+          "rate": 0.47368421052631576
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 1,
+          "denominator": 19,
+          "rate": 0.05263157894736842
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 1,
+          "denominator": 1,
+          "rate": 1
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": false,
+        "reason": "Memory and answer judges receive isolated views; retrieval sufficiency is absent unless a third isolated judge ran. These remain automatic estimates.",
+        "fullMemoryCoverage": {
+          "count": 17,
+          "denominator": 19,
+          "rate": 0.8947368421052632
+        },
+        "fullRetrievalCoverage": {
+          "count": 7,
+          "denominator": 19,
+          "rate": 0.3684210526315789
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 7,
+          "denominator": 17,
+          "rate": 0.4117647058823529
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 6,
+          "denominator": 7,
+          "rate": 0.8571428571428571
+        }
+      },
+      "protocolErrors": {},
+      "firstLoss": {
+        "success": 7,
+        "retrieval_context_loss": 9,
+        "memory_content_missing": 2,
+        "answer_error_or_refusal": 1
+      },
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": null,
+      "claimsSupportEvaluation": "not_run",
+      "p50Ms": 2814,
+      "p95Ms": 3497
+    },
+    "development:desktop": {
+      "cases": 20,
+      "executed": 20,
+      "judged": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "fullyCorrectAnswerable": {
+        "count": 7,
+        "denominator": 19,
+        "rate": 0.3684210526315789
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 7,
+        "denominator": 19,
+        "rate": 0.3684210526315789
+      },
+      "correctAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 2,
+          "denominator": 19,
+          "rate": 0.10526315789473684
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 11,
+          "denominator": 19,
+          "rate": 0.5789473684210527
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 2,
+          "denominator": 19,
+          "rate": 0.10526315789473684
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 2,
+          "denominator": 2,
+          "rate": 1
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": false,
+        "reason": "Memory and answer judges receive isolated views; retrieval sufficiency is absent unless a third isolated judge ran. These remain automatic estimates.",
+        "fullMemoryCoverage": {
+          "count": 17,
+          "denominator": 19,
+          "rate": 0.8947368421052632
+        },
+        "fullRetrievalCoverage": {
+          "count": 9,
+          "denominator": 19,
+          "rate": 0.47368421052631576
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 9,
+          "denominator": 17,
+          "rate": 0.5294117647058824
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 7,
+          "denominator": 9,
+          "rate": 0.7777777777777778
+        }
+      },
+      "protocolErrors": {
+        "ASSISTANT_GROUNDING": 1
+      },
+      "firstLoss": {
+        "answer_protocol_error": 1,
+        "retrieval_context_loss": 8,
+        "success": 7,
+        "memory_content_missing": 2,
+        "answer_error_or_refusal": 1
+      },
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": null,
+      "claimsSupportEvaluation": "not_run",
+      "p50Ms": 3156,
+      "p95Ms": 4541
+    },
+    "development:connector": {
+      "cases": 20,
+      "executed": 20,
+      "judged": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "fullyCorrectAnswerable": {
+        "count": 7,
+        "denominator": 19,
+        "rate": 0.3684210526315789
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 6,
+        "denominator": 19,
+        "rate": 0.3157894736842105
+      },
+      "correctAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 2,
+          "denominator": 19,
+          "rate": 0.10526315789473684
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 9,
+          "denominator": 19,
+          "rate": 0.47368421052631576
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 1,
+          "denominator": 19,
+          "rate": 0.05263157894736842
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 1,
+          "denominator": 1,
+          "rate": 1
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": false,
+        "reason": "Memory and answer judges receive isolated views; retrieval sufficiency is absent unless a third isolated judge ran. These remain automatic estimates.",
+        "fullMemoryCoverage": {
+          "count": 17,
+          "denominator": 19,
+          "rate": 0.8947368421052632
+        },
+        "fullRetrievalCoverage": {
+          "count": 7,
+          "denominator": 19,
+          "rate": 0.3684210526315789
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 7,
+          "denominator": 17,
+          "rate": 0.4117647058823529
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 6,
+          "denominator": 7,
+          "rate": 0.8571428571428571
+        }
+      },
+      "protocolErrors": {},
+      "firstLoss": {
+        "success": 7,
+        "retrieval_context_loss": 9,
+        "memory_content_missing": 2,
+        "answer_error_or_refusal": 1
+      },
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": null,
+      "claimsSupportEvaluation": "not_run",
+      "p50Ms": 2814,
+      "p95Ms": 3497
+    },
+    "holdout:desktop": {
+      "cases": 0,
+      "executed": 0,
+      "judged": 0,
+      "answerable": 0,
+      "unanswerable": 0,
+      "fullyCorrectAnswerable": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "correctAbstention": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": false,
+        "reason": "Memory and answer judges receive isolated views; retrieval sufficiency is absent unless a third isolated judge ran. These remain automatic estimates.",
+        "fullMemoryCoverage": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "fullRetrievalCoverage": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        }
+      },
+      "protocolErrors": {},
+      "firstLoss": {},
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": null,
+      "claimsSupportEvaluation": "not_run",
+      "p50Ms": null,
+      "p95Ms": null
+    },
+    "holdout:connector": {
+      "cases": 0,
+      "executed": 0,
+      "judged": 0,
+      "answerable": 0,
+      "unanswerable": 0,
+      "fullyCorrectAnswerable": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "partiallyCorrectAnswerable": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "correctAbstention": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "evidenceProvenance": {
+        "originalGoldParagraphContentRetained": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "lastGenerationGoldParagraphIdsComplete": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "lastGenerationWholeGoldParagraphsVisible": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "answerGivenWholeGoldParagraphsVisible": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        }
+      },
+      "rawJudgeStageLabels": {
+        "excludedFromStageAttribution": false,
+        "reason": "Memory and answer judges receive isolated views; retrieval sufficiency is absent unless a third isolated judge ran. These remain automatic estimates.",
+        "fullMemoryCoverage": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "fullRetrievalCoverage": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "retrievalGivenSufficientMemory": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "answerGivenSufficientMemoryAndReferences": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        }
+      },
+      "protocolErrors": {},
+      "firstLoss": {},
+      "scopeViolations": 0,
+      "unsupportedFinalAnswers": null,
+      "claimsSupportEvaluation": "not_run",
+      "p50Ms": null,
+      "p95Ms": null
+    }
+  },
+  "extraction": {
+    "papers": 6,
+    "statuses": {
+      "succeeded": 6
+    },
+    "errorCodes": {},
+    "drafts": {
+      "ready": 959,
+      "needs_review": 1
+    },
+    "formalMemories": 944,
+    "discarded": 1,
+    "qaReadOnly": true,
+    "harnessErrors": []
+  },
+  "judgeErrors": [],
+  "cases": [
+    {
+      "id": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_protocol_error",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09666:s8:p0",
+          "1902.09666:s7:p0",
+          "1902.09666:s0:p5",
+          "1902.09666:s0:p2",
+          "1902.09666:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "errorCode": "ASSISTANT_GROUNDING",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09666:s6:p0",
+          "1902.09666:s11:p0",
+          "1902.09666:s7:p0",
+          "1902.09666:s8:p0",
+          "1902.09666:s0:p5"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09666:s1:p8",
+          "1902.09666:s0:p1",
+          "1902.09666:s1:p0",
+          "1902.09666:s2:p0",
+          "1902.09666:s11:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09666:s1:p8",
+          "1902.09666:s2:p0",
+          "1902.09666:s1:p0",
+          "1902.09666:s11:p0",
+          "1902.09666:s3:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "521280a87c43fcdf9f577da235e7072a23f0673e",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09666:s6:p0",
+          "1902.09666:s0:p1",
+          "1902.09666:s5:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "521280a87c43fcdf9f577da235e7072a23f0673e",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09666:s0:p1",
+          "1902.09666:s5:p3",
+          "1902.09666:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09666:s2:p0",
+          "1902.09666:s11:p0",
+          "1902.09666:s3:p3",
+          "1902.09666:s1:p0",
+          "1902.09666:s1:p8"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09666:s2:p0",
+          "1902.09666:s1:p0",
+          "1902.09666:s11:p0",
+          "1902.09666:s3:p3",
+          "1902.09666:s1:p8"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s7:p0",
+          "1806.00738:s4:p1",
+          "1806.00738:s1:p1",
+          "1806.00738:s3:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s7:p0",
+          "1806.00738:s4:p1",
+          "1806.00738:s3:p0",
+          "1806.00738:s1:p1",
+          "1806.00738:s4:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s5:p1",
+          "1806.00738:s1:p2",
+          "1806.00738:s0:p1",
+          "1806.00738:s4:p0",
+          "1806.00738:s7:p1",
+          "1806.00738:s4:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s5:p1",
+          "1806.00738:s1:p2",
+          "1806.00738:s0:p1",
+          "1806.00738:s4:p0",
+          "1806.00738:s7:p1",
+          "1806.00738:s4:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s0:p1",
+          "1806.00738:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1806.00738:s0:p1",
+          "1806.00738:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "memory_content_missing",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1806.00738:s4:p0",
+          "1806.00738:s0:p1",
+          "1806.00738:s7:p1"
+        ],
+        "generations": 2
+      },
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "memory_content_missing",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1806.00738:s4:p0",
+          "1806.00738:s7:p1",
+          "1806.00738:s0:p1"
+        ],
+        "generations": 2
+      },
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1603.01514:s13:p0",
+          "1603.01514:s6:p0",
+          "1603.01514:s12:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1603.01514:s13:p0",
+          "1603.01514:s9:p5"
+        ],
+        "generations": 2
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1603.01514:s0:p6",
+          "1603.01514:s9:p5",
+          "1603.01514:s10:p0",
+          "1603.01514:s13:p0",
+          "1603.01514:s9:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "answer_error_or_refusal",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1603.01514:s0:p6",
+          "1603.01514:s13:p0",
+          "1603.01514:s0:p7",
+          "1603.01514:s9:p5",
+          "1603.01514:s10:p0",
+          "1603.01514:s7:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1603.01514:s9:p1",
+          "1603.01514:s7:p0",
+          "1603.01514:s0:p6",
+          "1603.01514:s3:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1603.01514:s0:p6",
+          "1603.01514:s9:p1",
+          "1603.01514:s7:p0",
+          "1603.01514:s3:p2",
+          "1603.01514:s3:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "6bf5620f295b5243230bc97b340fae6e92304595",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1603.01514:s6:p0",
+          "1603.01514:s11:p1",
+          "1603.01514:s4:p0",
+          "1603.01514:s9:p0",
+          "1603.01514:s4:p9"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6bf5620f295b5243230bc97b340fae6e92304595",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1603.01514:s6:p0",
+          "1603.01514:s11:p1",
+          "1603.01514:s9:p0",
+          "1603.01514:s9:p1",
+          "1603.01514:s4:p9"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "memory_content_missing",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.07245:s17:p1",
+          "1908.07245:s16:p4",
+          "1908.07245:s0:p4",
+          "1908.07245:s6:p0",
+          "1908.07245:s0:p0",
+          "1908.07245:s5:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "memory_content_missing",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.07245:s17:p1",
+          "1908.07245:s0:p4",
+          "1908.07245:s16:p4",
+          "1908.07245:s5:p1",
+          "1908.07245:s3:p0",
+          "1908.07245:s6:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "partial",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.07245:s15:p0",
+          "1908.07245:s0:p4",
+          "1908.07245:s17:p1",
+          "1908.07245:s13:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1908.07245:s15:p0",
+          "1908.07245:s0:p4",
+          "1908.07245:s17:p1",
+          "1908.07245:s13:p0",
+          "1908.07245:s3:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.07245:s0:p4",
+          "1908.07245:s3:p0",
+          "1908.07245:s14:p0",
+          "1908.07245:s0:p3"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1908.07245:s0:p4",
+          "1908.07245:s3:p0",
+          "1908.07245:s0:p3",
+          "1908.07245:s0:p0",
+          "1908.07245:s17:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09243:s9:p0",
+          "1902.09243:s9:p2",
+          "1902.09243:s10:p1",
+          "1902.09243:s0:p7",
+          "1902.09243:s7:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09243:s9:p0",
+          "1902.09243:s9:p2",
+          "1902.09243:s8:p6",
+          "1902.09243:s6:p7"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": false,
+      "firstLoss": "correct_abstention",
+      "coverage": null,
+      "memorySufficiency": "no",
+      "judged": true,
+      "status": "unknown",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09243:s6:p4",
+          "1902.09243:s6:p1",
+          "1902.09243:s5:p10",
+          "1902.09243:s5:p4",
+          "1902.09243:s6:p5"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1902.09243:s6:p1",
+          "1902.09243:s5:p10",
+          "1902.09243:s6:p4",
+          "1902.09243:s5:p15",
+          "1902.09243:s5:p4"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "partial",
+      "answerCorrect": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09243:s0:p5",
+          "1902.09243:s8:p0",
+          "1902.09243:s11:p2",
+          "1902.09243:s7:p0",
+          "1902.09243:s2:p5",
+          "1902.09243:s7:p1"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "success",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": true,
+        "lastGenerationGoldParagraphIdsComplete": true,
+        "lastGenerationWholeGoldParagraphsVisible": true,
+        "anyGenerationGoldParagraphIdsComplete": true,
+        "selectedParagraphIds": [
+          "1902.09243:s0:p5",
+          "1902.09243:s8:p0",
+          "1902.09243:s0:p2",
+          "1902.09243:s7:p0",
+          "1902.09243:s11:p2"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "paperId": "1705.01214",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1705.01214:s0:p5",
+          "1705.01214:s12:p3",
+          "1705.01214:s2:p0",
+          "1705.01214:s3:p7",
+          "1705.01214:s9:p28"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "paperId": "1705.01214",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "firstLoss": "retrieval_context_loss",
+      "coverage": {
+        "formalMemoryEvidenceParagraphLinksComplete": true,
+        "originalGoldParagraphContentRetained": false,
+        "lastGenerationGoldParagraphIdsComplete": false,
+        "lastGenerationWholeGoldParagraphsVisible": false,
+        "anyGenerationGoldParagraphIdsComplete": false,
+        "selectedParagraphIds": [
+          "1705.01214:s0:p5",
+          "1705.01214:s12:p58",
+          "1705.01214:s12:p3",
+          "1705.01214:s3:p7",
+          "1705.01214:s2:p0"
+        ],
+        "generations": 1
+      },
+      "memorySufficiency": "yes",
+      "judged": true,
+      "status": "answered",
+      "answerCorrect": "partial",
+      "retrievalSufficiency": "partial"
+    }
+  ]
+}

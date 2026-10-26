@@ -1,0 +1,33 @@
+{
+  "version": "memory-reader-diagnostic-syntax-amendment-v1",
+  "recordedAt": "2026-10-26T08:58:51.193Z",
+  "source": {
+    "file": "docs\\memory-reader-diagnostic-results.json",
+    "sha256": "5dfaae0a3431e9904a1cade80cb02a78c5632d8bc86211d5091d940b01894d14",
+    "complete": false
+  },
+  "registrationSha256": "4953a379f6853976960986bf55e6268fe9f6a104d3cc4921d59d77e62c970260",
+  "rawReceiptsSha256": "afc0f7d1b272230225b4976d008bbe5559d37f7297b79d469d8b37f8654b5ae4",
+  "output": {
+    "file": "docs\\memory-reader-diagnostic-audited-results.json",
+    "sha256": "1df5fd6bbd06273306605497ca775ca5ab8f46cd1193a37d64c04e0135daf097",
+    "complete": true
+  },
+  "changes": [
+    {
+      "questionId": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "receiptIndex": 85,
+      "originalError": "Expected ',' or '}' after property value in JSON at position 771 (line 1 column 772)",
+      "kind": "append-single-final-object-brace",
+      "originalContentSha256": "f2f9559b5713275dfe0a1496d21d78d1369bffff57c1b90a037b03d91095a7bd",
+      "amendedContentSha256": "0221e71e7fd91008eb6e3e79864d81937cd8120bedffdabd799351ee0df2fea4",
+      "appended": "}",
+      "semanticFieldsChanged": 0,
+      "modelRequests": 0
+    }
+  ],
+  "originalArtifactsUnchanged": true,
+  "originalAnswersUnchanged": true,
+  "newApiRequests": 0,
+  "note": "Post-hoc technical correction of one missing terminal object brace. No grades/reasons are invented or modified. The full-document invalid span answer remains a genuine production binding failure."
+}

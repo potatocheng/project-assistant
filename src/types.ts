@@ -10,6 +10,7 @@ export interface Source {
 }
 export interface Segment { id: string; sourceVersionId: string; ordinal: number; locator: string; text: string }
 export interface Proposal {
+  facets?: Partial<MemoryFacets>;
   id: string; projectId: string; sourceId: string; kind: MemoryKind; content: string;
   status: 'pending' | 'confirmed' | 'rejected'; segmentIds: string[];
   createdAt: string; memoryId: string | null;
@@ -17,12 +18,28 @@ export interface Proposal {
   promptVersion: string | null; extractionJobId: string | null;
   quotes: Array<{ segmentId: string; quote: string }>; edited: boolean;
 }
+export interface ExtractionDraft {
+  id: string; jobId: string; sourceId: string; projectId: string; batchKey: string;
+  candidate: { kind: MemoryKind; content: string; facets: MemoryFacets; evidence: Array<{ segmentId: string; quote: string }> };
+  facets: MemoryFacets; issues: Array<{ field: string; reason: string; severity: string; value?: unknown }>;
+  status: 'ready' | 'needs_review' | 'rejected' | 'reviewed'; proposalId: string | null;
+  reviewReason: string; createdAt: string; reviewedAt: string | null;
+}
 export interface Memory {
   id: string; projectId: string; kind: MemoryKind; content: string; revision: number;
   state: 'active'; sourceTitle: string; confirmedAt: string; updatedAt: string;
 }
 export interface Evidence { segmentId: string; sourceId: string; sourceTitle: string; locator: string; text: string }
+export interface MemoryFacets {
+  entity: string; topic: string; role: '' | 'owner' | 'approver' | 'contact'; conditions: string[];
+  validFrom: string | null; validUntil: string | null;
+}
+export interface AnswerClaim {
+  text: string; citationIds: string[]; supportQuotes: Array<{ citationId: string; quote: string }>;
+}
+export type AnswerStatus = 'answered' | 'partial' | 'unknown' | 'conflicted';
 export interface Revision {
+  facets?: Partial<MemoryFacets>;
   id: string; memoryId: string; number: number; content: string; reason: string;
   origin: 'confirmation' | 'user_correction' | 'automatic'; createdAt: string; evidence: Evidence[];
 }
@@ -47,9 +64,11 @@ export interface Backup {
 export interface AppState {
   workspace: { dataDir: string; schemaVersion: number; recoveredJobs: number };
   projects: Project[]; sources: Source[]; proposals: Proposal[];
+  extractionDrafts?: ExtractionDraft[];
   memories: Memory[]; jobs: Job[]; backups: Backup[];
   aiSettings: AiSettings; memoryReviewCount: number;
   managementRevision?: string;
+  assistantPreferenceVersion?: number;
   tasks: Task[]; taskProposals: TaskProposal[]; reports: ReportSummary[];
 }
 export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done' | 'cancelled';
@@ -111,7 +130,26 @@ export interface FeishuStatus {
 }
 export interface ProjectAnswer {
   answer: string; grounded: boolean; context: unknown;
-  citations: Array<{ memoryId: string; revision: number; content: string; sourceTitle: string; evidence: Evidence[] }>;
+  citations: Array<{ id?: string; kind?: 'source_passage'; memoryId?: string; revision?: number; sourceId?: string; segmentId?: string; locator?: string; content: string; sourceTitle: string; evidence: Evidence[] }>;
+  queryTrace?: MemoryQueryTrace; qualityReview?: MemoryQualityReview;
+  status?: AnswerStatus; claims?: AnswerClaim[]; unknowns?: string[];
+}
+
+export interface MemoryQueryTrace {
+  modelCalls: number; maxModelCalls: number; inputChars: number; maxInputChars: number;
+  maxOutputCharsPerCall: number; elapsedMs: number; timeoutSeconds: number;
+  searchQueries?: string[]; supplementStatus?: string;
+  retrievalMs?: number[]; reportedTokens?: number; usageComplete?: boolean;
+  reportedTokenStopThreshold?: number; tokenBudgetMode?: string;
+  stages?: Array<{ stage: string; elapsedMs: number; inputChars: number; errorCode?: string;
+    usage: { inputTokens: number; outputTokens: number; totalTokens: number } | null }>;
+
+  rounds?: Array<{ version: string; scanned: number; matched: number; returned: number; limited: boolean;
+    catalogEntries: number; catalogLimited: boolean; ranking: Array<{ id: string; score: number }> }>;
+}
+export interface MemoryQualityReview {
+  supported: boolean; unsupportedClaims?: string[]; reason?: string; version?: string;
+  status?: 'unavailable'; errorCode?: string;
 }
 
 export const KIND_LABELS: Record<MemoryKind, string> = {

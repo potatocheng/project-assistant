@@ -1,0 +1,153 @@
+{
+  "version": "memory-qa-targeted-preregistration-v1",
+  "registeredAt": "2026-10-21T01:38:47.015Z",
+  "datasetSha256": "803537c32e89dce765c8e6cef6484f332d6ef5a9c91b726a4ea957e68b461d87",
+  "model": "deepseek-flash",
+  "baselineDevelopment": {
+    "file": "docs/memory-public-live-qa-calibrated-dev-v3-results.json",
+    "sha256": "d5d288d0630bf0bb67d761ca184d75efd8dbc7d761b2b030fa2b56a1e87daedc",
+    "original": {
+      "desktopComplete": 13,
+      "connectorComplete": 16,
+      "desktopReferencesSufficient": 17,
+      "connectorReferencesSufficient": 17,
+      "correctAbstentionPerEntry": 1,
+      "combinedQaTokens": 333357
+    }
+  },
+  "costReferenceDevelopment": {
+    "file": "docs/memory-public-live-qa-efficient-dev-v2-results.json",
+    "sha256": "785c4cb11953cb5533eb7165e81ff49a502a6cf75b56d225a5daccf348ce390f",
+    "combinedQaTokens": 262191,
+    "qaRequests": 83
+  },
+  "baselineFull": {
+    "file": "docs/memory-public-live-qa-efficient-full-results.json",
+    "sha256": "7bd5f73eebf4a8962c9449722f2f5b8474ff40faa534ac71be3cbe932e06e22a"
+  },
+  "thresholds": {
+    "retainedYesOrPartial": 18,
+    "desktopComplete": 14,
+    "connectorComplete": 16,
+    "desktopReferencesSufficient": 17,
+    "connectorReferencesSufficient": 17,
+    "desktopCorrectAbstention": 1,
+    "connectorCorrectAbstention": 1,
+    "desktopPairedNetImprovement": 0,
+    "connectorPairedNetImprovement": 0,
+    "combinedPairedNetImprovement": 1,
+    "maxQaProtocolErrors": 0,
+    "maxSupplementProtocolFailures": 0,
+    "maxQaTokenGrowthFraction": 0.1,
+    "maxCombinedQaTokens": 288410
+  },
+  "qaCostTargets": {
+    "registeredHardMaximum": 288410,
+    "completeRecovery": 262191,
+    "comparedQualityBaseline": 333357
+  },
+  "fullTargets": {
+    "desktopComplete": 62,
+    "connectorComplete": 60,
+    "desktopReferencesSufficient": 69,
+    "connectorReferencesSufficient": 68,
+    "desktopCorrectAbstention": 7,
+    "connectorCorrectAbstention": 7,
+    "maxCombinedQaTokens": 1664381,
+    "completeRecoveryQaTokens": 1513074,
+    "baselineCombinedQaTokens": 1513074,
+    "maxQaTokenGrowthFraction": 0.1
+  },
+  "limits": {
+    "development": {
+      "maxRequests": 1200,
+      "maxTokens": 6000000,
+      "maxFreshAttempts": 4
+    },
+    "full": {
+      "maxRequests": 2000,
+      "maxTokens": 12000000
+    }
+  },
+  "productionCaps": {
+    "maxModelCalls": 5,
+    "maxInputChars": 180000,
+    "focusedContextMaxReferences": 24,
+    "focusedContextMaxModelChars": 36000
+  },
+  "historicalRound": {
+    "name": "qa-calibrated",
+    "ledger": {
+      "version": "memory-public-live-prior-ledger-v1",
+      "entries": [
+        {
+          "file": "docs/memory-public-live-qa-calibrated-dev-results.json",
+          "sha256": "0fab7ad01542169f130272ba062c0c7d1339fafc80ccb4ce8c8c3d1c6286a1f1",
+          "detailFile": ".local-data/public-memory-live-WH2Tfm/results.json",
+          "detailSha256": "edfc01acdde2fa924177246b24b7dfc07f8ce2a79c19f65c2cf5b6cb3ac1bd82",
+          "transcriptFile": ".local-data/public-memory-live-WH2Tfm/receipts.jsonl",
+          "transcriptSha256": "9d660ff82945cee31bd1b514d55b0a27519ef03bee3ea8dec90aba9fcdc890b4",
+          "workspace": ".local-data\\public-memory-live-WH2Tfm",
+          "outputTag": "qa-calibrated-dev",
+          "startedAt": "2026-10-20T16:12:32.529Z",
+          "finishedAt": "2026-10-20T16:19:49.009Z",
+          "requests": 282,
+          "totalTokens": 1273289
+        },
+        {
+          "file": "docs/memory-public-live-qa-calibrated-dev-v2-results.json",
+          "sha256": "0b1ecae6fa1c16e9ace72abfb2455324c04054b09fcf4c82f74e5ab084d88460",
+          "detailFile": ".local-data/public-memory-live-KVjDa6/results.json",
+          "detailSha256": "e2b1c90af427704971cee117bab6c1643980a7cd4efef15eb636d34abe0b8bf9",
+          "transcriptFile": ".local-data/public-memory-live-KVjDa6/receipts.jsonl",
+          "transcriptSha256": "d215b568f04cb7dcad9ae1b8eed6ce084a83f0cdb0bdd1d6c9dd6e9a4ee789a0",
+          "workspace": ".local-data\\public-memory-live-KVjDa6",
+          "outputTag": "qa-calibrated-dev-v2",
+          "startedAt": "2026-10-20T16:31:01.709Z",
+          "finishedAt": "2026-10-20T16:37:44.831Z",
+          "requests": 266,
+          "totalTokens": 1177756
+        },
+        {
+          "file": "docs/memory-public-live-qa-calibrated-dev-v3-results.json",
+          "sha256": "d5d288d0630bf0bb67d761ca184d75efd8dbc7d761b2b030fa2b56a1e87daedc",
+          "detailFile": ".local-data/public-memory-live-gyhgY7/results.json",
+          "detailSha256": "7a0e8308e9cb523c0c9b6fbc7d7aa94cd796a3d655ee42b3d5f85f60eb398aab",
+          "transcriptFile": ".local-data/public-memory-live-gyhgY7/receipts.jsonl",
+          "transcriptSha256": "50a6af5b1000223bbf8e78ec5dd44ff20f7fd327964d0142707217ea57c0e48a",
+          "workspace": ".local-data\\public-memory-live-gyhgY7",
+          "outputTag": "qa-calibrated-dev-v3",
+          "startedAt": "2026-10-20T16:56:11.086Z",
+          "finishedAt": "2026-10-20T17:03:10.469Z",
+          "requests": 281,
+          "totalTokens": 1201503
+        }
+      ],
+      "requests": 829,
+      "totalTokens": 3652548,
+      "sha256": "0cd2b1324b1abb8dc1ec2f60edbe2c83f90e0ee6b0b771c9df3586b51adef55d"
+    },
+    "failedGates": [
+      {
+        "file": "docs/memory-public-live-qa-calibrated-dev-gate.json",
+        "sha256": "b16f9fbbef1f1d8eba3cc7fdd45995baf22798f287fa265df9d9638381c069a7",
+        "passed": false
+      },
+      {
+        "file": "docs/memory-public-live-qa-calibrated-dev-v2-gate.json",
+        "sha256": "b2cecb10d88875a7ce2bec34ac39ec38a43648bb82a4ebe9fa05b23ed2b232ed",
+        "passed": false
+      },
+      {
+        "file": "docs/memory-public-live-qa-calibrated-dev-v3-gate.json",
+        "sha256": "7ee8883e8eaccc5cb60de1683b122ff5a4cc9cbcf6dff5ce9a87b8cfab1589da",
+        "passed": false
+      }
+    ],
+    "requests": 829,
+    "totalTokens": 3652548,
+    "costScope": "Previous calibrated three failed development attempts only; not a reset, extension or unreported new charge. Previous qa-efficient baselines are comparison artifacts and their past development/full costs are outside this immediate two-round aggregate."
+  },
+  "methodology": "New independent user-authorized qa-targeted round. Fresh question-independent production extraction and organization for each development attempt; two real production QA entries; same deepseek-flash and frozen QASPER20/80. Same separated judge prompts, human gold and labels; anonymous paired grading against qa-calibrated-dev-v3 while preserving its historical original13/16. Actual QA cost separately compared to qa-efficient-dev-v2 (262191), not loosened by333357. At most four fresh20 attempts share1200requests/6M provider tokens; failed attempts remain immutable with complete recursive prior ledger. No automatic API retries, no best-of answer selection and no automatic budget extension. Full100 starts only after passing the fixed gate with identical tested source/binary/evaluation snapshot; full comparator is qa-efficient-full because no calibrated-full exists. Existing explicit parser/schema-only judge repair policy remains unchanged with all costs included. Same-model automatic fixed regressions, not unseen blind evaluation or completed human adjudication.",
+  "snapshotPolicy": "All previous raw artifacts/gates/registrations and source/evaluation snapshots remain immutable. Shared harness tag/budget dispatch may gain a new branch only after baseline backup; targeted evidence records its own complete file fingerprints. Historical fees are reported separately and added once to a cross-round aggregate, without deducting them from this independent new round limits."
+}

@@ -1,0 +1,100 @@
+{
+  "version": "memory-qa-structured-frozen-process-v1",
+  "recordedAt": "2026-10-26T07:22:08.262Z",
+  "providerRequests": 0,
+  "binarySha256": "7e65315438a1ba9b8b67cf42dc88319e42d35499c5ce537a2633debde7525a57",
+  "passed": true,
+  "workspace": ".local-data\\qa-structured-frozen-process-7MqKZG",
+  "results": [
+    {
+      "paperId": "1806.00738",
+      "memories": 47,
+      "copy": {
+        "sourceWorkspace": ".local-data\\public-memory-live-fqAaH5\\paper-2",
+        "files": {
+          "workspace.sqlite": "edbee11a2e909b4413b8e2265b665c0f156aaba120e5c715a11d8fc30ba789d7",
+          "workspace.sqlite-shm": "38f4a9aa5a056b083fb437c6360ff5f938fa4ae4bb3687a847d16d9bf1ee01a5",
+          "workspace.sqlite-wal": "14111d0de55e5e7c66c4a7f682694a79dc82ed398315ed343d4b94e5ac30e6d3"
+        },
+        "semanticSha256": "e03a372b33de5ba7b4473b7f9ff1f709b7177067fe802cd499d912a026586c00",
+        "note": "Frozen confirmed memory and provenance; ranking and actual model packs remain production decisions. No frozen supplied-pack claim."
+      },
+      "passed": true
+    },
+    {
+      "paperId": "1603.01514",
+      "memories": 139,
+      "copy": {
+        "sourceWorkspace": ".local-data\\public-memory-live-fqAaH5\\paper-1",
+        "files": {
+          "workspace.sqlite": "7654b29d05b694df8fd3ce760acbae6b41cacc9f5ab563f68d96de611637a7e5",
+          "workspace.sqlite-shm": "0575aa90cd177485cc14e8d4a9c7a4869856b80ae544c445c26a8896d72e6ee9",
+          "workspace.sqlite-wal": "262aac014a02512147faee5026f668e271b97592439924c233ce6a7beb022f05"
+        },
+        "semanticSha256": "37e47b1bc88e49b0bf5b46cc2f46ded38576bc5f6be10af0a6b58ff5ccb616e0",
+        "note": "Frozen confirmed memory and provenance; ranking and actual model packs remain production decisions. No frozen supplied-pack claim."
+      },
+      "passed": true
+    },
+    {
+      "paperId": "1902.09666",
+      "memories": 76,
+      "copy": {
+        "sourceWorkspace": ".local-data\\public-memory-live-fqAaH5\\paper-0",
+        "files": {
+          "workspace.sqlite": "bb143f5af5be4436142a6cf7f86114ec0f1661d3773ac3fd9b11a732faa67540",
+          "workspace.sqlite-shm": "9d3fb8eca4d236dc6835665df8a544a074ffbf2adf9c5cba025883ca6593a449",
+          "workspace.sqlite-wal": "8b6c228a597cc24ebba82e5ab125d7c52ed64f019ce8d6965865c1c0dad82e3d"
+        },
+        "semanticSha256": "80666fd4c804e464e9ac052d44d6f0917996df3394ba5edcb26f4152f41738c3",
+        "note": "Frozen confirmed memory and provenance; ranking and actual model packs remain production decisions. No frozen supplied-pack claim."
+      },
+      "passed": true
+    },
+    {
+      "paperId": "1908.07245",
+      "memories": 71,
+      "copy": {
+        "sourceWorkspace": ".local-data\\public-memory-live-fqAaH5\\paper-3",
+        "files": {
+          "workspace.sqlite": "889137a137656dae70ba847b3e78bae681f2096b286e7e35cb0956a3ae714bf9",
+          "workspace.sqlite-shm": "800e53650a6ea39a022557b41ae49cce561a1cea3f9a21343afcd214acfd6f12",
+          "workspace.sqlite-wal": "93f151fe4a155878e1c6b56068030c9f31ea47476d2b800932fe074eb5fa34db"
+        },
+        "semanticSha256": "f943525ef447e4e4cd27e18dc582610ea2f50281a07370121b3ff8e02fadf024",
+        "note": "Frozen confirmed memory and provenance; ranking and actual model packs remain production decisions. No frozen supplied-pack claim."
+      },
+      "passed": true
+    },
+    {
+      "paperId": "1902.09243",
+      "memories": 136,
+      "copy": {
+        "sourceWorkspace": ".local-data\\public-memory-live-fqAaH5\\paper-4",
+        "files": {
+          "workspace.sqlite": "71fb12cacd3d9c939116ea6ce45776bb92cce46f33966b60ccef0257d9652eec",
+          "workspace.sqlite-shm": "35718c9f5e85a4ce263c71822506f4b6361b7e33d845772254a8845be67bc5fc",
+          "workspace.sqlite-wal": "da8fb3d25df1ee27b9fa7f79c3787abbef8c4b221fd96c0ab45b7cb7db46aae8"
+        },
+        "semanticSha256": "eadd46cbe5c3cb1338d8f442eafb861c2b0268d6d60cb5985a6417414e34b417",
+        "note": "Frozen confirmed memory and provenance; ranking and actual model packs remain production decisions. No frozen supplied-pack claim."
+      },
+      "passed": true
+    },
+    {
+      "paperId": "1705.01214",
+      "memories": 469,
+      "copy": {
+        "sourceWorkspace": ".local-data\\public-memory-live-fqAaH5\\paper-5",
+        "files": {
+          "workspace.sqlite": "01914535c452b27fee1b9e65315cd8f426704528051eb569f6447b295ac18315",
+          "workspace.sqlite-shm": "6ff80c2ef3a681412d2ad383963c38da37fef607f524eb6a9bcf30910b588e6c",
+          "workspace.sqlite-wal": "52b2f1fbd021cd8452daa4d529ed67cc54b2bb43c4688e50a604a51b79b0f9ba"
+        },
+        "semanticSha256": "e9451953ac640cfba4a7ce905148722618cff8079d5d863e5d910dcf1d5ddcf8",
+        "note": "Frozen confirmed memory and provenance; ranking and actual model packs remain production decisions. No frozen supplied-pack claim."
+      },
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "version": "memory-qa-calibrated-budget-addendum-v1",
+  "registeredAt": "2026-10-20T16:46:59.334Z",
+  "baseRegistration": {
+    "file": "docs/memory-qa-calibrated-preregistration.json",
+    "sha256": "e37d9e22eb2fce32d16fb3dadaa8f65c9aab9c6ef126fd298f0aec40b41b6529"
+  },
+  "baseThresholdsSha256": "74c6598e5d11d96695177051ebb1f19052adaa58137bbb4a5ba90e348addc4a4",
+  "originalDevelopmentLimits": {
+    "maxRequests": 600,
+    "maxTokens": 3000000
+  },
+  "extension": {
+    "maxRequests": 300,
+    "maxTokens": 1500000
+  },
+  "effectiveDevelopmentLimits": {
+    "maxRequests": 900,
+    "maxTokens": 4500000
+  },
+  "fullLimitsUnchanged": {
+    "maxRequests": 2000,
+    "maxTokens": 12000000
+  },
+  "boundPriorLedger": {
+    "version": "memory-public-live-prior-ledger-v1",
+    "entries": [
+      {
+        "file": "docs/memory-public-live-qa-calibrated-dev-results.json",
+        "sha256": "0fab7ad01542169f130272ba062c0c7d1339fafc80ccb4ce8c8c3d1c6286a1f1",
+        "detailFile": ".local-data/public-memory-live-WH2Tfm/results.json",
+        "detailSha256": "edfc01acdde2fa924177246b24b7dfc07f8ce2a79c19f65c2cf5b6cb3ac1bd82",
+        "transcriptFile": ".local-data/public-memory-live-WH2Tfm/receipts.jsonl",
+        "transcriptSha256": "9d660ff82945cee31bd1b514d55b0a27519ef03bee3ea8dec90aba9fcdc890b4",
+        "workspace": ".local-data\\public-memory-live-WH2Tfm",
+        "outputTag": "qa-calibrated-dev",
+        "startedAt": "2026-10-20T16:12:32.529Z",
+        "finishedAt": "2026-10-20T16:19:49.009Z",
+        "requests": 282,
+        "totalTokens": 1273289
+      },
+      {
+        "file": "docs/memory-public-live-qa-calibrated-dev-v2-results.json",
+        "sha256": "0b1ecae6fa1c16e9ace72abfb2455324c04054b09fcf4c82f74e5ab084d88460",
+        "detailFile": ".local-data/public-memory-live-KVjDa6/results.json",
+        "detailSha256": "e2b1c90af427704971cee117bab6c1643980a7cd4efef15eb636d34abe0b8bf9",
+        "transcriptFile": ".local-data/public-memory-live-KVjDa6/receipts.jsonl",
+        "transcriptSha256": "d215b568f04cb7dcad9ae1b8eed6ce084a83f0cdb0bdd1d6c9dd6e9a4ee789a0",
+        "workspace": ".local-data\\public-memory-live-KVjDa6",
+        "outputTag": "qa-calibrated-dev-v2",
+        "startedAt": "2026-10-20T16:31:01.709Z",
+        "finishedAt": "2026-10-20T16:37:44.831Z",
+        "requests": 266,
+        "totalTokens": 1177756
+      }
+    ],
+    "requests": 548,
+    "totalTokens": 2451045,
+    "sha256": "9a56d1c53eaac13575c80427c32b282098f4544430d5d5d1f0917b6ea8652daa"
+  },
+  "failedGates": [
+    {
+      "file": "docs/memory-public-live-qa-calibrated-dev-gate.json",
+      "sha256": "b16f9fbbef1f1d8eba3cc7fdd45995baf22798f287fa265df9d9638381c069a7",
+      "passed": false,
+      "failedChecks": [
+        "no_review_protocol_failures",
+        "supplement_protocol_failures_not_worse",
+        "combined_qa_tokens_within_ten_percent_growth"
+      ]
+    },
+    {
+      "file": "docs/memory-public-live-qa-calibrated-dev-v2-gate.json",
+      "sha256": "b2cecb10d88875a7ce2bec34ac39ec38a43648bb82a4ebe9fa05b23ed2b232ed",
+      "passed": false,
+      "failedChecks": [
+        "connector_complete_answer_floor",
+        "connector_paired_correctness_guard",
+        "combined_paired_improvement",
+        "no_review_protocol_failures",
+        "supplement_protocol_failures_not_worse",
+        "combined_qa_tokens_within_ten_percent_growth"
+      ]
+    }
+  ],
+  "reason": "Two complete fresh development pilots failed the unchanged review protocol and/or QA-token gates. One transparent extension funds continued code/test repair and a new fresh20 run; prior failures and every provider cost remain counted. Quality thresholds, current-run QA<=288410, full targets, judge prompts/gold/labels and historical artifacts are unchanged. No second automatic extension.",
+  "accounting": "Recursively verify the entire prior-run chain and all raw provider receipts. Cumulative900requests/4.5Mtokens includes both failed pilots and every later development attempt, without resetting or counting a workspace twice. Full100 remains a separate2000requests/12Mtokens budget. Token limits are observed reported usage, not advance reservations for concurrent requests."
+}

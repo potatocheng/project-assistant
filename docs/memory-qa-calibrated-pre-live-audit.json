@@ -1,0 +1,35 @@
+{
+  "version": "memory-qa-calibrated-pre-live-audit-v1",
+  "auditedAt": "2026-10-20T16:57:39.092Z",
+  "reviewer": "Independent QA agent; did not implement evaluator, ledger or gate",
+  "issues": [],
+  "regression": {
+    "file": "docs/memory-qa-calibrated-third-live-regressions.json",
+    "commands": 11,
+    "passed": true,
+    "finishedAt": "2026-10-20T16:55:55.674Z"
+  },
+  "liveStartedAt": "2026-10-20T16:56:11.879Z",
+  "workspace": ".local-data/public-memory-live-gyhgY7",
+  "checks": {
+    "liveAfterAllRegressionCommands": true,
+    "productionBinaryAnd16EvaluationFilesMatchSnapshots": true,
+    "originalQualityThresholdsAndGoldUnchanged": true,
+    "old14FileSnapshotsVerified": true,
+    "allFailedPilotCostsDeducted": true,
+    "noAutomaticRetry": true
+  },
+  "priorUsage": {
+    "requests": 548,
+    "totalTokens": 2451045
+  },
+  "thisRunLimits": {
+    "requests": 352,
+    "totalTokens": 2048955
+  },
+  "fullSeparateLimits": {
+    "requests": 2000,
+    "totalTokens": 12000000
+  },
+  "mode": "Read-only fingerprint/accounting review; no API or Cargo"
+}

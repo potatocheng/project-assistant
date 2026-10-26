@@ -1,0 +1,102 @@
+{
+  "checkedAt": "2026-10-21T03:42:36.721Z",
+  "checks": [
+    "frozen dataset/source/binary hashes",
+    "no key in reports/transcripts",
+    "unique receipt indices/request hashes/provider usage",
+    "gold absent from production input envelope",
+    "complete paragraph provenance",
+    "both entries and project scope",
+    "unchanged confirmed facts/facets",
+    "read-only QA",
+    "strict judge memory ID whitelist",
+    "shared request budget"
+  ],
+  "results": [
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-v4-results.json",
+      "sha256": "486bdbe6236f70f81ad50098a6253cd82592ed0b5c870d33466e8d8b8dc0b023",
+      "transcriptSha256": "398ebcb87ee84ff8d3e1c57db6f91bf0be3d4b81381c67671b5f2a4719675039",
+      "requests": 248,
+      "totalTokens": 1133889,
+      "questions": 20,
+      "segments": 501,
+      "formalMemories": 938,
+      "rejectedJudgeOutputs": 0,
+      "passed": true
+    }
+  ],
+  "targetedBudget": {
+    "registration": {
+      "file": "docs/memory-qa-targeted-preregistration.json",
+      "sha256": "aaca558787286f3d718aacff1fd1c299f6a7a31b311f27c4bf783dcb82e0b972",
+      "registeredAt": "2026-10-21T01:38:47.015Z",
+      "developmentLimits": {
+        "maxRequests": 1200,
+        "maxTokens": 6000000,
+        "maxFreshAttempts": 4
+      },
+      "fullLimits": {
+        "maxRequests": 2000,
+        "maxTokens": 12000000
+      },
+      "historicalLedgerSha256": "0cd2b1324b1abb8dc1ec2f60edbe2c83f90e0ee6b0b771c9df3586b51adef55d"
+    },
+    "ledger": {
+      "version": "memory-public-live-prior-ledger-v1",
+      "entries": [
+        {
+          "file": "docs/memory-public-live-qa-targeted-dev-results.json",
+          "sha256": "d001e988b60f4860d4509975ece4b26c7699354621b6c07f08c633751db11699",
+          "detailFile": ".local-data/public-memory-live-8GVUFM/results.json",
+          "detailSha256": "ea2e910abf653a64294dd6a2e92c17ee016bcec0328ec6c651b7d900eb40878c",
+          "transcriptFile": ".local-data/public-memory-live-8GVUFM/receipts.jsonl",
+          "transcriptSha256": "5abedefeb02a04ab2921c9d33896b646c995b411a68109f7f86e4074114344e9",
+          "workspace": ".local-data\\public-memory-live-8GVUFM",
+          "outputTag": "qa-targeted-dev",
+          "startedAt": "2026-10-21T02:15:29.997Z",
+          "finishedAt": "2026-10-21T02:21:57.719Z",
+          "requests": 238,
+          "totalTokens": 1102421
+        },
+        {
+          "file": "docs/memory-public-live-qa-targeted-dev-v2-results.json",
+          "sha256": "c1f8aa858d2140d33137b28e1bc6b0b5a186329f7208327481a43d56aadc2947",
+          "detailFile": ".local-data/public-memory-live-yzBgdm/results.json",
+          "detailSha256": "076241f8cbd614648bd1b6b32533b7883d9be7260f8865c1a6f28795817fd21e",
+          "transcriptFile": ".local-data/public-memory-live-yzBgdm/receipts.jsonl",
+          "transcriptSha256": "892ea515064ed23fffed1cec9ca2661a62afcba3c6a360dd995fbe729aedebab",
+          "workspace": ".local-data\\public-memory-live-yzBgdm",
+          "outputTag": "qa-targeted-dev-v2",
+          "startedAt": "2026-10-21T02:39:05.623Z",
+          "finishedAt": "2026-10-21T02:48:00.911Z",
+          "requests": 240,
+          "totalTokens": 1103818
+        },
+        {
+          "file": "docs/memory-public-live-qa-targeted-dev-v3-results.json",
+          "sha256": "10ade340b4bf9addb71263e0cb189cef878a5bdee308f471228bda105850d56c",
+          "detailFile": ".local-data/public-memory-live-uNLtnq/results.json",
+          "detailSha256": "9d8c96bd6665c98ffec62fb9970ec118e9517e039ea394dd7f0f5d990a7c0fdc",
+          "transcriptFile": ".local-data/public-memory-live-uNLtnq/receipts.jsonl",
+          "transcriptSha256": "e20754a42a06ab67d29ac212506cf789d223a8d6b80213f895bf5dc24fb4c0f9",
+          "workspace": ".local-data\\public-memory-live-uNLtnq",
+          "outputTag": "qa-targeted-dev-v3",
+          "startedAt": "2026-10-21T03:13:52.199Z",
+          "finishedAt": "2026-10-21T03:20:53.636Z",
+          "requests": 251,
+          "totalTokens": 1140546
+        }
+      ],
+      "requests": 729,
+      "totalTokens": 3346785,
+      "sha256": "0a90467c15db5cfa064abb148852738dafd35cf3f7a54d09cc28781cf7bb6331"
+    },
+    "historical": {
+      "requests": 829,
+      "totalTokens": 3652548
+    },
+    "attempt": 4
+  },
+  "registrationSha256": "aaca558787286f3d718aacff1fd1c299f6a7a31b311f27c4bf783dcb82e0b972"
+}

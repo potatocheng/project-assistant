@@ -816,6 +816,9 @@ fn render_report_template(date: &str, basis: &Value, localized_statuses: bool) -
             items.join("\n")
         }
     };
+    if basis["reportFormat"] == "brief" {
+        return format!("# {date} 工作简报\n\n完成：\n{}\n\n推进：\n{}\n\n需关注：\n{}\n\n已知后续安排：\n{}\n\n以上依据当日记录，安排不代表未来成果。\n",section(completion,"暂无完成记录。"),section(progress,"暂无进展记录。"),section(problems,"暂无阻塞或逾期记录。"),section(plans,"暂无已知安排。"));
+    }
     format!("# {date} 工作日报\n\n{}## 完成事项\n{}\n\n## 推进与跟进\n{}\n\n## 阻塞与逾期\n{}\n\n## 后续安排\n基于该日已知计划，不代表未来成果。\n{}\n",if events.is_empty(){"当日没有记录到工作进展。以下风险和安排仅来自该日已知状态。\n\n"}else{""},section(completion,"当日没有最终保持完成状态的完成记录。"),section(progress,"当日没有其他进展记录。"),section(problems,"该日未记录阻塞或逾期。"),section(plans,"该日没有记录后续计划。"))
 }
 fn insert_report(
@@ -855,7 +858,7 @@ fn generate_report(conn: &Connection, p: &Value) -> Result<Value> {
     let date = required(p, "date")?;
     valid_date(date)?;
     let project = selected_project(conn, p)?;
-    let basis = json!({"events":events_on(conn,date,project.as_deref())?,"tasks":as_of(conn,date,project.as_deref())?,"generatedAt":now()});
+    let basis = json!({"events":events_on(conn,date,project.as_deref())?,"tasks":as_of(conn,date,project.as_deref())?,"generatedAt":now(),"reportFormat":crate::memory_workbench::preferences(conn)?["reportFormat"]});
     insert_report(
         conn,
         date,
@@ -1154,7 +1157,7 @@ pub(crate) fn validate_backup(conn: &Connection) -> Result<()> {
         validate_proposal(candidate)?;
         let source = required(candidate, "sourceId")?;
         let project = required(candidate, "projectId")?;
-        if !conn.query_row("SELECT EXISTS(SELECT 1 FROM sources s JOIN jobs j ON j.source_id=s.id WHERE s.id=? AND s.project_id=? AND j.id=? AND j.kind='extract' AND j.status='succeeded' AND j.provider=? AND j.model=? AND j.prompt_version=?)",params![source,project,candidate["extractionJobId"].as_str(),candidate["provider"].as_str(),candidate["model"].as_str(),candidate["promptVersion"].as_str()],|row|row.get::<_,bool>(0))?{return Err(failure("任务提议模型来源或项目不一致"));}
+        if !conn.query_row("SELECT EXISTS(SELECT 1 FROM sources s JOIN jobs j ON j.source_id=s.id WHERE s.id=? AND s.project_id=? AND j.id=? AND j.kind='extract' AND j.status IN ('running','failed','cancelled','queued','succeeded') AND j.provider=? AND j.model=? AND j.prompt_version=?)",params![source,project,candidate["extractionJobId"].as_str(),candidate["provider"].as_str(),candidate["model"].as_str(),candidate["promptVersion"].as_str()],|row|row.get::<_,bool>(0))?{return Err(failure("任务提议模型来源或项目不一致"));}
         let quotes = candidate["quotes"]
             .as_array()
             .ok_or_else(|| failure("任务提议引文格式无效"))?;
@@ -1257,6 +1260,11 @@ pub(crate) fn validate_backup(conn: &Connection) -> Result<()> {
         }
         limited(required(&report, "content")?, 100000, true)?;
         let basis = &report["basis"];
+        if basis.get("reportFormat").is_some()
+            && !matches!(basis["reportFormat"].as_str(), Some("structured" | "brief"))
+        {
+            return Err(failure("日报偏好快照无效"));
+        }
         chrono::DateTime::parse_from_rfc3339(required(basis, "generatedAt")?)
             .map_err(|_| failure("日报依据时间无效"))?;
         let basis_events = basis["events"]

@@ -1,0 +1,49 @@
+{
+  "version": "memory-architecture-integrity-v1",
+  "passed": true,
+  "checkedAt": "2026-10-26T07:30:29.603Z",
+  "results": [
+    {
+      "file": "docs/memory-public-live-qa-architecture-dev-results.json",
+      "sha256": "a4d87bac922701cb5418eca41e50457ca5204fb589e3d8c25ca9414256ac2e37",
+      "transcriptSha256": "69f4e974bcf80c281ee487ba059e4851fcc6fdccf140f36de42bbfc8d1f2b773",
+      "requests": 151,
+      "totalTokens": 1288508,
+      "questions": 20,
+      "segments": 501,
+      "formalMemories": 929,
+      "rejectedJudgeOutputs": 0,
+      "passed": true
+    }
+  ],
+  "sourceReferences": 322,
+  "formalMemories": 929,
+  "judgmentStages": 60,
+  "claimProvenanceEntries": 40,
+  "budget": {
+    "registration": {
+      "file": "docs/memory-architecture-preregistration.json",
+      "sha256": "d0f66522a98ba036e60b2c82a317d4bda67f8047fafc3327b0a587eef07c5cca",
+      "registeredAt": "2026-10-26T07:00:10.988Z",
+      "developmentLimits": {
+        "maxRequests": 600,
+        "maxTokens": 3200000,
+        "maxFreshAttempts": 2,
+        "perAttemptRequests": 300,
+        "perAttemptTokens": 1600000
+      },
+      "baselineSha256": "bb1f6b3b25950b1d933a0d3038115c4e6137e32044b0d55dd1340ed9d70fee3c",
+      "frozenMemorySha256": "bb1f6b3b25950b1d933a0d3038115c4e6137e32044b0d55dd1340ed9d70fee3c"
+    },
+    "attempt": 1,
+    "ledger": {
+      "entries": [],
+      "requests": 0,
+      "totalTokens": 0
+    },
+    "limits": {
+      "requests": 300,
+      "observedTotalTokens": 1600000
+    }
+  }
+}

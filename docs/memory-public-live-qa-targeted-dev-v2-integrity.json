@@ -1,0 +1,74 @@
+{
+  "checkedAt": "2026-10-21T02:48:20.953Z",
+  "checks": [
+    "frozen dataset/source/binary hashes",
+    "no key in reports/transcripts",
+    "unique receipt indices/request hashes/provider usage",
+    "gold absent from production input envelope",
+    "complete paragraph provenance",
+    "both entries and project scope",
+    "unchanged confirmed facts/facets",
+    "read-only QA",
+    "strict judge memory ID whitelist",
+    "shared request budget"
+  ],
+  "results": [
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-v2-results.json",
+      "sha256": "c1f8aa858d2140d33137b28e1bc6b0b5a186329f7208327481a43d56aadc2947",
+      "transcriptSha256": "892ea515064ed23fffed1cec9ca2661a62afcba3c6a360dd995fbe729aedebab",
+      "requests": 240,
+      "totalTokens": 1103818,
+      "questions": 20,
+      "segments": 501,
+      "formalMemories": 927,
+      "rejectedJudgeOutputs": 0,
+      "passed": true
+    }
+  ],
+  "targetedBudget": {
+    "registration": {
+      "file": "docs/memory-qa-targeted-preregistration.json",
+      "sha256": "aaca558787286f3d718aacff1fd1c299f6a7a31b311f27c4bf783dcb82e0b972",
+      "registeredAt": "2026-10-21T01:38:47.015Z",
+      "developmentLimits": {
+        "maxRequests": 1200,
+        "maxTokens": 6000000,
+        "maxFreshAttempts": 4
+      },
+      "fullLimits": {
+        "maxRequests": 2000,
+        "maxTokens": 12000000
+      },
+      "historicalLedgerSha256": "0cd2b1324b1abb8dc1ec2f60edbe2c83f90e0ee6b0b771c9df3586b51adef55d"
+    },
+    "ledger": {
+      "version": "memory-public-live-prior-ledger-v1",
+      "entries": [
+        {
+          "file": "docs/memory-public-live-qa-targeted-dev-results.json",
+          "sha256": "d001e988b60f4860d4509975ece4b26c7699354621b6c07f08c633751db11699",
+          "detailFile": ".local-data/public-memory-live-8GVUFM/results.json",
+          "detailSha256": "ea2e910abf653a64294dd6a2e92c17ee016bcec0328ec6c651b7d900eb40878c",
+          "transcriptFile": ".local-data/public-memory-live-8GVUFM/receipts.jsonl",
+          "transcriptSha256": "5abedefeb02a04ab2921c9d33896b646c995b411a68109f7f86e4074114344e9",
+          "workspace": ".local-data\\public-memory-live-8GVUFM",
+          "outputTag": "qa-targeted-dev",
+          "startedAt": "2026-10-21T02:15:29.997Z",
+          "finishedAt": "2026-10-21T02:21:57.719Z",
+          "requests": 238,
+          "totalTokens": 1102421
+        }
+      ],
+      "requests": 238,
+      "totalTokens": 1102421,
+      "sha256": "4315e8c16ca4d7130a7abf6d112a57f0da427c84dc305d876bf31c46bb11c105"
+    },
+    "historical": {
+      "requests": 829,
+      "totalTokens": 3652548
+    },
+    "attempt": 2
+  },
+  "registrationSha256": "aaca558787286f3d718aacff1fd1c299f6a7a31b311f27c4bf783dcb82e0b972"
+}

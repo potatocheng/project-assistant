@@ -1,0 +1,44 @@
+{
+  "version": "qa-structured-development-v2-changes-v1",
+  "recordedAt": "2026-10-23T04:46:30.672Z",
+  "previousResult": "docs/memory-public-live-qa-structured-dev-results.json",
+  "frozenBinary": "2ecf08ab38a164ad725aefb0b95bd18a0f700ece76d0ca4373cd4b6e3cdd78e3",
+  "testEvidence": "docs/memory-qa-structured-development-second-live-regressions.json",
+  "ordinaryRustTests": 420,
+  "nodeTests": 213,
+  "changes": [
+    {
+      "file": "crates/core/src/question_flow.rs",
+      "contract": "claim-support-v13-independent-unknown-resolution",
+      "effects": [
+        "Local unknowns may resolve within a supported partial obligation; full completeness still requires all obligations answered and no retained unknown.",
+        "Keep individually supported same-obligation claims as partial after a local target filter empties a redundant summary.",
+        "No LLM navigation rewrite for a coverage-recovery-only gap; real explicitly asked gaps retain the existing path."
+      ]
+    },
+    {
+      "files": [
+        "crates/core/src/memory_query.rs",
+        "crates/core/src/evidence_pack.rs"
+      ],
+      "effects": [
+        "Reserve a current confirmed section directory and first four bounded paragraph groups for broad survey queries.",
+        "At most two full complementary facts per group replace background within the existing64candidate/24reference/36000char caps.",
+        "Source groups are navigation metadata; source positions, revision and current eligibility remain required."
+      ],
+      "localAudit": {
+        "file": ".local-data/qa-structured-owner-fresh-section-group-audit.json",
+        "sha256": "df0d041ae50e9cbcbee25cd094e04d491072a6b215c5e9fd029cc3a30f743652",
+        "zeroProviderRequests": true
+      }
+    }
+  ],
+  "preservedFailure": "docs/memory-qa-structured-development-v2-transient-launch-failure.json",
+  "gradingAndRegistrationChanged": false,
+  "limitations": [
+    "Same fixed regression questions already used in development; not a blind test.",
+    "New extraction and model randomness prevent causal attribution from between-attempt score differences.",
+    "A named work and one complementary fact do not guarantee every reported method or effect is included.",
+    "Count-scope over-expansion and absence-based negative answers still require semantic model review; no untested lexical bypass was added."
+  ]
+}

@@ -7,7 +7,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 
-pub(crate) const SCHEMA_VERSION: i64 = 7;
+pub(crate) const SCHEMA_VERSION: i64 = 10;
 pub(crate) struct ParseTask {
     pub path: PathBuf,
     pub kind: String,
@@ -17,6 +17,7 @@ pub(crate) struct AiTask {
     pub settings: settings::SavedSettings,
     pub segments: Vec<ai::SourceSegment>,
     pub generation: i64,
+    pub checkpoints: Vec<ai::ExtractionCheckpoint>,
 }
 pub(crate) struct Database {
     pub conn: Connection,
@@ -62,6 +63,16 @@ impl Database {
         }
         let p = request.payload;
         match request.command.as_str() {
+            "get_assistant_preferences"
+            | "save_assistant_preferences"
+            | "clear_assistant_preferences"
+            | "get_project_brief"
+            | "generate_project_brief"
+            | "get_memory_quality"
+            | "check_memory_quality"
+            | "assess_extraction" => {
+                crate::memory_workbench::dispatch(&self.conn, &request.command, &p)
+            }
             "get_governance_workspace"
             | "get_governance_item"
             | "save_governance_item"
@@ -156,6 +167,7 @@ impl Database {
             "save_ai_settings" => self.save_ai_settings(&p),
             "start_extraction" => self.start_extraction(required(&p, "sourceId")?),
             "retry_extraction" => self.retry_extraction(required(&p, "jobId")?),
+            "review_extraction_draft" => crate::extraction_store::review(self, &p),
             "cancel_extraction" => self.cancel_extraction(required(&p, "jobId")?),
             "update_proposal" => self.update_proposal(&p),
             "create_backup" => backup::create(self),
@@ -194,15 +206,27 @@ impl Database {
     }
     fn state(&self) -> Result<Value> {
         let workflow = tasks::state(&self.conn)?;
+        let proposals = self
+            .all(PROPOSAL_SELECT, proposal_row)?
+            .into_iter()
+            .map(|mut p| {
+                p["segmentIds"] = self.proposal_segments(p["id"].as_str().unwrap())?;
+                p["facets"] = crate::memory_facts::proposal(&self.conn, p["id"].as_str().unwrap())?;
+                Ok(p)
+            })
+            .collect::<Result<Vec<_>>>()?;
         Ok(json!({
             "workspace": { "dataDir": self.root, "schemaVersion": SCHEMA_VERSION, "recoveredJobs": self.recovered_jobs },
             "managementRevision":crate::management::revision(&self.conn)?,
+            "assistantPreferenceVersion":crate::memory_workbench::preferences(&self.conn)?["version"],
             "aiSettings": settings::load(&self.root)?.public(),
             "memoryReviewCount":self.conn.query_row("SELECT count(*) FROM memory_reviews r JOIN proposals p ON p.id=r.proposal_id WHERE r.status='pending' AND p.status='pending'",[],|r|r.get::<_,i64>(0))?,
             "tasks":workflow["tasks"],"taskProposals":workflow["taskProposals"],"reports":workflow["reports"],
             "projects": self.all("SELECT id,name,description,created_at FROM projects ORDER BY created_at DESC", project_row)?,
             "sources": self.all(SOURCE_SELECT, source_row)?,
-            "proposals": self.all(PROPOSAL_SELECT, proposal_row)?.into_iter().map(|mut p| { p["segmentIds"] = self.proposal_segments(p["id"].as_str().unwrap()).unwrap_or(json!([])); p }).collect::<Vec<_>>(),
+            "proposals": proposals,
+            "extractionDrafts":crate::extraction_store::state(&self.conn)?,
+            "extractionBatches":crate::extraction_store::batch_state(&self.conn)?,
             "memories": self.all(MEMORY_SELECT, memory_row)?,
             "jobs": self.all(JOB_SELECT, job_row)?,
             "backups": self.all("SELECT id,filename,created_at,byte_size,sha256,counts FROM backups ORDER BY created_at DESC", backup_row)?.into_iter().filter(|b| b["filename"].as_str().is_some_and(|f| backup::safe_filename(f) && self.root.join("backups").join(f).is_file())).collect::<Vec<_>>()
@@ -531,6 +555,7 @@ impl Database {
             .optional()?
             .ok_or_else(|| AppError::new("NOT_FOUND", "候选记忆不存在"))?;
         value["segmentIds"] = self.proposal_segments(proposal)?;
+        value["facets"] = crate::memory_facts::proposal(&self.conn, proposal)?;
         Ok(value)
     }
     fn confirm(&mut self, proposal: &str) -> Result<Value> {
@@ -544,6 +569,7 @@ impl Database {
         if self.conn.query_row("SELECT EXISTS(SELECT 1 FROM memory_reviews WHERE proposal_id=? AND status='pending' AND target_id IS NOT NULL)",[proposal],|r|r.get::<_,bool>(0))? {
             return Err(AppError::new("MEMORY_REVIEW_REQUIRED","此候选与已有记忆有关联，请在记忆中心核对并选择如何更新"));
         }
+        crate::extraction_store::guard_proposal(&self.conn, proposal)?;
         let project = p["projectId"].as_str().unwrap();
         let source = p["sourceId"].as_str().unwrap();
         let segments = Self::segments(&p)?;
@@ -560,6 +586,7 @@ impl Database {
         let tx = self.conn.transaction()?;
         tx.execute("INSERT INTO memories (id,project_id,kind,content,revision,state,source_title,confirmed_at,updated_at) VALUES (?,?,?,?,1,'active',?,?,?)",params![memory,project,p["kind"].as_str().unwrap(),p["content"].as_str().unwrap(),title,at,at])?;
         tx.execute("INSERT INTO revisions (id,memory_id,number,content,reason,origin,created_at) VALUES (?,?,1,?,'确认原文提取','confirmation',?)",params![revision,memory,p["content"].as_str().unwrap(),at])?;
+        crate::memory_facts::promote(&tx, proposal, &revision, p["content"].as_str().unwrap())?;
         for segment in segments {
             tx.execute(
                 "INSERT INTO revision_evidence VALUES (?,?)",
@@ -599,6 +626,8 @@ impl Database {
         let revisions=stmt.query_map([memory],|r|Ok(json!({"id":r.get::<_,String>(0)?,"memoryId":r.get::<_,String>(1)?,"number":r.get::<_,i64>(2)?,"content":r.get::<_,String>(3)?,"reason":r.get::<_,String>(4)?,"origin":r.get::<_,String>(5)?,"createdAt":r.get::<_,String>(6)?})))?.collect::<std::result::Result<Vec<_>,_>>()?;
         let mut out = Vec::new();
         for mut revision in revisions {
+            revision["facets"] =
+                crate::memory_facts::load(&self.conn, revision["id"].as_str().unwrap())?;
             let mut evidence=self.conn.prepare("SELECT g.id,s.id,s.title,g.locator,g.text FROM revision_evidence e JOIN segments g ON g.id=e.segment_id JOIN sources s ON s.id=g.source_id WHERE e.revision_id=? ORDER BY g.ordinal")?;
             let rows=evidence.query_map([revision["id"].as_str().unwrap()],|r|Ok(json!({"segmentId":r.get::<_,String>(0)?,"sourceId":r.get::<_,String>(1)?,"sourceTitle":r.get::<_,String>(2)?,"locator":r.get::<_,String>(3)?,"text":r.get::<_,String>(4)?})))?.collect::<std::result::Result<Vec<_>,_>>()?;
             revision["evidence"] = json!(rows);
@@ -646,6 +675,10 @@ impl Database {
             )?;
         }
         tx.execute("UPDATE memories SET content=?,revision=?,source_title=?,updated_at=? WHERE id=? AND revision=?",params![content,base+1,title,at,memory,base])?;
+        if let Some(facets) = p.get("facets") {
+            crate::memory_facts::save(&tx, &revision, facets, content)?;
+        }
+        crate::memory_workbench::correction(&tx, p, &current, &at)?;
         tx.commit()?;
         self.memory(memory)
     }
@@ -691,7 +724,13 @@ impl Database {
         if !ready {
             return Err(AppError::new("SOURCE_NOT_READY", "资料尚未解析完成"));
         }
-        self.conn.execute("UPDATE jobs SET status='queued',stage='等待 AI 提取',error=NULL,error_code=NULL,generation=generation+1,attempts=attempts+1,provider=?,model=?,prompt_version=?,config_revision=?,input_hash=NULL,source_hash=NULL,completed_batches=0,total_batches=0,candidate_count=0,task_candidate_count=0,discarded_count=0,updated_at=? WHERE id=?",params![configuration.provider,configuration.model,ai::PROMPT_VERSION,configuration.revision,now(),job])?;
+        let (revision, source_hash, actual_hash, prompt): (Option<String>, Option<String>, String, Option<String>) = self.conn.query_row("SELECT j.config_revision,j.source_hash,s.sha256,j.prompt_version FROM jobs j JOIN sources s ON s.id=j.source_id WHERE j.id=?", [job], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?)))?;
+        if revision.as_deref()!=Some(configuration.revision.as_str()) || prompt.as_deref()!=Some(ai::PROMPT_VERSION) || source_hash.as_ref().is_some_and(|value|value!=&actual_hash) {
+            // Old drafts keep their immutable provenance. A changed snapshot
+            // starts a fresh job rather than relabelling old model output.
+            return self.start_extraction(source);
+        }
+        self.conn.execute("UPDATE jobs SET status='queued',stage='等待恢复未完成批次',error=NULL,error_code=NULL,generation=generation+1,attempts=attempts+1,updated_at=? WHERE id=?",params![now(),job])?;
         self.job(job)
     }
     fn cancel_extraction(&mut self, job: &str) -> Result<Value> {
@@ -717,10 +756,16 @@ impl Database {
         if self.proposal(proposal)?["status"] != "pending" {
             return Err(AppError::new("CONFLICT", "只能编辑待确认的提议"));
         }
-        self.conn.execute(
+        let tx = self.conn.unchecked_transaction()?;
+        tx.execute(
             "UPDATE proposals SET kind=?,content=?,edited=1 WHERE id=?",
             params![kind, content, proposal],
         )?;
+        tx.execute(
+            "DELETE FROM proposal_facets WHERE proposal_id=?",
+            [proposal],
+        )?;
+        tx.commit()?;
         self.proposal(proposal)
     }
     pub fn pending_extract(&self) -> Result<Value> {
@@ -768,6 +813,7 @@ impl Database {
             settings: configuration,
             segments,
             generation,
+            checkpoints: crate::extraction_store::resume(&self.conn, job)?,
         }))
     }
     pub fn progress_extract(
@@ -795,7 +841,7 @@ impl Database {
             return Ok(());
         }
         let row=self.conn.query_row("SELECT j.source_id,s.project_id,j.source_hash,s.sha256,j.provider,j.model,j.prompt_version FROM jobs j JOIN sources s ON s.id=j.source_id WHERE j.id=? AND j.kind='extract' AND j.status='running' AND j.generation=?",params![job,generation],|row|Ok((row.get::<_,String>(0)?,row.get::<_,String>(1)?,row.get::<_,Option<String>>(2)?,row.get::<_,String>(3)?,row.get::<_,Option<String>>(4)?,row.get::<_,Option<String>>(5)?,row.get::<_,Option<String>>(6)?))).optional()?;
-        let Some((source, project, snapshot_hash, current_hash, provider, model, prompt)) = row
+        let Some((_source, _project, snapshot_hash, current_hash, _provider, _model, _prompt)) = row
         else {
             return Ok(());
         };
@@ -810,87 +856,25 @@ impl Database {
                 return Ok(());
             }
         };
-        let mut discarded = output.discarded_count;
-        let mut grounded = Vec::new();
-        for candidate in output.candidates {
-            let mut valid = validate_kind(&candidate.kind).is_ok()
-                && validate_content(&candidate.content).is_ok()
-                && !candidate.content.trim().is_empty()
-                && !candidate.evidence.is_empty();
-            let mut segment_ids = Vec::new();
-            let mut quotes = Vec::new();
-            for evidence in &candidate.evidence {
-                let text=self.conn.query_row("SELECT g.text FROM segments g JOIN sources s ON s.id=g.source_id WHERE g.id=? AND s.id=? AND s.project_id=?",params![evidence.segment_id,source,project],|row|row.get::<_,String>(0)).optional()?;
-                if evidence.quote.trim().is_empty()
-                    || !text.is_some_and(|text| text.contains(&evidence.quote))
-                {
-                    valid = false;
-                    break;
-                }
-                if !segment_ids.contains(&evidence.segment_id) {
-                    segment_ids.push(evidence.segment_id.clone());
-                }
-                quotes.push(json!({"segmentId":evidence.segment_id,"quote":evidence.quote}));
-            }
-            if valid {
-                segment_ids.sort();
-                let normalized = candidate
-                    .content
-                    .split_whitespace()
-                    .collect::<Vec<_>>()
-                    .join(" ");
-                let fingerprint = hash(
-                    json!([source, candidate.kind, normalized, segment_ids])
-                        .to_string()
-                        .as_bytes(),
-                );
-                grounded.push((candidate, segment_ids, quotes, fingerprint));
-            } else {
-                discarded += 1;
-            }
+        let checkpoints = crate::extraction_store::resume(&self.conn, job)?;
+        if checkpoints.is_empty() {
+            // Compatibility path used by maintenance and deterministic callers.
+            // The same durable validation path applies to every extraction.
+            let checkpoint = ai::ExtractionCheckpoint {
+                key: "legacy-complete".into(), parent_key: None, status: "succeeded".into(),
+                input_hash: snapshot_hash.unwrap_or_default(), candidates: output.candidates,
+                task_candidates: output.task_candidates, raw_output: None,
+                discarded_count: output.discarded_count, usage: None, error_code: None,
+                budget: Default::default(), completed_batches: output.batch_count,
+                total_batches: output.batch_count,
+            };
+            if !crate::extraction_store::persist(self, job, epoch, generation, &checkpoint)? { return Ok(()); }
         }
-        let (task_candidates, task_discarded) =
-            tasks::ground_candidates(&self.conn, &source, &project, output.task_candidates)?;
-        discarded += task_discarded;
-        if grounded.is_empty() && task_candidates.is_empty() && discarded > 0 {
-            self.conn.execute("UPDATE jobs SET status='failed',stage='未找到可核实的原文依据',error='模型返回的内容没有有效原文依据',error_code='GROUNDING_FAILED',discarded_count=?,updated_at=? WHERE id=?",params![discarded as i64,now(),job])?;
-            return Ok(());
-        }
-        let tx = self.conn.transaction()?;
-        let mut created = 0;
-        for (candidate, segments, quotes, fingerprint) in grounded {
-            let exists: bool = tx.query_row(
-                "SELECT EXISTS(SELECT 1 FROM proposals WHERE fingerprint=?)",
-                [&fingerprint],
-                |row| row.get(0),
-            )?;
-            if exists {
-                continue;
-            }
-            let proposal = id();
-            tx.execute("INSERT INTO proposals (id,project_id,source_id,kind,content,status,created_at,memory_id,origin,provider,model,prompt_version,extraction_job_id,quotes,edited,fingerprint) VALUES (?,?,?,?,?,'pending',?,NULL,'ai',?,?,?,?,?,0,?)",params![proposal,project,source,candidate.kind,candidate.content,now(),provider,model,prompt,job,serde_json::to_string(&quotes).unwrap_or_else(|_|"[]".into()),fingerprint])?;
-            for segment in segments {
-                tx.execute(
-                    "INSERT INTO proposal_evidence VALUES (?,?)",
-                    params![proposal, segment],
-                )?;
-            }
-            created += 1;
-        }
-        let task_created = tasks::insert_candidates(
-            &tx,
-            tasks::AiOrigin {
-                source: &source,
-                project: &project,
-                job,
-                provider: provider.as_deref().unwrap_or(""),
-                model: model.as_deref().unwrap_or(""),
-                prompt: prompt.as_deref().unwrap_or(""),
-            },
-            task_candidates,
-        )?;
-        tx.execute("UPDATE jobs SET status='succeeded',stage=?,error=NULL,error_code=NULL,completed_batches=?,total_batches=?,candidate_count=?,task_candidate_count=?,discarded_count=?,updated_at=? WHERE id=?",params![if created==0&&task_created==0{"提取完成，没有新增提议"}else{"提议已生成，等待确认"},output.batch_count as i64,output.batch_count as i64,created,task_created as i64,discarded as i64,now(),job])?;
-        tx.commit()?;
+        let (created, tasks, review): (i64,i64,i64) = self.conn.query_row("SELECT (SELECT count(*) FROM proposals WHERE extraction_job_id=?),(SELECT count(*) FROM task_proposals WHERE extraction_job_id=?),(SELECT count(*) FROM extraction_drafts WHERE job_id=? AND status='needs_review')", params![job,job,job], |r|Ok((r.get(0)?,r.get(1)?,r.get(2)?)))?;
+        let stage = if review>0 { format!("提取完成；{created}条待确认，{review}条组织范围待审核") }
+            else if created==0 && tasks==0 { "提取完成，没有新增提议".into() }
+            else { "提议已逐批保存，等待确认".into() };
+        self.conn.execute("UPDATE jobs SET status='succeeded',stage=?,error=NULL,error_code=NULL,completed_batches=?,total_batches=?,candidate_count=?,task_candidate_count=?,discarded_count=?,updated_at=? WHERE id=?", params![stage,output.batch_count as i64,output.batch_count as i64,created,tasks,output.discarded_count as i64,now(),job])?;
         Ok(())
     }
 }
@@ -954,6 +938,16 @@ pub(crate) fn migrate(conn: &Connection) -> Result<()> {
             crate::change_control::migrate(conn)?;
             crate::coordination::migrate(conn)?;
             conn.execute_batch("PRAGMA user_version=7;")?;
+        }
+        if version < 8 {
+            conn.execute_batch(crate::memory_workbench::MIGRATION)?;
+            conn.execute_batch("INSERT INTO memory_corrections SELECT r.id,m.project_id,m.id,a.number,r.number,'请核对这条记忆的当前内容：'||substr(a.content,1,120),a.content,r.content,r.reason,r.created_at FROM revisions r JOIN memories m ON m.id=r.memory_id JOIN revisions a ON a.memory_id=r.memory_id AND a.number=r.number-1 WHERE r.origin='user_correction';")?;
+        }
+        if version < 9 {
+            conn.execute_batch(crate::memory_facts::MIGRATION)?;
+        }
+        if version < 10 {
+            conn.execute_batch(crate::extraction_store::MIGRATION)?;
         }
         Ok(())
     })();
@@ -1092,6 +1086,7 @@ mod tests {
         Ok(ai::ExtractionResult {
             task_candidates: vec![],
             candidates: vec![ai::Candidate {
+                facets: Default::default(),
                 kind: "decision".into(),
                 content: "一期仅支持账号密码登录".into(),
                 evidence: vec![ai::CandidateEvidence {

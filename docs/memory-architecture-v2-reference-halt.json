@@ -1,0 +1,16 @@
+{
+  "version": "architecture-reference-halt-archive-v1",
+  "savedAt": "2026-10-26T07:52:55.826Z",
+  "workspace": ".local-data/memory-architecture-live-t4w3So",
+  "archive": ".local-data/memory-architecture-live-t4w3So/reference-halt-1",
+  "reason": "Validator treated the current project navigation record as a formal memory.",
+  "requests": 62,
+  "totalTokens": 526652,
+  "hashes": {
+    "progress.json": "eb386b34e5b97fd6df017dbfc90a5c235f697b272a34a11392fa8a20c47459eb",
+    "results.json": "eb386b34e5b97fd6df017dbfc90a5c235f697b272a34a11392fa8a20c47459eb",
+    "receipts.jsonl": "fcaa4486e84bd701216145b0e5a55a3f6fcd926fbdaa9815d76120ebdf6192d1",
+    "compact-results.json": "3f591c6cb6a09cb7c7eb63efd1c64da31fb85261ff415dfb287bc47fe6ceb824"
+  },
+  "continuation": "Same frozen runner, production, binary, workspace and limits; completed entries are not regenerated. Any metadata correction will be an audited offline derivative with original artifacts preserved."
+}

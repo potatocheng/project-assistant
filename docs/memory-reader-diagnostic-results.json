@@ -1,0 +1,1570 @@
+{
+  "version": "memory-reader-diagnostic-v1",
+  "complete": false,
+  "finishedAt": "2026-10-26T08:56:22.824Z",
+  "workspace": ".local-data\\memory-reader-diagnostic-dlPxf6",
+  "registrationSha256": "4953a379f6853976960986bf55e6268fe9f6a104d3cc4921d59d77e62c970260",
+  "methodology": "One shared production request builder and binding normalizer. No production retrieval execution, semantic review, repair or fallback. This is a controlled reader diagnostic, not updated end-to-end product accuracy or a held-out evaluation. Agent evidence audit is not human adjudication and never changes historical grades.",
+  "memoryContentUnchanged": true,
+  "sameInitialEvidenceQuestions": [],
+  "sameInitialContentQuestions": [
+    "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+    "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+    "521280a87c43fcdf9f577da235e7072a23f0673e",
+    "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+    "747b847d687f703cc20a87877c5b138f26ff137d",
+    "111afb77cfbf4c98e0458606378fa63a0e965e36",
+    "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+    "6bf5620f295b5243230bc97b340fae6e92304595",
+    "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+    "584af673429c7f8621c6bf83362a37048daa0e5d",
+    "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+    "b08f88d1facefceb87e134ba2c1fa90035018e83",
+    "10fb7dc031075946153baf0a0599e126de29e3a4",
+    "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+    "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+    "d28d86524292506d4b24ae2d486725a6d57a3db3",
+    "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+    "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+    "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+    "dd76130ec5fac477123fe8880472d03fbafddef6"
+  ],
+  "usage": {
+    "requests": 100,
+    "totalTokens": 587472,
+    "readerTokens": 530572,
+    "judgeTokens": 56900
+  },
+  "arms": {
+    "retrieved_desktop": {
+      "answerable": 19,
+      "completeCorrect": 17,
+      "partial": 0,
+      "incorrect": 1,
+      "uncertainOrMissing": 1,
+      "unanswerableCorrect": 1,
+      "requests": 20,
+      "tokens": 139646,
+      "bindingFailures": 0
+    },
+    "retrieved_connector": {
+      "answerable": 19,
+      "completeCorrect": 16,
+      "partial": 1,
+      "incorrect": 1,
+      "uncertainOrMissing": 1,
+      "unanswerableCorrect": 1,
+      "requests": 20,
+      "tokens": 162098,
+      "bindingFailures": 0
+    },
+    "annotated_passages": {
+      "answerable": 19,
+      "completeCorrect": 15,
+      "partial": 1,
+      "incorrect": 2,
+      "uncertainOrMissing": 1,
+      "unanswerableCorrect": 1,
+      "requests": 20,
+      "tokens": 54286,
+      "bindingFailures": 0
+    },
+    "full_document": {
+      "answerable": 19,
+      "completeCorrect": 16,
+      "partial": 0,
+      "incorrect": 2,
+      "uncertainOrMissing": 1,
+      "unanswerableCorrect": 1,
+      "requests": 20,
+      "tokens": 174542,
+      "bindingFailures": 1
+    },
+    "historical_desktop": {
+      "answerable": 19,
+      "completeCorrect": 16,
+      "partial": 0,
+      "incorrect": 2,
+      "uncertainOrMissing": 1,
+      "unanswerableCorrect": 1
+    },
+    "historical_connector": {
+      "answerable": 19,
+      "completeCorrect": 14,
+      "partial": 1,
+      "incorrect": 3,
+      "uncertainOrMissing": 1,
+      "unanswerableCorrect": 1
+    }
+  },
+  "cases": [
+    {
+      "id": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+      "paperId": "1902.09666",
+      "question": "What is the best performing model?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "References include 'The CNN outperforms the RNN model, achieving a macro-F1 score of 0.80' and 'A CNN-based sentence classifier achieved the best results in all three sub-tasks,' which directly identify CNN as the best performing model, matching the gold answer.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Connector references contain the same CNN-best statements ('CNN outperforms the RNN...0.80' and 'CNN-based sentence classifier achieved the best results in all three sub-tasks'), sufficient to answer that CNN is the best model.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "Identifies CNN as the best-performing model, matching the gold answer."
+        },
+        "annotated_passages": {
+          "answerCorrect": "partial",
+          "reason": "Reports CNN outperforming RNN/BiLSTM but explicitly declines to name a single best model."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States CNN achieved the best results, matching the gold answer."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States CNN achieved the best results, matching the gold answer."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "States CNN achieved the best results, matching the gold answer."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "States CNN achieved the best results, matching the gold answer."
+        }
+      },
+      "anonymousOrder": [
+        "full_document",
+        "annotated_passages",
+        "historical_desktop",
+        "retrieved_desktop",
+        "retrieved_connector",
+        "historical_connector"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "A CNN-based sentence classifier achieved the best results in all three sub-tasks. [1]\nThe CNN outperformed the RNN model, achieving a macro-F1 score of 0.80. [2]\nIn the target-identification experiment, the CNN system achieved higher performance than the BiLSTM, with a macro-F1 score of 0.69. [3]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "The CNN-based sentence classifier achieved the best results in all three sub-tasks. [1]\nIn the offensive vs. non-offensive (OFF vs NOT) experiment, the CNN outperformed the RNN model, achieving a macro-F1 score of 0.80. [2]\nIn the target-identification experiment, the CNN system achieved higher performance than the BiLSTM, with a macro-F1 score of 0.69. [3]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "在区分攻击性（OFF）与非攻击性（NOT）帖子的任务中，CNN 优于 RNN 模型，取得 0.80 的 macro-F1 分数。 [1]\n在攻击性语言分类实验中，CNN 系统相比 BiLSTM 取得更高性能，macro-F1 分数为 0.69。 [2]\n尚待确认：记录中未给出跨所有实验或所有系统的统一“最佳模型”结论；CNN 仅在上述两项所述实验中分别优于 RNN/BiLSTM，其他模型或整体最优模型未知。",
+          "status": "partial"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "The CNN-based sentence classifier achieved the best results in all three sub-tasks (offensive language detection, categorization of offensive language, and offensive target identification). [1]\nIn the offensive vs. non-offensive detection task, the CNN outperformed the RNN model, achieving a macro-F1 score of 0.80. [2]\nIn the categorization of offensive language task, the CNN achieved higher performance than the BiLSTM, with a macro-F1 score of 0.69. [3]\nIn the offensive target identification task, all three models achieved similar results, with a slight performance edge for the neural models. [4]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+      "paperId": "1902.09666",
+      "question": "In what language are the tweets?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "Reference memory:0ced79d8 states the dataset is of 'English tweets,' directly answering the language question.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Reference 0ced79d8 and source paragraph s0:p5 both state 'English tweets,' directly answering the question.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "States the tweets are in English, matching the gold answer."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States the dataset consists of English tweets, matching the gold answer."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "States the new dataset consists of English tweets, matching the gold answer."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "States the tweets are English, matching the gold answer."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States the new dataset consists of English tweets, matching the gold answer."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "States the new dataset is English tweets, matching the gold answer."
+        }
+      },
+      "anonymousOrder": [
+        "full_document",
+        "historical_desktop",
+        "retrieved_connector",
+        "annotated_passages",
+        "retrieved_desktop",
+        "historical_connector"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "本文新建的数据集由英文推文组成（English tweets）。 [1][2]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "本文创建的新数据集由英文推文组成（English tweets）。 [1][2]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "这些推文是英文的（English tweets）。 [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "The tweets in the new dataset (OLID) are in English. [1]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "521280a87c43fcdf9f577da235e7072a23f0673e",
+      "paperId": "1902.09666",
+      "question": "How many annotators participated?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "partial",
+          "reason": "References include the sentence 'We computed Fliess' ... for the five annotators,' which directly states five annotators, matching the gold answer.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "partial",
+          "reason": "Connector references contain the same 'five annotators' sentence, supplying the needed count.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "States five annotators, matching the gold answer, and correctly notes the crowdsourcing total is unrecorded."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "States five annotators for the trial set, matching the gold answer."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States five annotators for the trial set, matching the gold answer."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "States five annotators for the trial set, matching the gold answer."
+        },
+        "historical_connector": {
+          "answerCorrect": "partial",
+          "reason": "Mentions six experts but omits the five annotators that the gold answer refers to."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States five annotators for the trial set, matching the gold answer."
+        }
+      },
+      "anonymousOrder": [
+        "full_document",
+        "annotated_passages",
+        "historical_desktop",
+        "retrieved_connector",
+        "historical_connector",
+        "retrieved_desktop"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "在试验集上，对21条推文计算Fleiss' kappa时涉及五名标注者（five annotators）。 [1][2]\n首轮试验标注由六名专家（six experts）对300条实例完成。 [1]\n尚待确认：未记录整个数据集众包标注阶段实际参与标注者的总人数；仅记录每条实例先获得两条标注，分歧时追加标注直至一致率超过66%。",
+          "status": "partial"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "在21条推文的试验集上，计算Fleiss' kappa时涉及五名标注者（five annotators）。 [1][2]\n数据集中的每个实例由多名标注者（multiple annotators）标注，并计算了标注者间一致性。 [3][2]\n标注流程先为每个实例获取两条标注；若完全一致则接受，若不一致则继续请求更多标注，直到一致性高于66%。 [4][2]\n尚待确认：未记录参与整个数据集标注的标注者总人数；仅记录了试验集一致性计算涉及的五名标注者。",
+          "status": "partial"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "在300条推文的试验标注中，有六位专家参与。 [1]\n在试验集上，针对21条推文计算了五位标注者之间的Fleiss' kappa。 [1]\n正式标注通过众包平台Figure Eight完成，但该阶段参与标注者的具体人数未记录。 [1]\n尚待确认：众包标注阶段（Figure Eight）参与标注者的总人数未记录。",
+          "status": "partial"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "The trial annotation round involved six experts annotating 300 instances. [1]\nFor the trial set, Fliess' kappa was computed for five annotators on 21 tweets. [1]\nThe main annotation was carried out via crowdsourcing on Figure Eight, with each instance annotated by multiple annotators (initially two, with more requested on disagreement), but no total number of crowdsourcing annotators is recorded. [1]\n尚待确认：The total number of annotators who participated in the crowdsourced main annotation is not recorded.",
+          "status": "partial"
+        }
+      }
+    },
+    {
+      "id": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+      "paperId": "1902.09666",
+      "question": "What is the definition of offensive language?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "no",
+          "reason": "Includes the explicit definition: a post is offensive if it contains non-acceptable language (profanity) or a targeted offense, including insults, threats, and profane/swear words.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "no",
+          "reason": "Contains the same explicit OFF definition covering non-acceptable language/profanity or targeted offense, with insults, threats, and swear words.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "annotated_passages": {
+          "answerCorrect": "no",
+          "reason": "Explicit refusal despite the question being answerable; no definition provided."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "Gives the OLID definition of offensive (OFF) including non-acceptable language/profanity or targeted offense, with examples, matching the gold."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States the offensive (OFF) definition accurately: non-acceptable language/profanity or targeted offense, veiled or direct, including insults and threats."
+        },
+        "full_document": {
+          "answerCorrect": "no",
+          "reason": "Not run; no answer provided."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "Provides the correct OFF definition (non-acceptable language/profanity or targeted offense, veiled or direct) with examples."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Correctly defines offensive (OFF) as non-acceptable language/profanity or targeted offense, veiled or direct, with examples."
+        }
+      },
+      "anonymousOrder": [
+        "annotated_passages",
+        "historical_connector",
+        "retrieved_desktop",
+        "full_document",
+        "retrieved_connector",
+        "historical_desktop"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "In this work, a post is labeled offensive (OFF) if it contains any form of non-acceptable language (profanity) or a targeted offense, which can be veiled or direct; this category includes insults, threats, and posts containing profane language or swear words. [1][2]\nBy contrast, posts labeled Not Offensive (NOT) are those that do not contain offense or profanity. [3]\nThis definition is applied within OLID's hierarchical annotation model, whose Level A discriminates between offensive (OFF) and non-offensive (NOT) tweets. [4][5]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "在OLID的标注中，一条帖子若包含任何形式的不可接受语言（脏话）或针对性冒犯（可以是隐晦的或直接的），即被标注为冒犯性（OFF）。 [1]\n该冒犯性类别包括侮辱、威胁，以及含有污言秽语或脏话的帖子。 [1]\n非冒犯性（NOT）帖子则是不含冒犯或脏话的帖子。 [2]\nOLID采用三级层次标注模型：A级区分语言是否具有冒犯性，B级标注冒犯语言的类型，C级标注其目标。 [3]\n其中A级区分冒犯性（OFF）与非冒犯性（NOT）推文。 [4]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "",
+          "status": "unknown"
+        },
+        "full_document": {
+          "ok": false,
+          "error": {
+            "code": "QA_CLAIM_BINDING",
+            "message": "回答断言缺少当前正文支持或引用不一致"
+          }
+        }
+      }
+    },
+    {
+      "id": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "paperId": "1603.01514",
+      "question": "Which parallel corpora are used?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "Reference memory:2de559bb states experiments use EN/DE sections of CoNLL 2009 and EN-DE section of Europarl, matching the gold answer.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "partial",
+          "reason": "Connector includes the same CoNLL 2009 EN/DE and Europarl EN-DE corpus statement, fully covering the gold answer.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "error": "Expected ',' or '}' after property value in JSON at position 771 (line 1 column 772)",
+      "anonymousOrder": [
+        "full_document",
+        "retrieved_desktop",
+        "retrieved_connector",
+        "historical_connector",
+        "annotated_passages",
+        "historical_desktop"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "实验使用的平行语料是 Europarl 语料的英德（EN-DE）部分。 [1]\n实验还使用了 CoNLL 2009 语料的英语和德语部分（约 40k 英语句、36k 德语句），并从 Europarl 取约 1.5M 英德平行句。 [1]\n英德平行 Europarl 语料的词对齐由 GIZA++ 计算，仅保留双向交集对齐以保证高精度。 [1]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "实验使用的平行语料是 Europarl 语料的英德（EN-DE）部分。 [1][2]\n实验还使用了 CoNLL 2009 语料的英语和德语部分（约 40k 英语句、36k 德语句），并从 Europarl 取约 1.5M 英德平行句。 [1][2]\n英德平行 Europarl 语料的词对齐用 GIZA++ 计算，仅保留双向交集对齐。 [3][2]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "实验使用 CoNLL 2009 语料的英语（EN）和德语（DE）部分，以及 Europarl 语料的 EN-DE 部分。 [1]\nEuroparl 提供约 150 万条 EN-DE 平行句对。 [1]\nEN-DE 平行 Europarl 语料的词对齐使用 GIZA++ 计算。 [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "实验使用的平行语料是 Europarl 语料的 EN-DE 部分（约150万英德平行句）。 [1]\n此外还使用了 CoNLL 2009 语料的英语（EN）和德语（DE）部分，其中约4万英语句和3.6万德语句取自其训练集。 [1]\n英德平行 Europarl 语料的词对齐由 GIZA++ 计算，仅保留双向对齐的交集。 [1]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+      "paperId": "1603.01514",
+      "question": "Overall, does having parallel data improve semantic role induction across multiple languages?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "Includes the conclusion paragraph stating parallel data yields only small, non-significant improvements, directly answering whether parallel data improves SRI across languages.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Contains the gold conclusion paragraph plus supporting results (small non-significant improvements, little info learned from parallel data), sufficient to answer the question.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "Correctly answers no, citing small non-significant improvements from parallel data and the limited role alignment explanation."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Correctly states parallel data yields only small non-significant gains and explains the limited alignment issue."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "Correctly answers no with the small non-significant improvements and alignment-assumption explanation."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Correctly answers no, citing small non-significant improvements and the low percentage of aligned roles."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "Correctly states no significant improvement from parallel data and gives the alignment limitation reason."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "Correctly answers no, citing small non-significant improvements and the role-alignment assumption limitation."
+        }
+      },
+      "anonymousOrder": [
+        "historical_connector",
+        "historical_desktop",
+        "annotated_passages",
+        "retrieved_desktop",
+        "retrieved_connector",
+        "full_document"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "No. In the reported experiments, adding word alignments from parallel sentences produced only small, non-significant improvements in semantic role induction, even when some labeled source-language data was available. [1][2]\nThe authors state that these results indicate little information about semantic roles can be learned from this parallel-data setup. [3][4]\nA likely reason is that only a small percentage of roles are aligned: under the definition of aligned arguments, 8% of English arguments and 17% of German arguments are aligned. [3][5]\nIn the annotation-transfer setting, the model obtained only small improvements in the target languages, and the small percentage of aligned roles probably limited the impact of cross-lingual information. [6]\nThe authors conclude that improving the alignment model is a necessary step for making effective use of parallel data in multilingual SRI, and they leave this to future work. [3][7]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "总体而言，没有证据表明平行数据能显著提升多语言语义角色归纳：在平行句中加入词对齐只带来小幅、不显著的改进，即使源语言已有部分标注数据也是如此。 [1][2]\n作者指出，这一结果说明从该平行数据设置中几乎学不到关于语义角色的信息。 [3][4]\n可能的原因是角色对齐假设导致只有很少一部分论元对齐：仅8%的英语论元和17%的德语论元对齐。 [5][4]\n在标注迁移场景中，目标语言只获得小幅改进，作者认为对齐角色比例低可能限制了跨语言信息的影响。 [6]\n作者据此认为，改进对齐模型是有效利用平行数据进行多语言SRI的必要步骤，并将该探索留作未来工作。 [7][8]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "No. The paper reports that adding word alignments in parallel sentences results in small, non-significant improvements for semantic role induction, even when some labeled data is available in the source language. [1]\nThe authors suggest this difficulty in showing the usefulness of parallel corpora for SRI may be due to current assumptions about role alignments, under which only a small percentage of roles are aligned. [1]\nThe model is a joint Bayesian model of multilingual SRI that uses crosslingual latent variables to capture role alignments in parallel corpora and regularize monolingual parameter estimates. [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "总体而言，没有证据表明平行数据能显著提升多语言语义角色归纳：在标准无监督设置下，加入平行语料的词对齐后，英语和德语都只得到不显著的提升。 [1][2]\n在模拟标准监督设置（用EP训练、在CoNLL测试）下，多语言模型在两种语言上只获得小幅提升，这与标准无监督设置的结果一致。 [3]\n作者认为这些结果表明，从该平行数据设置中能学到的语义角色信息很少；一个可能原因是设置本身不充分——按对齐论元的定义，只有8%的英语论元和17%的德语论元是对齐的。 [4]\n在源语言有少量标注数据的标注迁移场景中，目标语言也只获得小幅提升；与无监督设置一样，对齐角色比例小可能限制了跨语言信息的影响。 [5]\n结论指出，在平行句中加入词对齐只带来小幅、不显著的提升，即使源语言有一些标注数据也是如此；难以证明平行语料对SRI有用，可能源于当前关于角色对齐的假设，即只有很小比例的角色被对齐。 [2]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "paperId": "1603.01514",
+      "question": "What does an individual model consist of?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "Reference memory:0ed34457 states the model consists of individual Bayesian models for each language plus crosslingual latent variables, directly answering what an individual model consists of.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Source s0:p6 states the model consists of individual Bayesian models for each language and crosslingual latent variables, matching the gold answer.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "States the individual model is based on the garg2012unsupervised Bayesian model, matching the gold answer."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "States the individual model uses garg2012unsupervised's Bayesian model as base, matching the gold answer."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "Correctly states the individual model uses garg2012unsupervised's Bayesian model as base."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Correctly identifies the base monolingual model as garg2012unsupervised's Bayesian model."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "States the individual model is based on garg2012unsupervised's Bayesian model, matching gold."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States each individual model is based on garg2012unsupervised's Bayesian model, matching gold."
+        }
+      },
+      "anonymousOrder": [
+        "retrieved_connector",
+        "historical_connector",
+        "annotated_passages",
+        "historical_desktop",
+        "full_document",
+        "retrieved_desktop"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "The joint Bayesian model consists of individual Bayesian models for each language, plus crosslingual latent variables that incorporate soft role agreement between aligned constituents. [1][2]\nEach language's individual model is based on the Bayesian model of garg2012unsupervised, used as the base monolingual model. [3][4]\nIn the multilingual model, copies of the monolingual model are made for each language, and crosslingual latent variables are added to couple the monolingual models. [5]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "The overall joint Bayesian model consists of individual Bayesian models for each language plus crosslingual latent variables that incorporate soft role agreement between aligned constituents. [1]\nEach language's individual model is based on the Bayesian model of garg2012unsupervised, used as the base monolingual model. [2][3]\nIn the multilingual model, copies of the monolingual model are made for each language, and crosslingual latent variables are added to couple the monolingual models. [4]\n尚待确认：The references do not give a fuller internal decomposition of each individual monolingual Bayesian model beyond its base identity (garg2012unsupervised).",
+          "status": "partial"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "An individual (monolingual) model uses the Bayesian model of garg2012unsupervised as its base monolingual model. [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "The individual (monolingual) model is based on the Bayesian model of garg2012unsupervised, used as the base monolingual model. [1]\nIn the multilingual model, the individual Bayesian models for each language are combined with crosslingual latent variables that capture soft role agreement between aligned constituents. [2]\nThe multilingual model makes copies of the monolingual model for each language and adds crosslingual latent variables (CLVs) to couple the monolingual models. [3]\n尚待确认：The references do not give a fuller internal decomposition of an individual monolingual model beyond its base identity (garg2012unsupervised).",
+          "status": "partial"
+        }
+      }
+    },
+    {
+      "id": "6bf5620f295b5243230bc97b340fae6e92304595",
+      "paperId": "1603.01514",
+      "question": "What baseline model is used?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "Reference memory:2828defa states the baseline is the same as lang2011unsupervised, matching the gold answer.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Reference 2828defa and source s6:p0 both state the baseline is the same as lang2011unsupervised, matching gold.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "States the baseline is the same as lang2011unsupervised and describes its syntactic-function assignment, matching the gold."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Correctly identifies the lang2011unsupervised baseline and its description; extra supervised-baseline detail does not contradict the answer."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Correctly identifies the lang2011unsupervised baseline and its description; additional supervised-baseline detail is consistent."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "Correctly identifies the lang2011unsupervised baseline and its syntactic-function description; extra monolingual model note is not contradictory."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "Correctly states the baseline is lang2011unsupervised's and describes the syntactic-function assignment."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "Correctly identifies the lang2011unsupervised baseline and its description; extra supervised-baseline detail is consistent."
+        }
+      },
+      "anonymousOrder": [
+        "annotated_passages",
+        "historical_desktop",
+        "retrieved_desktop",
+        "full_document",
+        "historical_connector",
+        "retrieved_connector"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "The baseline used is the same baseline as used by lang2011unsupervised, which has been shown to be difficult to outperform. [1][2]\nThis baseline assigns a semantic role to a constituent based on its syntactic function, i.e., the dependency relation to its head. [1][2]\nIn addition, the paper constructed a separate “supervised baseline”: for predicates seen in the supervised sentences, a MAP estimate of the parameters was calculated using the predefined mapping, while for unseen predicates the standard baseline was used. [3][4]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "The baseline model used is the same baseline as used by lang2011unsupervised, which has been shown to be difficult to outperform. [1]\nThis baseline assigns a semantic role to a constituent based on its syntactic function, i.e., the dependency relation to its head. [1]\nThe paper also constructed a separate “supervised baseline”: for predicates seen in the supervised sentences, a MAP estimate of the parameters was calculated using the predefined mapping, while for unseen predicates the standard baseline was used. [2]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "The baseline used is the same baseline as in lang2011unsupervised, which assigns a semantic role to a constituent based on its syntactic function (the dependency relation to its head). [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "The baseline assigns a semantic role to a constituent based on its syntactic function (the dependency relation to its head); it is the same baseline used by lang2011unsupervised. [1]\nThe base monolingual model is the Bayesian model of garg2012unsupervised. [2]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+      "paperId": "1806.00738",
+      "question": "Is the position in the sequence part of the input?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "References state the network takes an image from the sequence as input at each timestep, and decoders take corresponding image embedding as first input, confirming position in sequence is part of input.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Same evidence: encoder takes images from the sequence as input per timestep and decoders use corresponding image embedding, answering that sequence position is part of input.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "historical_desktop": {
+          "answerCorrect": "no",
+          "reason": "Says yes, but the position itself is not an input; only the image is input, with separate decoders per position."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "Correctly says no: input is the image, not the position, and position is handled by separate decoders."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "Correctly says no: input at each timestep is an image, not the sequence position."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Correctly says no: first input is image embedding, position handled by separate decoders."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "Correctly says no: decoder input is image embedding, not position; separate decoder per position."
+        },
+        "historical_connector": {
+          "answerCorrect": "no",
+          "reason": "Says yes, but the position itself is not an input; only the image embedding is input."
+        }
+      },
+      "anonymousOrder": [
+        "historical_desktop",
+        "full_document",
+        "annotated_passages",
+        "retrieved_desktop",
+        "retrieved_connector",
+        "historical_connector"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "No. In the described model, the position in the sequence is not part of the input: each decoder's first input is its corresponding image embedding e(I_i), while the position is handled by having a separate independent decoder for each position. [1][2][3]\nThe model contains five independent decoders, one for each image in the sequence; all use the encoder's last hidden state as first hidden state and take the corresponding image embedding as first input. [2]\nEach decoder learns a specific language model for each position of the sequence (e.g., the first decoder learns opening sentences, the last the closing sentences). [2]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "No. The recorded input to each decoder is the corresponding image embedding e(I_i), not the position in the sequence. [1][2]\nThe position in the sequence is instead associated with having a separate decoder per position: each decoder learns a specific language model for each position of the sequence. [3][4]\nThe model contains five independent decoders, one for each image in the sequence, and the first decoder handles the first image, the second the second image, and so on. [5][6]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "No. The recorded input at each timestep is an image I_i from the sequence (i∈{1,2,3,4,5}); the sequence position itself is not stated to be part of the input. [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "No. The model's input at each timestep is an image from the sequence, not the position itself; the position is handled by having a separate decoder for each sequence position. [1][2]\nThe encoder LSTM takes as input image I_i (i∈{1,2,3,4,5}) at every timestep t, and its last hidden state provides the sequence context. [1]\nThe model contains five independent decoders, one per image position; each decoder takes the context (encoder's last hidden state) as its first hidden state and the corresponding image embedding as its first input, allowing each decoder to learn a language model for each position of the sequence. [2][3]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "paperId": "1806.00738",
+      "question": "How is the sequential nature of the story captured?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "References include the encoder taking images in order per timestep, the context vector, per-image decoders generating word sequences, and concatenation into the final story, matching the gold explanation of sequential capture.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Connector references contain the same key passages: ordered encoder timesteps, context vector, per-image decoder word sequences, and final concatenation, sufficient to explain how sequentiality is captured.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "Covers encoder processing images in order, context vector at t=5 initializing decoders, image embeddings as first input, and concatenated outputs."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "Covers ordered encoder, context vector at t=5, decoder initialization, per-image embeddings, and concatenation; extra position-specific detail is consistent."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "Includes ordered encoding, context vector at t=5, decoder initialization, per-image embeddings, and concatenation of five decoders."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "Accurately describes ordered encoding, context vector initialization, per-image decoder inputs, and concatenated story output."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Covers ordered encoder, context vector at t=5, decoder initialization, per-image embeddings, and concatenation."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Includes ordered encoding, context vector at t=5, decoder initialization, per-image embeddings, and concatenation of five decoders."
+        }
+      },
+      "anonymousOrder": [
+        "annotated_passages",
+        "historical_connector",
+        "retrieved_connector",
+        "full_document",
+        "historical_desktop",
+        "retrieved_desktop"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "The model's first component is an LSTM/RNN that summarizes the image sequence: at every timestep t it takes as input an image I_i (i∈{1,2,3,4,5}) from the sequence, and at t=5 it has encoded the 5 images and provides the sequence's context through its last hidden state h_e^(t). [1]\nThe encoder takes the images in order, one at every timestep t, and at time t=5 the context vector is obtained through h_e^(t) (represented by Z). [2][3]\nEach image's representation {e(I_1),...,e(I_5)} is obtained using Inception v3. [2][4]\nThe context vector is used to initialize each decoder's hidden state, while the first input to each decoder is its corresponding image embedding e(I_i). [2][5]\nThe model contains five independent decoders, one for each image in the sequence; all 5 decoders use the encoder's last hidden state as their first hidden state and take the corresponding image embedding as their first input. [6][7]\nThe first decoder generates the words for the first image, the second decoder for the second image, and so on, so each decoder learns a specific language model for its position in the sequence (e.g., the first decoder learns opening sentences, the last decoder closing sentences). [6][8][9]\nEach decoder generates a sequence of words {p_1,...,p_n} for each image in the sequence, and the final story is the concatenation of the output of the 5 decoders. [2][10]\nThe decoder is the second LSTM network that uses the information obtained from the encoder to generate the sequence's story, giving it the context of the whole sequence plus the current image's content. [11][12]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "The model's first component is an LSTM/RNN that summarizes the image sequence: at every timestep t it takes as input an image I_i (i∈{1,2,3,4,5}) from the sequence, and at t=5 it has encoded the 5 images and provides the sequence's context through its last hidden state h_e^(t). [1]\nThe encoder takes the images in order, one at every timestep t, and at time t=5 the context vector is obtained through h_e^(t). [2][3]\nThe last hidden state of the encoder is used to initialize each decoder's first hidden state, while each decoder's first input is its corresponding image embedding e(I_i). [4][5]\nThe model contains five independent decoders, one for each image in the sequence; the first decoder generates words for the first image, the second for the second image, and so on. [6][7][8]\nEach decoder generates a sequence of words {p_1,...,p_n} for each image in the sequence, and the final story is the concatenation of the output of the 5 decoders. [9][3]\nThis design lets each decoder learn a specific language model for each position of the sequence—for instance, the first decoder learns the opening sentences and the last decoder the closing sentences. [10][8]\nThe decoder is the second LSTM network that uses the encoder's information to generate the sequence's story, giving it the context of the whole sequence plus the current image's content (global and local information). [11][5]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "The story's sequential nature is captured by an encoder LSTM that takes the images in order, one at every timestep t, producing a context vector at t=5. [1]\nThat context vector (the encoder's last hidden state) is used to initialize each decoder's hidden state, giving the decoder the context of the whole sequence. [1][2]\nEach decoder's first input is its corresponding image embedding e(I_i), and each decoder generates a word sequence for its image. [1]\nThe final story is the concatenation of the outputs of the 5 decoders. [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "The model captures the sequence by first encoding the ordered 5-image sequence: an LSTM encoder takes one image per timestep (i∈{1,2,3,4,5}), and at t=5 its last hidden state h_e^(t) provides the sequence's context; image representations come from Inception V3. [1]\nThe decoder is a second LSTM that uses the encoder's last hidden state h_e^(t) to initialize its first hidden state h_d^(0), and its first input x_0 is the image for which text is being generated, giving it both whole-sequence context and current-image content. [2]\nThe model has five independent decoders, one per image position; each uses the encoder's last hidden state as its first hidden state and its corresponding image embedding as first input, so each decoder learns a position-specific language model (e.g., the first learns opening sentences, the last closing sentences). [3]\nOperationally, each image's representation e(I_1)...e(I_5) is obtained with Inception v3; the encoder processes images in order, one per timestep, yielding context vector Z at t=5, which initializes each decoder's hidden state while each decoder's first input is its image embedding e(I_i); each decoder generates a word sequence for its image. [4]\nThe final story is the concatenation of the outputs of the 5 decoders. [4]\nThe task framing is that, given a sequence of 5 images, the system outputs a story related to the content and events in the images. [5]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+      "paperId": "1806.00738",
+      "question": "What model is used to encode the images?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "References include 'The encoder is a Convolutional Neural Network (CNN)' and 'The representation of the images was obtained through Inception V3,' covering both gold answers (CNN and Inception V3).",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Same references present, including CNN encoder statement and Inception V3 image representation, matching both human gold spans.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States Inception V3 for image representations and also mentions CNN encoder, covering both human answers."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States Inception V3 and CNN encoder, matching the human answers."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "States Inception V3 and CNN encoder, matching the human answers."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "States Inception V3, CNN encoder, and LSTM, covering both human answers."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "States Inception V3 and CNN encoder, matching the human answers."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "States Inception V3 and CNN encoder, matching the human answers."
+        }
+      },
+      "anonymousOrder": [
+        "retrieved_desktop",
+        "historical_desktop",
+        "annotated_passages",
+        "historical_connector",
+        "retrieved_connector",
+        "full_document"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "The image representations are obtained using Inception V3. [1][2]\nThe encoder in the base image-description architecture is a Convolutional Neural Network (CNN), while the decoder is an LSTM. [3]\nIn the proposed storyteller, the first component is an RNN, more precisely an LSTM, that summarizes the sequence of images. [1]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "The image representations are obtained using Inception V3. [1][2]\nThe encoder that processes the images is a Convolutional Neural Network (CNN). [3]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "The images are encoded using Inception V3, which produces the image representations. [1]\nThe encoder in the extended image description model is a Convolutional Neural Network (CNN). [2]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "The images are encoded using Inception V3: the image representations were obtained through Inception V3. [1]\nThe architecture's encoder is a Convolutional Neural Network (CNN), with an LSTM decoder, in the image description model that this work extends. [2]\nFor each image in the sequence, its representation is obtained using Inception v3. [3]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "paperId": "1806.00738",
+      "question": "Do the decoder LSTMs all have the same weights?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "Selected references mention five independent decoders but never state whether they share weights; the gold paragraph says each decoder learns a specific language model, implying different weights, but this is not shown.",
+          "retrievalSufficiency": "no"
+        },
+        "connector": {
+          "answerCorrect": "no",
+          "reason": "Connector references include the gold paragraph about five independent decoders learning specific language models, but none explicitly state whether decoder LSTM weights are shared or distinct.",
+          "retrievalSufficiency": "no"
+        }
+      },
+      "grades": {
+        "historical_connector": {
+          "answerCorrect": "no",
+          "reason": "Refuses to answer; gives no response to the question."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Answers No and supports it with the five independent, position-specific decoders, while noting weights are not stated as shared."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "partial",
+          "reason": "Describes the independent decoders but does not answer yes/no, leaving weight sharing unresolved."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "Answers No with the independent, position-specific decoders and notes weights are not stated as shared."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "Answers No, citing five independent position-specific decoders not described as sharing weights."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Answers No, citing independent position-specific decoders and noting weights are not stated as shared."
+        }
+      },
+      "anonymousOrder": [
+        "historical_connector",
+        "retrieved_desktop",
+        "retrieved_connector",
+        "annotated_passages",
+        "full_document",
+        "historical_desktop"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "No. The model contains five independent decoders, one for each image in the sequence, and each decoder learns a specific language model for its position (e.g., the first learns opening sentences, the last closing sentences). [1]\nThe decoders share the same initialization scheme—each uses the encoder's last hidden state as its first hidden state and its corresponding image embedding as first input—but the record does not state that their weights are shared. [1][2]\n尚待确认：The records do not explicitly state whether the five independent decoders' weights are tied/shared or untied; the answer rests on their being described as independent, each learning a position-specific language model.",
+          "status": "partial"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "The model contains five independent decoders, one for each image in the sequence. [1][2]\nEach decoder is described as learning a specific language model for its position in the sequence (e.g., the first decoder learns opening sentences, the last learns closing sentences). [1]\nEach decoder's hidden state is initialized from the same context vector (the encoder's last hidden state), and each takes its corresponding image embedding as first input. [3][1]\n尚待确认：The provided passages do not explicitly state whether the five independent decoders share the same weights or have separate weights.",
+          "status": "partial"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "No. The model contains five independent decoders, one for each image in the sequence, and each decoder learns a specific language model for its position; the record does not state that they share weights. [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "No. The model contains five independent decoders, one for each image in the sequence, and each decoder learns a specific language model for its position, so the decoders are not described as sharing the same weights. [1]\nEach of the 5 decoders uses the encoder's last hidden state as its first hidden state and takes its corresponding image embedding as its first input. [1][2]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "paperId": "1908.07245",
+      "question": "How does the neural network architecture accomodate an unknown amount of senses per word?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "Selected references include the gold paragraph and gloss-pair construction (all N senses, sentence-pair classification), but do not clearly explain how the architecture handles a variable/unknown number of senses per word.",
+          "retrievalSufficiency": "partial"
+        },
+        "connector": {
+          "answerCorrect": "partial",
+          "reason": "Connector references include context-gloss pairs from all possible senses and N training instances, but lack a clear statement of how the architecture accommodates a variable number of senses per word.",
+          "retrievalSufficiency": "partial"
+        }
+      },
+      "grades": {
+        "full_document": {
+          "answerCorrect": "no",
+          "reason": "Describes GlossBERT's context-gloss pairing, not the gold passage's methods (sequence learning, gloss extension) for handling variable senses."
+        },
+        "historical_desktop": {
+          "answerCorrect": "no",
+          "reason": "Same GlossBERT pairing explanation; does not match the gold answer about sequence learning/gloss extension."
+        },
+        "historical_connector": {
+          "answerCorrect": "no",
+          "reason": "GlossBERT sentence-pair classification explanation, not the gold's sequence-learning/gloss-extension approach."
+        },
+        "annotated_passages": {
+          "answerCorrect": "no",
+          "reason": "Explicit refusal despite the question being answerable; not a correct abstention."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "no",
+          "reason": "GlossBERT pairing plus unknowns; does not give the gold's sequence-learning/gloss-extension answer."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "no",
+          "reason": "GlossBERT per-sense pairing explanation, not the gold's sequence learning and gloss extension methods."
+        }
+      },
+      "anonymousOrder": [
+        "full_document",
+        "historical_desktop",
+        "historical_connector",
+        "annotated_passages",
+        "retrieved_desktop",
+        "retrieved_connector"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "GlossBERT 通过为每个目标词从 WordNet 中提取其所有 N 个可能词义的释义（gloss），构造上下文-释义对（context-gloss pairs），从而把 WSD 任务转化为句对分类问题；原文示例中 N=4。 [1][2]\n每个上下文-释义对会加入 [CLS] 和 [SEP] 标记，以适配 BERT 模型的输入。 [1]\n模型对预训练的 BERT 进行微调，用于 WSD 任务；BERT 架构是多层双向 Transformer 编码器。 [3]\n该方法不需要为每个目标词元（target lemma）训练专门的分类器，从而缓解了特征工程的工作量。 [4]\n尚待确认：原文未明确说明在句对分类阶段如何从多个上下文-释义对中选出最终词义（例如是否比较各对得分、如何聚合），因此该输出/选择环节的具体机制未知。；原文未说明 N 在推理时如何随词义数量变化处理（除示例 N=4 外），也未给出对可变词义数的通用处理细节。",
+          "status": "partial"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "GlossBERT 将 WSD 任务转化为句对分类问题：对目标词，从 WordNet 中抽取其所有可能义项（原文示例中 N=4）的释义，构造 context-gloss 对。 [1][2]\n每个 context-gloss 对会加入 [CLS] 和 [SEP] 标记，以适配 BERT 模型的输入。 [2]\n模型对预训练的 BERT 进行微调，BERT 架构是多层双向 Transformer 编码器。 [3][4]\n由于每个目标词的所有义项释义都被逐一配对，义项数量可变（原文示例 N=4）由逐义项构造句对来处理，而非固定数量的义项槽位。 [2][1]\n尚待确认：原文未明确记录在句对分类阶段如何从多个 context-gloss 对中选出最终义项（如打分或选择规则）。；原文未说明义项数量 N 在训练/推理时是否可任意变化，仅给出示例 N=4。",
+          "status": "partial"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "",
+          "status": "unknown"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "GlossBERT handles a variable number of senses per word by constructing context-gloss pairs from the glosses of all possible senses of the target word in WordNet, treating WSD as a sentence-pair classification problem. [1][2]\nFor each target word, the glosses of all N possible senses are extracted to form gloss sentences, and [CLS]/[SEP] marks are added to make each context-gloss pair suitable as BERT input. [3]\nEach target word therefore has N context-gloss pair training instances with labels in {yes, no}. [4]\nAt test time, the model outputs the probability of label=yes for each context-gloss pair and selects the sense corresponding to the highest probability as the prediction for the target word. [4]\nThe three GlossBERT variants classify each context-gloss pair: GlossBERT(Token-CLS) uses the final hidden state of the target-word token (averaged if multiple tokens), GlossBERT(Sent-CLS) uses the [CLS] token, and GlossBERT(Sent-CLS-WS) uses [CLS] with weak supervision highlighting the target. [5][6][7]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+      "paperId": "1908.07245",
+      "question": "Do they use large or small BERT?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "Reference explicitly states they use pre-trained uncased BERT_BASE (small) rather than BERT_LARGE, matching gold 'small BERT'.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Reference explicitly states use of BERT_BASE (small) instead of BERT_LARGE, sufficient to answer 'small BERT'.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "States they use the small BERT (BERT_BASE), matching the human answer."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States they use the small BERT (BERT_BASE), matching the human answer."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Identifies BERT_BASE (the small BERT) rather than BERT_LARGE, matching the human answer."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "States they use the small BERT (BERT_BASE), matching the human answer."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "States they use BERT_BASE rather than BERT_LARGE, i.e., the small BERT, matching the human answer."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "States they use the small BERT (BERT_BASE), matching the human answer."
+        }
+      },
+      "anonymousOrder": [
+        "full_document",
+        "retrieved_desktop",
+        "historical_desktop",
+        "retrieved_connector",
+        "historical_connector",
+        "annotated_passages"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "They use the small BERT, specifically the pre-trained uncased BERT_BASE model, for fine-tuning. [1][2]\nThe stated reason is that BERT_LARGE performs slightly worse than BERT_BASE on this task. [1][2]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "They use the small BERT model: the pre-trained uncased BERT_BASE model, chosen for fine-tuning because BERT_LARGE performed slightly worse on this task. [1][2]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "They use the small BERT model, specifically the pre-trained uncased BERT_BASE model, for fine-tuning. [1]\nThey state that BERT_LARGE performs slightly worse than BERT_BASE on this task. [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "They use the small BERT model: the pre-trained uncased BERT_BASE model, because BERT_LARGE performed slightly worse on this task. [1]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+      "paperId": "1908.07245",
+      "question": "Do they incoprorate WordNet into the model?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "References explicitly state they construct context-gloss pairs from all possible senses of the target word in WordNet, directly answering that WordNet is incorporated.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "References include the same statement about constructing context-gloss pairs from WordNet senses, sufficient to answer yes.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Affirms WordNet use and correctly describes constructing context-gloss pairs from all WordNet senses."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "Affirms WordNet use and correctly describes context-gloss pairs from all WordNet senses."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "Affirms WordNet use and correctly describes context-gloss pairs from all WordNet senses."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "Affirms WordNet use and correctly describes context-gloss pairs from all WordNet senses."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Affirms WordNet use and correctly describes context-gloss pairs from all WordNet senses."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "Affirms WordNet use and correctly describes context-gloss pairs from all WordNet senses."
+        }
+      },
+      "anonymousOrder": [
+        "retrieved_desktop",
+        "retrieved_connector",
+        "historical_connector",
+        "annotated_passages",
+        "historical_desktop",
+        "full_document"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "Yes. The paper's GlossBERT constructs context–gloss pairs from all possible senses of the target word in WordNet, treating WSD as a sentence-pair classification problem. [1][2]\nFor each target word, the authors extract glosses of all N possible senses (N=4) in WordNet to form the gloss sentence, which is paired with the context and fed to BERT. [3]\nThey extract word sense glosses from WordNet 3.0, since the datasets' sense annotations were mapped to WordNet 3.0. [4]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "是。GlossBERT 从 WordNet 中目标词所有可能义项的释义（gloss）构造上下文-释义对，从而把 WSD 视为句对分类问题。 [1][2]\n具体做法是：对每个目标词，从 WordNet 中抽取其全部 N 个可能义项的释义（示例中 N=4），得到释义句。 [3][4]\n由于相关数据集中的义项标注被映射到 WordNet 3.0，他们从 WordNet 3.0 抽取词义释义。 [5][6]\n候选义项来自目标词词元在预定义义项库（通常为 WordNet）中的条目。 [7][8]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "Yes. GlossBERT constructs context-gloss pairs from glosses of all possible senses of the target word in WordNet, treating WSD as a sentence-pair classification problem. [1][2]\nThe model fine-tunes pre-trained BERT on these WordNet-derived context-gloss pairs. [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "Yes. The paper's GlossBERT constructs context-gloss pairs from the glosses of all possible senses of the target word in WordNet, treating WSD as a sentence-pair classification problem. [1][2]\nFor each target word, the method extracts glosses of all N possible senses from WordNet to form the gloss sentence. [3]\nThe candidate senses come from a pre-defined sense inventory, usually WordNet, and the authors extract word-sense glosses from WordNet 3.0. [4][5]\nThe authors state that the improvements come from leveraging BERT to better exploit gloss information, and that their approach makes better use of gloss knowledge. [6][7]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "paperId": "1902.09243",
+      "question": "What is the ROUGE score of the highest performing model?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "Reference b77628c1/f00cd9ef states the model achieves a 33.33 average of ROUGE-1, ROUGE-2 and ROUGE-L, matching the gold answer.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Reference b77628c1/f00cd9ef states the model achieves a 33.33 average of ROUGE-1, ROUGE-2 and ROUGE-L, matching the gold answer.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States the 33.33 average of ROUGE-1/2/L on CNN/Daily Mail, matching the gold answer."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Gives the 33.33 average of ROUGE-1/2/L on CNN/Daily Mail, which is the gold answer."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "Reports the 33.33 average of ROUGE-1/2/L on CNN/Daily Mail, matching the gold answer."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "States the 33.33 average of ROUGE-1/2/L on CNN/Daily Mail, matching the gold answer."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "Gives the 33.33 average of ROUGE-1/2/L on CNN/Daily Mail, matching the gold answer."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "Reports the 33.33 average of ROUGE-1/2/L on CNN/Daily Mail, matching the gold answer."
+        }
+      },
+      "anonymousOrder": [
+        "retrieved_desktop",
+        "historical_desktop",
+        "full_document",
+        "historical_connector",
+        "annotated_passages",
+        "retrieved_connector"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "The paper reports that its model achieves a 33.33 average of ROUGE-1, ROUGE-2 and ROUGE-L on CNN/Daily Mail, described as state-of-the-art. [1][2]\nThe full model's ROUGE-1 and ROUGE-2 scores are comparable with DCA, and it outperforms DCA on ROUGE-L. [3][4]\nCompared with extractive models NeuSUM and MASK-LM^global, the model achieves slightly higher ROUGE-1. [5][4]\nOn the New York Times dataset, the model achieves about 5.6% relative improvement over ROUGE-1. [6][2]\n尚待确认：The question asks for the ROUGE score of the highest performing model, but the records do not identify which model is the highest performing or give a single ROUGE score for it; only the 33.33 average across ROUGE-1/2/L on CNN/Daily Mail for the authors' model is recorded.",
+          "status": "partial"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "The paper reports that its model achieves a 33.33 average of ROUGE-1, ROUGE-2 and ROUGE-L on CNN/Daily Mail, described as state-of-the-art. [1][2]\nOn CNN/Daily Mail, the full model's ROUGE-1 and ROUGE-2 are comparable with DCA, and it outperforms DCA on ROUGE-L. [3]\n尚待确认：The records do not give a single ROUGE score for the highest-performing model; only an average of ROUGE-1/2/L (33.33) and comparative statements are recorded, so the specific ROUGE score of the top model is unknown.",
+          "status": "partial"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "The paper's model achieves a 33.33 average of ROUGE-1, ROUGE-2 and ROUGE-L on CNN/Daily Mail, described as state-of-the-art. [1]\nOn the New York Times dataset, the model achieves about a 5.6% relative improvement over ROUGE-1. [1]\n尚待确认：The record does not explicitly identify which model is the highest performing, nor give a single ROUGE score for it; the 33.33 figure is an average of three ROUGE metrics for the authors' model on CNN/Daily Mail.",
+          "status": "partial"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "本文模型在 CNN/Daily Mail 上取得 ROUGE-1、ROUGE-2 和 ROUGE-L 的平均值 33.33，原文称其为 state-of-the-art。 [1]\n在 NYT50 上，本文模型相对 ROUGE-1 取得约 5.6% 的相对提升。 [1]\n在 NYT50 上，与 ML+RL with intra-attn（此前 SOTA）相比，本文模型的 ROUGE-1 提升 2.39，ROUGE-2 提升 0.51。 [2]\n尚待确认：原文未给出“最高性能模型”的单独 ROUGE 分数；仅报告了本文模型在 CNN/Daily Mail 上三项 ROUGE 的平均值 33.33，以及 NYT50 上的相对/差值提升，未列出各单项 ROUGE 的具体数值。",
+          "status": "partial"
+        }
+      }
+    },
+    {
+      "id": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+      "paperId": "1902.09243",
+      "question": "When is this paper published?",
+      "answerable": false,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "No reference states the paper's publication date; the only date mentioned (January 1, 2007) refers to dataset test-set filtering, not the paper.",
+          "retrievalSufficiency": "no"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "No reference gives the paper's publication date; the January 1, 2007 date concerns NYT dataset selection, not the paper itself.",
+          "retrievalSufficiency": "no"
+        }
+      },
+      "grades": {
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Explicitly states records are insufficient, refusing without inventing facts."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "Explicit refusal to answer from evidence, no invented facts."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "Explicit refusal to answer from evidence, no invented facts."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "States insufficient basis and declines to answer, no invented facts."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Explicit refusal to answer from evidence, no invented facts."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "Explicit refusal to answer from evidence, no invented facts."
+        }
+      },
+      "anonymousOrder": [
+        "historical_desktop",
+        "annotated_passages",
+        "retrieved_connector",
+        "historical_connector",
+        "retrieved_desktop",
+        "full_document"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "",
+          "status": "unknown"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "",
+          "status": "unknown"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "",
+          "status": "unknown"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "",
+          "status": "unknown"
+        }
+      }
+    },
+    {
+      "id": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+      "paperId": "1902.09243",
+      "question": "Why masking words in the decoder is helpful?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "Reference e5b4cdb9 directly states masking is similar to BERT's cloze pre-training task, enabling the contextual language model to generate more fluent/natural sequences, matching the gold answer.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Reference 7045767c contains the exact gold sentence explaining masking resembles BERT's cloze task and yields more fluent, natural sequences.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "States the masking makes refinement similar to BERT's cloze task, enabling the contextual LM to generate more fluent/natural sequences, matching the gold answer."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "Includes the core reason: cloze-like masking leverages the contextual language model to produce more fluent and natural sequences."
+        },
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Explicitly gives the cloze-task similarity and contextual LM ability yielding more fluent, natural sequences."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Contains the key reason that masking resembles BERT's cloze task, enabling more fluent and natural generation."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "Directly matches the gold answer: cloze-task similarity lets the contextual LM generate more fluent, natural sequences."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "States the cloze-task similarity and contextual LM ability to generate more fluent, natural sequences."
+        }
+      },
+      "anonymousOrder": [
+        "historical_connector",
+        "full_document",
+        "historical_desktop",
+        "retrieved_desktop",
+        "annotated_passages",
+        "retrieved_connector"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "掩码使精炼解码器在预测某个词时能利用摘要中其他词的双侧上下文，从而生成每个词时都考虑两侧上下文信息。 [1][2]\n该掩码逐词预测过程类似 BERT 预训练中的完形填空（cloze）任务，因此可借助上下文语言模型的能力生成更流畅、自然的序列。 [3]\n从 BERT 等上下文化嵌入的角度看，精炼解码过程提供了更完整的输入序列，与其预训练过程一致。 [2]\n具体做法是：精炼解码器接收摘要草稿，逐词掩码后送入 BERT 生成上下文向量，再预测精炼后的词。 [4]\n该设计旨在解决以往抽象式方法仅使用左上下文解码器、预测每个词时缺乏完整上下文的问题。 [5]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "掩码使精炼解码器在预测第n个词时能利用摘要中其他词（即双向上下文），从而生成每个词时都考虑两侧上下文信息。 [1][2]\n该掩码逐词预测过程与BERT预训练中的完形填空（cloze）任务相似，因此可借助上下文语言模型的能力生成更流畅、自然的序列。 [3]\n从BERT等上下文化嵌入的角度看，精炼解码过程提供了更完整的输入序列，与其预训练过程一致。 [4]\n精炼解码器以生成的摘要草稿为输入，逐词掩码后由BERT生成上下文向量，再预测精炼后的词，从而输出精炼摘要。 [5][6]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "词级精炼解码器（word-level refine decoder）的设计与 BERT 预训练中的完形填空（cloze）任务相似，因此借助上下文语言模型的能力，解码器可以生成更流畅、更自然的序列。 [1]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "在本文的两阶段解码中，第二阶段（refine decoder）会逐个遮盖摘要草稿中的每个词，再让 BERT 基于其余词生成上下文向量，并逐词预测精炼后的词。 [1][2]\n这样做的帮助在于：从 BERT 等上下文化嵌入的角度看，遮盖式精炼解码提供了更完整的输入序列，与其预训练过程一致，从而缓解左上下文解码器输入不完整、不一致的问题。 [3][4]\n该过程类似 BERT 预训练中的完形填空（cloze）任务，因此可借助上下文化语言模型的能力，使解码器生成更流畅、自然的序列。 [5]\n精炼解码器每次只关注一个词，依据源文档及其他词来编辑草稿，从而在预测每个词时利用两侧上下文信息。 [3][6]\n消融实验显示，去掉词级精炼过程后平均 ROUGE 下降 1.69，说明该模块对完整模型是必要的。 [7]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+      "paperId": "1902.09243",
+      "question": "How are the different components of the model trained? Is it trained end-to-end?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "References include the training objective (sum of two processes, jointly trained with teacher-forcing, ground-truth summary fed to each decoder) and the statement that the model can be trained end-to-end, covering both parts of the question.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Connector references contain the same key evidence: joint teacher-forcing training of the two processes and the explicit statement that the model can be trained end-to-end.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States the model is trained end-to-end and that the two components are jointly trained with teacher-forcing on the summed objective."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "States end-to-end training and joint teacher-forcing training of the two processes with summed objective."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States end-to-end training and joint teacher-forcing training of the two components with summed loss."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "States end-to-end training and joint teacher-forcing training of the two processes with summed loss."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "States end-to-end training and joint teacher-forcing training of the two stages with summed objective."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "States end-to-end training and joint teacher-forcing training of the two processes with summed objective."
+        }
+      },
+      "anonymousOrder": [
+        "historical_desktop",
+        "historical_connector",
+        "retrieved_desktop",
+        "annotated_passages",
+        "full_document",
+        "retrieved_connector"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "该模型是一个基于BERT的自然语言生成模型，在编码器和解码器过程中都利用了预训练语言模型，并且可以在没有手工特征的情况下进行端到端训练。 [1][2]\n模型采用两阶段解码器流程，生成摘要中的每个词时会同时考虑两侧的上下文信息。 [3][4]\n训练时，模型的目标是两个过程之和，使用“teacher-forcing”算法联合训练；训练中把真实摘要（ground-truth summary）输入每个解码器并最小化目标。 [5][6]\n模型总损失记为 L_model = L̂_dec + L̂_refine（式23）。 [7]\n训练设置：batch size 为36，训练4个epoch（NYT50因训练样本少得多而用8个epoch），训练后根据开发集表现从最后10个模型中选出最佳模型。 [8][9]\n由于GPU显存限制，使用梯度累积，累积步数为12，每步输入3个样本。 [10][9]\n使用Adam优化器，学习率3e-4，β1=0.9、β2=0.999、ε=10^-9，并在训练过程中使用动态学习率。 [11]\n正则化方面使用dropout和label smoothing，dropout率为0.15、label smoothing值为0.1，RL目标因子γ设为0.99。 [12]\n消融实验中的模型变体为：One-Stage（基于BERT、带copy机制的序列到序列模型）、Two-Stage（在One-Stage上加入word-refine解码器）、Two-Stage + RL（带refine过程并结合RL目标的完整模型）。 [13]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "该模型是基于BERT的自然语言生成模型，在编码器和解码器过程中都利用了预训练语言模型，并且可以在无需手工特征的情况下进行端到端训练。 [1]\n训练时，模型的目标是两个过程之和，使用“teacher-forcing”算法联合训练；训练中把真实摘要（ground-truth summary）输入每个解码器并最小化该目标。 [2]\n模型采用两阶段解码器流程，生成摘要的每个词时同时考虑两侧的上下文信息。 [3]\n训练设置：batch size 为36，训练4个epoch（NYT50因训练样本少得多而用8个epoch）；训练后根据开发集表现从最后10个模型中选出最佳模型。 [4]\n由于GPU显存限制，使用梯度累积，累积步数设为12，每步输入3个样本。 [5]\n使用Adam优化器，学习率为3e-4，β1=0.9、β2=0.999、ε=10^-9，并在训练过程中使用动态学习率。 [6]\n正则化方面使用dropout和label smoothing，dropout率设为0.15，label smoothing值设为0.1。 [7]\n尚待确认：原文未说明编码器与解码器各组件是否分别单独预训练或分阶段训练的具体步骤。",
+          "status": "partial"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "该模型基于BERT，在编码器和解码器过程中利用预训练语言模型，并且可以在无需手工特征的情况下进行端到端训练。 [1]\n训练时，模型的目标是两个过程目标之和，使用“teacher-forcing”算法联合训练。 [2]\n训练期间将真实摘要输入每个解码器并最小化目标。 [2]\n模型损失定义为解码损失与精炼损失之和（L_model = L̂_dec + L̂_refine）。 [3]\n测试时，每个时间步通过argmax选择预测词，使用束搜索生成草稿摘要，并使用贪心搜索生成精炼摘要。 [4]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "该模型采用两阶段解码：第一阶段由仅左上下文的解码器生成摘要草稿，第二阶段用精炼解码器逐词掩码并预测精炼词。 [1][2]\n草稿阶段：BERT 编码器把输入文档编码为表示向量，N 层 Transformer 草稿解码器据此学习条件概率 P(A|H)，并以最小化负对数似然为学习目标。 [3][4][5][6][7]\n精炼阶段：精炼解码器接收生成的摘要草稿，逐词掩码后送入 BERT 生成上下文向量，再由与草稿解码器相同的 N 层 Transformer 解码器预测精炼词，目标为式(19)的负对数似然。 [2][8][9]\n草稿解码器与精炼解码器共享参数；作者称使用独立参数会使性能明显下降。 [10]\n训练时模型目标是两个过程目标之和，使用 teacher-forcing 联合训练，训练中向每个解码器输入真实摘要并最小化目标。 [11][12]\n此外还引入离散目标（策略梯度，奖励用 ROUGE-L）并与最大似然目标混合，草稿过程最终目标为混合后的 L̂_dec，精炼过程引入类似目标。 [13][14]\n是，模型可端到端训练，无需手工特征。 [15]",
+          "status": "answered"
+        }
+      }
+    },
+    {
+      "id": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "paperId": "1705.01214",
+      "question": "What is the state of the art described in the paper?",
+      "answerable": true,
+      "historicalOriginalGrades": {
+        "desktop": {
+          "answerCorrect": "yes",
+          "reason": "References include the state-of-the-art section intro plus ELIZA, PARRY, A.L.I.C.E., and Cleverbot paragraphs, matching the gold answer spans.",
+          "retrievalSufficiency": "yes"
+        },
+        "connector": {
+          "answerCorrect": "yes",
+          "reason": "Connector references contain the same s2 paragraphs covering ELIZA, PARRY, A.L.I.C.E., and Cleverbot, sufficient for the gold answer.",
+          "retrievalSufficiency": "yes"
+        }
+      },
+      "grades": {
+        "historical_desktop": {
+          "answerCorrect": "yes",
+          "reason": "Covers the three-perspective state-of-the-art review and includes the human-answer systems ELIZA, PARRY, A.L.I.C.E., and Cleverbot."
+        },
+        "full_document": {
+          "answerCorrect": "yes",
+          "reason": "States the three-perspective review and includes all four systems from the human answer, with additional detail."
+        },
+        "retrieved_desktop": {
+          "answerCorrect": "yes",
+          "reason": "States the three-perspective review and covers ELIZA, PARRY, A.L.I.C.E., and Cleverbot."
+        },
+        "historical_connector": {
+          "answerCorrect": "yes",
+          "reason": "States the three-perspective review and includes all four human-answer systems."
+        },
+        "annotated_passages": {
+          "answerCorrect": "yes",
+          "reason": "States the three-perspective review and covers ELIZA, PARRY, A.L.I.C.E., and Cleverbot."
+        },
+        "retrieved_connector": {
+          "answerCorrect": "yes",
+          "reason": "States the three-perspective review and includes all four systems from the human answer."
+        }
+      },
+      "anonymousOrder": [
+        "historical_desktop",
+        "full_document",
+        "retrieved_desktop",
+        "historical_connector",
+        "annotated_passages",
+        "retrieved_connector"
+      ],
+      "answers": {
+        "retrieved_desktop": {
+          "ok": true,
+          "answer": "论文在第2节从三个视角讨论对话系统的研究现状：交互类型、架构类型和上下文推理类型，并用一张表汇总比较。 [1]\nELIZA（1966年，MIT，Weizenbaum）是最早理解自然语言的软件之一，以扮演心理治疗师著称，仅把病人的话反射回去；它旨在解决五个“基本技术问题”：识别关键词、发现最小上下文、选择适当变换、生成适当回应以及为脚本提供结束能力。 [2]\nPARRY由斯坦福大学精神病学家Kenneth Colby在1970年代初开发，用MLISP语言在DEC PDP-10的WAITS系统上编写，代码不可移植；它是第一个通过图灵测试的系统——精神病学家仅48%的情况下能正确识别，与随机猜测相当。 [3]\nA.L.I.C.E.出现于1995年，当前版本使用为刺激-反应聊天机器人设计的XML语言AIML，拥有超过40,000个知识类别（原版ELIZA仅约200个）；它无法通过图灵测试，普通用户在简短对话中就能看出其机械性。 [4]\nCleverbot（1997-2014）由英国AI科学家Rollo Carpenter开发，在2011年印度理工学院古瓦哈提分校举办的Techno-Management Festival上通过了图灵测试：四分钟打字对话中它被投票为59.3%像人，而人类自身仅63.3%。 [5]\n在上下文推理方面，现有大多数方法依赖使用逻辑和知识库的规则（即面向规则的架构）。 [6]\n开发此类系统的最新研究现状采用了循环神经网络（RNN）、动态上下文敏感生成和记忆网络等。 [7]\n对于能参与多方对话的聊天机器人，其研究现状是聊天机器人创建研究与多智能体系统协调/治理研究的结合。 [8]\n现有聊天机器人引擎不能妥善处理多用户、多机器人的群聊，缺乏将协调规则与自然语言结合的研究；二元聊天机器人不懂得在群组中协调，缺乏判断何时适合回答的社交能力。 [9][10]\n作者称其提出的架构据其所知是研究现状中第一个旨在支持多方对话中协调感知聊天机器人设计与开发的架构；但论文并不旨在推进MPCS规范方面的研究现状。 [9][10]",
+          "status": "answered"
+        },
+        "retrieved_connector": {
+          "ok": true,
+          "answer": "论文按三个视角讨论对话系统的研究现状：交互类型、架构类型和上下文推理类型，并用一张表汇总比较。 [1]\n在上下文推理方面，现有大多数方法依赖使用逻辑和知识库的规则（即规则导向架构）。 [2]\nELIZA（1966年，MIT，Weizenbaum）是最早的自然语言处理程序之一，以扮演心理治疗师著称，仅把病人的话反射回去；它旨在解决五个“基本技术问题”，包括关键词识别、最小上下文发现、变换选择、生成恰当回应以及为脚本提供结束能力。 [3][4]\nPARRY由斯坦福大学精神病学家Kenneth Colby在1970年代初开发，用MLISP语言在DEC PDP-10的WAITS系统上编写，代码不可移植；它是首个通过图灵测试的系统（精神病学家仅48%正确识别，相当于随机猜测）。 [5][6][7]\nA.L.I.C.E.于1995年出现，当前版本使用为刺激-反应聊天机器人设计的XML语言AIML，拥有超过4万个知识类别（ELIZA约200个）；但它无法通过图灵测试，随意用户短对话即可暴露其机械性。 [8][9][10]\nCleverbot（1997–2014）由英国AI科学家Rollo Carpenter开发，在2011年印度理工学院古瓦哈提技术节上通过图灵测试；志愿者四分钟打字对话中将其评为59.3%像人，而人类本身为63.3%。 [11][12][13]\n多数现有聊天机器人（从最早的ELIZA到现代最先进的系统）都属于同一类别。 [14]\n近期开发此类系统的最先进方法采用了循环神经网络（RNN）、动态上下文敏感生成和记忆网络等。 [15]\nSukhbaatar的工作综述了近期利用RNN或LSTM模型把对话上下文作为序列中长期结构来捕捉的研究现状。 [16]\nSyntaxNet是运行于任务特定转换系统的前馈神经网络，在词性标注、依存句法分析和句子压缩上取得最先进结果。 [17]\n对于多方对话聊天机器人的创建，当前现状是聊天机器人创建研究与多智能体系统协调/治理研究的结合；但聊天机器人引擎方面缺乏将协调规则与自然语言结合的研究，现有引擎无法妥善处理多用户多机器人的群聊。 [18][19][20]\n作者称（据其所知）本文提出的架构是现状中首个支持多方对话中协调感知聊天机器人设计与开发的架构；本文并不旨在推进MPCS规范（norms）方面的现状。 [21][22]",
+          "status": "answered"
+        },
+        "annotated_passages": {
+          "ok": true,
+          "answer": "The paper reviews the state of the art on conversational systems from three perspectives: types of interactions, types of architecture, and types of context reasoning, and then consolidates and compares them in a table. [1]\nELIZA, created by Joseph Weizenbaum at MIT in 1966, was one of the first software systems built to understand natural language processing; it acted like a psychotherapist and only reflected back the patient's statements. [2]\nELIZA was designed to tackle five fundamental technical problems: identifying critical words, discovering a minimal context, choosing appropriate transformations, generating appropriate responses (including in the absence of critical words), and providing an ending capacity for ELIZA scripts. [2]\nPARRY, developed by Kenneth Colby at Stanford University in the early 1970s, was written in MLISP on the WAITS operating system running on a DEC PDP-10, with non-portable code partly in PDP-10 assembly and partly in MLISP. [3]\nPARRY was reported as the first system to pass the Turing test, with psychiatrists correctly identifying it only 48 percent of the time, the same as random guessing. [3]\nA.L.I.C.E. appeared in 1995 and its current version uses AIML, an XML language designed for creating stimulus-response chat robots. [4]\nA.L.I.C.E. has more than 40,000 categories of knowledge, compared with only about 200 for the original ELIZA, but it is unable to pass the Turing test because casual users often expose its mechanistic aspects in short conversations. [4]\nCleverbot (1997-2014), developed by British AI scientist Rollo Carpenter, passed the 2011 Turing Test at a festival held by the Indian Institute of Technology Guwahati: in four-minute typed conversations, volunteers voted Cleverbot 59.3 percent human while the humans were rated 63.3 percent human. [5]",
+          "status": "answered"
+        },
+        "full_document": {
+          "ok": true,
+          "answer": "The paper organizes its state-of-the-art review of conversational systems into three perspectives: types of interactions, types of architecture, and types of context reasoning, then consolidates and compares them in a table. [1]\nOn interaction types, most existing chatbots—from ELIZA to modern state-of-the-art ones—are dyadic: they always try to reply to a received utterance and lack the social ability to know when to answer in a group. [2]\nFor multiparty chatbots, the state of the art is a combination of chatbot research and multi-agent coordination/governance research, but there is a lack of solutions for multiparty-aware or governed chatbots. [3]\nTurn-taking in multiparty conversation was studied by Sacks et al., who found participants generally do not overlap utterances and that transition-relevance places and selected-next-speaker cues structure turns; detecting these remains a challenge for speech-based systems. [4][5]\nBohus and Horowitz proposed a computational probabilistic model for turn-taking in speech-based systems, and the authors are not aware of work modeling turn-taking in textual chats. [5]\nIn multi-agent coordination, law-governed approaches include Minsky's Law-Governed Interaction model, the Electronic Institution with roles, norms and scenes, and the XMLaw/M-Law framework, which intercepts messages and blocks non-compliant ones. [6][7][8]\nArchitectures are classified as rule-oriented, data-oriented, or a mix; rule-oriented examples include ELIZA and PARRY, with knowledge bases and logic (e.g., Prolog, FOL) as the basis for most rule-oriented chatbots. [9][10][11]\nData-oriented architectures learn from dialogue samples using methods such as information retrieval, neural networks, HMMs and POMDP; examples include Cleverbot and Tay, and Microsoft published an RCNN-based multi-turn multi-task SLU approach. [12][13]\nA.L.I.C.E. exemplifies the mixed rule-and-data approach: its AIML knowledge is refined through incremental/interactive supervised learning, with roughly 41,000 categories. [14][15]\nBy intention type, systems are goal-driven/task-oriented (using POMDP, HMM, Memory Networks, with the difficulty of collecting large annotated task-specific corpora) or non-goal-driven/reactive (using RNNs, Dynamic Context-Sensitive Generation, Memory Networks, and also HTMM). [16][17][18]\nFor context reasoning, most state-of-the-art approaches rely on rules with logics and knowledge bases (e.g., FOL inference, triple/RDF stores such as Rya with SPARQL), while data-oriented work uses neural networks such as Memory Networks to predict the next utterance from context. [19][20][21]\nSukhbaatar's memory-network model encodes temporal context and answers context questions, but it has not been tested for goal-oriented systems and works with sentences not necessarily from multi-party bots. [22]",
+          "status": "answered"
+        }
+      }
+    }
+  ],
+  "integrity": {
+    "receiptsSha256": "afc0f7d1b272230225b4976d008bbe5559d37f7297b79d469d8b37f8654b5ae4",
+    "normalizedSha256": "39822e678ce62ac67dab24885ce877986e3a2085c4242bd6dd53aa6da3a859a0",
+    "frozenFilesUnchanged": true,
+    "actualModels": [
+      "deepseek-flash"
+    ],
+    "providerUsageVerified": true,
+    "uniqueRequestIds": 100,
+    "noAutomaticRetries": true
+  }
+}

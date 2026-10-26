@@ -1,5 +1,8 @@
 //! Personal questions remain useful offline and reject model answers after a
 //! concurrent task/configuration change or workspace restore.
+#[path = "common/answer.rs"]
+mod answer_fixture;
+
 use base64::Engine as _;
 use project_assistant_core::{AppError, Engine, Request};
 use serde_json::{json, Value};
@@ -7,7 +10,7 @@ use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::mpsc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 const DATE: &str = "2026-10-19";
 fn call(engine: &Engine, command: &str, payload: Value) -> Value {
@@ -260,7 +263,7 @@ struct PausedModel {
     worker: Option<thread::JoinHandle<()>>,
 }
 impl PausedModel {
-    fn new(forged: bool) -> Self {
+    fn new(forged: bool, review_expected: bool) -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let url = format!("http://{}", listener.local_addr().unwrap());
         let (tx, received) = mpsc::channel();
@@ -271,16 +274,55 @@ impl PausedModel {
             let envelope: Value =
                 serde_json::from_str(body["messages"][1]["content"].as_str().unwrap()).unwrap();
             let reference = &envelope["references"][0];
-            let id = if forged {
-                json!("task:another-project")
+            let span = &reference["content"][0];
+            let text = span["text"].as_str().unwrap();
+            let output = if forged {
+                // Preserve the explicit legacy forgery regression: an ID from
+                // another project must still fail current-reference binding.
+                answer_fixture::bound(text, json!(["task:another-project"]), text)
             } else {
-                reference["id"].clone()
+                json!({"grounded":true,"status":"answered","unknowns":[],"claims":[{
+                    "text":text,"supportSpans":[{"referenceIndex":reference["referenceIndex"],"spanIndex":span["spanIndex"]}]}]})
             };
-            let output = json!({"grounded":true,"answer":reference["content"],"citationIds":[id]});
             tx.send(body).unwrap();
             rx.recv_timeout(Duration::from_secs(10)).unwrap();
             let response=json!({"choices":[{"message":{"content":output.to_string()},"finish_reason":"stop"}]}).to_string();
             write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",response.len(),response).unwrap();
+            drop(stream);
+            if !review_expected {
+                return;
+            }
+            listener.set_nonblocking(true).unwrap();
+            let review_deadline = Instant::now() + Duration::from_secs(10);
+            loop {
+                match listener.accept() {
+                    Ok((mut stream, _)) => {
+                        stream.set_nonblocking(false).unwrap();
+                        let request = read_request(&mut stream);
+                        let input: Value = serde_json::from_str(
+                            request["messages"][1]["content"].as_str().unwrap(),
+                        )
+                        .unwrap();
+                        assert!(input.get("claims").is_some(), "expected evidence review");
+                        let review = json!({"supported":true,"answersQuestion":true,"completeAnswer":true,
+                            "obligations":[{"target":input["question"],"status":"answered","claimIndices":[1]}],
+                            "unknownDecisions":[],"unsupportedClaims":[],"missingAspects":[],"reason":"Current task fields directly answer the fixture question."});
+                        let response = json!({"choices":[{"message":{"content":review.to_string()},"finish_reason":"stop"}]}).to_string();
+                        write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",response.len(),response).unwrap();
+                        break;
+                    }
+                    Err(error)
+                        if error.kind() == std::io::ErrorKind::WouldBlock
+                            && Instant::now() < review_deadline =>
+                    {
+                        thread::sleep(Duration::from_millis(2))
+                    }
+                    Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                        panic!("expected evidence review: {error}")
+                    }
+                    Err(error) => panic!("mock review accept failed: {error}"),
+                }
+            }
         });
         Self {
             url,
@@ -311,9 +353,79 @@ fn model_ask(engine: &Engine, project: &Value) -> thread::JoinHandle<Result<Valu
 }
 
 #[test]
+fn model_output_schema_is_visible_in_both_json_modes() {
+    for format in ["json_object", "json_schema"] {
+        let mut model = PausedModel::new(false, true);
+        let directory = tempfile::tempdir().unwrap();
+        let engine = Engine::open(directory.path()).unwrap();
+        let mut config = settings(&model.url, "chosen-model");
+        config["outputFormat"] = json!(format);
+        call(&engine, "save_ai_settings", config);
+        let p = project(&engine, "格式约束");
+        task(&engine, &p, "登录审计接口", "in_progress", DATE, None);
+        let pending = model_ask(&engine, &p);
+        let body = model.request();
+        model.finish();
+        let answer = pending.join().unwrap().unwrap();
+        assert_eq!(answer["mode"], "model");
+        let envelope: Value =
+            serde_json::from_str(body["messages"][1]["content"].as_str().unwrap()).unwrap();
+        let schema = if format == "json_schema" {
+            assert!(
+                envelope.get("schema").is_none(),
+                "strict schema must not be duplicated in the user input"
+            );
+            assert_eq!(body["response_format"]["type"], "json_schema");
+            assert_eq!(body["response_format"]["json_schema"]["strict"], true);
+            &body["response_format"]["json_schema"]["schema"]
+        } else {
+            assert_eq!(body["response_format"]["type"], "json_object");
+            assert!(body["response_format"].get("json_schema").is_none());
+            &envelope["schema"]
+        };
+        assert_eq!(
+            schema["required"],
+            json!(["grounded", "status", "claims", "unknowns"]),
+            "{format} did not tell the model the compact expected fields"
+        );
+        assert_eq!(schema["additionalProperties"], false);
+        assert!(schema["properties"].get("answer").is_none());
+        assert!(schema["properties"].get("citationIds").is_none());
+        assert_eq!(
+            schema["properties"]["claims"]["items"]["required"],
+            json!(["text", "supportSpans"])
+        );
+        let indices = &schema["properties"]["claims"]["items"]["properties"]["supportSpans"]
+            ["items"]["properties"];
+        assert_eq!(indices["referenceIndex"]["type"], "integer");
+        assert_eq!(indices["referenceIndex"]["minimum"], 1);
+        assert_eq!(
+            indices["referenceIndex"]["maximum"],
+            envelope["references"].as_array().unwrap().len()
+        );
+        assert_eq!(indices["spanIndex"]["minimum"], 1);
+        for (index, reference) in envelope["references"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .enumerate()
+        {
+            assert_eq!(reference["referenceIndex"], index + 1);
+            let spans = reference["content"].as_array().unwrap();
+            assert!(!spans.is_empty());
+            for (span_index, span) in spans.iter().enumerate() {
+                assert_eq!(span["spanIndex"], span_index + 1);
+                assert!(span["text"].is_string());
+                assert!(span["text"].as_str().unwrap().chars().count() <= 600);
+            }
+        }
+    }
+}
+
+#[test]
 fn selected_model_receives_only_scoped_records_and_forged_references_are_rejected() {
     for forged in [false, true] {
-        let mut model = PausedModel::new(forged);
+        let mut model = PausedModel::new(forged, !forged);
         let directory = tempfile::tempdir().unwrap();
         let engine = Engine::open(directory.path()).unwrap();
         call(
@@ -331,6 +443,18 @@ fn selected_model_receives_only_scoped_records_and_forged_references_are_rejecte
         assert!(body.get("tools").is_none());
         assert!(!body.to_string().contains("SECRET-OTHER-PROJECT"));
         assert!(!body.to_string().contains("fixture-assistant-private-key"));
+        let envelope: Value =
+            serde_json::from_str(body["messages"][1]["content"].as_str().unwrap()).unwrap();
+        assert!(envelope["references"].as_array().unwrap().iter().all(|r| r
+            .get("record")
+            .is_none()
+            && r.get("evidence").is_none()
+            && r["content"].as_array().is_some_and(|spans| {
+                !spans.is_empty()
+                    && spans.iter().all(|span| {
+                        span["text"].is_string() && span["spanIndex"].as_u64().is_some()
+                    })
+            })));
         model.finish();
         let result = pending.join().unwrap();
         if forged {
@@ -343,6 +467,11 @@ fn selected_model_receives_only_scoped_records_and_forged_references_are_rejecte
                 .unwrap()
                 .iter()
                 .all(|c| c["projectId"] == a["id"]));
+            assert!(answer["citations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|c| c.get("record").is_some()));
         }
     }
 }
@@ -350,7 +479,7 @@ fn selected_model_receives_only_scoped_records_and_forged_references_are_rejecte
 #[test]
 fn task_changes_model_changes_and_backup_restore_cancel_late_answers_without_blocking_actor() {
     for change in ["task", "configuration", "restore"] {
-        let mut model = PausedModel::new(false);
+        let mut model = PausedModel::new(false, false);
         let directory = tempfile::tempdir().unwrap();
         let engine = Engine::open(directory.path()).unwrap();
         call(
