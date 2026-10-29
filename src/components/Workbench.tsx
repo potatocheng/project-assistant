@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, ArrowUp, Check, ChevronDown, ChevronRight, CircleAlert, Link2, RefreshCw } from 'lucide-react';
-import type { AppState, ManagementKind, Page } from '../types';
+import type { AppState, ManagementKind, Page, Task } from '../types';
 import { KIND_LABELS, TASK_STATUS } from '../types';
 import { WaterMark } from './WaterMark';
-import { Spinner } from './ui';
-import { RecordFollowUpDialog } from './delivery/FollowUpCenter';
+import { Dialog, Spinner } from './ui';
+import { TaskCoach } from './coach/TaskCoach';
 import { useDeliveryQuery } from './delivery/shared';
-import type { DeliveryOverviewData, FollowUpCenterData, FollowUpItem } from './delivery/types';
+import type { DeliveryOverviewData, FollowUpCenterData } from './delivery/types';
 import type { GovernanceWorkspaceData } from './governance/gov-types';
 import type { ChangeData } from './governance/change-types';
 import { collectAttention, collectTodayWork, nextMilestone, projectOrder, type AttentionItem } from './workbench-model';
@@ -50,7 +50,7 @@ export function Workbench(props: WorkbenchProps) {
   const changes = useDeliveryQuery<ChangeData>('get_change_acceptance', date, projectId, state, true);
   const sync = useDeliveryQuery<SyncStatus>('get_feishu_sources', date, projectId, state, true);
   const maintenance = useDeliveryQuery<Maintenance>('get_memory_maintenance', date, projectId, state, true);
-  const [record, setRecord] = useState<FollowUpItem | null>(null);
+  const [record, setRecord] = useState<Task | null>(null);
   const [allWork, setAllWork] = useState(false);
   const [allAttention, setAllAttention] = useState(false);
   const [readAt, setReadAt] = useState('');
@@ -98,7 +98,7 @@ export function Workbench(props: WorkbenchProps) {
   const projectName = (id: string) => state.projects.find(project => project.id === id)?.name || '项目';
   const focused = today[0];
   const openAttention = (item: AttentionItem) => {
-    if (item.followUp) setRecord(item.followUp);
+    if (item.followUp) setRecord(item.followUp.task);
     else if (item.kind === 'task') props.onTaskOpen(item.id, item.projectId);
     else props.onManagementOpen(item.kind, item.id, item.projectId);
   };
@@ -114,7 +114,7 @@ export function Workbench(props: WorkbenchProps) {
 
       <div className="ah-work-grid">
         <section className="ah-today" aria-labelledby="ah-today-heading"><div className="ah-section-heading"><h2 id="ah-today-heading">我的今日工作 <small>{today.length}</small></h2><button className="ah-link" onClick={() => props.onNavigate('daily')}>工作安排<ArrowRight size={13}/></button></div><p className="ah-section-note">我的执行 · 包含之前安排但尚未完成的工作</p>
-          {today.length ? <ol className="ah-task-list">{today.slice(0, allWork ? undefined : INITIAL_WORK).map(({ task, reason, urgent }, index) => <li key={task.id}><button className="ah-task" onClick={() => props.onTaskOpen(task.id, task.projectId)}><span className={`ah-task-number ${urgent ? 'urgent' : ''}`}>{String(index + 1).padStart(2, '0')}</span><span className="ah-task-copy"><strong>{task.title}</strong><span className={urgent ? 'ah-urgent' : ''}>{reason}</span><small>{projectName(task.projectId)}<i>·</i>{TASK_STATUS[task.status]}{task.progress > 0 && ` ${task.progress}%`}</small></span><ChevronRight size={15}/></button></li>)}</ol> : <div className="ah-empty"><Check size={21}/><p>今天的安排还是空的</p><span>把已有任务排到今天，或连接聊天和资料整理待办。</span></div>}
+          {today.length ? <ol className="ah-task-list">{today.slice(0, allWork ? undefined : INITIAL_WORK).map(({ task, reason, urgent }, index) => <li key={task.id}><div className="coach-home-task"><button className="ah-task" onClick={() => props.onTaskOpen(task.id, task.projectId)}><span className={`ah-task-number ${urgent ? 'urgent' : ''}`}>{String(index + 1).padStart(2, '0')}</span><span className="ah-task-copy"><strong>{task.title}</strong><span className={urgent ? 'ah-urgent' : ''}>{reason}</span><small>{projectName(task.projectId)}<i>·</i>{TASK_STATUS[task.status]}{task.progress > 0 && ` ${task.progress}%`}</small></span><ChevronRight size={15}/></button><button className="text-button tiny" onClick={() => setRecord(task)}>帮我推进</button></div></li>)}</ol> : <div className="ah-empty"><Check size={21}/><p>今天的安排还是空的</p><span>把已有任务排到今天，或连接聊天和资料整理待办。</span></div>}
           {today.length > INITIAL_WORK && <button className="ah-link ah-more" onClick={() => setAllWork(!allWork)}>{allWork ? '收起' : `还有 ${today.length - INITIAL_WORK} 项工作`}<ChevronDown size={13}/></button>}
         </section>
         <section className="ah-attention" aria-labelledby="ah-attention-heading"><div className="ah-section-heading"><h2 id="ah-attention-heading">需要我介入 <small>{attention.length}{attentionIncomplete ? '+' : ''}</small></h2></div><p className="ah-section-note">等你拍板、跨人协调和到期跟进</p>
@@ -152,7 +152,7 @@ export function Workbench(props: WorkbenchProps) {
       </section>
     </div>
     <AssistantComposer onAsk={props.onAsk}/>
-    {record && <RecordFollowUpDialog item={record} date={date} close={() => setRecord(null)} onSaved={async () => { await props.onChanged(); followUps.refresh(); setRecord(null); }}/>}
+    {record && <Dialog title={record.title} subtitle="先处理眼前这一步" close={() => setRecord(null)} wide><div className="dialog-body"><TaskCoach key={record.id} task={state.tasks.find(t => t.id === record.id) ?? record} date={date} autoStart onChanged={async () => { await props.onChanged(); followUps.refresh(); }} /></div></Dialog>}
   </div>;
 }
 

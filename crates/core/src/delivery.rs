@@ -453,6 +453,27 @@ fn record_follow_up(conn: &Connection, p: &Value) -> Result<Value> {
     if next.as_deref().is_some_and(|d| d < work) {
         return Err(invalid("下次跟进日期不能早于本次跟进日期"));
     }
+    // The user explicitly chooses an outcome; free-text promises never change
+    // status or deadlines. Both histories are committed in the same transaction.
+    let updated_task = if let Some(outcome) = p.get("taskOutcome").filter(|v| !v.is_null()) {
+        let status = required(outcome, "status")?;
+        if !matches!(status, "in_progress" | "blocked" | "done") {
+            return Err(invalid("跟进结果只能更新为进行中、阻塞或完成"));
+        }
+        if status == "done" && next.is_some() {
+            return Err(invalid("确认完成后无需安排后续跟进"));
+        }
+        let mut fields = task.clone();
+        fields["baseVersion"] = json!(integer(outcome, "baseVersion")?);
+        fields["workDate"] = json!(work);
+        fields["status"] = json!(status);
+        if status == "done" {
+            fields["progress"] = json!(100);
+        }
+        Some(tasks::write_task(conn, &task, &fields, "user", &[], &note)?)
+    } else {
+        None
+    };
     let first: String = conn.query_row(
         "SELECT min(work_date) FROM task_events WHERE task_id=?",
         [task["id"].as_str()],
@@ -486,7 +507,7 @@ fn record_follow_up(conn: &Connection, p: &Value) -> Result<Value> {
     let updated = save_follow_state(conn, &task, next.as_deref(), None, base)?;
     let record = conn.query_row(&format!("{FOLLOW_SELECT} WHERE id=?"), [key], follow_row)?;
     Ok(
-        json!({"record":record,"followUpVersion":updated["followUpVersion"],"nextFollowUpDate":updated["nextFollowUpDate"],"snoozedUntil":updated["snoozedUntil"]}),
+        json!({"record":record,"followUpVersion":updated["followUpVersion"],"nextFollowUpDate":updated["nextFollowUpDate"],"snoozedUntil":updated["snoozedUntil"],"task":updated_task}),
     )
 }
 fn snooze_follow_up(conn: &Connection, p: &Value) -> Result<Value> {

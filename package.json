@@ -30,7 +30,8 @@
     "evaluate:memory:nonvector:live": "node scripts/evaluate-memory-live.mjs --nonvector",
     "verify:daily-use:scale": "node scripts/verify-daily-use-scale.mjs",
     "verify:retention:scoring": "node --test scripts/score-chat-retention.test.mjs",
-    "release:preflight": "node scripts/release-preflight.mjs"
+    "release:preflight": "node scripts/release-preflight.mjs",
+    "verify:coach": "node --test scripts/coach-model.test.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",

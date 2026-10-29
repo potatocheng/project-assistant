@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import type { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { LoaderCircle, X } from 'lucide-react';
 
 export function Spinner() { return <LoaderCircle size={15} className="spinner" aria-hidden="true" />; }
@@ -30,6 +31,9 @@ export function Dialog({ title, subtitle, children, close, busy, wide = false }:
     const initial = elements.find((element) => element.matches('input:not([type="file"]), textarea, select')) ?? elements[0] ?? node;
     initial.focus({ preventScroll: true });
     const handler = (event: KeyboardEvent) => {
+      // Only the front dialog handles Escape and traps focus when help or a
+      // result form is opened inside an existing task dialog.
+      if (Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"]')).at(-1) !== node) return;
       if (event.key === 'Escape') {
         if (!latest.current.busy) {
           event.preventDefault();
@@ -48,8 +52,8 @@ export function Dialog({ title, subtitle, children, close, busy, wide = false }:
     document.addEventListener('keydown', handler);
     return () => { document.removeEventListener('keydown', handler); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
   }, []);
-  return <div className="dialog-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) close(); }}><div className={`dialog ${wide ? 'dialog-wide' : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={subtitle ? subtitleId : undefined} aria-busy={Boolean(busy)} tabIndex={-1} ref={ref}>
+  return createPortal(<div className="dialog-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) close(); }}><div className={`dialog ${wide ? 'dialog-wide' : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={subtitle ? subtitleId : undefined} aria-busy={Boolean(busy)} tabIndex={-1} ref={ref}>
     <div className="dialog-header"><div><h2 id={titleId}>{title}</h2>{subtitle && <p id={subtitleId}>{subtitle}</p>}</div><button className="icon-button" aria-label="关闭对话框" onClick={close} disabled={busy}><X size={19} /></button></div>
     {children}
-  </div></div>;
+  </div></div>, document.querySelector('.app-shell') ?? document.body);
 }
