@@ -13,7 +13,7 @@ use std::io::Read;
 use std::net::IpAddr;
 use std::time::{Duration, Instant};
 
-pub(crate) const PROMPT_VERSION: &str = "project-memory-task-extraction-v6-literal";
+pub(crate) const PROMPT_VERSION: &str = "project-memory-task-extraction-v9-conversation-retention";
 const BATCH_CHARS: usize = 2_400;
 const EXTRACTION_OUTPUT_TOKENS: usize = 6_144;
 const MAX_SPLIT_DEPTH: usize = 2;
@@ -57,6 +57,8 @@ pub(crate) struct CandidateEvidence {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct Candidate {
+    #[serde(default)]
+    pub retention: crate::retention::Retention,
     pub kind: String,
     pub content: String,
     pub evidence: Vec<CandidateEvidence>,
@@ -200,7 +202,7 @@ fn batches(segments: &[SourceSegment]) -> Result<Vec<Vec<SourceSegment>>> {
     batches_with_limit(segments, BATCH_CHARS)
 }
 
-fn sentence_boundary(chars: &[char], index: usize) -> bool {
+pub(crate) fn sentence_boundary(chars: &[char], index: usize) -> bool {
     matches!(chars[index], '。' | '！' | '？' | ';' | '；' | '\n')
         || (matches!(chars[index], '.' | '!' | '?')
             && chars.get(index + 1).is_none_or(|next| next.is_whitespace())
@@ -340,11 +342,12 @@ fn output_schema(batch: &[SourceSegment]) -> Value {
                 "items": {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": ["kind", "content", "evidence", "facets"],
+                    "required":["kind","content","evidence","facets","retention"],
                     "properties": {
                         "kind": {"type":"string", "enum":["fact","decision","requirement","risk"]},
                         "content": {"type":"string","minLength":1,"maxLength":MAX_CONTENT_CHARS,"description":"Extractive-first: prefer one or two complete source sentences copied verbatim for one fact. Preserve subjects, pronouns, names, numbers, math/LaTeX notation, capitalization, negation and conditions. Do not translate or substitute new names for source subjects."},
                         "evidence": evidence,
+                        "retention":{"type":"object","additionalProperties":false,"required":["layer","reason"],"properties":{"layer":{"type":"string","enum":["durable","working","clarify","archive"]},"reason":{"type":"string","minLength":1,"maxLength":400}}},
                         "facets": {
                             "type":"object","additionalProperties":false,
                             "required":["entity","topic","role","conditions","validFrom","validUntil"],
@@ -389,6 +392,9 @@ fn request_body(config: &AiConfig, url: &Url, batch: &[SourceSegment]) -> Value 
         "Choose content and its exact supporting quotes FIRST; only then select short literal facets that occur in BOTH. Generic deictic subjects such as we, our or this paper do not establish a named entity: leave entity empty when the source does not explicitly identify the entity. This is a generation rule, not permission to clear invalid supplied applicability fields later. ",
         "Facets are optional: copy short exact substrings present in BOTH content and evidence quotes, or use empty values. Never paraphrase, translate or invent a facet to fill the schema. ",
         "你是项目资料提取器。只从给定资料提取明确陈述的项目事实、决策、需求和风险，",
+        "projectContext仅帮助判断相关性，属于不可信背景而非事实依据，不得从中补写候选。结合目标、阶段与描述判断后续用途，未提到的领域不等于无关。",
+        "每条retention说明保留理由：durable用于明确且可复用的决策、约束、需求及其原因；working用于进展、阻塞、临时安排；clarify用于有价值但待批准、指向含糊或互相矛盾的事项；archive用于仅需追溯的低价值过程。价值和确定性分开判断，不给重要性分数。寒暄和无独立信息的重复确认不生成候选。",
+        "消息元信息提供话题和回复关系，遇到代词或更改先关联所指消息。结论、批准条件、例外与适用对象应在同一候选正文内保留，必要时合并多条消息的引文。看不到所指消息则进入clarify，不能猜测。计划、批准、实际完成分别保留状态与时间。",
         "每条优先逐字复制一至两句支持同一事实的完整原句，保留原文语言；保留名称、数字、数学及LaTeX表示、大小写、主体和代词，不把短主语或代词换写成新的名称。不得推断未给出的时间、负责人、完成状态。",
         "逐条保留主体、动作、对象及否定、条件、范围、发生时间；不同主体或不同事项分别提取。",
         "facets组织本条事实：entity主体、topic具体事项、conditions条件均逐字取自content及所引原文；不明确则空字符串或空数组。role区分owner负责人、approver审批人、contact联系人，无法明确区分则空字符串。validFrom/validUntil仅填写正文明确的有效起止日期YYYY-MM-DD，否则null；发生时间不等于有效期。不要为了填写字段推断实体、角色或日期。",
@@ -538,7 +544,7 @@ fn request_batch(
     api_key: Option<&str>,
     client: &Client,
     url: &Url,
-    batch: &[SourceSegment],
+    body: &Value,
     remaining: Duration,
 ) -> (Result<Value>, Option<Value>, Option<Value>) {
     let mut observed_usage = None;
@@ -548,7 +554,7 @@ fn request_batch(
         api_key,
         client,
         url,
-        &request_body(config, url, batch),
+        body,
         remaining,
         |usage, response| {
             observed_usage = usage;
@@ -757,7 +763,13 @@ pub(crate) fn checked_candidate(
     value: Value,
     batch: &[SourceSegment],
 ) -> Option<(Candidate, bool)> {
-    let candidate: Candidate = serde_json::from_value(value).ok()?;
+    let mut candidate: Candidate = serde_json::from_value(value.clone()).ok()?;
+    if value.get("retention").is_none() {
+        candidate.retention = crate::retention::Retention {
+            layer: "clarify".into(),
+            reason: "模型未返回保留方式，需人工核对".into(),
+        };
+    }
     grounded(&candidate, batch).then_some((candidate, false))
 }
 
@@ -939,7 +951,8 @@ fn memory_key(candidate: &Candidate) -> String {
     json!([
         candidate.kind,
         canonical_text(&candidate.content),
-        candidate.facets
+        crate::memory_facts::identity(&json!(candidate.facets)),
+        candidate.retention.layer
     ])
     .to_string()
 }
@@ -1073,6 +1086,54 @@ fn split_batch(batch: &[SourceSegment], depth: usize) -> Result<Option<Vec<Vec<S
     Ok(Some(children))
 }
 
+/// Saturation is about fact density, including short documents. Split whole
+/// sentences into disjoint primary partitions; never reuse the full saturated
+/// primary or the 256-character overlap as both children's extraction target.
+fn partition_batch(batch: &[SourceSegment], depth: usize) -> Option<Vec<Vec<SourceSegment>>> {
+    const MAX_PARTITION_DEPTH: usize = 4;
+    if depth >= MAX_PARTITION_DEPTH {
+        return None;
+    }
+    let mut units = Vec::new();
+    for segment in batch {
+        let chars: Vec<_> = segment.text.chars().collect();
+        let mut start = 0;
+        for index in 0..chars.len() {
+            if sentence_boundary(&chars, index) {
+                let mut unit = segment.clone();
+                unit.text = chars[start..=index].iter().collect();
+                units.push(unit);
+                start = index + 1;
+            }
+        }
+        if start < chars.len() {
+            let mut unit = segment.clone();
+            unit.text = chars[start..].iter().collect();
+            units.push(unit);
+        }
+    }
+    if units.len() < 2 {
+        return None;
+    }
+    let middle = units.len() / 2;
+    let mut children = Vec::new();
+    for half in [&units[..middle], &units[middle..]] {
+        let mut child: Vec<SourceSegment> = Vec::new();
+        for unit in half {
+            if let Some(last) = child.last_mut().filter(|last| last.id == unit.id) {
+                last.text.push_str(&unit.text);
+            } else {
+                child.push(unit.clone());
+            }
+        }
+        if child.iter().all(|s| s.text.trim().is_empty()) {
+            return None;
+        }
+        children.push(child);
+    }
+    Some(children)
+}
+
 fn hash(value: &Value) -> String {
     format!("{:x}", Sha256::digest(value.to_string().as_bytes()))
 }
@@ -1110,6 +1171,26 @@ pub(crate) fn extract_with_checkpoints(
     api_key: Option<&str>,
     segments: &[SourceSegment],
     resume: &[ExtractionCheckpoint],
+    progress: impl FnMut(usize, usize) -> bool,
+    checkpoint: impl FnMut(&ExtractionCheckpoint) -> bool,
+) -> Result<ExtractionResult> {
+    extract_with_context(
+        config,
+        api_key,
+        segments,
+        resume,
+        &Value::Null,
+        progress,
+        checkpoint,
+    )
+}
+
+pub(crate) fn extract_with_context(
+    config: &AiConfig,
+    api_key: Option<&str>,
+    segments: &[SourceSegment],
+    resume: &[ExtractionCheckpoint],
+    project_context: &Value,
     mut progress: impl FnMut(usize, usize) -> bool,
     mut checkpoint: impl FnMut(&ExtractionCheckpoint) -> bool,
 ) -> Result<ExtractionResult> {
@@ -1126,12 +1207,12 @@ pub(crate) fn extract_with_checkpoints(
     let mut completed = 0;
     let mut queue: VecDeque<_> = batches
         .into_iter()
-        .map(|batch| (batch, 0, None::<String>))
+        .map(|batch| (batch, 0, None::<String>, None::<Value>, false))
         .collect();
     let mut seen_memories = HashMap::<String, usize>::new();
     let mut seen_tasks = HashMap::<String, usize>::new();
     let plan_hash = hash(
-        &json!({"version":PROMPT_VERSION,"model":config.model,"provider":config.provider,"format":config.output_format,"segments":segments}),
+        &json!({"version":PROMPT_VERSION,"model":config.model,"provider":config.provider,"format":config.output_format,"segments":segments,"projectContext":project_context}),
     );
     let saved = resume
         .iter()
@@ -1149,20 +1230,50 @@ pub(crate) fn extract_with_checkpoints(
     budget.elapsed_ms = elapsed_before;
     budget.pending_elapsed_ms = 0;
     let started = Instant::now();
-    while let Some((batch, depth, parent_key)) = queue.pop_front() {
-        let input_hash = hash(&json!(batch));
+    while let Some((core, depth, parent_key, review, partitioned)) = queue.pop_front() {
+        let batch = crate::extraction_context::plan_scoped(
+            &core,
+            segments,
+            if review.is_some() { 4800 } else { BATCH_CHARS },
+            !partitioned,
+        );
+        let input_hash = hash(
+            &json!({"segments":batch,"primary":core,"review":review,"partitioned":partitioned}),
+        );
         let key = hash(&json!([plan_hash, input_hash, depth, parent_key]));
         let cached = saved
             .get(key.as_str())
             .filter(|item| item.input_hash == input_hash);
         let result;
-        if let Some(cached) =
-            cached.filter(|item| matches!(item.status.as_str(), "succeeded" | "split"))
-        {
+        if let Some(cached) = cached.filter(|item| {
+            matches!(
+                item.status.as_str(),
+                "succeeded" | "split" | "review_pending" | "partitioned"
+            ) && !(item.status == "succeeded"
+                && item.candidates.is_empty()
+                && item.task_candidates.is_empty()
+                && item.discarded_count > 0)
+        }) {
             result = (*cached).clone();
         } else {
             budget.elapsed_ms = elapsed_before.saturating_add(started.elapsed().as_millis() as u64);
-            let body = request_body(config, &url, &batch);
+            let mut body = request_body(config, &url, &batch);
+            let mut envelope: Value =
+                serde_json::from_str(body["messages"][1]["content"].as_str().unwrap()).unwrap();
+            envelope["projectContext"] = project_context.clone();
+            envelope["primary"] = json!(core
+                .iter()
+                .map(|s| {
+                    if batch.iter().any(|b| b.id == s.id && b.text == s.text) {
+                        json!({"segmentId":s.id})
+                    } else {
+                        json!({"segmentId":s.id,"text":s.text})
+                    }
+                })
+                .collect::<Vec<_>>());
+            envelope["coverageReview"] = review.clone().unwrap_or(Value::Null);
+            envelope["task"] = json!("只提取primary正文中的事实，其他segments用于补全主体、条件和例外，候选必须至少引用一处primary。coverageReview存在时，核对旧候选与覆盖疑点，返回完整替换候选集；旧候选和疑点不能作为事实依据。仍只返回规定的candidates和taskCandidates。");
+            body["messages"][1]["content"] = json!(envelope.to_string());
             // UTF-8 bytes plus the allowed output tokens is a conservative
             // reservation when usage is absent. Unicode character counts can
             // undercount tokenization of CJK, emoji and uncommon characters.
@@ -1207,7 +1318,7 @@ pub(crate) fn extract_with_checkpoints(
             let remaining =
                 MAX_TASK_DURATION.saturating_sub(Duration::from_millis(budget.elapsed_ms));
             let (response, usage, raw_response) =
-                request_batch(config, api_key, &client, &url, &batch, remaining);
+                request_batch(config, api_key, &client, &url, &body, remaining);
             attempt.raw_output = raw_response;
             budget.elapsed_ms = elapsed_before.saturating_add(started.elapsed().as_millis() as u64);
             if let Some(usage) = &usage {
@@ -1227,17 +1338,68 @@ pub(crate) fn extract_with_checkpoints(
                 parse_batch(&output, &batch)
             });
             match parsed {
-                Ok((memories, tasks, discarded)) => {
+                Ok((mut memories, mut tasks, discarded)) => {
+                    let raw = attempt.raw_output.as_ref().unwrap();
+                    let saturated = raw["candidates"]
+                        .as_array()
+                        .is_some_and(|v| v.len() >= MAX_MEMORY_ITEMS_PER_BATCH)
+                        || raw["taskCandidates"]
+                            .as_array()
+                            .is_some_and(|v| v.len() >= MAX_TASK_ITEMS_PER_BATCH);
+                    memories
+                        .retain(|candidate| crate::extraction_context::primary(candidate, &core));
+                    tasks.retain(|candidate| {
+                        candidate.evidence.iter().any(|e| {
+                            core.iter()
+                                .any(|s| s.id == e.segment_id && s.text.contains(&e.quote))
+                        })
+                    });
+                    if memories.is_empty() {
+                        if let Some(previous) = &review {
+                            memories = serde_json::from_value::<Vec<Candidate>>(
+                                previous["candidates"].clone(),
+                            )
+                            .unwrap_or_default()
+                            .into_iter()
+                            .filter(|c| {
+                                grounded(c, &batch) && crate::extraction_context::primary(c, &core)
+                            })
+                            .collect();
+                        }
+                    }
+                    let coverage = crate::extraction_context::inspect(
+                        &core, &batch, segments, &memories, discarded, saturated,
+                    );
+                    let needs_review = !coverage["issues"].as_array().unwrap().is_empty();
+                    attempt.raw_output.as_mut().unwrap()["_coverage"] = coverage;
                     attempt.candidates = memories;
                     attempt.task_candidates = tasks;
                     attempt.discarded_count = discarded;
-                    attempt.status = "succeeded".into();
-                    attempt.completed_batches = completed + 1;
+                    attempt.status = if saturated && partition_batch(&core, depth).is_some() {
+                        "partitioned"
+                    } else if !saturated
+                        && needs_review
+                        && review.is_none()
+                        && !attempt.candidates.is_empty()
+                    {
+                        "review_pending"
+                    } else {
+                        "succeeded"
+                    }
+                    .into();
+                    if let Some(previous) = &review {
+                        attempt.raw_output.as_mut().unwrap()["_coverage"]["previousCandidates"] =
+                            previous["candidates"].clone();
+                        attempt.raw_output.as_mut().unwrap()["_coverage"]["previousIssues"] =
+                            previous["coverage"]["issues"].clone();
+                    }
+                    attempt.completed_batches =
+                        completed + usize::from(attempt.status == "succeeded");
                 }
                 Err(error) => {
                     attempt.error_code = Some(error.code.clone());
                     attempt.status = if error.code == "MODEL_OUTPUT_LIMIT"
-                        && split_batch(&batch, depth)?.is_some()
+                        && split_batch(&core, depth)?.is_some()
                     {
                         "split".into()
                     } else {
@@ -1253,27 +1415,21 @@ pub(crate) fn extract_with_checkpoints(
                 }
             }
             attempt.budget = budget.clone();
-            if attempt.status == "succeeded" && !checkpoint(&attempt) {
+            if matches!(
+                attempt.status.as_str(),
+                "succeeded" | "review_pending" | "partitioned"
+            ) && !checkpoint(&attempt)
+            {
                 return Err(AppError::new("CANCELLED", "AI 分析已取消"));
             }
             result = attempt;
         }
-        if result.status == "split" {
-            let children = split_batch(&batch, depth)?.ok_or_else(|| {
-                AppError::new("MODEL_CHECKPOINT", "提取分批检查点与当前计划不一致")
-            })?;
-            if total + children.len() - 1 > MAX_BATCHES {
-                return Err(budget_error());
-            }
-            total += children.len() - 1;
-            for child in children.into_iter().rev() {
-                queue.push_front((child, depth + 1, Some(key.clone())));
-            }
-            if !progress(completed, total) {
-                return Err(AppError::new("CANCELLED", "AI 分析已取消"));
-            }
+        if result.status == "review_pending" {
+            queue.push_front((core, depth, Some(key), Some(json!({"candidates":result.candidates,"taskCandidates":result.task_candidates,"coverage":result.raw_output.as_ref().map(|v| &v["_coverage"])})), partitioned));
             continue;
         }
+        // A partition supplements its validated parent; empty or failed children
+        // must not erase facts already found. Fingerprints merge repeated claims.
         discarded_count += result.discarded_count;
         for candidate in result.candidates {
             let fingerprint = memory_key(&candidate);
@@ -1292,6 +1448,31 @@ pub(crate) fn extract_with_checkpoints(
                 seen_tasks.insert(fingerprint, task_candidates.len());
                 task_candidates.push(candidate);
             }
+        }
+        if matches!(result.status.as_str(), "split" | "partitioned") {
+            let children = if result.status == "partitioned" {
+                partition_batch(&core, depth)
+            } else {
+                split_batch(&core, depth)?
+            }
+            .ok_or_else(|| AppError::new("MODEL_CHECKPOINT", "提取分批检查点与当前计划不一致"))?;
+            if total + children.len() - 1 > MAX_BATCHES {
+                return Err(budget_error());
+            }
+            total += children.len() - 1;
+            for child in children.into_iter().rev() {
+                queue.push_front((
+                    child,
+                    depth + 1,
+                    Some(key.clone()),
+                    review.clone(),
+                    partitioned || result.status == "partitioned",
+                ));
+            }
+            if !progress(completed, total) {
+                return Err(AppError::new("CANCELLED", "AI 分析已取消"));
+            }
+            continue;
         }
         completed += 1;
         if !progress(completed, total) {
@@ -1472,8 +1653,251 @@ mod tests {
     }
 
     #[test]
-    fn openai_json_mode_sends_selected_model_and_filters_ungrounded_candidates() {
+    fn saturation_partitions_short_dense_text_without_overlap_and_preserves_unicode() {
+        let input = [SourceSegment {
+            id: "s".into(),
+            locator: "段1".into(),
+            text: (1..=18)
+                .map(|i| format!("D{i}✅保留{}天。", i + 10))
+                .collect(),
+        }];
+        assert!(input[0].text.chars().count() < 800);
+        let children = partition_batch(&input, 0).unwrap();
+        assert_eq!(children.len(), 2);
+        assert_eq!(
+            children
+                .iter()
+                .flat_map(|c| c.iter())
+                .map(|s| s.text.as_str())
+                .collect::<String>(),
+            input[0].text
+        );
+        for child in children {
+            assert_eq!(child[0].text.matches('。').count(), 9);
+            let context = crate::extraction_context::plan_scoped(&child, &input, 2400, false);
+            assert_eq!(context[0].text.matches('。').count(), 10);
+            assert!(input[0].text.contains(&context[0].text));
+        }
+        assert!(partition_batch(&input, 4).is_none());
+        assert!(partition_batch(&segments(), 0).is_none());
+    }
+
+    #[test]
+    fn raw_memory_and_task_caps_partition_before_filtering() {
+        for tasks in [false, true] {
+            let mock = server(3, move |index, request| {
+                let output = if index > 0 {
+                    json!({"candidates":[],"taskCandidates":[]})
+                } else if tasks {
+                    json!({"candidates":[],"taskCandidates":vec![task_from_request(request);MAX_TASK_ITEMS_PER_BATCH]})
+                } else {
+                    let mut bad = candidate_from_request(request);
+                    bad["evidence"][0]["quote"] = json!("不存在的引文");
+                    json!({"candidates":vec![bad;MAX_MEMORY_ITEMS_PER_BATCH]})
+                };
+                (200, openai_response(output), Duration::ZERO)
+            });
+            let source = [SourceSegment {
+                id: "s".into(),
+                locator: "段1".into(),
+                text: "甲任务已经完成。乙任务尚未开始。".into(),
+            }];
+            let mut events = Vec::new();
+            let result = extract_with_checkpoints(
+                &config(&mock, "openai_compatible", "json_object"),
+                None,
+                &source,
+                &[],
+                |_, _| true,
+                |e| {
+                    events.push(e.clone());
+                    true
+                },
+            );
+            mock.thread.join().unwrap();
+            if tasks {
+                let result = result.unwrap();
+                assert_eq!(result.batch_count, 2);
+                assert_eq!(
+                    result.task_candidates.len(),
+                    1,
+                    "valid parent task survives empty children"
+                );
+            } else {
+                assert_eq!(result.unwrap_err().code, "MODEL_GROUNDING");
+            }
+            assert!(events.iter().any(|e| e.status == "partitioned"));
+            assert!(!events.iter().any(|e| e.status == "review_pending"));
+            assert_eq!(events.last().unwrap().budget.requests, 3);
+        }
+    }
+    #[test]
+    fn saturated_indivisible_sentence_keeps_diagnostic_without_repeated_review() {
         let mock = server(1, |_, request| {
+            (
+                200,
+                openai_response(
+                    json!({"candidates":vec![candidate_from_request(request);MAX_MEMORY_ITEMS_PER_BATCH]}),
+                ),
+                Duration::ZERO,
+            )
+        });
+        let mut events = Vec::new();
+        extract_with_checkpoints(
+            &config(&mock, "openai_compatible", "json_object"),
+            None,
+            &segments(),
+            &[],
+            |_, _| true,
+            |e| {
+                events.push(e.clone());
+                true
+            },
+        )
+        .unwrap();
+        mock.thread.join().unwrap();
+        let last = events.last().unwrap();
+        assert_eq!(last.status, "succeeded");
+        assert_eq!(last.budget.requests, 1);
+        assert_eq!(
+            last.raw_output.as_ref().unwrap()["_coverage"]["issues"][0]["severity"],
+            "coverage"
+        );
+    }
+    #[test]
+    fn saturated_parent_partitions_and_resumes_only_failed_child() {
+        let input = [SourceSegment {
+            id: "dense".into(),
+            locator: "段1".into(),
+            text: (1..=18)
+                .map(|i| format!("D{i}保留{}天。", i + 10))
+                .collect(),
+        }];
+        let mock = server(4, |index, request| {
+            if index == 2 {
+                return (503, json!({"error":"unavailable"}), Duration::ZERO);
+            }
+            let env = envelope(request);
+            let primary = &env["primary"][0];
+            let text = primary["text"]
+                .as_str()
+                .unwrap_or_else(|| env["segments"][0]["text"].as_str().unwrap());
+            let values:Vec<_>=text.split_inclusive('。').take(12).map(|t|json!({"kind":"fact","content":t,"evidence":[{"segmentId":"dense","quote":t}]})).collect();
+            let mut response = openai_response(json!({"candidates":values}));
+            response["usage"] = json!({"prompt_tokens":100,"completion_tokens":20});
+            (200, response, Duration::ZERO)
+        });
+        let config = config(&mock, "openai_compatible", "json_object");
+        let mut events = Vec::new();
+        assert_eq!(
+            extract_with_checkpoints(
+                &config,
+                None,
+                &input,
+                &[],
+                |_, _| true,
+                |e| {
+                    events.push(e.clone());
+                    true
+                }
+            )
+            .unwrap_err()
+            .code,
+            "MODEL_SERVICE"
+        );
+        assert!(events.iter().any(|e| e.status == "partitioned"));
+        assert_eq!(events.iter().filter(|e| e.status == "succeeded").count(), 1);
+        let mut resumed = Vec::new();
+        let result = extract_with_checkpoints(
+            &config,
+            None,
+            &input,
+            &events,
+            |_, _| true,
+            |e| {
+                resumed.push(e.clone());
+                true
+            },
+        )
+        .unwrap();
+        mock.thread.join().unwrap();
+        assert_eq!(result.candidates.len(), 18);
+        assert_eq!(result.batch_count, 2);
+        assert_eq!(resumed.last().unwrap().budget.requests, 4);
+        assert_eq!(
+            resumed.iter().filter(|e| e.status == "succeeded").count(),
+            1
+        );
+        events.extend(resumed);
+        let cached = extract_with_checkpoints(
+            &config,
+            None,
+            &input,
+            &events,
+            |_, _| true,
+            |_| panic!("no repeated requests"),
+        )
+        .unwrap();
+        assert_eq!(cached.candidates.len(), 18);
+    }
+    #[test]
+    fn context_review_is_bounded_durable_and_resumes_without_network() {
+        let mock = server(2, |_, request| {
+            (
+                200,
+                openai_response(json!({"candidates":[candidate_from_request(request)]})),
+                Duration::ZERO,
+            )
+        });
+        let config = config(&mock, "openai_compatible", "json_object");
+        let source = vec![
+            SourceSegment {
+                id: "a".into(),
+                locator: "段1".into(),
+                text: "Atlas计划上线。".into(),
+            },
+            SourceSegment {
+                id: "b".into(),
+                locator: "段2".into(),
+                text: "上述计划仅面向内部员工。".into(),
+            },
+        ];
+        let mut events = Vec::new();
+        extract_with_checkpoints(
+            &config,
+            None,
+            &source,
+            &[],
+            |_, _| true,
+            |e| {
+                events.push(e.clone());
+                true
+            },
+        )
+        .unwrap();
+        mock.thread.join().unwrap();
+        assert!(events.iter().any(|e| e.status == "review_pending"));
+        assert_eq!(events.last().unwrap().budget.requests, 2);
+        assert!(
+            !events.last().unwrap().raw_output.as_ref().unwrap()["_coverage"]["issues"]
+                .as_array()
+                .unwrap()
+                .is_empty()
+        );
+        let resumed = extract_with_checkpoints(
+            &config,
+            None,
+            &source,
+            &events,
+            |_, _| true,
+            |_| panic!("cached review must not send requests"),
+        )
+        .unwrap();
+        assert_eq!(resumed.batch_count, 1);
+    }
+    #[test]
+    fn openai_json_mode_sends_selected_model_and_filters_ungrounded_candidates() {
+        let mock = server(2, |_, request| {
             let valid = candidate_from_request(request);
             let mut invalid_quote = valid.clone();
             invalid_quote["evidence"][0]["quote"] = json!("原文里没有这句话");
@@ -1582,6 +2006,52 @@ mod tests {
             "legacy candidates-only output has no task candidates"
         );
         assert_eq!(empty.discarded_count, 0);
+        mock.thread.join().unwrap();
+    }
+
+    #[test]
+    fn manual_retry_reexecutes_all_invalid_checkpoint_and_keeps_spent_budget() {
+        let mock = server(2, |index, request| {
+            let mut item = candidate_from_request(request);
+            if index == 0 {
+                item["kind"] = json!("invalid-kind");
+            }
+            (
+                200,
+                openai_response(json!({"candidates":[item]})),
+                Duration::ZERO,
+            )
+        });
+        let config = config(&mock, "openai_compatible", "json_object");
+        let mut failed = Vec::new();
+        let error = extract_with_checkpoints(
+            &config,
+            None,
+            &segments(),
+            &[],
+            |_, _| true,
+            |event| {
+                failed.push(event.clone());
+                true
+            },
+        )
+        .unwrap_err();
+        assert_eq!(error.code, "MODEL_GROUNDING");
+        let mut retried = Vec::new();
+        let result = extract_with_checkpoints(
+            &config,
+            None,
+            &segments(),
+            &failed,
+            |_, _| true,
+            |event| {
+                retried.push(event.clone());
+                true
+            },
+        )
+        .unwrap();
+        assert_eq!(result.candidates.len(), 1);
+        assert_eq!(retried.last().unwrap().budget.requests, 2);
         mock.thread.join().unwrap();
     }
 
@@ -1822,7 +2292,7 @@ mod tests {
         }];
         let body = request_body(&config, &endpoint(&config).unwrap(), &input);
         let system = body["messages"][0]["content"].as_str().unwrap();
-        assert!(PROMPT_VERSION.ends_with("v6-literal"));
+        assert!(PROMPT_VERSION.ends_with("v9-conversation-retention"));
         for requirement in [
             "Extractive-first",
             "complete source sentences verbatim",
@@ -2295,6 +2765,7 @@ mod tests {
             locator: "第1段".into(),
         }];
         let mut candidate = Candidate {
+            retention: Default::default(),
             kind: "fact".into(),
             content: "泽川采购审批由李思负责。".into(),
             evidence: vec![CandidateEvidence {
@@ -2536,6 +3007,8 @@ mod tests {
         )
         .unwrap();
         mock.thread.join().unwrap();
+        let body = mock.requests.lock().unwrap()[0].body.to_string();
+        let reserved = body.len() as u64 + EXTRACTION_OUTPUT_TOKENS as u64;
         let final_budget = &checkpoints.last().unwrap().budget;
         assert_eq!(final_budget.requests, 1);
         assert_eq!(final_budget.unreported_tokens, reserved);

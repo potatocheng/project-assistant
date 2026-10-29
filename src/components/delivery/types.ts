@@ -69,5 +69,5 @@ export interface AssistantAnswer {
   answer: string; grounded: boolean; mode: 'local' | 'model'; citations: AssistantCitation[];
   updatedAt: string; dataUpdatedAt?: string | null; limitations: string[]; context: unknown;
   status?: import('../../types').AnswerStatus; claims?: import('../../types').AnswerClaim[]; unknowns?: string[];
-  queryMode?: 'structured_field'; queryTrace?: MemoryQueryTrace; qualityReview?: MemoryQualityReview;
+  queryMode?: 'structured_field' | 'follow_up_priority' | 'pending_decisions' | 'delivery_risk_signals'; queryTrace?: MemoryQueryTrace; qualityReview?: MemoryQualityReview;
 }

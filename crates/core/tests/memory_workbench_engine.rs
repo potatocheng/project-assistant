@@ -135,12 +135,12 @@ fn organized_facets_are_atomic_revision_bound_and_survive_restore() {
     );
     drop(e);
     let conn = rusqlite::Connection::open(dir.path().join("workspace.sqlite")).unwrap();
-    conn.execute_batch("DROP TABLE extraction_drafts; DROP TABLE extraction_batches; DROP TABLE extraction_budget; DROP TABLE memory_lexical; DROP TABLE memory_lexical_state; DROP TABLE revision_facets; DROP TABLE proposal_facets; PRAGMA user_version=8;").unwrap();
+    conn.execute_batch("DROP TABLE assistant_turns;DROP TABLE assistant_sessions;DROP TABLE workspace_drafts;DROP TABLE workspace_lifecycle_events;DROP TABLE workspace_lifecycle;DROP TABLE workspace_options;DROP TABLE extraction_drafts; DROP TABLE extraction_batches; DROP TABLE extraction_budget; DROP TABLE memory_lexical; DROP TABLE memory_lexical_state; DROP TABLE revision_facets; DROP TABLE proposal_facets; PRAGMA user_version=8;").unwrap();
     drop(conn);
     let reopened = Engine::open(dir.path()).unwrap();
     assert_eq!(
         call(&reopened, "get_state", json!({}))["workspace"]["schemaVersion"],
-        10
+        12
     );
     assert_eq!(
         call(&reopened, "get_memory", json!({"memoryId":m["id"]}))["memory"]["content"],

@@ -4,10 +4,13 @@ mod answer_repair;
 mod assistant_qa;
 mod backup;
 mod change_control;
+mod conversations;
 mod coordination;
+mod daily_use;
 mod db;
 mod delivery;
 mod evidence_pack;
+mod extraction_context;
 mod extraction_store;
 mod feishu;
 mod governance;
@@ -22,14 +25,17 @@ mod memory_query;
 mod memory_workbench;
 mod parse;
 mod planning;
+mod protection;
 mod qa;
 mod question_flow;
 mod question_plan;
 mod question_target;
+mod retention;
 mod search;
 mod settings;
 mod source_passages;
 mod tasks;
+mod workspace_policy;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -85,6 +91,13 @@ impl From<zip::result::ZipError> for AppError {
         Self::new("ARCHIVE", e.to_string())
     }
 }
+pub fn encrypt_backup_bytes(
+    bytes: &[u8],
+    password: &str,
+) -> std::result::Result<Vec<u8>, AppError> {
+    protection::encrypt_backup(bytes, password)
+}
+
 pub(crate) type Result<T> = std::result::Result<T, AppError>;
 pub(crate) fn now() -> String {
     chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
@@ -374,11 +387,12 @@ impl Engine {
                                 };
                                 let result =
                                     std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                                        ai::extract_with_checkpoints(
+                                        ai::extract_with_context(
                                             &task.settings.config(),
                                             task.settings.api_key.as_deref(),
                                             &task.segments,
                                             &task.checkpoints,
+                                            &task.project_context,
                                             progress,
                                             |checkpoint| {
                                                 let (tx, rx) = mpsc::channel();
@@ -429,7 +443,7 @@ impl Engine {
         let connector = match feishu::Connector::open(
             engine_root.clone(),
             Arc::new(move |project, question| {
-                ask_project(
+                assistant_qa::ask_project_question(
                     &question_sender,
                     &question_root,
                     &json!({"projectId":project,"question":question}),
@@ -439,7 +453,7 @@ impl Engine {
                 actor_call(
                     &validation_sender,
                     Request {
-                        command: "_validate_qa_context".into(),
+                        command: "_validate_assistant_context".into(),
                         payload: context.clone(),
                     },
                 )
@@ -497,6 +511,17 @@ impl Engine {
         if !matches!(
             request.command.as_str(),
             "get_state"
+                | "get_desktop_settings"
+                | "get_notification_digest"
+                | "ack_notification"
+                | "get_backup_policy"
+                | "run_automatic_backup"
+                | "get_workspace_revision"
+                | "get_draft"
+                | "save_draft"
+                | "delete_draft"
+                | "get_retention_reviews"
+                | "lifecycle_impact"
                 | "get_memory_maintenance"
                 | "get_project_brief"
                 | "get_assistant_preferences"
@@ -524,6 +549,16 @@ impl Engine {
                 payload: json!({"bindings":request.payload["sources"]}),
             })?;
         }
+        if request.command == "get_credential_protection" {
+            return Ok(
+                json!({"enabled":protection::enabled(&self.inner.root),"supported":cfg!(any(target_os="windows",target_os="macos"))}),
+            );
+        }
+        if request.command == "enable_credential_protection" {
+            self.inner.connector.pause()?;
+            protection::enable(&self.inner.root)?;
+            return Ok(json!({"enabled":true}));
+        }
         if request.command == "test_ai_connection" {
             let settings = settings::load(&self.inner.root)?;
             settings.validate_credentials()?;
@@ -531,6 +566,16 @@ impl Engine {
         }
         if request.command == "ask_project" {
             return ask_project(&self.inner.sender, &self.inner.root, &request.payload);
+        }
+        if request.command == "ask_project_question" {
+            return assistant_qa::ask_project_question(
+                &self.inner.sender,
+                &self.inner.root,
+                &request.payload,
+            );
+        }
+        if request.command == "ask_conversation" {
+            return conversations::ask(self, &request.payload);
         }
         if request.command == "ask_assistant" {
             return assistant_qa::ask(self, &request.payload);

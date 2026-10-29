@@ -1,6 +1,6 @@
 export type MemoryKind = 'fact' | 'decision' | 'requirement' | 'risk';
 export type ManagementKind = 'governance' | 'change' | 'deliverable' | 'meeting' | 'meeting_action' | 'weekly_report';
-export type Page = 'governance' | 'changes' | 'coordination' | 'overview' | 'followups' | 'assistant' | 'daily' | 'tasks' | 'reports' | 'sources' | 'memories' | 'backups';
+export type Page = 'workbench' | 'inbox' | 'governance' | 'changes' | 'coordination' | 'overview' | 'followups' | 'assistant' | 'daily' | 'tasks' | 'reports' | 'sources' | 'memories' | 'backups';
 
 export interface Project { id: string; name: string; description: string; createdAt: string }
 export interface Source {
@@ -9,7 +9,9 @@ export interface Source {
   status: 'processing' | 'ready' | 'failed'; segmentCount: number; error: string | null;
 }
 export interface Segment { id: string; sourceVersionId: string; ordinal: number; locator: string; text: string }
+export interface RetentionPolicy { layer: "durable" | "working" | "clarify" | "archive"; reason: string; reviewAfter?: string | null }
 export interface Proposal {
+  retention?: RetentionPolicy;
   facets?: Partial<MemoryFacets>;
   id: string; projectId: string; sourceId: string; kind: MemoryKind; content: string;
   status: 'pending' | 'confirmed' | 'rejected'; segmentIds: string[];
@@ -20,12 +22,13 @@ export interface Proposal {
 }
 export interface ExtractionDraft {
   id: string; jobId: string; sourceId: string; projectId: string; batchKey: string;
-  candidate: { kind: MemoryKind; content: string; facets: MemoryFacets; evidence: Array<{ segmentId: string; quote: string }> };
+  candidate: { retention?: RetentionPolicy; kind: MemoryKind; content: string; facets: MemoryFacets; evidence: Array<{ segmentId: string; quote: string }> };
   facets: MemoryFacets; issues: Array<{ field: string; reason: string; severity: string; value?: unknown }>;
-  status: 'ready' | 'needs_review' | 'rejected' | 'reviewed'; proposalId: string | null;
+  status: 'ready' | 'needs_review' | 'rejected' | 'reviewed' | 'retained'; proposalId: string | null;
   reviewReason: string; createdAt: string; reviewedAt: string | null;
 }
 export interface Memory {
+  retention?: RetentionPolicy;
   id: string; projectId: string; kind: MemoryKind; content: string; revision: number;
   state: 'active'; sourceTitle: string; confirmedAt: string; updatedAt: string;
 }
@@ -39,6 +42,7 @@ export interface AnswerClaim {
 }
 export type AnswerStatus = 'answered' | 'partial' | 'unknown' | 'conflicted';
 export interface Revision {
+  retention?: RetentionPolicy;
   facets?: Partial<MemoryFacets>;
   id: string; memoryId: string; number: number; content: string; reason: string;
   origin: 'confirmation' | 'user_correction' | 'automatic'; createdAt: string; evidence: Evidence[];
@@ -62,9 +66,11 @@ export interface Backup {
   counts: Counts; kind?: 'manual' | 'safety';
 }
 export interface AppState {
-  workspace: { dataDir: string; schemaVersion: number; recoveredJobs: number };
+  lifecycle?: Array<{ kind: 'project' | 'source'; id: string; archived: boolean; replacementId: string | null; reason: string; version: number }>;
+  workspace: { dataDir: string; schemaVersion: number; recoveredJobs: number; revision?: string };
   projects: Project[]; sources: Source[]; proposals: Proposal[];
   extractionDrafts?: ExtractionDraft[];
+  extractionBatches?: { jobId: string; sourceId: string; batchKey: string; status: string; coverage?: { previousCandidates?: { content: string }[]; issues?: { field: string; reason: string; segmentId?: string }[] } }[];
   memories: Memory[]; jobs: Job[]; backups: Backup[];
   aiSettings: AiSettings; memoryReviewCount: number;
   managementRevision?: string;
@@ -109,7 +115,7 @@ export interface SourceDetail { source: Source; segments: Segment[] }
 export interface MemoryDetail { memory: Memory; revisions: Revision[] }
 export interface BackupInspection { formatVersion: number; createdAt: string; counts: Counts; compatible: boolean }
 export interface ImportResult { jobId: string; duplicate: boolean; sourceId: string }
-export interface FileInput { filename: string; contentBase64: string }
+export interface FileInput { filename: string; contentBase64: string; password?: string }
 
 export interface FeishuBinding { chatId: string; projectId: string; enabled: boolean }
 export interface FeishuEditableSettings {
@@ -124,6 +130,7 @@ export interface FeishuStatus {
   authorization: {
     status: 'disconnected' | 'authorizing' | 'connected' | 'expired';
     user: { openId: string; name: string } | null; authorizationUrl?: string | null;
+    stage?: 'permissions' | 'account';
   };
   runtime: { polling: boolean; lastPollAt: string | null; lastError: string | null };
   recentMessages: FeishuMessage[];

@@ -873,6 +873,11 @@ mod tests {
              INSERT INTO proposals(id,project_id,content,status) VALUES ('pending','a','登录审计改到下个月交付。','pending');"
         ).unwrap();
         conn.execute_batch(crate::memory_facts::MIGRATION).unwrap();
+        conn.execute_batch(crate::daily_use::MIGRATION).unwrap();
+        conn.execute_batch(
+            "CREATE TABLE revision_retention(revision_id TEXT PRIMARY KEY, policy TEXT NOT NULL);",
+        )
+        .unwrap();
         conn
     }
 

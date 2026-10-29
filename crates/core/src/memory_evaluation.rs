@@ -19,35 +19,55 @@ fn evidence_reader_diagnostic_bridge() {
     let input: Value = serde_json::from_slice(&std::fs::read(input_path).unwrap()).unwrap();
     let mode = input["mode"].as_str().unwrap();
     assert!(matches!(mode, "build" | "normalize"));
-    let rows = input["jobs"].as_array().unwrap().iter().map(|job| {
-        match evidence_reader_diagnostic_job(mode, job) {
+    let rows = input["jobs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|job| match evidence_reader_diagnostic_job(mode, job) {
             Ok(value) => value,
             Err(error) => json!({"id":job["id"],"ok":false,"error":error}),
-        }
-    }).collect::<Vec<_>>();
+        })
+        .collect::<Vec<_>>();
     let output = json!({"version":"evidence-reader-diagnostic-v1","mode":mode,
         "scope":"fixed-evidence reader; normalization validates binding only, not semantic truth or the full production flow",
         "providerCalls":0,"rows":rows});
     use std::io::Write;
-    let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(output_path).unwrap();
-    file.write_all(serde_json::to_string_pretty(&output).unwrap().as_bytes()).unwrap();
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(output_path)
+        .unwrap();
+    file.write_all(serde_json::to_string_pretty(&output).unwrap().as_bytes())
+        .unwrap();
     file.sync_all().unwrap();
 }
 
 fn evidence_reader_diagnostic_job(mode: &str, job: &Value) -> crate::Result<Value> {
-    let bad = || crate::AppError::new("QA_READER_INPUT", "诊断输入需要原问题、唯一引用ID与完整正文");
-    let question = job["question"].as_str().filter(|q| !q.trim().is_empty()).ok_or_else(bad)?;
+    let bad = || {
+        crate::AppError::new(
+            "QA_READER_INPUT",
+            "诊断输入需要原问题、唯一引用ID与完整正文",
+        )
+    };
+    let question = job["question"]
+        .as_str()
+        .filter(|q| !q.trim().is_empty())
+        .ok_or_else(bad)?;
     let references = job["references"].as_array().ok_or_else(bad)?;
     let mut ids = std::collections::HashSet::new();
     for reference in references {
-        let id = reference["id"].as_str().filter(|id| !id.trim().is_empty()).ok_or_else(bad)?;
+        let id = reference["id"]
+            .as_str()
+            .filter(|id| !id.trim().is_empty())
+            .ok_or_else(bad)?;
         if !ids.insert(id) || !reference["content"].is_string() {
             return Err(bad());
         }
     }
     if mode == "normalize" {
         let raw = if let Some(text) = job["rawOutput"].as_str() {
-            serde_json::from_str(text).map_err(|error| crate::AppError::new("QA_READER_JSON", error.to_string()))?
+            serde_json::from_str(text)
+                .map_err(|error| crate::AppError::new("QA_READER_JSON", error.to_string()))?
         } else {
             job["rawOutput"].clone()
         };
@@ -57,8 +77,12 @@ fn evidence_reader_diagnostic_job(mode: &str, job: &Value) -> crate::Result<Valu
     if mode != "build" {
         return Err(bad());
     }
-    let project = references.first().map(|r| &r["projectId"])
-        .filter(|project| references.iter().all(|r| &r["projectId"] == *project)).cloned().unwrap_or(Value::Null);
+    let project = references
+        .first()
+        .map(|r| &r["projectId"])
+        .filter(|project| references.iter().all(|r| &r["projectId"] == *project))
+        .cloned()
+        .unwrap_or(Value::Null);
     let mut context = json!({"question":question,"projectId":project});
     if let Some(presentation) = job["presentationContext"].as_object() {
         for field in ["date", "preferences", "contextIntent", "limitations"] {
@@ -70,20 +94,31 @@ fn evidence_reader_diagnostic_job(mode: &str, job: &Value) -> crate::Result<Valu
     let reader = crate::answer_contract::evidence_reader(&context, references, None)?;
     // Budget::complete adds this same wire-format instruction to all production calls.
     let system = format!("{}只返回符合本次 schema 的 JSON 对象。", reader.system);
-    Ok(json!({"id":job["id"],"ok":true,"request":{"system":system,"input":reader.input,"schema":reader.schema}}))
+    Ok(
+        json!({"id":job["id"],"ok":true,"request":{"system":system,"input":reader.input,"schema":reader.schema}}),
+    )
 }
 
 #[test]
 fn evidence_reader_diagnostic_jobs_preserve_full_text_and_reject_bad_bindings() {
     let text = "Complete original content. ".repeat(200);
-    let references = (0..40).map(|index| json!({"id":format!("s{index}"),"projectId":"p",
-        "kind":"source_passage","content":format!("{index}: {text}")})).collect::<Vec<_>>();
+    let references = (0..40)
+        .map(|index| {
+            json!({"id":format!("s{index}"),"projectId":"p",
+        "kind":"source_passage","content":format!("{index}: {text}")})
+        })
+        .collect::<Vec<_>>();
     let job = json!({"id":"long","question":"What does the source say?","references":references});
     let built = evidence_reader_diagnostic_job("build", &job).unwrap();
     let supplied = built["request"]["input"]["references"].as_array().unwrap();
     assert_eq!(supplied.len(), 40);
     for (original, supplied) in references.iter().zip(supplied) {
-        let restored = supplied["content"].as_array().unwrap().iter().map(|s| s["text"].as_str().unwrap()).collect::<String>();
+        let restored = supplied["content"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|s| s["text"].as_str().unwrap())
+            .collect::<String>();
         assert_eq!(restored, original["content"].as_str().unwrap());
     }
     let mut output = job.clone();
@@ -92,7 +127,10 @@ fn evidence_reader_diagnostic_jobs_preserve_full_text_and_reject_bad_bindings() 
     assert!(evidence_reader_diagnostic_job("normalize", &output).is_err());
     output["rawOutput"]["claims"][0]["supportSpans"][0]["referenceIndex"] = json!(1);
     let normalized = evidence_reader_diagnostic_job("normalize", &output).unwrap();
-    assert_eq!(normalized["result"]["claims"][0]["citationIds"], json!(["s0"]));
+    assert_eq!(
+        normalized["result"]["claims"][0]["citationIds"],
+        json!(["s0"])
+    );
     assert_eq!(normalized["bindingValidationOnly"], true);
 }
 
@@ -105,12 +143,26 @@ fn replay_public_live_extraction_v5() {
     let receipts_path = std::env::var("MEMORY_PUBLIC_REPLAY_RECEIPTS").unwrap();
     let baseline_path = std::env::var("MEMORY_PUBLIC_REPLAY_BASELINE").unwrap();
     let output_path = std::env::var("MEMORY_PUBLIC_REPLAY_OUTPUT").unwrap();
-    assert_ne!(output_path, baseline_path, "never overwrite the frozen baseline");
+    assert_ne!(
+        output_path, baseline_path,
+        "never overwrite the frozen baseline"
+    );
     let receipts_bytes = std::fs::read(&receipts_path).unwrap();
     let baseline_bytes = std::fs::read(&baseline_path).unwrap();
     let baseline: Value = serde_json::from_slice(&baseline_bytes).unwrap();
     let old_rows = baseline["candidates"].as_array().unwrap();
-    let old = old_rows.iter().map(|row| ((row["receiptId"].as_u64().unwrap(), row["candidateIndex"].as_u64().unwrap()), row)).collect::<BTreeMap<_, _>>();
+    let old = old_rows
+        .iter()
+        .map(|row| {
+            (
+                (
+                    row["receiptId"].as_u64().unwrap(),
+                    row["candidateIndex"].as_u64().unwrap(),
+                ),
+                row,
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
     let mut counts = BTreeMap::<String, usize>::new();
     let mut issue_fields = BTreeMap::<String, usize>::new();
     let mut transitions = BTreeMap::<String, usize>::new();
@@ -118,52 +170,125 @@ fn replay_public_live_extraction_v5() {
     let mut complete_receipts = 0;
     let mut quantity_overflow_receipts = 0;
     let mut quantity_overflow_candidates = 0;
-    for line in std::str::from_utf8(&receipts_bytes).unwrap().lines().filter(|line| !line.is_empty()) {
+    for line in std::str::from_utf8(&receipts_bytes)
+        .unwrap()
+        .lines()
+        .filter(|line| !line.is_empty())
+    {
         let receipt: Value = serde_json::from_str(line).unwrap();
-        if receipt["task"] != "extraction" || receipt["finishReason"] != "stop" { continue; }
-        let request: Value = serde_json::from_str(receipt["request"]["messages"].as_array().unwrap().last().unwrap()["content"].as_str().unwrap()).unwrap();
-        let response: Value = serde_json::from_str(receipt["responseText"].as_str().unwrap()).unwrap();
-        let Ok(output) = serde_json::from_str::<Value>(response["choices"][0]["message"]["content"].as_str().unwrap()) else { continue; };
-        let Some(items) = output["candidates"].as_array() else { continue; };
-        let segments: Vec<crate::ai::SourceSegment> = serde_json::from_value(request["segments"].clone()).unwrap();
+        if receipt["task"] != "extraction" || receipt["finishReason"] != "stop" {
+            continue;
+        }
+        let request: Value = serde_json::from_str(
+            receipt["request"]["messages"]
+                .as_array()
+                .unwrap()
+                .last()
+                .unwrap()["content"]
+                .as_str()
+                .unwrap(),
+        )
+        .unwrap();
+        let response: Value =
+            serde_json::from_str(receipt["responseText"].as_str().unwrap()).unwrap();
+        let Ok(output) = serde_json::from_str::<Value>(
+            response["choices"][0]["message"]["content"]
+                .as_str()
+                .unwrap(),
+        ) else {
+            continue;
+        };
+        let Some(items) = output["candidates"].as_array() else {
+            continue;
+        };
+        let segments: Vec<crate::ai::SourceSegment> =
+            serde_json::from_value(request["segments"].clone()).unwrap();
         complete_receipts += 1;
         let task_count = output["taskCandidates"].as_array().map_or(0, Vec::len);
         let quantity_overflow = items.len() > 12 || task_count > 4 || items.len() + task_count > 16;
-        if quantity_overflow { quantity_overflow_receipts += 1; quantity_overflow_candidates += items.len(); }
+        if quantity_overflow {
+            quantity_overflow_receipts += 1;
+            quantity_overflow_candidates += items.len();
+        }
         for (index, item) in items.iter().enumerate() {
             let receipt_id = receipt["index"].as_u64().unwrap();
-            let old_row = old.get(&(receipt_id, index as u64)).expect("every replayed candidate belongs to frozen baseline");
+            let old_row = old
+                .get(&(receipt_id, index as u64))
+                .expect("every replayed candidate belongs to frozen baseline");
             assert_eq!(old_row["paperId"], receipt["paperId"]);
-            let (category, facets, issues) = match crate::ai::checked_candidate(item.clone(), &segments) {
-                None => ("core_invalid", Value::Null, json!([])),
-                Some((candidate, _)) => {
-                    let quotes = candidate.evidence.iter().map(|e|e.quote.as_str()).collect::<Vec<_>>().join("\n");
-                    let (facets, issues, needs_review) = crate::memory_facts::extraction_check(&candidate.facets, &candidate.content, &quotes);
-                    let category = if needs_review { "scope_needs_review" }
-                        else if issues.as_array().unwrap().is_empty() { "all_fields_valid" }
-                        else { "topic_only_quarantined_ready" };
-                    (category, facets, issues)
-                }
-            };
+            let (category, facets, issues) =
+                match crate::ai::checked_candidate(item.clone(), &segments) {
+                    None => ("core_invalid", Value::Null, json!([])),
+                    Some((candidate, _)) => {
+                        let quotes = candidate
+                            .evidence
+                            .iter()
+                            .map(|e| e.quote.as_str())
+                            .collect::<Vec<_>>()
+                            .join("\n");
+                        let (facets, issues, needs_review) = crate::memory_facts::extraction_check(
+                            &candidate.facets,
+                            &candidate.content,
+                            &quotes,
+                        );
+                        let category = if needs_review {
+                            "scope_needs_review"
+                        } else if issues.as_array().unwrap().is_empty() {
+                            "all_fields_valid"
+                        } else {
+                            "topic_only_quarantined_ready"
+                        };
+                        (category, facets, issues)
+                    }
+                };
             *counts.entry(category.into()).or_default() += 1;
-            for issue in issues.as_array().unwrap() { *issue_fields.entry(issue["field"].as_str().unwrap().into()).or_default() += 1; }
+            for issue in issues.as_array().unwrap() {
+                *issue_fields
+                    .entry(issue["field"].as_str().unwrap().into())
+                    .or_default() += 1;
+            }
             let old_pass = old_row["passesProductionChecks"].as_bool().unwrap();
-            *transitions.entry(format!("{}->{category}", if old_pass { "old_valid" } else { "old_rejected" })).or_default() += 1;
+            *transitions
+                .entry(format!(
+                    "{}->{category}",
+                    if old_pass {
+                        "old_valid"
+                    } else {
+                        "old_rejected"
+                    }
+                ))
+                .or_default() += 1;
             candidates.push(json!({"receiptId":receipt_id,"paperId":receipt["paperId"],"candidateIndex":index,"oldPassesProductionChecks":old_pass,"category":category,"safeFacets":facets,"issues":issues,"originalBatchExceedsV5QuantityLimit":quantity_overflow}));
         }
     }
     assert_eq!(candidates.len(), old_rows.len());
-    assert_eq!(candidates.len(), 2104, "this replay is bound to the frozen 2104-candidate run");
-    let old_valid = old_rows.iter().filter(|row|row["passesProductionChecks"]==true).count();
+    assert_eq!(
+        candidates.len(),
+        2104,
+        "this replay is bound to the frozen 2104-candidate run"
+    );
+    let old_valid = old_rows
+        .iter()
+        .filter(|row| row["passesProductionChecks"] == true)
+        .count();
     assert_eq!(old_valid, 1);
-    let ready = counts.get("all_fields_valid").copied().unwrap_or(0) + counts.get("topic_only_quarantined_ready").copied().unwrap_or(0);
-    let sources = ["ai.rs", "memory_facts.rs", "extraction_store.rs"].into_iter().map(|name| {
-        let path=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src").join(name);
-        (name.to_owned(), hash(&std::fs::read(path).unwrap()))
-    }).collect::<BTreeMap<_,_>>();
-    let report=json!({"methodology":"Offline replay of all 2104 memory candidates in 102 complete v4 extraction receipts. Candidate classification calls current Rust ai::checked_candidate and memory_facts::extraction_check. No model calls, document imports, candidate confirmations, database mutations, or gold answers. Categories are disjoint and do not measure semantic correctness. Old 6000-character response batches are not rerun: v5 quantity overflow is reported separately, so per-candidate ready does not mean these old batches would be accepted by v5.","baseline":{"path":baseline_path,"sha256":hash(&baseline_bytes),"passedCandidates":old_valid},"receipts":{"path":receipts_path,"sha256":hash(&receipts_bytes),"completeReceipts":complete_receipts},"productionSourceSha256":sources,"summary":{"candidates":candidates.len(),"categories":counts,"readyCandidates":ready,"oldReadyCandidates":old_valid,"readyCandidateChange":ready as i64-old_valid as i64,"fieldIssueCountsOverlapping":issue_fields,"transitions":transitions,"originalBatchQuantityOverflowReceipts":quantity_overflow_receipts,"originalBatchQuantityOverflowCandidates":quantity_overflow_candidates},"candidates":candidates});
-    std::fs::write(&output_path,serde_json::to_string_pretty(&report).unwrap()).unwrap();
-    println!("PUBLIC_LIVE_V5_REPLAY {}",report["summary"]);
+    let ready = counts.get("all_fields_valid").copied().unwrap_or(0)
+        + counts
+            .get("topic_only_quarantined_ready")
+            .copied()
+            .unwrap_or(0);
+    let sources = ["ai.rs", "memory_facts.rs", "extraction_store.rs"]
+        .into_iter()
+        .map(|name| {
+            let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("src")
+                .join(name);
+            (name.to_owned(), hash(&std::fs::read(path).unwrap()))
+        })
+        .collect::<BTreeMap<_, _>>();
+    let report = json!({"methodology":"Offline replay of all 2104 memory candidates in 102 complete v4 extraction receipts. Candidate classification calls current Rust ai::checked_candidate and memory_facts::extraction_check. No model calls, document imports, candidate confirmations, database mutations, or gold answers. Categories are disjoint and do not measure semantic correctness. Old 6000-character response batches are not rerun: v5 quantity overflow is reported separately, so per-candidate ready does not mean these old batches would be accepted by v5.","baseline":{"path":baseline_path,"sha256":hash(&baseline_bytes),"passedCandidates":old_valid},"receipts":{"path":receipts_path,"sha256":hash(&receipts_bytes),"completeReceipts":complete_receipts},"productionSourceSha256":sources,"summary":{"candidates":candidates.len(),"categories":counts,"readyCandidates":ready,"oldReadyCandidates":old_valid,"readyCandidateChange":ready as i64-old_valid as i64,"fieldIssueCountsOverlapping":issue_fields,"transitions":transitions,"originalBatchQuantityOverflowReceipts":quantity_overflow_receipts,"originalBatchQuantityOverflowCandidates":quantity_overflow_candidates},"candidates":candidates});
+    std::fs::write(&output_path, serde_json::to_string_pretty(&report).unwrap()).unwrap();
+    println!("PUBLIC_LIVE_V5_REPLAY {}", report["summary"]);
 }
 
 /// Replays only validation against captured real responses. No model calls,
@@ -348,7 +473,9 @@ fn diagnose_public_live_answer_binding() {
         };
         let desktop = receipt["entry"] == "desktop";
         let field = if desktop { "id" } else { "memoryId" };
-        let references = request.get("references").unwrap_or(&request["context"]["memories"]);
+        let references = request
+            .get("references")
+            .unwrap_or(&request["context"]["memories"]);
         let references = references.as_array().cloned().unwrap_or_default();
         let normalized = crate::answer_contract::normalize(value.clone(), &references, field);
         let mut anchors = Vec::new();

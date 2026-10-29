@@ -1,6 +1,8 @@
+import { RetentionLabel } from './RetentionFields';
+import type { RetentionPolicy } from '../types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Check, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Check, ChevronRight, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { execute, asError } from '../api';
 import type { Project, MemoryDetail, SourceDetail } from '../types';
 import { Dialog, Spinner } from './ui';
@@ -9,7 +11,7 @@ import { MemoryQualityPanel } from './MemoryWorkbench';
 interface Policy { enabled: boolean; idleSeconds: number; dailyCalls: number; autoNew: boolean }
 interface Subscription { kind: 'chat' | 'document'; target: string; projectId: string; enabled: boolean; historyDays: number }
 interface SyncConfig { enabled: boolean; intervalSeconds: number; sources: Subscription[] }
-interface Review { id: string; proposalId: string; projectId: string; sourceId: string; sourceTitle: string; content: string; disposition: string; targetId: string | null; targetRevision: number | null; targetContent: string | null; currentTargetRevision: number | null; currentTargetContent: string | null; reason: string; quotes: Array<{ segmentId: string; quote: string }> }
+interface Review { retention?: RetentionPolicy; id: string; proposalId: string; projectId: string; sourceId: string; sourceTitle: string; content: string; disposition: string; targetId: string | null; targetRevision: number | null; targetContent: string | null; currentTargetRevision: number | null; currentTargetContent: string | null; reason: string; quotes: Array<{ segmentId: string; quote: string }> }
 interface Maintenance { settings: Policy; reviews: Review[]; runs: Array<{ id: string; kind: string; subjectId: string; status: string; message: string; updatedAt: string }>; origins: Array<{ sourceId: string; provider: string; remoteRevision: string; url: string; author: string; occurredAt: string; fetchedAt: string }>; callsToday: number; blockedReason?: string | null }
 interface SyncStatus { settings: SyncConfig; syncing: boolean; lastError?: string | null; statuses: Array<{ target: string; projectId: string; at: string; through?: string | null; imported: number; error: string | null }> }
 const disposition: Record<string, string> = { new: '新内容', duplicate: '相似记忆', conflict: '内容有变化', uncertain: '需要确认' };
@@ -47,7 +49,7 @@ function ReviewCard({ review, projects, disabled, resolve, recompare }: { review
   };
   return <article className="memory-review">
     <div className="memory-review-heading"><strong>{disposition[review.disposition] ?? review.disposition}</strong><span>{projects.find((p) => p.id === review.projectId)?.name}</span></div>
-    <p className="field-hint">{review.reason}</p>
+    <p className="field-hint">{review.reason}</p><RetentionLabel policy={review.retention} />
     <div className="memory-comparison">{review.targetId && <div><small>当前记忆 · v{review.currentTargetRevision}</small><p>{review.currentTargetContent}</p></div>}<div><small>新内容 · {review.sourceTitle}</small><textarea aria-label="确认后的记忆内容" value={content} onChange={(e) => setContent(e.target.value)} rows={3} disabled={disabled} /></div></div>
     {review.quotes.map((q, i) => <blockquote key={i}>{q.quote}</blockquote>)}
     {stale && <p className="inline-error">当前记忆已有变化，请重新比较后确认。</p>}
@@ -65,8 +67,11 @@ function ReviewCard({ review, projects, disabled, resolve, recompare }: { review
   </article>;
 }
 
-export function MemoryCenter({ projects, close, onSaved }: { projects: Project[]; close: () => void; onSaved: () => Promise<unknown> }) {
-  const [tab, setTab] = useState<'sources' | 'policy' | 'reviews' | 'history' | 'quality'>('sources');
+export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources', onAccount, onModelSettings }: {
+  projects: Project[]; close: () => void; onSaved: () => Promise<unknown>;
+  initialTab?: 'sources' | 'reviews'; onAccount?: () => void; onModelSettings?: () => void;
+}) {
+  const [tab, setTab] = useState<'sources' | 'policy' | 'reviews' | 'history' | 'quality'>(initialTab);
   const [data, setData] = useState<Maintenance | null>(null);
   const [sync, setSync] = useState<SyncStatus | null>(null);
   const [policy, setPolicy] = useState<Policy | null>(null);
@@ -109,7 +114,7 @@ export function MemoryCenter({ projects, close, onSaved }: { projects: Project[]
       {error && <p className="inline-error" role="alert">{error}</p>}{notice && <p className="inline-success" role="status">{notice}</p>}
       {tab === 'quality' ? <div role="tabpanel" id="memory-panel-quality" aria-labelledby="memory-tab-quality"><MemoryQualityPanel projects={projects} /></div> : !data || !form || !policy ? <p className="field-hint"><Spinner /> 正在读取记忆设置…</p> : <div role="tabpanel" id={`memory-panel-${tab}`} aria-labelledby={`memory-tab-${tab}`}>
         {tab === 'sources' && <>
-          <p className="field-hint">添加需要同步的群或文档，保存到对应项目。请先在「飞书助理」中连接账号。</p>
+          <p className="field-hint">选择项目群聊或文档，之后自动获取新内容。{onAccount ? <button className="text-button tiny" disabled={!!busy || dirty || policyDirty} onClick={onAccount}>连接飞书账号<ChevronRight size={12}/></button> : '请先在「飞书助理」中连接账号。'}</p>
           {sync?.lastError && <p className="inline-error">{sync.lastError}</p>}
           <label className="checkbox-row"><input type="checkbox" checked={form.enabled} onChange={(e) => setForm({ ...form, enabled: e.target.checked })} disabled={!!busy} />自动同步</label>
           <div className="memory-source-actions"><button className="button secondary compact" disabled={!!busy || !projects.length} onClick={() => setForm({ ...form, sources: [...form.sources, { kind: 'chat', target: '', projectId: projects[0]?.id ?? '', enabled: true, historyDays: 7 }] })}><Plus size={14} />添加群</button><button className="button secondary compact" disabled={!!busy || !projects.length} onClick={() => setForm({ ...form, sources: [...form.sources, { kind: 'document', target: '', projectId: projects[0]?.id ?? '', enabled: true, historyDays: 7 }] })}><Plus size={14} />添加文档</button><button className="text-button tiny" disabled={!!busy} onClick={() => void action('chats', async () => { const result = await execute<{ chats: Array<{ chatId: string; name: string }> }>('list_feishu_chats'); setChats(result.chats); setNotice(`已读取 ${result.chats.length} 个可访问的群。`); })}>读取群列表</button></div>
@@ -131,6 +136,7 @@ export function MemoryCenter({ projects, close, onSaved }: { projects: Project[]
         {tab === 'policy' && <>
           {data.blockedReason && <p className="inline-error">{data.blockedReason}</p>}
           <p className="field-hint">空闲时比较飞书资料与已有记忆，内容变化会留待你确认。</p>
+          {onModelSettings && <p className="field-hint">整理资料需要已配置的模型。<button className="text-button tiny" disabled={!!busy || dirty || policyDirty} onClick={onModelSettings}>配置模型<ChevronRight size={12}/></button></p>}
           <label className="checkbox-row"><input type="checkbox" checked={policy.enabled} onChange={(e) => setPolicy({ ...policy, enabled: e.target.checked })} disabled={!!busy} />空闲时自动整理</label>
           <div className="memory-form-row"><label>空闲等待（秒）<input type="number" min={30} max={3600} value={policy.idleSeconds} onChange={(e) => setPolicy({ ...policy, idleSeconds: Number(e.target.value) })} disabled={!!busy} /></label><label>每日模型调用上限<input type="number" min={1} max={2000} value={policy.dailyCalls} onChange={(e) => setPolicy({ ...policy, dailyCalls: Number(e.target.value) })} disabled={!!busy} /></label></div>
           <label className="checkbox-row"><input type="checkbox" checked={policy.autoNew} onChange={(e) => setPolicy({ ...policy, autoNew: e.target.checked })} disabled={!!busy} />自动记住飞书资料中的独立新事实</label>

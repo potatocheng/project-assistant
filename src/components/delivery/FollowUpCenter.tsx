@@ -76,7 +76,7 @@ export function FollowUpCenter({ state, projectId, date, onChanged, onTaskOpen, 
   </div>;
 }
 
-function RecordFollowUpDialog({ item, tasks = [], taskStates = [], initialTaskId, date, close, onSaved }: { item?: FollowUpItem; tasks?: Task[]; taskStates?: FollowUpTaskState[]; initialTaskId?: string; date: string; close: () => void; onSaved: () => Promise<void> }) {
+export function RecordFollowUpDialog({ item, tasks = [], taskStates = [], initialTaskId, date, close, onSaved }: { item?: FollowUpItem; tasks?: Task[]; taskStates?: FollowUpTaskState[]; initialTaskId?: string; date: string; close: () => void; onSaved: () => Promise<void> }) {
   const [selectedTaskId, setSelectedTaskId] = useState(item?.taskId ?? (tasks.some((task) => task.id === initialTaskId) ? initialTaskId! : tasks[0]?.id ?? ''));
   const [pinnedState, setPinnedState] = useState(() => taskStates.find((entry) => entry.taskId === selectedTaskId));
   const initialNextDate = item?.nextFollowUpDate ?? pinnedState?.nextFollowUpDate;

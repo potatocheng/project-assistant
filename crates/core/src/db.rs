@@ -7,7 +7,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 
-pub(crate) const SCHEMA_VERSION: i64 = 10;
+pub(crate) const SCHEMA_VERSION: i64 = 12;
 pub(crate) struct ParseTask {
     pub path: PathBuf,
     pub kind: String,
@@ -15,6 +15,7 @@ pub(crate) struct ParseTask {
 }
 pub(crate) struct AiTask {
     pub settings: settings::SavedSettings,
+    pub project_context: Value,
     pub segments: Vec<ai::SourceSegment>,
     pub generation: i64,
     pub checkpoints: Vec<ai::ExtractionCheckpoint>,
@@ -63,6 +64,48 @@ impl Database {
         }
         let p = request.payload;
         match request.command.as_str() {
+            "list_conversations"
+            | "create_conversation"
+            | "get_conversation"
+            | "favorite_answer"
+            | "_prepare_conversation_question" => {
+                let mut result = crate::conversations::dispatch(&self.conn, &request.command, &p)?;
+                if request.command == "_prepare_conversation_question" {
+                    result["workspaceEpoch"] = json!(self.epoch);
+                }
+                Ok(result)
+            }
+            "_save_conversation_answer" => {
+                if p["workspaceEpoch"].as_u64() != Some(self.epoch) {
+                    return Err(AppError::new("CONTEXT_STALE", "工作区已恢复，请重新提问"));
+                }
+                crate::conversations::dispatch(&self.conn, &request.command, &p)
+            }
+            "search_workspace" => crate::daily_use::search(&self.conn, &p),
+            "get_desktop_settings" => crate::workspace_policy::desktop(&self.conn),
+            "save_desktop_settings" => crate::workspace_policy::save_desktop(&self.conn, &p),
+            "get_backup_policy" => crate::workspace_policy::backup_settings(&self.conn),
+            "save_backup_policy" => crate::workspace_policy::save_backup_settings(&self.conn, &p),
+            "run_automatic_backup" => crate::workspace_policy::backup_tick(self),
+            "get_notification_digest" => crate::workspace_policy::notification(&self.conn),
+            "ack_notification" => {
+                crate::workspace_policy::save(
+                    &self.conn,
+                    "notification_receipt",
+                    &json!({"signature":required(&p,"signature")?,"at":now()}),
+                )?;
+                Ok(json!({}))
+            }
+            "get_workspace_revision" => {
+                Ok(json!({"revision":format!("{}:{}",self.epoch,self.conn.total_changes())}))
+            }
+            "get_draft" => crate::daily_use::draft(&self.conn, &p),
+            "save_draft" => crate::daily_use::save_draft(&self.conn, &p, false),
+            "delete_draft" => crate::daily_use::save_draft(&self.conn, &p, true),
+            "get_retention_reviews" => crate::daily_use::review_queue(&self.conn, &p),
+            "review_retention" => self.review_retention(&p),
+            "lifecycle_impact" => crate::daily_use::lifecycle_impact(&self.conn, &p),
+            "set_lifecycle" => crate::daily_use::set_lifecycle(&mut self.conn, &p),
             "get_assistant_preferences"
             | "save_assistant_preferences"
             | "clear_assistant_preferences"
@@ -77,7 +120,11 @@ impl Database {
             | "get_governance_item"
             | "save_governance_item"
             | "record_governance_progress" => {
-                crate::governance::dispatch(&mut self.conn, &request.command, &p)
+                let mut value = crate::governance::dispatch(&mut self.conn, &request.command, &p)?;
+                if request.command == "get_governance_workspace" {
+                    crate::daily_use::filter_context(&self.conn, &mut value)?;
+                }
+                Ok(value)
             }
             "get_change_acceptance"
             | "save_change_request"
@@ -86,7 +133,12 @@ impl Database {
             | "review_deliverable"
             | "delete_change_request"
             | "delete_deliverable" => {
-                crate::change_control::dispatch(&mut self.conn, &request.command, &p)
+                let mut value =
+                    crate::change_control::dispatch(&mut self.conn, &request.command, &p)?;
+                if request.command == "get_change_acceptance" {
+                    crate::daily_use::filter_context(&self.conn, &mut value)?;
+                }
+                Ok(value)
             }
             "coordination_list"
             | "coordination_generate_report"
@@ -97,7 +149,12 @@ impl Database {
             | "coordination_get_meeting"
             | "coordination_save_action"
             | "coordination_confirm_action" => {
-                crate::coordination::dispatch(&mut self.conn, &request.command, &p)
+                let mut value =
+                    crate::coordination::dispatch(&mut self.conn, &request.command, &p)?;
+                if request.command == "coordination_list" {
+                    crate::daily_use::filter_context(&self.conn, &mut value)?;
+                }
+                Ok(value)
             }
             "get_management_attention" => crate::management::attention(&self.conn, &p),
             "get_delivery_overview"
@@ -212,11 +269,13 @@ impl Database {
             .map(|mut p| {
                 p["segmentIds"] = self.proposal_segments(p["id"].as_str().unwrap())?;
                 p["facets"] = crate::memory_facts::proposal(&self.conn, p["id"].as_str().unwrap())?;
+                p["retention"] = crate::retention::proposal(&self.conn, p["id"].as_str().unwrap())?;
                 Ok(p)
             })
             .collect::<Result<Vec<_>>>()?;
         Ok(json!({
-            "workspace": { "dataDir": self.root, "schemaVersion": SCHEMA_VERSION, "recoveredJobs": self.recovered_jobs },
+            "workspace": { "dataDir": self.root, "schemaVersion": SCHEMA_VERSION, "recoveredJobs": self.recovered_jobs, "revision":format!("{}:{}",self.epoch,self.conn.total_changes()) },
+            "lifecycle":crate::daily_use::lifecycle_map(&self.conn)?,
             "managementRevision":crate::management::revision(&self.conn)?,
             "assistantPreferenceVersion":crate::memory_workbench::preferences(&self.conn)?["version"],
             "aiSettings": settings::load(&self.root)?.public(),
@@ -556,6 +615,7 @@ impl Database {
             .ok_or_else(|| AppError::new("NOT_FOUND", "候选记忆不存在"))?;
         value["segmentIds"] = self.proposal_segments(proposal)?;
         value["facets"] = crate::memory_facts::proposal(&self.conn, proposal)?;
+        value["retention"] = crate::retention::proposal(&self.conn, proposal)?;
         Ok(value)
     }
     fn confirm(&mut self, proposal: &str) -> Result<Value> {
@@ -587,6 +647,7 @@ impl Database {
         tx.execute("INSERT INTO memories (id,project_id,kind,content,revision,state,source_title,confirmed_at,updated_at) VALUES (?,?,?,?,1,'active',?,?,?)",params![memory,project,p["kind"].as_str().unwrap(),p["content"].as_str().unwrap(),title,at,at])?;
         tx.execute("INSERT INTO revisions (id,memory_id,number,content,reason,origin,created_at) VALUES (?,?,1,?,'确认原文提取','confirmation',?)",params![revision,memory,p["content"].as_str().unwrap(),at])?;
         crate::memory_facts::promote(&tx, proposal, &revision, p["content"].as_str().unwrap())?;
+        crate::retention::promote(&tx, proposal, &revision)?;
         for segment in segments {
             tx.execute(
                 "INSERT INTO revision_evidence VALUES (?,?)",
@@ -626,6 +687,8 @@ impl Database {
         let revisions=stmt.query_map([memory],|r|Ok(json!({"id":r.get::<_,String>(0)?,"memoryId":r.get::<_,String>(1)?,"number":r.get::<_,i64>(2)?,"content":r.get::<_,String>(3)?,"reason":r.get::<_,String>(4)?,"origin":r.get::<_,String>(5)?,"createdAt":r.get::<_,String>(6)?})))?.collect::<std::result::Result<Vec<_>,_>>()?;
         let mut out = Vec::new();
         for mut revision in revisions {
+            revision["retention"] =
+                crate::retention::revision(&self.conn, revision["id"].as_str().unwrap())?;
             revision["facets"] =
                 crate::memory_facts::load(&self.conn, revision["id"].as_str().unwrap())?;
             let mut evidence=self.conn.prepare("SELECT g.id,s.id,s.title,g.locator,g.text FROM revision_evidence e JOIN segments g ON g.id=e.segment_id JOIN sources s ON s.id=g.source_id WHERE e.revision_id=? ORDER BY g.ordinal")?;
@@ -634,6 +697,41 @@ impl Database {
             out.push(revision);
         }
         Ok(json!({"memory":value,"revisions":out}))
+    }
+    fn review_retention(&mut self, p: &Value) -> Result<Value> {
+        let memory = required(p, "memoryId")?;
+        let detail = self.memory_detail(memory)?;
+        let current = &detail["memory"];
+        let revision = detail["revisions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["number"] == current["revision"])
+            .ok_or_else(|| AppError::new("NOT_FOUND", "记忆版本不存在"))?;
+        let mut update = p.clone();
+        if update.get("content").is_none() {
+            update["content"] = current["content"].clone();
+        }
+        update["segmentIds"] = json!(revision["evidence"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| e["segmentId"].clone())
+            .collect::<Vec<_>>());
+        update["facets"] = revision["facets"].clone();
+        if update["retention"]["layer"] == "working" {
+            let date = required(p, "date")?;
+            crate::tasks::valid_date(date)?;
+            let next = required(&p["retention"], "reviewAfter")?;
+            crate::tasks::valid_date(next)?;
+            if next <= date {
+                return Err(AppError::new(
+                    "VALIDATION",
+                    "继续保留的复核日期必须晚于今天",
+                ));
+            }
+        }
+        self.revise(&update)
     }
     fn revise(&mut self, p: &Value) -> Result<Value> {
         let memory = required(p, "memoryId")?;
@@ -678,6 +776,18 @@ impl Database {
         if let Some(facets) = p.get("facets") {
             crate::memory_facts::save(&tx, &revision, facets, content)?;
         }
+        let previous: String = tx.query_row(
+            "SELECT id FROM revisions WHERE memory_id=? AND number=?",
+            params![memory, base],
+            |r| r.get(0),
+        )?;
+        crate::retention::save_revision(
+            &tx,
+            &revision,
+            &p.get("retention")
+                .cloned()
+                .unwrap_or(crate::retention::revision(&tx, &previous)?),
+        )?;
         crate::memory_workbench::correction(&tx, p, &current, &at)?;
         tx.commit()?;
         self.memory(memory)
@@ -725,7 +835,12 @@ impl Database {
             return Err(AppError::new("SOURCE_NOT_READY", "资料尚未解析完成"));
         }
         let (revision, source_hash, actual_hash, prompt): (Option<String>, Option<String>, String, Option<String>) = self.conn.query_row("SELECT j.config_revision,j.source_hash,s.sha256,j.prompt_version FROM jobs j JOIN sources s ON s.id=j.source_id WHERE j.id=?", [job], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?)))?;
-        if revision.as_deref()!=Some(configuration.revision.as_str()) || prompt.as_deref()!=Some(ai::PROMPT_VERSION) || source_hash.as_ref().is_some_and(|value|value!=&actual_hash) {
+        if revision.as_deref() != Some(configuration.revision.as_str())
+            || prompt.as_deref() != Some(ai::PROMPT_VERSION)
+            || source_hash
+                .as_ref()
+                .is_some_and(|value| value != &actual_hash)
+        {
             // Old drafts keep their immutable provenance. A changed snapshot
             // starts a fresh job rather than relabelling old model output.
             return self.start_extraction(source);
@@ -765,6 +880,9 @@ impl Database {
             "DELETE FROM proposal_facets WHERE proposal_id=?",
             [proposal],
         )?;
+        if let Some(policy) = p.get("retention") {
+            tx.execute("INSERT INTO proposal_retention VALUES(?,?) ON CONFLICT(proposal_id) DO UPDATE SET policy=excluded.policy",params![proposal,crate::retention::checked(policy)?.to_string()])?;
+        }
         tx.commit()?;
         self.proposal(proposal)
     }
@@ -807,10 +925,23 @@ impl Database {
                 })
             })?
             .collect::<std::result::Result<Vec<_>, _>>()?;
+        let context: String = self.conn.query_row("SELECT json_object('name',p.name,'description',substr(p.description,1,2000),'goal',substr(coalesce(f.goal,''),1,2000),'status',coalesce(f.status,'active'),'targetDate',f.target_date) FROM sources s JOIN projects p ON p.id=s.project_id LEFT JOIN project_profiles f ON f.project_id=p.id WHERE s.id=?", [&source], |r|r.get(0))?;
+        self.conn.execute(
+            "INSERT OR IGNORE INTO extraction_project_context VALUES(?,?)",
+            params![job, context],
+        )?;
+        let raw: String = self.conn.query_row(
+            "SELECT context FROM extraction_project_context WHERE job_id=?",
+            [job],
+            |r| r.get(0),
+        )?;
+        let project_context: Value = serde_json::from_str(&raw)
+            .map_err(|_| AppError::new("DATABASE", "项目提取背景损坏"))?;
         let input_hash=hash(&serde_json::to_vec(&segments.iter().map(|segment|json!({"id":segment.id,"text":segment.text,"locator":segment.locator})).collect::<Vec<_>>()).map_err(|_|AppError::new("SERIALIZATION","资料快照失败"))?);
         self.conn.execute("UPDATE jobs SET status='running',stage='AI 正在提取',error=NULL,error_code=NULL,provider=?,model=?,prompt_version=?,input_hash=?,source_hash=?,updated_at=? WHERE id=?",params![configuration.provider,configuration.model,ai::PROMPT_VERSION,input_hash,source_hash,now(),job])?;
         Ok(Some(AiTask {
             settings: configuration,
+            project_context,
             segments,
             generation,
             checkpoints: crate::extraction_store::resume(&self.conn, job)?,
@@ -841,7 +972,8 @@ impl Database {
             return Ok(());
         }
         let row=self.conn.query_row("SELECT j.source_id,s.project_id,j.source_hash,s.sha256,j.provider,j.model,j.prompt_version FROM jobs j JOIN sources s ON s.id=j.source_id WHERE j.id=? AND j.kind='extract' AND j.status='running' AND j.generation=?",params![job,generation],|row|Ok((row.get::<_,String>(0)?,row.get::<_,String>(1)?,row.get::<_,Option<String>>(2)?,row.get::<_,String>(3)?,row.get::<_,Option<String>>(4)?,row.get::<_,Option<String>>(5)?,row.get::<_,Option<String>>(6)?))).optional()?;
-        let Some((_source, _project, snapshot_hash, current_hash, _provider, _model, _prompt)) = row
+        let Some((_source, _project, snapshot_hash, current_hash, _provider, _model, _prompt)) =
+            row
         else {
             return Ok(());
         };
@@ -861,19 +993,32 @@ impl Database {
             // Compatibility path used by maintenance and deterministic callers.
             // The same durable validation path applies to every extraction.
             let checkpoint = ai::ExtractionCheckpoint {
-                key: "legacy-complete".into(), parent_key: None, status: "succeeded".into(),
-                input_hash: snapshot_hash.unwrap_or_default(), candidates: output.candidates,
-                task_candidates: output.task_candidates, raw_output: None,
-                discarded_count: output.discarded_count, usage: None, error_code: None,
-                budget: Default::default(), completed_batches: output.batch_count,
+                key: "legacy-complete".into(),
+                parent_key: None,
+                status: "succeeded".into(),
+                input_hash: snapshot_hash.unwrap_or_default(),
+                candidates: output.candidates,
+                task_candidates: output.task_candidates,
+                raw_output: None,
+                discarded_count: output.discarded_count,
+                usage: None,
+                error_code: None,
+                budget: Default::default(),
+                completed_batches: output.batch_count,
                 total_batches: output.batch_count,
             };
-            if !crate::extraction_store::persist(self, job, epoch, generation, &checkpoint)? { return Ok(()); }
+            if !crate::extraction_store::persist(self, job, epoch, generation, &checkpoint)? {
+                return Ok(());
+            }
         }
         let (created, tasks, review): (i64,i64,i64) = self.conn.query_row("SELECT (SELECT count(*) FROM proposals WHERE extraction_job_id=?),(SELECT count(*) FROM task_proposals WHERE extraction_job_id=?),(SELECT count(*) FROM extraction_drafts WHERE job_id=? AND status='needs_review')", params![job,job,job], |r|Ok((r.get(0)?,r.get(1)?,r.get(2)?)))?;
-        let stage = if review>0 { format!("提取完成；{created}条待确认，{review}条组织范围待审核") }
-            else if created==0 && tasks==0 { "提取完成，没有新增提议".into() }
-            else { "提议已逐批保存，等待确认".into() };
+        let stage = if review > 0 {
+            format!("提取完成；{created}条待确认，{review}条事实与范围待审核")
+        } else if created == 0 && tasks == 0 {
+            "提取完成，没有新增提议".into()
+        } else {
+            "提议已逐批保存，等待确认".into()
+        };
         self.conn.execute("UPDATE jobs SET status='succeeded',stage=?,error=NULL,error_code=NULL,completed_batches=?,total_batches=?,candidate_count=?,task_candidate_count=?,discarded_count=?,updated_at=? WHERE id=?", params![stage,output.batch_count as i64,output.batch_count as i64,created,tasks,output.discarded_count as i64,now(),job])?;
         Ok(())
     }
@@ -949,6 +1094,12 @@ pub(crate) fn migrate(conn: &Connection) -> Result<()> {
         if version < 10 {
             conn.execute_batch(crate::extraction_store::MIGRATION)?;
         }
+        if version < 11 {
+            conn.execute_batch(crate::retention::MIGRATION)?;
+        }
+        if version < 12 {
+            conn.execute_batch(crate::daily_use::MIGRATION)?;
+        }
         Ok(())
     })();
     match result {
@@ -980,7 +1131,7 @@ pub(crate) fn validate_content(content: &str) -> Result<()> {
 const SOURCE_SELECT:&str="SELECT id,project_id,title,kind,original_filename,source_at,imported_at,sha256,status,segment_count,error FROM sources";
 const PROPOSAL_SELECT: &str =
     "SELECT id,project_id,source_id,kind,content,status,created_at,memory_id,origin,provider,model,prompt_version,extraction_job_id,quotes,edited FROM proposals";
-const MEMORY_SELECT:&str="SELECT id,project_id,kind,content,revision,state,source_title,confirmed_at,updated_at FROM memories";
+const MEMORY_SELECT:&str="SELECT id,project_id,kind,content,revision,state,source_title,confirmed_at,updated_at,coalesce((SELECT rt.policy FROM revision_retention rt JOIN revisions r ON r.id=rt.revision_id WHERE r.memory_id=memories.id AND r.number=memories.revision),'{\"layer\":\"durable\",\"reason\":\"旧版或人工记录\"}') FROM memories";
 const JOB_SELECT: &str =
     "SELECT id,kind,status,stage,error,source_id,created_at,updated_at,recovered,attempts,generation,provider,model,prompt_version,input_hash,completed_batches,total_batches,candidate_count,discarded_count,error_code,task_candidate_count FROM jobs";
 fn project_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<Value> {
@@ -1000,7 +1151,7 @@ fn proposal_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<Value> {
 }
 fn memory_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<Value> {
     Ok(
-        json!({"id":r.get::<_,String>(0)?,"projectId":r.get::<_,String>(1)?,"kind":r.get::<_,String>(2)?,"content":r.get::<_,String>(3)?,"revision":r.get::<_,i64>(4)?,"state":r.get::<_,String>(5)?,"sourceTitle":r.get::<_,String>(6)?,"confirmedAt":r.get::<_,String>(7)?,"updatedAt":r.get::<_,String>(8)?}),
+        json!({"id":r.get::<_,String>(0)?,"projectId":r.get::<_,String>(1)?,"kind":r.get::<_,String>(2)?,"content":r.get::<_,String>(3)?,"revision":r.get::<_,i64>(4)?,"state":r.get::<_,String>(5)?,"sourceTitle":r.get::<_,String>(6)?,"confirmedAt":r.get::<_,String>(7)?,"updatedAt":r.get::<_,String>(8)?,"retention":serde_json::from_str::<Value>(&r.get::<_,String>(9)?).unwrap_or(Value::Null)}),
     )
 }
 fn job_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<Value> {
@@ -1086,6 +1237,7 @@ mod tests {
         Ok(ai::ExtractionResult {
             task_candidates: vec![],
             candidates: vec![ai::Candidate {
+                retention: Default::default(),
                 facets: Default::default(),
                 kind: "decision".into(),
                 content: "一期仅支持账号密码登录".into(),

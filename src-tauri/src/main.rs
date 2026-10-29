@@ -1,9 +1,12 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+// Use the GUI subsystem in debug builds too, so double-clicking never opens a console.
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+
+mod runtime;
 
 use project_assistant_core::{AppError, Engine, Request};
 use serde_json::{json, Value};
 use std::path::{Component, Path, PathBuf};
-use tauri::{Manager, State};
+use tauri::{Emitter, Manager, State};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::DialogExt;
 
@@ -24,6 +27,27 @@ async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Val
     if !matches!(
         request.command.as_str(),
         "get_state"
+            | "ask_conversation"
+            | "list_conversations"
+            | "create_conversation"
+            | "get_conversation"
+            | "favorite_answer"
+            | "search_workspace"
+            | "get_credential_protection"
+            | "enable_credential_protection"
+            | "get_desktop_settings"
+            | "save_desktop_settings"
+            | "get_backup_policy"
+            | "save_backup_policy"
+            | "run_automatic_backup"
+            | "get_workspace_revision"
+            | "get_draft"
+            | "save_draft"
+            | "delete_draft"
+            | "get_retention_reviews"
+            | "review_retention"
+            | "lifecycle_impact"
+            | "set_lifecycle"
             | "create_project"
             | "import_text"
             | "import_file"
@@ -43,6 +67,7 @@ async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Val
             | "retry_extraction"
             | "cancel_extraction"
             | "update_proposal"
+            | "batch_schedule_tasks"
             | "create_task"
             | "update_task"
             | "get_task"
@@ -63,6 +88,7 @@ async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Val
             | "get_daily_report"
             | "save_daily_report"
             | "ask_project"
+            | "ask_project_question"
             | "ask_assistant"
             | "get_assistant_preferences"
             | "save_assistant_preferences"
@@ -102,6 +128,7 @@ async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Val
             | "get_feishu_status"
             | "save_feishu_settings"
             | "begin_feishu_authorization"
+            | "begin_feishu_connection"
             | "disconnect_feishu"
             | "poll_feishu_now"
             | "list_feishu_chats"
@@ -127,6 +154,7 @@ async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Val
 #[tauri::command]
 async fn export_backup(
     backup_id: String,
+    password: Option<String>,
     window: tauri::WebviewWindow,
     app: tauri::AppHandle,
     state: State<'_, DesktopState>,
@@ -164,11 +192,20 @@ async fn export_backup(
         if !source.starts_with(&backup_dir) || !source.is_file() {
             return Err(app_error("INVALID_BACKUP", "备份文件不在工作空间内。"));
         }
+        let encrypted = password
+            .as_deref()
+            .map(|p| project_assistant_core::encrypt_backup_bytes(&std::fs::read(&source)?, p))
+            .transpose()?;
+        let export_name = if encrypted.is_some() {
+            filename.replace(".zip", ".pabackup")
+        } else {
+            filename.to_owned()
+        };
         let chosen = app
             .dialog()
             .file()
             .set_parent(&window)
-            .set_file_name(filename)
+            .set_file_name(&export_name)
             .blocking_save_file();
         let Some(chosen) = chosen else {
             return Ok(json!({ "cancelled": true }));
@@ -176,7 +213,16 @@ async fn export_backup(
         let target = chosen
             .into_path()
             .map_err(|_| app_error("INVALID_PATH", "请选择本地保存位置。"))?;
-        if target != source {
+        if encrypted.is_some() && target == source {
+            return Err(app_error(
+                "INVALID_PATH",
+                "加密导出请选择新位置，不能覆盖原备份",
+            ));
+        }
+        if let Some(bytes) = encrypted {
+            std::fs::write(&target, bytes)
+                .map_err(|e| app_error("IO_ERROR", format!("导出失败：{e}")))?;
+        } else if target != source {
             std::fs::copy(&source, &target)
                 .map_err(|e| app_error("IO_ERROR", format!("导出失败：{e}")))?;
         }
@@ -370,6 +416,9 @@ fn main() {
                 let _ = window.set_focus();
             }
         }))
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_autostart::Builder::new().build())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
@@ -391,10 +440,35 @@ fn main() {
                     return Err(std::io::Error::other(error.message).into());
                 }
             };
+            runtime::setup(app, engine.clone())?;
             app.manage(DesktopState { engine, root });
             Ok(())
         })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if let Some(state) = window.app_handle().try_state::<DesktopState>() {
+                    if state
+                        .engine
+                        .execute(Request {
+                            command: "get_desktop_settings".into(),
+                            payload: json!({}),
+                        })
+                        .is_ok_and(|v| v["background"] == true)
+                    {
+                        api.prevent_close();
+                        let _ = window.hide();
+                    } else {
+                        api.prevent_close();
+                        let _ = window.emit("request-quit", ());
+                    }
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![
+            runtime::desktop_runtime_status,
+            runtime::save_runtime_settings,
+            runtime::finish_quit,
+            runtime::update_application,
             execute,
             export_backup,
             export_report,

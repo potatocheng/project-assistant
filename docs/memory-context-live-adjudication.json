@@ -1,0 +1,402 @@
+{
+  "version": "context-extraction-posthoc-audit-v1",
+  "provenance": "Assistant review of all actual memory bodies and the declared single-body rubric; not independent human labels; post-run corrections kept separate from original automatic scores.",
+  "rawReportSha256": "0f708d5aec71e59f88c13c01aa1325587f0c8d25c2606bf7828209e744ed6f05",
+  "corrections": [
+    {
+      "caseId": "historical_change",
+      "repeat": 1,
+      "arm": "baseline",
+      "factId": "historical_qualified",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        2
+      ],
+      "bodies": [
+        "2026-10-20更正记录：验收改由陈雨负责，截止日期改为2026-10-23。此前验收安排失效。"
+      ],
+      "reason": "被判完整的更正候选没有张磊和2026-10-18；原评分把不同候选中的旧安排与失效关系拼在一起。"
+    },
+    {
+      "caseId": "historical_change",
+      "repeat": 2,
+      "arm": "baseline",
+      "factId": "historical_qualified",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        2
+      ],
+      "bodies": [
+        "2026-10-20更正记录：验收改由陈雨负责，截止日期改为2026-10-23。此前验收安排失效。"
+      ],
+      "reason": "被判完整的更正候选没有张磊和2026-10-18；原评分把不同候选中的旧安排与失效关系拼在一起。"
+    },
+    {
+      "caseId": "heading_scope",
+      "repeat": 1,
+      "arm": "baseline",
+      "factId": "vega_enterprise",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "以下要求均适用于本章标题所指的项目：日志保留30天，仅企业版生效，个人版仍保留7天。"
+      ],
+      "reason": "候选正文只有“本章标题所指的项目”，没有Vega，原评分借用了原文标题。"
+    },
+    {
+      "caseId": "heading_scope",
+      "repeat": 1,
+      "arm": "baseline",
+      "factId": "vega_personal",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "以下要求均适用于本章标题所指的项目：日志保留30天，仅企业版生效，个人版仍保留7天。"
+      ],
+      "reason": "候选正文只有“本章标题所指的项目”，没有Vega，原评分借用了原文标题。"
+    },
+    {
+      "caseId": "heading_scope",
+      "repeat": 2,
+      "arm": "baseline",
+      "factId": "vega_enterprise",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "以下要求均适用于本章标题所指的项目：日志保留30天，仅企业版生效，个人版仍保留7天。"
+      ],
+      "reason": "候选正文只有“本章标题所指的项目”，没有Vega，原评分借用了原文标题。"
+    },
+    {
+      "caseId": "heading_scope",
+      "repeat": 2,
+      "arm": "baseline",
+      "factId": "vega_personal",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "以下要求均适用于本章标题所指的项目：日志保留30天，仅企业版生效，个人版仍保留7天。"
+      ],
+      "reason": "候选正文只有“本章标题所指的项目”，没有Vega，原评分借用了原文标题。"
+    },
+    {
+      "caseId": "markdown_table",
+      "repeat": 1,
+      "arm": "baseline",
+      "factId": "orion_row",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "| Orion | 许岚 | 2026-11-18 | 安全测试通过 |"
+      ],
+      "reason": "候选正文仅为表格数据行，未包含表头或负责人、截止日期、前提的字段关系，原评分借用了表头。"
+    },
+    {
+      "caseId": "markdown_table",
+      "repeat": 1,
+      "arm": "baseline",
+      "factId": "lyra_row",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        2
+      ],
+      "bodies": [
+        "| Lyra | 赵宁 | 2026-11-21 | 法务批准 |"
+      ],
+      "reason": "候选正文仅为表格数据行，未包含表头或负责人、截止日期、前提的字段关系，原评分借用了表头。"
+    },
+    {
+      "caseId": "markdown_table",
+      "repeat": 2,
+      "arm": "baseline",
+      "factId": "orion_row",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "| Orion | 许岚 | 2026-11-18 | 安全测试通过 |"
+      ],
+      "reason": "候选正文仅为表格数据行，未包含表头或负责人、截止日期、前提的字段关系，原评分借用了表头。"
+    },
+    {
+      "caseId": "markdown_table",
+      "repeat": 2,
+      "arm": "baseline",
+      "factId": "lyra_row",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        2
+      ],
+      "bodies": [
+        "| Lyra | 赵宁 | 2026-11-21 | 法务批准 |"
+      ],
+      "reason": "候选正文仅为表格数据行，未包含表头或负责人、截止日期、前提的字段关系，原评分借用了表头。"
+    },
+    {
+      "caseId": "historical_change",
+      "repeat": 1,
+      "arm": "candidate",
+      "factId": "historical_qualified",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        2
+      ],
+      "bodies": [
+        "2026-10-20更正记录：验收改由陈雨负责，截止日期改为2026-10-23。此前验收安排失效。"
+      ],
+      "reason": "被判完整的更正候选没有张磊和2026-10-18；原评分把不同候选中的旧安排与失效关系拼在一起。"
+    },
+    {
+      "caseId": "heading_scope",
+      "repeat": 1,
+      "arm": "candidate",
+      "factId": "vega_enterprise",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "以下要求均适用于本章标题所指的项目：日志保留30天，仅企业版生效，个人版仍保留7天。"
+      ],
+      "reason": "候选正文只有“本章标题所指的项目”，没有Vega，原评分借用了原文标题。"
+    },
+    {
+      "caseId": "heading_scope",
+      "repeat": 1,
+      "arm": "candidate",
+      "factId": "vega_personal",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "以下要求均适用于本章标题所指的项目：日志保留30天，仅企业版生效，个人版仍保留7天。"
+      ],
+      "reason": "候选正文只有“本章标题所指的项目”，没有Vega，原评分借用了原文标题。"
+    },
+    {
+      "caseId": "heading_scope",
+      "repeat": 2,
+      "arm": "candidate",
+      "factId": "vega_enterprise",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "以下要求均适用于本章标题所指的项目：日志保留30天，仅企业版生效，个人版仍保留7天。"
+      ],
+      "reason": "候选正文只有“本章标题所指的项目”，没有Vega，原评分借用了原文标题。"
+    },
+    {
+      "caseId": "heading_scope",
+      "repeat": 2,
+      "arm": "candidate",
+      "factId": "vega_personal",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "以下要求均适用于本章标题所指的项目：日志保留30天，仅企业版生效，个人版仍保留7天。"
+      ],
+      "reason": "候选正文只有“本章标题所指的项目”，没有Vega，原评分借用了原文标题。"
+    },
+    {
+      "caseId": "markdown_table",
+      "repeat": 1,
+      "arm": "candidate",
+      "factId": "orion_row",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "| Orion | 许岚 | 2026-11-18 | 安全测试通过 |"
+      ],
+      "reason": "候选正文仅为表格数据行，未包含表头或负责人、截止日期、前提的字段关系，原评分借用了表头。"
+    },
+    {
+      "caseId": "markdown_table",
+      "repeat": 1,
+      "arm": "candidate",
+      "factId": "lyra_row",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        2
+      ],
+      "bodies": [
+        "| Lyra | 赵宁 | 2026-11-21 | 法务批准 |"
+      ],
+      "reason": "候选正文仅为表格数据行，未包含表头或负责人、截止日期、前提的字段关系，原评分借用了表头。"
+    },
+    {
+      "caseId": "markdown_table",
+      "repeat": 2,
+      "arm": "candidate",
+      "factId": "orion_row",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        1
+      ],
+      "bodies": [
+        "| Orion | 许岚 | 2026-11-18 | 安全测试通过 |"
+      ],
+      "reason": "候选正文仅为表格数据行，未包含表头或负责人、截止日期、前提的字段关系，原评分借用了表头。"
+    },
+    {
+      "caseId": "markdown_table",
+      "repeat": 2,
+      "arm": "candidate",
+      "factId": "lyra_row",
+      "from": "full",
+      "to": "partial",
+      "indices": [
+        2
+      ],
+      "bodies": [
+        "| Lyra | 赵宁 | 2026-11-21 | 法务批准 |"
+      ],
+      "reason": "候选正文仅为表格数据行，未包含表头或负责人、截止日期、前提的字段关系，原评分借用了表头。"
+    }
+  ],
+  "arms": {
+    "baseline": {
+      "full": 62,
+      "partial": 16,
+      "missing": 12,
+      "readyFull": 62,
+      "contextFull": 20
+    },
+    "candidate": {
+      "full": 68,
+      "partial": 10,
+      "missing": 12,
+      "readyFull": 42,
+      "contextFull": 26
+    }
+  },
+  "integrity": {
+    "passed": true,
+    "requests": 88,
+    "runs": 48,
+    "judgments": 24,
+    "wireRequestHashes": true,
+    "providerUsage": true,
+    "modelBinding": true,
+    "binaryHashes": true,
+    "fixtureHash": true,
+    "harnessHashes": true,
+    "sourceIdentity": true,
+    "perTaskRequestBudget": true,
+    "quotesValid": true,
+    "formalMemoriesWritten": 0
+  },
+  "observations": [
+    {
+      "issue": "saturated_output_still_loses_facts",
+      "evidence": {
+        "baseline": [
+          {
+            "repeat": 1,
+            "retained": 12,
+            "total": 18
+          },
+          {
+            "repeat": 2,
+            "retained": 12,
+            "total": 18
+          }
+        ],
+        "candidate": [
+          {
+            "repeat": 1,
+            "retained": 12,
+            "total": 18
+          },
+          {
+            "repeat": 2,
+            "retained": 12,
+            "total": 18
+          }
+        ]
+      },
+      "conclusion": "18个独立事实，新旧两次均仅保留12个；v7每次多一次复查，仍受同一12条上限约束。"
+    },
+    {
+      "issue": "incomplete_sibling_remains_confirmable",
+      "evidence": [
+        {
+          "runId": "post_boundary_condition-1-candidate",
+          "candidates": [
+            {
+              "content": "Atlas计划于2026-11-05灰度上线。上述计划以安全评审通过为前提，且本次灰度仅面向内部员工。",
+              "ready": false
+            },
+            {
+              "content": "Atlas计划于2026-11-05灰度上线。",
+              "ready": true
+            },
+            {
+              "content": "上述计划以安全评审通过为前提，且本次灰度仅面向内部员工。",
+              "ready": true
+            }
+          ]
+        },
+        {
+          "runId": "post_boundary_condition-2-candidate",
+          "candidates": [
+            {
+              "content": "Atlas计划于2026-11-05灰度上线。上述计划以安全评审通过为前提，且本次灰度仅面向内部员工。",
+              "ready": false
+            },
+            {
+              "content": "Atlas计划于2026-11-05灰度上线。",
+              "ready": true
+            },
+            {
+              "content": "上述计划以安全评审通过为前提，且本次灰度仅面向内部员工。",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "conclusion": "完整条件候选被拦为待审，但其他窗口生成的无条件短候选仍ready；批次级检查未保证每条候选完整。"
+    },
+    {
+      "issue": "review_burden",
+      "before": 4,
+      "after": 36,
+      "conclusion": "复查结果整体转待审，不能把草稿留存收益当作立即可用正式记忆收益。"
+    }
+  ]
+}

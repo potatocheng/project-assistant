@@ -62,12 +62,13 @@ export async function readFile(file: File, limitMiB = 10): Promise<FileInput> {
   });
 }
 
-export async function exportBackup(backupId: string, filename: string): Promise<boolean> {
+export async function exportBackup(backupId: string, filename: string, password?: string): Promise<boolean> {
   try {
     if ('__TAURI_INTERNALS__' in window) {
-      const result = await invoke<{ cancelled?: boolean }>('export_backup', { backupId });
+      const result = await invoke<{ cancelled?: boolean }>('export_backup', { backupId, password: password || null });
       return !result.cancelled;
     }
+    if (password) throw new AppError('请在桌面应用中加密导出。');
     if (import.meta.env.DEV && bridge) {
       const response = await fetch(`${checkedBridge()}/backups/${encodeURIComponent(backupId)}/download`);
       if (!response.ok) throw asError(await response.json());

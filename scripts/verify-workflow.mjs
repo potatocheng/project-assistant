@@ -149,7 +149,7 @@ try{
  assert.equal((await host.call('inspect_backup',legacy)).compatible,true);
  await host.call('restore_backup',{...legacy,confirmation:'RESTORE'});
  const migrated=await host.call('get_state');
- assert.equal(migrated.workspace.schemaVersion,8);assert.equal(migrated.tasks.length,0);assert.equal(migrated.reports.length,0);
+ assert.equal(migrated.workspace.schemaVersion,12);assert.equal(migrated.tasks.length,0);assert.equal(migrated.reports.length,0);
  assert(migrated.memories.length>0);assert(migrated.proposals.some(p=>p.origin==='ai'));
  checks.push('real schema-two backup migrates with AI memory provenance intact and empty task/report tables');
  const emptyProject=await host.call('create_project',{name:'无工作记录项目'});

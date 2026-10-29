@@ -77,6 +77,7 @@ fn parse_docx(bytes: &[u8]) -> Result<Vec<ParsedSegment>> {
     let mut segments = Vec::new();
     let (mut text, mut paragraph, mut table, mut row, mut in_table, mut in_text) =
         (String::new(), 0, 0, 0, 0, false);
+    let mut heading = false;
     loop {
         match reader
             .read_event()
@@ -90,6 +91,7 @@ fn parse_docx(bytes: &[u8]) -> Result<Vec<ParsedSegment>> {
                 }
                 b"tr" => row += 1,
                 b"p" => {
+                    heading = false;
                     text.clear();
                     paragraph += 1;
                 }
@@ -98,6 +100,14 @@ fn parse_docx(bytes: &[u8]) -> Result<Vec<ParsedSegment>> {
                 b"br" => text.push('\n'),
                 _ => {}
             },
+            Event::Empty(e) if e.local_name().as_ref() == b"pStyle" => {
+                heading = e.attributes().flatten().any(|a| {
+                    a.key.local_name().as_ref() == b"val" && {
+                        let value = String::from_utf8_lossy(&a.value).to_lowercase();
+                        value.starts_with("heading") || value.starts_with("标题")
+                    }
+                });
+            }
             Event::Empty(e) => match e.local_name().as_ref() {
                 b"tab" => text.push('\t'),
                 b"br" => text.push('\n'),
@@ -126,6 +136,8 @@ fn parse_docx(bytes: &[u8]) -> Result<Vec<ParsedSegment>> {
                 b"p" if !text.trim().is_empty() => segments.push(ParsedSegment {
                     locator: if in_table > 0 {
                         format!("表格 {table} / 行 {row} / 段落 {paragraph}")
+                    } else if heading {
+                        format!("标题 / 段落 {paragraph}")
                     } else {
                         format!("段落 {paragraph}")
                     },

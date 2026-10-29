@@ -1,0 +1,5 @@
+export type Layer = 'durable'|'working'|'clarify'|'archive';
+export type FactAnnotation = {id:string;sourceMessageIds:string[];expectedContent:string;expectedLayer:Layer|null;observedLayer:Layer|'missing';supportCorrect:boolean|null;conditionsComplete:boolean|null;replacementCorrect:boolean|null;notes:string};
+export type Annotations = {inventoryComplete:boolean;messageCount:number|null;modelCalls:number|null;tokens:number|null;reviewCount:number|null;facts:FactAnnotation[]};
+export type Scores = {inventoryComplete:boolean;facts:number;labelled:number;unlabelled:number;layerAccuracy:number|null;requiredInformationRecall:number|null;unnecessaryRetentionRate:number|null;supportCorrect:{reviewed:number;rate:number|null};conditionsComplete:{reviewed:number;rate:number|null};replacementCorrect:{reviewed:number;rate:number|null};confusion:Record<string,number>;callsPerThousandMessages:number|null;reviewsPerThousandMessages:number|null};
+export function scoreChatRetention(data:Annotations):Scores;

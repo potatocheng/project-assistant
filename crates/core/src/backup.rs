@@ -160,16 +160,23 @@ struct Validated {
 }
 fn decode(p: &Value) -> Result<Vec<u8>> {
     let filename = required(p, "filename")?;
-    if !filename.to_ascii_lowercase().ends_with(".zip") {
-        return Err(AppError::new("INVALID_BACKUP", "请选择 ZIP 备份"));
+    if !filename.to_ascii_lowercase().ends_with(".zip")
+        && !filename.to_ascii_lowercase().ends_with(".pabackup")
+    {
+        return Err(AppError::new("INVALID_BACKUP", "请选择 ZIP 或加密备份"));
     }
     let encoded = required(p, "contentBase64")?;
     if encoded.len() as u64 > MAX_ARCHIVE * 4 / 3 + 4 {
         return Err(AppError::new("BACKUP_LIMIT", "备份文件过大"));
     }
-    base64::engine::general_purpose::STANDARD
+    let bytes = base64::engine::general_purpose::STANDARD
         .decode(encoded)
-        .map_err(|_| AppError::new("INVALID_BACKUP", "备份文件编码无效"))
+        .map_err(|_| AppError::new("INVALID_BACKUP", "备份文件编码无效"))?;
+    if filename.ends_with(".pabackup") {
+        crate::protection::decrypt_backup(&bytes, required(p, "password")?)
+    } else {
+        Ok(bytes)
+    }
 }
 fn validate_path(path: &str) -> Result<()> {
     let safe = !path.contains('\\')
@@ -364,6 +371,8 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
         crate::memory_workbench::validate_backup(&conn)?;
         crate::memory_facts::validate_backup(&conn)?;
         crate::extraction_store::validate_backup(&conn)?;
+        crate::retention::validate_backup(&conn)?;
+        crate::daily_use::validate_backup(&conn)?;
         return Ok(Validated {
             stage,
             manifest,
@@ -381,6 +390,8 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
     crate::memory_workbench::validate_backup(&conn)?;
     crate::memory_facts::validate_backup(&conn)?;
     crate::extraction_store::validate_backup(&conn)?;
+    crate::retention::validate_backup(&conn)?;
+    crate::daily_use::validate_backup(&conn)?;
     Ok(Validated {
         stage,
         manifest,
@@ -621,6 +632,8 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
     db.conn
         .execute_batch("DELETE FROM memory_lexical; DELETE FROM memory_lexical_state;")?;
     db.epoch += 1;
+    db.conn.execute("UPDATE workspace_options SET value=json_set(value,'$.enabled',json('false'),'$.automaticIds',json('[]')) WHERE key='backup_policy'",[])?;
+    db.conn.execute("UPDATE workspace_options SET value=json_set(value,'$.notifications',json('false'),'$.autostart',json('false')) WHERE key='desktop'",[])?;
     db.conn
         .execute_batch("PRAGMA foreign_keys=ON; PRAGMA trusted_schema=OFF;")?;
     for record in old_backups {
@@ -630,7 +643,7 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
     for (day, calls) in old_budget {
         db.conn.execute("INSERT INTO memory_budget VALUES(?,?) ON CONFLICT(day) DO UPDATE SET calls=max(calls,excluded.calls)",params![day,calls])?;
     }
-    crate::extraction_store::preserve_budgets(&db.conn,&old_extraction_budget)?;
+    crate::extraction_store::preserve_budgets(&db.conn, &old_extraction_budget)?;
     db.conn.execute("UPDATE jobs SET status='cancelled',stage='还原后已暂停，请手动重试',error=NULL,error_code='RESTORED_PAUSED',generation=generation+1,updated_at=? WHERE kind='extract' AND status IN ('queued','running')",[now()])?;
     // Parsing may resume, but a restored import must never inherit authority to send material.
     db.conn

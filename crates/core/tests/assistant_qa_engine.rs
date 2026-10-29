@@ -345,11 +345,55 @@ impl Drop for PausedModel {
     }
 }
 fn model_ask(engine: &Engine, project: &Value) -> thread::JoinHandle<Result<Value, AppError>> {
+    model_ask_command(engine, project, "ask_assistant")
+}
+fn model_ask_command(
+    engine: &Engine,
+    project: &Value,
+    command: &str,
+) -> thread::JoinHandle<Result<Value, AppError>> {
     let engine = engine.clone();
     let project = project["id"].clone();
+    let command = command.to_owned();
     thread::spawn(move || {
-        engine.execute(Request{command:"ask_assistant".into(),payload:json!({"projectId":project,"question":"登录审计接口进展","date":DATE,"useModel":true})})
+        engine.execute(Request{command,payload:json!({"projectId":project,"question":"登录审计接口进展","date":DATE,"useModel":true})})
     })
+}
+
+#[test]
+fn group_model_question_uses_current_work_and_cancels_when_task_changes() {
+    for change_task in [false, true] {
+        let mut model = PausedModel::new(false, !change_task);
+        let directory = tempfile::tempdir().unwrap();
+        let engine = Engine::open(directory.path()).unwrap();
+        call(
+            &engine,
+            "save_ai_settings",
+            settings(&model.url, "chosen-model"),
+        );
+        let p = project(&engine, "群问答项目");
+        let t = task(&engine, &p, "登录审计接口", "in_progress", DATE, None);
+        let pending = model_ask_command(&engine, &p, "ask_project_question");
+        let request = model.request();
+        assert!(request.to_string().contains("登录审计接口"));
+        if change_task {
+            update(&engine, &t, "blocked", 40, "上游接口变更，等待处理");
+        }
+        model.finish();
+        let result = pending.join().unwrap();
+        if change_task {
+            assert_eq!(result.unwrap_err().code, "ASSISTANT_CONTEXT_STALE");
+        } else {
+            let answer = result.unwrap();
+            assert_eq!(answer["mode"], "model");
+            assert_eq!(answer["citations"][0]["taskId"], t["id"]);
+            assert!(answer["answer"].as_str().unwrap().contains("依据："));
+            assert!(answer["answer"]
+                .as_str()
+                .unwrap()
+                .contains("任务 · 登录审计接口 · v1"));
+        }
+    }
 }
 
 #[test]

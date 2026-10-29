@@ -268,11 +268,12 @@ fn relations(conn: &Connection) -> Result<Vec<Value>> {
 pub(crate) fn overview(conn: &Connection, p: &Value) -> Result<Value> {
     let date = date(p)?;
     let project = scope(conn, p)?;
-    let all = tasks::state(conn)?;
+    let mut all = tasks::state(conn)?;
+    crate::daily_use::filter_context(conn, &mut all)?;
     let all = all["tasks"].as_array().unwrap();
     let by_id: HashMap<&str, &Value> = all.iter().map(|t| (t["id"].as_str().unwrap(), t)).collect();
     let relations = relations(conn)?;
-    let projects = read_json(conn,"SELECT json_object('projectId',id,'name',name,'description',description) FROM projects WHERE (?1 IS NULL OR id=?1) ORDER BY created_at DESC,id",&[&project])?;
+    let projects = read_json(conn,"SELECT json_object('projectId',id,'name',name,'description',description) FROM projects WHERE (?1 IS NULL OR id=?1) AND NOT EXISTS(SELECT 1 FROM workspace_lifecycle l WHERE l.kind='project' AND l.entity_id=projects.id AND l.archived=1) ORDER BY created_at DESC,id",&[&project])?;
     let mut output = Vec::new();
     let mut totals = json!({"projects":projects.len(),"activeTasks":0,"blockedTasks":0,"overdueTasks":0,"atRiskMilestones":0});
     for mut item in projects {
@@ -514,7 +515,8 @@ fn snooze_follow_up(conn: &Connection, p: &Value) -> Result<Value> {
 pub(crate) fn follow_up_center(conn: &Connection, p: &Value) -> Result<Value> {
     let date = date(p)?;
     let project = scope(conn, p)?;
-    let all = tasks::state(conn)?;
+    let mut all = tasks::state(conn)?;
+    crate::daily_use::filter_context(conn, &mut all)?;
     let names = read_json(
         conn,
         "SELECT json_object('id',id,'name',name) FROM projects",

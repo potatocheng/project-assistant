@@ -83,11 +83,12 @@ impl Worker {
                     memory::Task::Extract {
                         job, epoch, task, ..
                     } => {
-                        let result = ai::extract_with_checkpoints(
+                        let result = ai::extract_with_context(
                             &task.settings.config(),
                             task.settings.api_key.as_deref(),
                             &task.segments,
                             &task.checkpoints,
+                            &task.project_context,
                             |done, total| {
                                 if !alive() {
                                     return false;
@@ -113,8 +114,17 @@ impl Worker {
                                 if !alive() || (checkpoint.status == "started" && !reserve()) {
                                     return false;
                                 }
-                                let (tx,rx)=mpsc::channel();
-                                if sender.send(Message::CheckpointExtract(job.clone(),epoch,task.generation,checkpoint.clone(),tx)).is_err() {
+                                let (tx, rx) = mpsc::channel();
+                                if sender
+                                    .send(Message::CheckpointExtract(
+                                        job.clone(),
+                                        epoch,
+                                        task.generation,
+                                        checkpoint.clone(),
+                                        tx,
+                                    ))
+                                    .is_err()
+                                {
                                     return false;
                                 }
                                 rx.recv().unwrap_or(false)
@@ -298,7 +308,7 @@ mod tests {
                     .iter()
                     .find(|s| s["text"].as_str().unwrap().contains("一期周五发布"))
                     .unwrap();
-                let output = json!({"candidates":[{"kind":"decision","content":"一期周五发布","evidence":[{"segmentId":segment["id"],"quote":"一期周五发布"}]}],"taskCandidates":[]});
+                let output = json!({"candidates":[{"retention":{"layer":"durable","reason":"已确认发布决策"},"kind":"decision","content":"一期周五发布","evidence":[{"segmentId":segment["id"],"quote":"一期周五发布"}]}],"taskCandidates":[]});
                 if counted.fetch_add(1, Ordering::SeqCst) == 0 {
                     started_tx.send(()).unwrap();
                     release_rx.recv_timeout(Duration::from_secs(10)).unwrap();

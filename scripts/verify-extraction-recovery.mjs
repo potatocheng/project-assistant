@@ -21,13 +21,14 @@ const provider = http.createServer(async (req, res) => {
   const body = JSON.parse(bytes), user = JSON.parse(body.messages.at(-1).content);
   assert.equal(body.max_tokens, 6144);
   const segments = user.segments; assert.ok(segments);
-  requests.push({ segmentIds: segments.map(s => s.id), text: segments.map(s => s.text).join('\n') });
+  assert.ok(user.projectContext && typeof user.projectContext.name === 'string');
+  requests.push({ projectContext: user.projectContext, segmentIds: segments.map(s => s.id), text: segments.map(s => s.text).join('\n') });
   if (requests.length === 2 && failSecond) { failSecond = false; res.writeHead(503, { 'Content-Type': 'application/json' }).end('{"error":{"message":"deterministic second-batch outage"}}'); return; }
   const text = requests.at(-1).text;
   const statement = text.includes(gamma) ? gamma : text.includes(beta) ? beta : alpha;
   const segment = segments.find(s => s.text.includes(statement)); assert.ok(segment);
   const wrongScope = statement === gamma;
-  const candidate = { kind: 'fact', content: statement, evidence: [{ segmentId: segment.id, quote: statement }],
+  const candidate = { retention: { layer: 'durable', reason: '回归夹具的稳定事实' }, kind: 'fact', content: statement, evidence: [{ segmentId: segment.id, quote: statement }],
     facets: { entity: wrongScope ? 'Project Wrong' : statement.split(' retains')[0], topic: 'invented navigation summary', role: '', conditions: [], validFrom: null, validUntil: null } };
   res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ model: 'recovery-fixture',
     choices: [{ finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify({ candidates: [candidate], taskCandidates: [] }) } }],
@@ -99,6 +100,8 @@ try {
   const detail = await host.call('get_memory', { memoryId: accepted.id });
   assert.equal(detail.memory.content, alpha);
   assert.equal(detail.revisions[0].facets.entity, 'Project Alpha');
+  assert.equal(detail.revisions[0].retention.layer, 'durable');
+  assert.deepEqual(requests[0].projectContext, requests[2].projectContext);
   assert.equal(detail.revisions[0].facets.topic, '');
 
   const foreign = await host.call('create_project', { name: 'Scope review fixture' });
@@ -122,6 +125,7 @@ try {
   await host.stop(); host = start();
   const final = await host.call('get_state');
   assert.equal(final.memories.length, 1); assert.ok(final.extractionDrafts.length >= 3);
+  assert.equal(final.memories[0].retention.layer, 'durable');
   assert.equal(requests.length, 4, 'finished or failed jobs must not silently replay after restore/restart');
   const result = { passed: true, workspace, providerRequests: requests.length, sourceJob: job.id, reviewedJob: gj.id,
     checks: ['completed batch persists after later HTTP failure', 'pending facts excluded from retrieval', 'topic raw value and issue retained', 'real process restart', 'explicit retry reuses successful batch', 'pending proposal insertion idempotent', 'scope-error draft blocks empty-field approval', 'evidence-based review remains pending', 'backup and restore of extraction drafts', 'no unexpected replays after restore'] };

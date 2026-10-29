@@ -934,6 +934,7 @@ fn mutate(
 }
 pub(crate) fn dispatch(conn: &mut Connection, command: &str, p: &Value) -> Result<Value> {
     match command {
+        "batch_schedule_tasks" => mutate(conn, command, p, batch_schedule),
         "create_task" => mutate(conn, command, p, create),
         "update_task" => mutate(conn, command, p, update),
         "confirm_task_proposal" => mutate(conn, command, p, confirm_proposal),
@@ -946,6 +947,36 @@ pub(crate) fn dispatch(conn: &mut Connection, command: &str, p: &Value) -> Resul
         "reject_task_proposal" => reject_proposal(conn, p),
         _ => Err(AppError::new("UNKNOWN_COMMAND", "未知操作")),
     }
+}
+fn batch_schedule(conn: &Connection, p: &Value) -> Result<Value> {
+    let items = p["tasks"]
+        .as_array()
+        .filter(|v| !v.is_empty() && v.len() <= 100)
+        .ok_or_else(|| failure("请选择1–100个任务"))?;
+    let date = required(p, "plannedDate")?;
+    valid_date(date)?;
+    let work = required(p, "workDate")?;
+    valid_date(work)?;
+    let note = required(p, "note")?;
+    limited(note, 10000, true)?;
+    let mut seen = HashSet::new();
+    let mut results = Vec::new();
+    for item in items {
+        let task_id = required(item, "taskId")?;
+        if !seen.insert(task_id) {
+            return Err(failure("不能重复选择任务"));
+        }
+        let before = task(conn, task_id)?;
+        if matches!(before["status"].as_str(), Some("done" | "cancelled")) {
+            return Err(failure("已结束的任务不能批量排期"));
+        }
+        let mut update = before.clone();
+        update["baseVersion"] = item["baseVersion"].clone();
+        update["plannedDate"] = json!(date);
+        update["workDate"] = json!(work);
+        results.push(write_task(conn, &before, &update, "user", &[], note)?);
+    }
+    Ok(json!({"tasks":results}))
 }
 pub(crate) fn state(conn: &Connection) -> Result<Value> {
     let mut statement = conn.prepare(TASK_SELECT)?;
@@ -1342,6 +1373,27 @@ pub(crate) fn validate_backup(conn: &Connection) -> Result<()> {
                 )?;
                 if raw != value {
                     return Err(failure("幂等任务响应与历史不一致"));
+                }
+            }
+            "batch_schedule_tasks" => {
+                let items = value["tasks"]
+                    .as_array()
+                    .filter(|v| !v.is_empty() && v.len() <= 100)
+                    .ok_or_else(|| failure("批量排期响应无效"))?;
+                let mut seen = HashSet::new();
+                for item in items {
+                    validate_snapshot(conn, item)?;
+                    if !seen.insert(required(item, "id")?) {
+                        return Err(failure("批量排期任务重复"));
+                    }
+                    let raw = conn.query_row(
+                        "SELECT after_json FROM task_events WHERE task_id=? AND version=?",
+                        params![item["id"].as_str(), item["version"].as_i64()],
+                        |row| decode_json(row.get(0)?),
+                    )?;
+                    if raw != *item {
+                        return Err(failure("批量排期与历史不一致"));
+                    }
                 }
             }
             "generate_daily_report" | "save_daily_report" => {

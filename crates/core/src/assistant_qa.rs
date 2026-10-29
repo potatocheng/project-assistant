@@ -1,13 +1,12 @@
-//! Personal, read-only project questions. Unlike connector replies, this view
-//! deliberately combines current work records with confirmed project memory.
+//! Shared, read-only project questions over current work and confirmed memory.
 use crate::{hash, now, required, search, settings, tasks, AppError, Engine, Request, Result};
 use chrono::{Datelike, Duration, NaiveDate};
 use rusqlite::{params, Connection};
 use serde::Deserialize;
 use serde_json::{json, Value};
-use std::collections::HashSet;
+use std::{collections::HashSet, path::Path, sync::mpsc};
 
-const VERSION: &str = "personal-assistant-v13-anchor-reading";
+const VERSION: &str = "project-assistant-v15-shared-workflows";
 const MAX_TASKS: usize = 300;
 const MAX_MEMORIES: usize = 64;
 const MAX_MILESTONES: usize = 80;
@@ -149,6 +148,7 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
     context["managementCount"] = json!(management.len());
     management.truncate(160);
     context["management"] = json!(management);
+    crate::daily_use::filter_context(conn, &mut context)?;
     let mut limitations = vec![
         "本地规则只使用已记录资料；未记录的负责人、预计完成日期与实际进展无法判断。".to_owned(),
         "长篇正文和描述仅提供节选，完整记录可打开引用查看。".to_owned(),
@@ -377,6 +377,104 @@ fn terms(question: &str) -> search::Query {
     search::Query::new(question)
 }
 
+// Only bypass generation when the whole question is a direct lookup of these
+// fields. A third requested fact or a different role must not be silently lost.
+fn task_fields_only(question: &str, title: &str) -> bool {
+    let mut remaining = question.to_lowercase().replace(&title.to_lowercase(), "");
+    for word in [
+        "截止日期",
+        "截止时间",
+        "到期日期",
+        "到期时间",
+        "负责人",
+        "由谁负责",
+        "谁负责",
+        "谁来做",
+        "due date",
+        "deadline",
+        "assignee",
+        "owner",
+        "什么时候",
+        "分别",
+        "请问",
+        "告诉我",
+        "查询",
+        "查看",
+        "目前",
+        "当前",
+        "现在",
+        "是哪天",
+        "哪一天",
+        "是什么",
+        "何时",
+        "哪天",
+        "截止",
+        "到期",
+        "以及",
+        "同时",
+        "what",
+        "when",
+        "who",
+        "the",
+        "and",
+        "is",
+        "的",
+        "是",
+        "谁",
+        "和",
+        "与",
+        "及",
+        "吗",
+        "呢",
+    ] {
+        remaining = remaining.replace(word, "");
+    }
+    !remaining.chars().any(char::is_alphanumeric)
+}
+
+fn workflow_lookup_only(question: &str) -> bool {
+    let mut remaining = question.to_owned();
+    for word in [
+        "待决策",
+        "待拍板",
+        "未决事项",
+        "优先",
+        "跟进",
+        "有哪些",
+        "哪些",
+        "列出",
+        "请问",
+        "今天",
+        "今日",
+        "目前",
+        "当前",
+        "现在",
+        "本周",
+        "这周",
+        "项目",
+        "交付",
+        "事项",
+        "可能",
+        "延期",
+        "延误",
+        "延迟",
+        "需要",
+        "应该",
+        "请",
+        "先",
+        "催",
+        "谁",
+        "有",
+        "该",
+        "吗",
+        "呢",
+        "的",
+    ] {
+        remaining = remaining.replace(word, "");
+    }
+    !remaining.chars().any(char::is_alphanumeric)
+}
+
 fn context_intent(question: &str) -> Vec<&'static str> {
     let lower = question.to_lowercase();
     let mut intents = Vec::new();
@@ -515,25 +613,73 @@ pub(crate) fn local_answer(context: &Value) -> Value {
     let causal = ["为什么", "为何", "原因", "根因"]
         .iter()
         .any(|w| question.contains(w));
-    if named_tasks.len() == 1 && owner_question != date_question && !compound && !causal {
+    let other_task_detail = [
+        "进展",
+        "进度",
+        "状态",
+        "风险",
+        "阻塞",
+        "依赖",
+        "预计",
+        "原因",
+        "为什么",
+    ]
+    .iter()
+    .any(|word| question.contains(word));
+    if named_tasks.len() == 1
+        && (owner_question || date_question)
+        && (!compound || (owner_question && date_question))
+        && !causal
+        && !other_task_detail
+        && task_fields_only(question, text(named_tasks[0], "title"))
+    {
         let reference = named_tasks[0];
-        let (field, label) = if owner_question {
-            ("assignee", "负责人")
-        } else {
-            ("dueDate", "截止日期")
-        };
-        let value = reference["record"][field]
-            .as_str()
-            .filter(|s| !s.is_empty())
-            .unwrap_or("未记录");
+        let mut fields = Vec::new();
+        let mut unknowns = Vec::new();
+        let mut known = 0;
+        for (requested, field, label) in [
+            (owner_question, "assignee", "负责人"),
+            (date_question, "dueDate", "截止日期"),
+        ] {
+            if !requested {
+                continue;
+            }
+            let value = reference["record"][field]
+                .as_str()
+                .filter(|s| !s.trim().is_empty());
+            fields.push(format!(
+                "{}的{}：{}。 [1]",
+                text(reference, "title"),
+                label,
+                value.unwrap_or("未记录")
+            ));
+            if value.is_some() {
+                known += 1;
+            } else {
+                unknowns.push(format!(
+                    "{}的{}尚未记录，需补充确认。",
+                    text(reference, "title"),
+                    label
+                ));
+            }
+        }
         let mut answer = result(
             context,
-            format!("{}的{}：{}。 [1]", text(reference, "title"), label, value),
+            fields.join("\n"),
             vec![reference.clone()],
             "local",
             limitations,
         );
         answer["queryMode"] = json!("structured_field");
+        answer["status"] = json!(if known == 0 {
+            "unknown"
+        } else if unknowns.is_empty() {
+            "answered"
+        } else {
+            "partial"
+        });
+        answer["grounded"] = json!(known > 0);
+        answer["unknowns"] = json!(unknowns);
         return answer;
     }
     let follow = question.contains('催')
@@ -563,6 +709,8 @@ pub(crate) fn local_answer(context: &Value) -> Value {
             .iter()
             .any(|w| question.contains(w));
     let decisions = question.contains("决策") || question.contains("决定");
+    let pending_decisions =
+        question.contains("待决策") || question.contains("待拍板") || question.contains("未决事项");
     let management_kind = if question.contains("验收") || question.contains("整改") {
         Some("deliverable")
     } else if question.contains("变更") {
@@ -578,7 +726,7 @@ pub(crate) fn local_answer(context: &Value) -> Value {
     } else if question.contains("风险")
         || question.contains("问题")
         || question.contains("拍板")
-        || question.contains("待决策")
+        || pending_decisions
     {
         Some("governance")
     } else {
@@ -590,7 +738,7 @@ pub(crate) fn local_answer(context: &Value) -> Value {
         || question.contains("会议")
         || question.contains("会前")
         || question.contains("行动项")
-        || question.contains("待决策")
+        || pending_decisions
         || question.contains("拍板");
     let named_work_record = all.iter().any(|r| {
         matches!(r["kind"].as_str(), Some("task" | "milestone" | "memory"))
@@ -602,7 +750,7 @@ pub(crate) fn local_answer(context: &Value) -> Value {
     if let Some(kind) = management_kind.filter(|kind| {
         explicit_management || (!named_work_record && all.iter().any(|r| r["kind"] == *kind))
     }) {
-        let subtype = if question.contains("拍板") || question.contains("待决策") {
+        let subtype = if question.contains("拍板") || pending_decisions {
             Some("decision")
         } else if question.contains("风险") {
             Some("risk")
@@ -634,7 +782,7 @@ pub(crate) fn local_answer(context: &Value) -> Value {
                             Some("done" | "dismissed")
                         ))
                     && (kind != "governance" || subtype.is_none_or(|s| r["record"]["kind"] == s))
-                    && (!question.contains("待决策") || r["record"]["status"] != "closed")
+                    && (!pending_decisions || r["record"]["status"] != "closed")
             })
             .collect::<Vec<_>>();
         matches
@@ -655,7 +803,23 @@ pub(crate) fn local_answer(context: &Value) -> Value {
         if matches.is_empty() {
             lines.push("当前范围没有对应的已记录管理事项，请先在项目管理中记录。".into());
         }
-        return result(context, lines.join("\n"), selected, "local", limitations);
+        let mut answer = result(context, lines.join("\n"), selected, "local", limitations);
+        if kind == "governance"
+            && pending_decisions
+            && !compound
+            && !causal
+            && workflow_lookup_only(question)
+            && (question.contains("哪些") || question.contains("列出"))
+            && !all.iter().any(|reference| {
+                reference["kind"] == "governance" && question.contains(text(reference, "title"))
+            })
+            && !["优先", "建议", "推荐", "方案"]
+                .iter()
+                .any(|word| question.contains(word))
+        {
+            answer["queryMode"] = json!("pending_decisions");
+        }
+        return answer;
     }
     if follow {
         lines.push(format!(
@@ -1141,7 +1305,48 @@ pub(crate) fn local_answer(context: &Value) -> Value {
             _ => {}
         }
     }
-    result(context, lines.join("\n"), selected, "local", limitations)
+    let mut answer = result(context, lines.join("\n"), selected, "local", limitations);
+    // The priority order is a documented product rule, not a missing fact the
+    // language model needs to guess or demand an explicit human ranking for.
+    if follow
+        && !compound
+        && !causal
+        && !named_work_record
+        && workflow_lookup_only(question)
+        && ["先催", "先跟进", "优先跟进"]
+            .iter()
+            .any(|word| question.contains(word))
+    {
+        answer["queryMode"] = json!("follow_up_priority");
+    }
+    if delivery_risk
+        && !follow
+        && !blocked
+        && !compound
+        && !causal
+        && !named_work_record
+        && workflow_lookup_only(question)
+        && question.contains("哪些")
+        && question.contains("交付")
+        && question.contains("可能")
+    {
+        // This lists existing date slips/blockers. It makes no prediction that
+        // an unrecorded delay has or has not actually happened.
+        answer["queryMode"] = json!("delivery_risk_signals");
+    }
+    answer
+}
+
+pub(crate) fn deterministic(answer: &Value) -> bool {
+    matches!(
+        answer["queryMode"].as_str(),
+        Some(
+            "structured_field"
+                | "follow_up_priority"
+                | "pending_decisions"
+                | "delivery_risk_signals"
+        )
+    )
 }
 
 fn result(
@@ -1308,24 +1513,129 @@ pub(crate) fn model_candidates(context: &Value, local_answer: &Value) -> Vec<Val
 }
 
 pub(crate) fn ask(engine: &Engine, payload: &Value) -> Result<Value> {
-    let configuration = settings::load(&engine.inner.root)?;
+    ask_shared(&engine.inner.sender, &engine.inner.root, payload, false)
+}
+
+/// Connector/preview callers must name one project. Never interpret `all` or
+/// an absent project as permission to disclose the whole workspace to a group.
+pub(crate) fn ask_project_question(
+    sender: &mpsc::SyncSender<crate::Message>,
+    root: &Path,
+    payload: &Value,
+) -> Result<Value> {
+    let project = required(payload, "projectId")?;
+    if project == "all" {
+        return Err(AppError::new("VALIDATION", "群问答必须选择一个项目"));
+    }
+    let mut request = payload.clone();
+    request["useModel"] = json!(match payload.get("useModel") {
+        None => true,
+        Some(Value::Bool(enabled)) => *enabled,
+        _ => return Err(AppError::new("VALIDATION", "useModel 必须为布尔值")),
+    });
+    let mut answer = ask_shared(sender, root, &request, true)?;
+    append_reply_evidence(&mut answer);
+    Ok(answer)
+}
+
+/// Render group-visible labels from validated records, never model prose.
+/// Desktop renders these same citations as navigable records instead.
+fn append_reply_evidence(answer: &mut Value) {
+    let mut body = answer["answer"].as_str().unwrap_or_default().to_owned();
+    if answer["grounded"] != true {
+        return;
+    }
+    body.push_str("\n\n依据：");
+    for (index, citation) in records(answer, "citations").iter().enumerate() {
+        let kind = match text(citation, "kind") {
+            "task" => "任务",
+            "memory" => "项目记忆",
+            "source_passage" => "原文段落",
+            "milestone" => "里程碑",
+            "project" => "项目目标",
+            "report" => "日报快照",
+            "relation" => "依赖与阻塞",
+            "plan" => "已确认排期",
+            "follow_up" => "跟进记录",
+            "governance" => "风险与决策",
+            "change" => "需求变更",
+            "deliverable" => "交付验收",
+            "meeting" | "meeting_action" => "会议记录",
+            "weekly_report" => "周报快照",
+            _ => "项目记录",
+        };
+        let title = citation["title"]
+            .as_str()
+            .or_else(|| citation["sourceTitle"].as_str())
+            .unwrap_or(kind)
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
+        body.push_str(&format!(
+            "\n[{}] {} · {}",
+            index + 1,
+            kind,
+            clip(&title, 100)
+        ));
+        if let Some(version) = citation["revision"]
+            .as_u64()
+            .or_else(|| citation["record"]["version"].as_u64())
+        {
+            body.push_str(&format!(" · v{version}"));
+        }
+        if let Some(updated) = citation["updatedAt"].as_str() {
+            body.push_str(&format!(" · 更新 {}", clip(updated, 40)));
+        }
+        for evidence in records(citation, "evidence").iter().take(2) {
+            body.push_str(&format!(
+                "（{} · {}）",
+                clip(text(evidence, "sourceTitle"), 80),
+                clip(text(evidence, "locator"), 80)
+            ));
+        }
+    }
+    if let Some(date) = answer["context"]["date"].as_str() {
+        body.push_str(&format!(
+            "\n核对日期：{date}；依据当前记录，历史报告保留生成时的状态。"
+        ));
+    }
+    answer["answer"] = json!(body);
+}
+
+fn ask_shared(
+    sender: &mpsc::SyncSender<crate::Message>,
+    root: &Path,
+    payload: &Value,
+    require_model: bool,
+) -> Result<Value> {
+    let configuration = settings::load(root)?;
+    // Automatic replies retain explicit model/material authorization. Desktop
+    // questions may still fall back to local rules when a model is unavailable.
+    if require_model && payload["useModel"] == true {
+        configuration.validate_material_access()?;
+    }
     crate::question_flow::run(
         &configuration,
         payload,
         true,
         |payload| {
-            engine.call(Request {
-                command: "_assistant_context".into(),
-                payload,
-            })
+            crate::actor_call(
+                sender,
+                Request {
+                    command: "_assistant_context".into(),
+                    payload,
+                },
+            )
         },
         |context| {
-            engine
-                .call(Request {
+            crate::actor_call(
+                sender,
+                Request {
                     command: "_validate_assistant_context".into(),
                     payload: context.clone(),
-                })
-                .map(|_| ())
+                },
+            )
+            .map(|_| ())
         },
     )
 }
@@ -1389,7 +1699,7 @@ fn model_answer_with_input(
     incremental: Option<(&Value, &[Value])>,
 ) -> Result<Value> {
     let local = local_answer(context);
-    if local["queryMode"] == "structured_field" {
+    if deterministic(&local) {
         return Ok(local);
     }
     let candidates = crate::answer_contract::select_current_references(

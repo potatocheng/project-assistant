@@ -29,6 +29,58 @@ pub(super) struct Source {
     #[serde(default)]
     since: i64,
 }
+fn conversation_groups(messages: &[Value]) -> std::collections::BTreeMap<String, String> {
+    fn root(links: &std::collections::BTreeMap<String, String>, id: &str) -> String {
+        let mut current = id.to_owned();
+        while let Some(parent) = links.get(&current) {
+            if parent == &current {
+                break;
+            }
+            current = parent.clone();
+        }
+        current
+    }
+    let mut links = std::collections::BTreeMap::<String, String>::new();
+    let mut related = HashSet::new();
+    for m in messages {
+        let Some(id) = m["message_id"].as_str().filter(|s| valid_id(s, "om_")) else {
+            continue;
+        };
+        for key in ["root_id", "parent_id", "thread_id"] {
+            if let Some(parent) = m[key].as_str().filter(|s| valid_token(s) && !s.is_empty()) {
+                let parent = if key == "thread_id" {
+                    format!("!0thread:{parent}")
+                } else {
+                    parent.into()
+                };
+                if key == "root_id" {
+                    let root_key = format!("!1root:{parent}");
+                    let a = root(&links, &parent);
+                    let b = root(&links, &root_key);
+                    if a != b {
+                        let (small, large) = if a < b { (a, b) } else { (b, a) };
+                        links.insert(large, small);
+                    }
+                }
+                let a = root(&links, id);
+                let b = root(&links, &parent);
+                if a != b {
+                    let (small, large) = if a < b { (a, b) } else { (b, a) };
+                    links.insert(large, small);
+                }
+                related.insert(id.to_owned());
+                related.insert(parent);
+            }
+        }
+    }
+    messages
+        .iter()
+        .filter_map(|m| m["message_id"].as_str())
+        .filter(|id| related.contains(*id))
+        .map(|id| (id.to_owned(), format!("conversation:{}", root(&links, id))))
+        .collect()
+}
+
 fn document_reference(raw: &str) -> Result<(String, String)> {
     let url = Url::parse(raw).map_err(|_| error("FEISHU_SOURCE", "请输入飞书文档链接"))?;
     let host = url.host_str().unwrap_or("");
@@ -158,6 +210,8 @@ impl Inner {
         next.generation = id();
         self.persist(&next)?;
         state.saved = next;
+        state.permissions = None;
+        state.authorization = None;
         drop(state);
         drop(_gate);
         let _ = self.wake.try_send(());
@@ -353,6 +407,58 @@ impl Inner {
             &mut messages,
             self.search_chat_messages(saved, session, source, start, end)?,
         )?;
+        // Resolve explicit ancestors only, in the selected chat. Missing/deleted
+        // parents stay visibly unresolved, and never become invented context.
+        let mut attempted = HashSet::new();
+        for _ in 0..4 {
+            let known = messages
+                .iter()
+                .filter_map(|m| m["message_id"].as_str())
+                .collect::<HashSet<_>>();
+            let mut ids = messages
+                .iter()
+                .flat_map(|m| [m["root_id"].as_str(), m["parent_id"].as_str()])
+                .flatten()
+                .filter(|id| valid_id(id, "om_") && !known.contains(id) && !attempted.contains(*id))
+                .map(str::to_owned)
+                .collect::<Vec<_>>();
+            ids.sort();
+            ids.dedup();
+            if ids.is_empty() {
+                break;
+            }
+            if attempted.len() + ids.len() > 200 {
+                return Err(error(
+                    "FEISHU_SYNC_LIMIT",
+                    "回复上下文超过读取上限，未推进游标",
+                ));
+            }
+            for chunk in ids.chunks(50) {
+                self.check_generation(&saved.generation, false)?;
+                let query = chunk
+                    .iter()
+                    .map(|id| ("message_ids".into(), id.clone()))
+                    .collect::<Vec<_>>();
+                let details = self.api.json(
+                    Method::GET,
+                    "/open-apis/im/v1/messages/mget",
+                    &query,
+                    Some(&session.access_token),
+                    None,
+                )?;
+                let mut parents = Vec::new();
+                for item in required_items(&details)? {
+                    if chunk.iter().any(|id| item["message_id"] == *id) {
+                        if item["chat_id"] != source.target {
+                            return Err(error("FEISHU_RESPONSE", "回复上下文不属于指定群"));
+                        }
+                        parents.push(item.clone());
+                    }
+                }
+                extend_messages(&mut messages, parents)?;
+            }
+            attempted.extend(ids);
+        }
         Ok(messages)
     }
     fn import_chat_window(
@@ -366,7 +472,8 @@ impl Inner {
     ) -> Result<usize> {
         let mut count = 0;
         let mut seen = HashSet::new();
-        let mut bundles = std::collections::BTreeMap::<i64, Vec<Value>>::new();
+        let groups = conversation_groups(&messages);
+        let mut bundles = std::collections::BTreeMap::<String, Vec<Value>>::new();
         for message in messages {
             if message["chat_id"]
                 .as_str()
@@ -425,7 +532,11 @@ impl Inner {
                 occurred
             };
             let revision = crate::hash(message["body"].to_string().as_bytes());
-            bundles.entry(seconds.div_euclid(600)*600).or_default().push(json!({"messageId":message_id,"at":iso(seconds),"seconds":seconds,"author":author,"text":text,"revision":revision}));
+            let group = groups
+                .get(message_id)
+                .cloned()
+                .unwrap_or_else(|| format!("{}", seconds.div_euclid(600) * 600));
+            bundles.entry(group).or_default().push(json!({"messageId":message_id,"at":iso(seconds),"seconds":seconds,"author":author,"text":text,"revision":revision,"threadId":message["thread_id"],"rootId":message["root_id"],"parentId":message["parent_id"]}));
         }
         for (bucket, mut messages) in bundles {
             messages.sort_by(|a, b| {
@@ -439,17 +550,18 @@ impl Inner {
                 .iter()
                 .map(|m| {
                     format!(
-                        "[{}] {} · {}\n{}",
+                        "[{}] {} · {}\n消息关系：{}\n{}",
                         m["at"].as_str().unwrap(),
                         m["author"].as_str().unwrap(),
                         m["messageId"].as_str().unwrap(),
+                        json!({"threadId":m["threadId"],"rootId":m["rootId"],"parentId":m["parentId"]}),
                         m["text"].as_str().unwrap()
                     )
                 })
                 .collect::<Vec<_>>()
                 .join("\n\n");
             let occurred = messages[0]["at"].as_str().unwrap();
-            let payload = json!({"projectId":source.project_id,"title":format!("飞书群 · {} · {}",source.target,iso(bucket)),"sourceAt":occurred,"text":text,"origin":{"provider":"feishu_chat","remoteId":format!("{}:{bucket}",source.target),"remoteRevision":revision,"url":format!("https://applink.feishu.cn/client/chat/open?openChatId={}",source.target),"author":"群成员（各条发言人见原文）","occurredAt":occurred,"fetchedAt":now()}});
+            let payload = json!({"projectId":source.project_id,"title":format!("飞书群 · {} · {}{}",source.target,occurred,if bucket.starts_with("conversation:"){ " · 关联讨论" }else{ "" }),"sourceAt":occurred,"text":text,"origin":{"provider":"feishu_chat","remoteId":format!("{}:{bucket}",source.target),"remoteRevision":revision,"url":format!("https://applink.feishu.cn/client/chat/open?openChatId={}",source.target),"author":"群成员（各条发言人见原文）","occurredAt":occurred,"fetchedAt":now()}});
             if self.commit_source(saved, source, payload)? {
                 count += 1
             }
@@ -681,5 +793,28 @@ fn message_text(m: &Value) -> Option<String> {
         None
     } else {
         Some(text)
+    }
+}
+
+#[cfg(test)]
+mod conversation_tests {
+    use super::*;
+    #[test]
+    fn explicit_reply_graph_crosses_time_buckets_without_joining_unrelated_messages() {
+        let messages = vec![
+            json!({"message_id":"om_a","create_time":"100"}),
+            json!({"message_id":"om_b","parent_id":"om_a","create_time":"9000"}),
+            json!({"message_id":"om_c","root_id":"om_a","parent_id":"om_b"}),
+            json!({"message_id":"om_unrelated"}),
+        ];
+        let groups = conversation_groups(&messages);
+        assert_eq!(groups["om_a"], groups["om_b"]);
+        assert_eq!(groups["om_a"], groups["om_c"]);
+        assert!(!groups.contains_key("om_unrelated"));
+        let cycle = vec![
+            json!({"message_id":"om_a","parent_id":"om_b"}),
+            json!({"message_id":"om_b","parent_id":"om_a"}),
+        ];
+        assert_eq!(conversation_groups(&cycle).len(), 2);
     }
 }

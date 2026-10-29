@@ -1,0 +1,20 @@
+{
+  "inventoryComplete": false,
+  "messageCount": null,
+  "modelCalls": null,
+  "tokens": null,
+  "reviewCount": null,
+  "facts": [
+    {
+      "id": "replace-with-human-fact-id",
+      "sourceMessageIds": [],
+      "expectedContent": "按完整话题人工列出事实；包括系统完全漏掉的事实",
+      "expectedLayer": null,
+      "observedLayer": "missing",
+      "supportCorrect": null,
+      "conditionsComplete": null,
+      "replacementCorrect": null,
+      "notes": "层次为 durable / working / clarify / archive；未输出用 missing；未审阅字段保持 null"
+    }
+  ]
+}

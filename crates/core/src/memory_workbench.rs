@@ -642,6 +642,7 @@ mod tests {
             task.generation,
             Ok(ai::ExtractionResult {
                 candidates: vec![ai::Candidate {
+                    retention: Default::default(),
                     facets: Default::default(),
                     kind: "fact".into(),
                     content: content.into(),

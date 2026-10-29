@@ -31,7 +31,19 @@ pub(crate) struct Facets {
 
 /// Navigation labels may be quarantined independently. Applicability fields
 /// remain untouched when invalid, so a failed condition never becomes global.
-pub(crate) fn extraction_check(facets: &Facets, content: &str, quotes: &str) -> (Value, Value, bool) {
+pub(crate) fn identity(value: &Value) -> Value {
+    let mut scope = value.clone();
+    if let Some(object) = scope.as_object_mut() {
+        object.remove("topic");
+    }
+    scope
+}
+
+pub(crate) fn extraction_check(
+    facets: &Facets,
+    content: &str,
+    quotes: &str,
+) -> (Value, Value, bool) {
     let original = json!(facets);
     let mut accepted = facets.clone();
     let mut issues = Vec::new();
@@ -74,7 +86,12 @@ pub(crate) fn checked(value: &Value, content: &str) -> Result<Value> {
         .map_err(|_| AppError::new("VALIDATION", "记忆的主体、事项或条件格式无效"))?;
     if facets.conditions.len() > 8
         || facets.conditions.iter().any(|v| v.trim().is_empty())
-        || facets.conditions.iter().collect::<std::collections::HashSet<_>>().len() != facets.conditions.len()
+        || facets
+            .conditions
+            .iter()
+            .collect::<std::collections::HashSet<_>>()
+            .len()
+            != facets.conditions.len()
         || !["", "owner", "approver", "contact"].contains(&facets.role.as_str())
         || [&facets.entity, &facets.topic]
             .into_iter()
@@ -238,7 +255,11 @@ mod tests {
     #[test]
     fn annotations_require_explicit_content_and_valid_time() {
         assert!(checked(&json!({"conditions":[""]}), "甲项目仅在紧急时适用").is_err());
-        assert!(checked(&json!({"conditions":["紧急","紧急"]}), "甲项目仅在紧急时适用").is_err());
+        assert!(checked(
+            &json!({"conditions":["紧急","紧急"]}),
+            "甲项目仅在紧急时适用"
+        )
+        .is_err());
         assert!(checked(
             &json!({"entity":"泽川","role":"approver"}),
             "泽川采购审批由李思负责"

@@ -56,6 +56,7 @@ fn source_origin(conn: &Connection, source: &str) -> Result<Value> {
 }
 
 fn eligible_source(conn: &Connection, project: &str, source: &str, as_of: &str) -> Result<bool> {
+    if conn.query_row("SELECT EXISTS(SELECT 1 FROM workspace_lifecycle WHERE archived=1 AND ((kind='source' AND entity_id=?1) OR (kind='project' AND entity_id=?2)))",rusqlite::params![source,project],|r|r.get::<_,bool>(0))? { return Ok(false); }
     let ready: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM sources WHERE id=? AND project_id=? AND status='ready')",
         params![source, project],
@@ -123,6 +124,7 @@ fn eligible_source(conn: &Connection, project: &str, source: &str, as_of: &str) 
             || origin == "user_correction"
             || content != revision_content
             || frozen(conn, &memory)?
+            || !crate::retention::eligible(&crate::retention::revision(conn, &revision_id)?, as_of)
             || !memory_facts::applicable(&memory_facts::load(conn, &revision_id)?, &[], as_of)
         {
             return Ok(false);
@@ -1074,5 +1076,17 @@ mod tests {
         for reference in &result {
             validate(&conn, reference).unwrap();
         }
+    }
+
+    #[test]
+    fn retention_review_cannot_be_bypassed_through_source_passages() {
+        let (conn, anchor) = fixture();
+        crate::retention::save_revision(
+            &conn,
+            "m:r1",
+            &json!({"layer":"working","reason":"工作状态","reviewAfter":"2000-01-01"}),
+        )
+        .unwrap();
+        assert!(passages(&conn, &[anchor]).is_empty());
     }
 }

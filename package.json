@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
+    "verify:workbench": "node --test scripts/workbench-model.test.mjs",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",
@@ -23,8 +24,13 @@
     "evaluate:memory:quality": "node scripts/evaluate-memory-quality.mjs",
     "verify:memory:quality": "node --test scripts/evaluate-memory-quality.test.mjs",
     "evaluate:memory": "node scripts/evaluate-memory.mjs",
+    "evaluate:project-questions": "node scripts/evaluate-project-questions.mjs",
+    "evaluate:project-questions:live": "node scripts/evaluate-project-questions.mjs --live",
     "evaluate:memory:live": "node scripts/evaluate-memory-live.mjs",
-    "evaluate:memory:nonvector:live": "node scripts/evaluate-memory-live.mjs --nonvector"
+    "evaluate:memory:nonvector:live": "node scripts/evaluate-memory-live.mjs --nonvector",
+    "verify:daily-use:scale": "node scripts/verify-daily-use-scale.mjs",
+    "verify:retention:scoring": "node --test scripts/score-chat-retention.test.mjs",
+    "release:preflight": "node scripts/release-preflight.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",

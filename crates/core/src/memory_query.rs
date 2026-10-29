@@ -192,12 +192,15 @@ pub(crate) fn retrieve(
     as_of: &str,
 ) -> Result<Selection> {
     let limit = limit.min(MAX_CANDIDATES);
+    crate::tasks::valid_date(as_of)?;
+    let retention_filter = format!(" AND NOT EXISTS(SELECT 1 FROM revision_retention rt WHERE rt.revision_id=r.id AND (json_extract(rt.policy,'$.layer') IN ('clarify','archive') OR (json_extract(rt.policy,'$.layer')='working' AND (json_extract(rt.policy,'$.reviewAfter') IS NULL OR json_extract(rt.policy,'$.reviewAfter')<='{as_of}'))))");
     let eligible = "FROM memories m JOIN revisions r ON r.memory_id=m.id AND r.number=m.revision AND r.content=m.content
          LEFT JOIN revision_facets f ON f.revision_id=r.id
          WHERE (?1 IS NULL OR m.project_id=?1) AND m.state='active'
          AND NOT EXISTS(SELECT 1 FROM memory_reviews v JOIN proposals p ON p.id=v.proposal_id
             WHERE v.target_id=m.id AND v.status='pending' AND p.status='pending'
             AND v.disposition IN ('conflict','uncertain'))";
+    let eligible = format!("{eligible}{retention_filter} AND NOT EXISTS(SELECT 1 FROM workspace_lifecycle l WHERE l.kind='project' AND l.entity_id=m.project_id AND l.archived=1) AND NOT EXISTS(SELECT 1 FROM revisions lr JOIN revision_evidence le ON le.revision_id=lr.id JOIN segments lg ON lg.id=le.segment_id JOIN workspace_lifecycle l ON l.kind='source' AND l.entity_id=lg.source_id AND l.archived=1 WHERE lr.memory_id=m.id)");
     let (scanned, bytes): (usize, usize) = conn.query_row(
         &format!("SELECT count(*),coalesce(sum(length(CAST(m.content AS BLOB))),0) {eligible}"),
         [scope],
