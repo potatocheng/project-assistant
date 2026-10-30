@@ -1,0 +1,272 @@
+{
+  "version": "organized-memory-implementation-v1",
+  "recordedAt": "2026-10-20T09:44:10.912Z",
+  "schema": 9,
+  "rust": {
+    "passed": 194,
+    "failed": 0,
+    "ignored": 1,
+    "logSha256": "fd10d57bc06fa65a869199adabbdb1754e444e77085bc76014bc23209eaf2d6d",
+    "log": ".local-data/memory-organized-rust-tests.log"
+  },
+  "qualityScorer": {
+    "passed": 5,
+    "failed": 0,
+    "logSha256": "d1ddb287c437608909451f729e94d4713d07865d4312abab7d4da74484c4f6fb"
+  },
+  "clippy": {
+    "passed": true,
+    "logSha256": "461f0c38b605df7f7911490786fce99cad2cf3e2c965df0f8fe29f2818c2bea0"
+  },
+  "restart": {
+    "passed": true,
+    "checks": [
+      "中文与表情原文",
+      "确认幂等",
+      "修订历史",
+      "真实进程重启",
+      "备份校验",
+      "还原及安全副本",
+      "还原后再次重启"
+    ],
+    "logSha256": "ceb2c29c16dc78df67f4e71c28ba571eeeda14874145da4a4c309f1baeb133ca"
+  },
+  "publicEvaluation": {
+    "datasetSha256": "803537c32e89dce765c8e6cef6484f332d6ef5a9c91b726a4ea957e68b461d87",
+    "casesPerEntry": 100,
+    "summary": {
+      "development:connector_memory": {
+        "allEvidenceAt1": 0.2631578947368421,
+        "allEvidenceAt12": 0.7368421052631579,
+        "allEvidenceAt3": 0.5263157894736842,
+        "allEvidenceAt6": 0.7368421052631579,
+        "answerable": 19,
+        "p50Ms": 12.5656,
+        "p95Ms": 23.0352,
+        "questions": 20,
+        "scopeViolations": 0,
+        "unanswerable": 1
+      },
+      "development:desktop_model_candidates": {
+        "allEvidenceAt1": 0.2631578947368421,
+        "allEvidenceAt12": 0.7368421052631579,
+        "allEvidenceAt3": 0.6842105263157895,
+        "allEvidenceAt6": 0.7368421052631579,
+        "answerable": 19,
+        "p50Ms": 32.5463,
+        "p95Ms": 58.6337,
+        "questions": 20,
+        "scopeViolations": 0,
+        "unanswerable": 1
+      },
+      "holdout:connector_memory": {
+        "allEvidenceAt1": 0.20833333333333334,
+        "allEvidenceAt12": 0.5833333333333334,
+        "allEvidenceAt3": 0.4583333333333333,
+        "allEvidenceAt6": 0.5833333333333334,
+        "answerable": 72,
+        "p50Ms": 16.5626,
+        "p95Ms": 29.1417,
+        "questions": 80,
+        "scopeViolations": 0,
+        "unanswerable": 8
+      },
+      "holdout:desktop_model_candidates": {
+        "allEvidenceAt1": 0.2361111111111111,
+        "allEvidenceAt12": 0.5,
+        "allEvidenceAt3": 0.4583333333333333,
+        "allEvidenceAt6": 0.5,
+        "answerable": 72,
+        "p50Ms": 33.8586,
+        "p95Ms": 84.3346,
+        "questions": 80,
+        "scopeViolations": 0,
+        "unanswerable": 8
+      }
+    },
+    "kind": "external_human_labelled_evidence_retrieval_only"
+  },
+  "fixedDevelopment": {
+    "datasetSha256": "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+    "tracks": {
+      "connector_memory": {
+        "before": {
+          "allEvidenceAt40": 0.9655172413793104,
+          "allEvidenceAt6": 0.9655172413793104,
+          "answerable": 29,
+          "cases": 35,
+          "latencyMs": {
+            "p50": 19.991600000000002,
+            "p95": 44.1447
+          },
+          "mrrAt6": 0.8994252873563218,
+          "negativeEmptyRate": 0.6666666666666666,
+          "recallAt1": 0.8103448275862069,
+          "recallAt3": 0.9310344827586207,
+          "recallAt40": 0.9655172413793104,
+          "recallAt6": 0.9655172413793104,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 6
+        },
+        "after": {
+          "allEvidenceAt40": 0.9655172413793104,
+          "allEvidenceAt6": 0.9655172413793104,
+          "answerable": 29,
+          "cases": 35,
+          "latencyMs": {
+            "p50": 7.960500000000001,
+            "p95": 28.2759
+          },
+          "mrrAt6": 0.9224137931034483,
+          "negativeEmptyRate": 0.6666666666666666,
+          "recallAt1": 0.8448275862068966,
+          "recallAt3": 0.9310344827586207,
+          "recallAt40": 0.9655172413793104,
+          "recallAt6": 0.9655172413793104,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 6
+        }
+      },
+      "desktop_local_answer": {
+        "before": {
+          "allEvidenceAt40": 0.9655172413793104,
+          "allEvidenceAt6": 0.9655172413793104,
+          "answerable": 29,
+          "cases": 35,
+          "latencyMs": {
+            "p50": 131.3894,
+            "p95": 144.3456
+          },
+          "mrrAt6": 0.9655172413793104,
+          "negativeEmptyRate": 0.6666666666666666,
+          "recallAt1": 0.9137931034482759,
+          "recallAt3": 0.9655172413793104,
+          "recallAt40": 0.9655172413793104,
+          "recallAt6": 0.9655172413793104,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 6
+        },
+        "after": {
+          "allEvidenceAt40": 0.9655172413793104,
+          "allEvidenceAt6": 0.9655172413793104,
+          "answerable": 29,
+          "cases": 35,
+          "latencyMs": {
+            "p50": 23.2138,
+            "p95": 78.9184
+          },
+          "mrrAt6": 0.9655172413793104,
+          "negativeEmptyRate": 0.6666666666666666,
+          "recallAt1": 0.9137931034482759,
+          "recallAt3": 0.9655172413793104,
+          "recallAt40": 0.9655172413793104,
+          "recallAt6": 0.9655172413793104,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 6
+        }
+      },
+      "desktop_model_context": {
+        "before": {
+          "allEvidenceAt40": 0.9655172413793104,
+          "allEvidenceAt6": 0.9655172413793104,
+          "answerable": 29,
+          "cases": 35,
+          "latencyMs": {
+            "p50": 138.15109999999999,
+            "p95": 152.7209
+          },
+          "mrrAt6": 0.9655172413793104,
+          "negativeEmptyRate": 0.6666666666666666,
+          "recallAt1": 0.9137931034482759,
+          "recallAt3": 0.9655172413793104,
+          "recallAt40": 0.9655172413793104,
+          "recallAt6": 0.9655172413793104,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 6
+        },
+        "after": {
+          "allEvidenceAt40": 0.9655172413793104,
+          "allEvidenceAt6": 0.9655172413793104,
+          "answerable": 29,
+          "cases": 35,
+          "latencyMs": {
+            "p50": 25.428900000000002,
+            "p95": 74.2554
+          },
+          "mrrAt6": 0.9655172413793104,
+          "negativeEmptyRate": 0.6666666666666666,
+          "recallAt1": 0.9137931034482759,
+          "recallAt3": 0.9655172413793104,
+          "recallAt40": 0.9655172413793104,
+          "recallAt6": 0.9655172413793104,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 6
+        }
+      }
+    },
+    "scale": [
+      {
+        "memories": 19,
+        "p50Ms": 3.206,
+        "p95Ms": 13.9755,
+        "queries": 10,
+        "top1Correct": 10
+      },
+      {
+        "memories": 119,
+        "p50Ms": 4.7978,
+        "p95Ms": 22.887500000000003,
+        "queries": 10,
+        "top1Correct": 10
+      },
+      {
+        "memories": 1019,
+        "p50Ms": 23.4031,
+        "p95Ms": 112.7689,
+        "queries": 10,
+        "top1Correct": 10
+      }
+    ]
+  },
+  "newRealModelRequests": 0,
+  "independentBusinessAccuracy": null,
+  "extractionPrecision": null,
+  "limitations": [
+    "Frontend build passed in the tool output; existing Vite chunk-size warning remains.",
+    "Public corpus paragraphs are preloaded; this skips extraction, formal memory organization, generation and semantic review.",
+    "Human labels for all generated extraction candidates and answer assertions are not yet complete.",
+    "Debug latency includes cache construction and varying machine load; not a production SLA.",
+    "Claim anchors prove textual presence, not semantic implication; optional review uses the same model in another request.",
+    "Reported token stopping threshold is post-response; missing provider usage is not counted as zero billing.",
+    "No embeddings or reranker installed. The frozen public benchmark is ready for a subsequent controlled comparison."
+  ],
+  "files": {
+    "crates/core/src/answer_contract.rs": "5ab86342b96f4986512a2c0ade8d3ef7cdba3a095097dbbe2882d7f6f2a3f8c3",
+    "crates/core/src/memory_facts.rs": "5253d784dcc4004245e219161137b9d4a2b8dce0fdbc74a158d1e6358eef2417",
+    "crates/core/src/memory_query.rs": "60426d51078187e27fc96779f51ccd43a13e88fe893fe66388c92956aec643e9",
+    "crates/core/src/question_flow.rs": "2d764cded57e50767e2d2d01f82d86e24663a4a28829c29fbbd46423505deee1",
+    "crates/core/src/search.rs": "0bd1d11457c3f5055e09021c2a42cad4367ab0c678cc5093adf46ea602e3354e",
+    "crates/core/src/ai.rs": "919a479ff5dc476fa743e4a63cbf106c9a944aab706d29839a69dbd3a0f0167b",
+    "crates/core/src/qa.rs": "fa2e5a6ca406a63b36ed9cf0609da5061a65794c19ef625fe17a84f99b987252",
+    "crates/core/src/assistant_qa.rs": "090e9322555688173aaa2a50952fa0373059c0f1f1ae1e36edf26cc60944441a",
+    "crates/core/src/db.rs": "d21bdba61f781daf567770d4fe0abd844f0db316eca9a1580d4a098389565474",
+    "crates/core/src/backup.rs": "32a65ebf09ef519dc66388743b69364a005e36f2a3088ce67b16202c4196f7dd",
+    "crates/core/src/memory.rs": "8ab1dbe48007b79553e822e389aee38642beb1ebe11530d74661e3eee876775f",
+    "crates/core/src/memory_evaluation.rs": "29508052a74e7c503d6aaa713ad7428b6306c42f507d192a0f33a0df4c018b23",
+    "crates/core/tests/nonvector_qa_engine.rs": "56ed60afbe25ae108482315dc0b3bb4a8ed9655b850504dc5e83c98569d0e20b",
+    "crates/core/tests/memory_workbench_engine.rs": "5f1c1d89eadbc03c30f279ac27a7a028ffca1a886ac27ac61669e863a52780d5",
+    "scripts/evaluate-memory-quality.mjs": "871a13b55ce1d77437cca1185015ab38f78884d8c2bc87af42bbae04325eefb2",
+    "scripts/evaluate-memory-quality.test.mjs": "18cb47ed84142d31c87c7b5de3b85804fd9780bf6ad16f95cc91978c289e0c7f",
+    "scripts/prepare-memory-public-eval.mjs": "72f5863d7a900453c41fb9168b252ffc528c00eb8f52c4d22ef70b04e74e56ee",
+    "scripts/evaluate-memory-public.mjs": "9f087da6c18ce730061a74e0f167ff96dd7ded213841c41f4f840a8ada03727e",
+    "src/App.tsx": "3ae18b7003431f7713371ea1e5bb4497dbbd2e7e08168e6d66b13a97a565b8fe",
+    "src/types.ts": "3b6a2a898a9883a0ffb7931bb870f29467e69529544a17c6210d1f4af3f9e376",
+    "src/components/delivery/AssistantWorkspace.tsx": "175bd4f4920abbdaa8f74c03f84c805d39f181dd47df04232932ebcb832e0387"
+  }
+}

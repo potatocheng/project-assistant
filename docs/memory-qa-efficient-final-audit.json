@@ -1,0 +1,2171 @@
+{
+  "version": "memory-qa-efficient-final-audit-v1",
+  "startedAt": "2026-10-20T15:32:43.599Z",
+  "finishedAt": "2026-10-20T15:34:04.224Z",
+  "passed": true,
+  "apiCalls": 0,
+  "readOnlyExceptThisAudit": true,
+  "artifacts": {
+    "pilot": {
+      "file": "docs/memory-public-live-qa-efficient-dev-results.json",
+      "compactSha256": "e2d2590b1bc09c5472ca3e24bbf4a7a66f5f598e7c4df5c8e58bbe0ca9880c93",
+      "detailFile": ".local-data\\public-memory-live-WKoUvo\\results.json",
+      "detailSha256": "a91a10f5c8049be1d80c7562d48befb9f934ed9b3b805172fe84d3ecff084252"
+    },
+    "dev": {
+      "file": "docs/memory-public-live-qa-efficient-dev-v2-results.json",
+      "compactSha256": "785c4cb11953cb5533eb7165e81ff49a502a6cf75b56d225a5daccf348ce390f",
+      "detailFile": ".local-data\\public-memory-live-VtyS0h\\results.json",
+      "detailSha256": "bc44436a5a646967dfe8a6ccde306701193f5199575d4ca7c6a0e2b59abf7600"
+    },
+    "full": {
+      "file": "docs/memory-public-live-qa-efficient-full-results.json",
+      "compactSha256": "7bd5f73eebf4a8962c9449722f2f5b8474ff40faa534ac71be3cbe932e06e22a",
+      "detailFile": ".local-data\\public-memory-live-fICS4v\\results.json",
+      "detailSha256": "04ae1a36575327846501d17d8d2e1a3321e18879260f0b1d2af441b5e4679439"
+    },
+    "oldDev": {
+      "file": "docs/memory-public-live-retrieval-dev-v2-results.json",
+      "compactSha256": "d27065eff53d3c43bad2aa9c9536ff804eaf2f1fe70e400792a183c89f625fe6",
+      "detailFile": ".local-data\\public-memory-live-RRTTuu\\results.json",
+      "detailSha256": "db2f11549031f1f2fe309a80c19971da04da5c17bfb48e819d0a92f334757cf8"
+    },
+    "oldFull": {
+      "file": "docs/memory-public-live-retrieval-full-results.json",
+      "compactSha256": "644ddb956958b52ede5b54a9ac3e657bd7e138fada20df9b15ab688b4b7a097d",
+      "detailFile": ".local-data\\public-memory-live-mtzTag\\results.json",
+      "detailSha256": "b00c9c614003acb22e4a00d81443efe3be6f140a3a43709e28256e554a9f9a56"
+    }
+  },
+  "provenance": {
+    "sourceFiles": 28,
+    "evaluationFiles": 14,
+    "sourceCurrentAndSnapshotsMatched": true,
+    "evaluationCurrentAndSnapshotsMatched": true,
+    "binarySha256": "57248d7658e4b18cf03bfcaa2a75fbc4848b5c4f09e82aeec3ccf5b392d82f89",
+    "registrationSha256": "52c22592ef95ddda299c4f8e7e9a39115ae7d2db294a6b88d18d238ba3cb949e",
+    "gateSha256": "9516ba2505a53a82861641cf23cf4a5240867cfe8efaaa3f53938444f3f756cb",
+    "gateRecordedAt": "2026-10-20T15:00:33.739Z",
+    "devFinishedAt": "2026-10-20T15:00:25.533Z",
+    "fullStartedAt": "2026-10-20T15:00:45.033Z",
+    "testsFinishedAt": "2026-10-20T14:53:28.618Z",
+    "gateBeforeFull": true,
+    "extractionCoreUnchanged": true
+  },
+  "quality": {
+    "all": {
+      "questions": 100,
+      "answerable": 91,
+      "unanswerable": 9,
+      "memory": {
+        "yes": 80,
+        "no": 3,
+        "partial": 8
+      },
+      "entries": {
+        "desktop": {
+          "historicalOriginalCorrect": 55,
+          "pairedPreviousCorrect": 53,
+          "currentCorrect": 62,
+          "pairedNewSuccess": 10,
+          "pairedRegression": 1,
+          "historicalOriginalReferences": 69,
+          "currentReferences": 64,
+          "historicalOriginalCorrectAbstention": 7,
+          "pairedPreviousCorrectAbstention": 7,
+          "currentCorrectAbstention": 6
+        },
+        "connector": {
+          "historicalOriginalCorrect": 55,
+          "pairedPreviousCorrect": 53,
+          "currentCorrect": 60,
+          "pairedNewSuccess": 9,
+          "pairedRegression": 2,
+          "historicalOriginalReferences": 68,
+          "currentReferences": 65,
+          "historicalOriginalCorrectAbstention": 6,
+          "pairedPreviousCorrectAbstention": 6,
+          "currentCorrectAbstention": 6
+        }
+      }
+    },
+    "development": {
+      "questions": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "memory": {
+        "yes": 17,
+        "no": 1,
+        "partial": 1
+      },
+      "entries": {
+        "desktop": {
+          "historicalOriginalCorrect": 9,
+          "pairedPreviousCorrect": 10,
+          "currentCorrect": 13,
+          "pairedNewSuccess": 3,
+          "pairedRegression": 0,
+          "historicalOriginalReferences": 16,
+          "currentReferences": 16,
+          "historicalOriginalCorrectAbstention": 1,
+          "pairedPreviousCorrectAbstention": 1,
+          "currentCorrectAbstention": 1
+        },
+        "connector": {
+          "historicalOriginalCorrect": 12,
+          "pairedPreviousCorrect": 13,
+          "currentCorrect": 14,
+          "pairedNewSuccess": 2,
+          "pairedRegression": 1,
+          "historicalOriginalReferences": 16,
+          "currentReferences": 16,
+          "historicalOriginalCorrectAbstention": 1,
+          "pairedPreviousCorrectAbstention": 1,
+          "currentCorrectAbstention": 1
+        }
+      }
+    },
+    "holdout": {
+      "questions": 80,
+      "answerable": 72,
+      "unanswerable": 8,
+      "memory": {
+        "yes": 63,
+        "partial": 7,
+        "no": 2
+      },
+      "entries": {
+        "desktop": {
+          "historicalOriginalCorrect": 46,
+          "pairedPreviousCorrect": 43,
+          "currentCorrect": 49,
+          "pairedNewSuccess": 7,
+          "pairedRegression": 1,
+          "historicalOriginalReferences": 53,
+          "currentReferences": 48,
+          "historicalOriginalCorrectAbstention": 6,
+          "pairedPreviousCorrectAbstention": 6,
+          "currentCorrectAbstention": 5
+        },
+        "connector": {
+          "historicalOriginalCorrect": 43,
+          "pairedPreviousCorrect": 40,
+          "currentCorrect": 46,
+          "pairedNewSuccess": 7,
+          "pairedRegression": 1,
+          "historicalOriginalReferences": 52,
+          "currentReferences": 49,
+          "historicalOriginalCorrectAbstention": 5,
+          "pairedPreviousCorrectAbstention": 5,
+          "currentCorrectAbstention": 5
+        }
+      }
+    }
+  },
+  "formalMemories": 4604,
+  "extractionSucceeded": 36,
+  "rawProviderUsage": {
+    "pilot": {
+      "workspace": ".local-data\\public-memory-live-WKoUvo",
+      "requests": 252,
+      "totalTokens": 1162094,
+      "inputTokens": 996491,
+      "outputTokens": 165603,
+      "byStage": {
+        "extraction:extraction": {
+          "requests": 100,
+          "inputTokens": 286792,
+          "outputTokens": 148156,
+          "totalTokens": 434948
+        },
+        "qa:generation": {
+          "requests": 46,
+          "inputTokens": 222458,
+          "outputTokens": 6763,
+          "totalTokens": 229221
+        },
+        "qa:answer_review": {
+          "requests": 40,
+          "inputTokens": 47452,
+          "outputTokens": 3160,
+          "totalTokens": 50612
+        },
+        "qa:query_rewrite": {
+          "requests": 6,
+          "inputTokens": 9886,
+          "outputTokens": 172,
+          "totalTokens": 10058
+        },
+        "judge:answer": {
+          "requests": 20,
+          "inputTokens": 55931,
+          "outputTokens": 2780,
+          "totalTokens": 58711
+        },
+        "judge:memory": {
+          "requests": 20,
+          "inputTokens": 304160,
+          "outputTokens": 2779,
+          "totalTokens": 306939
+        },
+        "judge:retrieval": {
+          "requests": 20,
+          "inputTokens": 69812,
+          "outputTokens": 1793,
+          "totalTokens": 71605
+        }
+      },
+      "transcriptSha256": "a7ea944f7d7208d0e533f24e5cdcdc32ed5c2f4a3d0ba35a4a36acfdad89d053"
+    },
+    "dev": {
+      "workspace": ".local-data\\public-memory-live-VtyS0h",
+      "requests": 243,
+      "totalTokens": 1128989,
+      "inputTokens": 965060,
+      "outputTokens": 163929,
+      "byStage": {
+        "extraction:extraction": {
+          "requests": 100,
+          "inputTokens": 287224,
+          "outputTokens": 147636,
+          "totalTokens": 434860
+        },
+        "qa:generation": {
+          "requests": 43,
+          "inputTokens": 205897,
+          "outputTokens": 6017,
+          "totalTokens": 211914
+        },
+        "qa:answer_review": {
+          "requests": 37,
+          "inputTokens": 42306,
+          "outputTokens": 2835,
+          "totalTokens": 45141
+        },
+        "qa:query_rewrite": {
+          "requests": 3,
+          "inputTokens": 5065,
+          "outputTokens": 71,
+          "totalTokens": 5136
+        },
+        "judge:answer": {
+          "requests": 20,
+          "inputTokens": 54493,
+          "outputTokens": 2716,
+          "totalTokens": 57209
+        },
+        "judge:memory": {
+          "requests": 20,
+          "inputTokens": 302331,
+          "outputTokens": 2838,
+          "totalTokens": 305169
+        },
+        "judge:retrieval": {
+          "requests": 20,
+          "inputTokens": 67744,
+          "outputTokens": 1816,
+          "totalTokens": 69560
+        }
+      },
+      "transcriptSha256": "bb4ff54fdca108e506ff5090cac32bfabff6cffddbc95a9a3ced883fd9ac5151"
+    },
+    "full": {
+      "workspace": ".local-data\\public-memory-live-fICS4v",
+      "requests": 1279,
+      "totalTokens": 5890428,
+      "inputTokens": 5076191,
+      "outputTokens": 814237,
+      "byStage": {
+        "extraction:extraction": {
+          "requests": 494,
+          "inputTokens": 1316233,
+          "outputTokens": 723245,
+          "totalTokens": 2039478
+        },
+        "qa:generation": {
+          "requests": 241,
+          "inputTokens": 1153182,
+          "outputTokens": 35895,
+          "totalTokens": 1189077
+        },
+        "qa:answer_review": {
+          "requests": 199,
+          "inputTokens": 234043,
+          "outputTokens": 15947,
+          "totalTokens": 249990
+        },
+        "qa:query_rewrite": {
+          "requests": 45,
+          "inputTokens": 72731,
+          "outputTokens": 1276,
+          "totalTokens": 74007
+        },
+        "judge:answer": {
+          "requests": 100,
+          "inputTokens": 289445,
+          "outputTokens": 13945,
+          "totalTokens": 303390
+        },
+        "judge:memory": {
+          "requests": 100,
+          "inputTokens": 1672412,
+          "outputTokens": 14794,
+          "totalTokens": 1687206
+        },
+        "judge:retrieval": {
+          "requests": 100,
+          "inputTokens": 338145,
+          "outputTokens": 9135,
+          "totalTokens": 347280
+        }
+      },
+      "transcriptSha256": "2a4e387e15eb9a1aa793646e940b51588839fc4f97eba5a868d3aa0367ad434e"
+    }
+  },
+  "totalCurrentRound": {
+    "requests": 1774,
+    "reportedTokens": 8181511
+  },
+  "sharedDevelopmentBudget": {
+    "requests": 495,
+    "reportedTokens": 2291083,
+    "maxRequests": 600,
+    "maxTokens": 3000000,
+    "includesFailedPilot": true,
+    "excludesFull": true
+  },
+  "fullBudget": {
+    "requests": 1279,
+    "reportedTokens": 5890428,
+    "maxRequests": 2000,
+    "maxTokens": 12000000
+  },
+  "qaEfficiency": {
+    "previousTokens": 2903461,
+    "currentTokens": 1513074,
+    "reductionFraction": 0.47887228380198665
+  },
+  "capture": {
+    "entries": 200,
+    "generations": 241,
+    "indexedReferences": 4995,
+    "reviewResponses": 199,
+    "maxCalls": 5,
+    "maxTraceInputChars": 58623,
+    "fallback": [
+      {
+        "id": "6844683935d0d8f588fa06530f5068bf3e1ed0c0",
+        "entry": "connector",
+        "generationIndex": 0,
+        "receiptIds": [
+          288,
+          290,
+          291,
+          293,
+          295
+        ]
+      },
+      {
+        "id": "f85f2a532e7e700d9f8f9c09cd08d4e47b87bdd3",
+        "entry": "connector",
+        "generationIndex": 0,
+        "receiptIds": [
+          466,
+          470,
+          473,
+          475,
+          478
+        ]
+      }
+    ],
+    "unchangedContext": [],
+    "qaErrors": 0,
+    "scopeViolations": 0
+  },
+  "judgeAudit": {
+    "questions": 100,
+    "stageRequests": 300,
+    "anonymousMappingsVerified": 100,
+    "rawProviderLabelsAndReasonsMatched": true,
+    "answerInputsMatchedCurrentAndHistoricalBaseline": true,
+    "retrievalInputsMatchedProducerSelectedReferences": true,
+    "syntaxRecoveries": 5,
+    "losslessEnvelopeNormalizations": 5,
+    "modelReevaluations": 0,
+    "judgeErrors": 0
+  },
+  "reviewCalibration": {
+    "desktop": {
+      "validReviews": 100,
+      "completeAnswerTrueReviews": 86,
+      "selectedRawUnknownsCleared": 32,
+      "selectedRawUnknownsClearedOutcomes": {
+        "partial": 13,
+        "yes": 16,
+        "no": 3
+      },
+      "completeReviewedFinalGrounded": 86,
+      "completeReviewedFinalGroundedOutcomes": {
+        "partial": 18,
+        "yes": 62,
+        "no": 6
+      },
+      "unknownsClearedCases": [
+        {
+          "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 88,
+          "reviewReceiptId": 90,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "Records do not describe how the neural network architecture itself accommodates a variable/unknown number of senses per word (e.g., batching or padding mechanism); only the pair-construction and highest-probability selection are recorded."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 136,
+          "reviewReceiptId": 138,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [
+            "No record gives the individual ROUGE-1, ROUGE-2 or ROUGE-L score of the highest-performing model, nor identifies which model is highest-performing; only the 33.33 average on CNN/Daily Mail is recorded."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "2ea4347f1992b0b3958c4844681ff0fe4d0dd1dd",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 171,
+          "reviewReceiptId": 172,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录未给出 NeuronBlocks 所含神经网络模块的完整清单或逐项枚举。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "3355918bbdccac644afe441f085d0ffbbad565d7",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 282,
+          "reviewReceiptId": 284,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The exact formula (DISPLAY_FORM4) for computing the per-word supervised polarity score is not shown in the provided excerpts."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "2a564b092916f2fabbfe893cf13de169945ef2e1",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 304,
+          "reviewReceiptId": 305,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The size and composition of the English movie corpus are not recorded.",
+            "The source website for the Turkish movie reviews is not named."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "6b9b9e5d154cb963f6d921093539490daa5ebbae",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 278,
+          "reviewReceiptId": 279,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The names of the two PMI variants proposed as secondary contributions are not recorded; only NNEGPMI is explicitly named."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "d6ea7a30b0b61ae126b00b59d2a14fff2ef887bf",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 446,
+          "reviewReceiptId": 449,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not specify a complete or definitive list of text analysis methods used by the project."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "b970f48d30775d3468952795bc72976baab3438e",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 457,
+          "reviewReceiptId": 459,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not specify which particular thorny issues these are."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "126ff22bfcc14a2f7e1a06a91ba7b646003e9cf0",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 366,
+          "reviewReceiptId": 370,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not state the baseline's exact BLEU score or its full training-data details beyond 6m instances."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "e6583c60b13b87fc37af75ffc975e7e316d4f4e0",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 374,
+          "reviewReceiptId": 376,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not specify the exact stimulus presentation format (e.g., visual vs. auditory cues) used to elicit event-related responses."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "7cd22ca9e107d2b13a7cc94252aaa9007976b338",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 476,
+          "reviewReceiptId": 479,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "No record describes an explicit inspection or analysis of whether the model learned to associate image parts with entity-related words; the records only describe attention behavior and prediction examples."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "ee7e9a948ee6888aa5830b1a3d0d148ff656d864",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 522,
+          "reviewReceiptId": 524,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The overall size of Airbnb (e.g., total listings, revenue, or company size) is not recorded; only the dataset's roughly 40,000 Manhattan listings is stated."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "56b7319be68197727baa7d498fa38af0a8440fe4",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 565,
+          "reviewReceiptId": 568,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [
+            "No record ranks or quantifies which individual extracted features were most influential; only polarity, POS and NER are named as improving F1 in LSTM-CRF."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "6b53e1f46ae4ba9b75117fc6e593abded89366be",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 659,
+          "reviewReceiptId": 660,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录中未完整列出所有被测试算法的名称清单。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "01e2d10178347d177519f792f86f25575106ddc7",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 634,
+          "reviewReceiptId": 636,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not name the specific datasets/corpora beyond the three LORELEI language corpora (Uzbek, Mandarin, Turkish); exact dataset names are not recorded."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "021bfb7e180d67112b74f05ecb3fa13acc036c86",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 640,
+          "reviewReceiptId": 641,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录未说明HMM式音素类单元的无监督学习具体采用何种训练算法或初始化方式。",
+            "记录未说明UTD与HMM方法之间是否存在组合或先后依赖关系。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "5c3e98e3cebaecd5d3e75ec2c9fc3dd267ac3c83",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 699,
+          "reviewReceiptId": 701,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The full list of experiments conducted is not recorded; only the additional ironic-to-non-ironic transformation experiments and automatic evaluations are described."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "14b8ae5656e7d4ee02237288372d9e682b24fdb8",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 713,
+          "reviewReceiptId": 716,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not provide a dedicated, itemized list of difficulties specific to modeling the ironic pattern beyond the general statements cited."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "b1ce129678e37070e69f01332f1a8587e18e06b0",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 738,
+          "reviewReceiptId": 740,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not state a single named dataset used to train the model; they describe training on tweets (3,216 human-annotated tweets) and on features derived from them."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "f2155dc4aeab86bf31a838c8ff388c85440fce6e",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 796,
+          "reviewReceiptId": 797,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [
+            "The records do not state whether the method improves sentiment classification overall; they report chunk features as slightly harmful and mSynC as similar to ELMo-transformer, but no explicit improvement conclusion for sentiment classification."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "86bf75245358f17e35fc133e46a92439ac86d472",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 819,
+          "reviewReceiptId": 820,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [
+            "The records do not explicitly identify which two approaches the question refers to; the gains are reported collectively for \"both settings\" rather than per approach.",
+            "The fourth downstream task and the specific magnitude of gains on the three tasks are not recorded."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "22732cb9476e521452bf0538f3fdb94cf3867651",
+          "entry": "desktop",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 824,
+          "reviewReceiptId": 825,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not describe the specific stylistic features obtained by this work's own method; they only mention stylistic features in prior work and their limitations."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "4e748cb2b5e74d905d9b24b53be6cfdf326e8054",
+          "entry": "desktop",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 851,
+          "reviewReceiptId": 853,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not give a complete itemized list of the specific traditional linguistic features used by the authors' own system."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "4fa6fbb9df1a4c32583d4ef70d2b29ece4b3d802",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 850,
+          "reviewReceiptId": 852,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The specific identity/name of BIBREF26 is not given in the records.",
+            "No other named comparison models beyond the Big Transformer baseline and BIBREF26 are recorded."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "6ca938324dc7e1742a840d0a54dc13cc207394a1",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 859,
+          "reviewReceiptId": 860,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not name the other dataset(s) referred to as \"both datasets\" evaluated with case-sensitive de-tokenized BLEU."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "72f7ef55e150e16dcf97fe443aff9971a32414ef",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 901,
+          "reviewReceiptId": 902,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not explicitly state that the POS F1 gains (+1.86, +1.80, +2.19) are measured against a baseline BERT tagger; the comparison baseline for these POS numbers is not specified."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "23b2901264bda91045258b5d4120879ae292e950",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 922,
+          "reviewReceiptId": 924,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [
+            "No record specifies other method improvements for F1 on paraphrase identification beyond the DSC loss replacement."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "b5bc34e1e381dbf972d0b594fe8c66ff75305d71",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 932,
+          "reviewReceiptId": 933,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not state whether the English +0.29/+0.96 figures are F1 improvements specifically; only the Chinese figures are explicitly labeled as F1 improvements."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "af34051bf3e628c1e2a00b110bb84e5f018b419f",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 946,
+          "reviewReceiptId": 947,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not provide a complete enumerated list of all baselines or their full names/configurations beyond those mentioned."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "876700622bd6811d903e65314ac75971bbe23dcc",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 905,
+          "reviewReceiptId": 907,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The specific name or identity of the challenge and its released datasets is not recorded."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "37edc25e39515ffc2d92115d2fcd9e6ceb18898b",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 914,
+          "reviewReceiptId": 916,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The question's intended meaning of \"baseline\" (e.g., baseline scores, baseline setup, or baseline systems) is not specified, so a single baseline value or definition cannot be confirmed."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "6a31db1aca57a818f36bba9002561724655372a7",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 970,
+          "reviewReceiptId": 971,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [
+            "The records do not state the number of users, comments, or total data volume for the Chinese FBFans dataset; only the post count (32,595) is recorded."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        }
+      ],
+      "completeReviewedNotFullyCorrectCases": [
+        {
+          "id": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 18,
+          "reviewReceiptId": 20,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "747b847d687f703cc20a87877c5b138f26ff137d",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 74,
+          "reviewReceiptId": 75,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 85,
+          "reviewReceiptId": 86,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 88,
+          "reviewReceiptId": 90,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "Records do not describe how the neural network architecture itself accommodates a variable/unknown number of senses per word (e.g., batching or padding mechanism); only the pair-construction and highest-probability selection are recorded."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "dd76130ec5fac477123fe8880472d03fbafddef6",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 314,
+          "reviewReceiptId": 317,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "2ea4347f1992b0b3958c4844681ff0fe4d0dd1dd",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 171,
+          "reviewReceiptId": 172,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录未给出 NeuronBlocks 所含神经网络模块的完整清单或逐项枚举。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "7705dd04acedaefee30d8b2c9978537afb2040dc",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 226,
+          "reviewReceiptId": 228,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "3355918bbdccac644afe441f085d0ffbbad565d7",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 282,
+          "reviewReceiptId": 284,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The exact formula (DISPLAY_FORM4) for computing the per-word supervised polarity score is not shown in the provided excerpts."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "d6ea7a30b0b61ae126b00b59d2a14fff2ef887bf",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 446,
+          "reviewReceiptId": 449,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not specify a complete or definitive list of text analysis methods used by the project."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "b970f48d30775d3468952795bc72976baab3438e",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 457,
+          "reviewReceiptId": 459,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not specify which particular thorny issues these are."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "975e60535724f4149c7488699a199ba2920a062c",
+          "entry": "desktop",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 467,
+          "reviewReceiptId": 471,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "7cd22ca9e107d2b13a7cc94252aaa9007976b338",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 476,
+          "reviewReceiptId": 479,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "No record describes an explicit inspection or analysis of whether the model learned to associate image parts with entity-related words; the records only describe attention behavior and prediction examples."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "56b7319be68197727baa7d498fa38af0a8440fe4",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 565,
+          "reviewReceiptId": 568,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [
+            "No record ranks or quantifies which individual extracted features were most influential; only polarity, POS and NER are named as improving F1 in LSTM-CRF."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "6b53e1f46ae4ba9b75117fc6e593abded89366be",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 659,
+          "reviewReceiptId": 660,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录中未完整列出所有被测试算法的名称清单。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "01e2d10178347d177519f792f86f25575106ddc7",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 634,
+          "reviewReceiptId": 636,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not name the specific datasets/corpora beyond the three LORELEI language corpora (Uzbek, Mandarin, Turkish); exact dataset names are not recorded."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "5c3e98e3cebaecd5d3e75ec2c9fc3dd267ac3c83",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 699,
+          "reviewReceiptId": 701,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The full list of experiments conducted is not recorded; only the additional ironic-to-non-ironic transformation experiments and automatic evaluations are described."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "e3a2d8886f03e78ed5e138df870f48635875727e",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 724,
+          "reviewReceiptId": 726,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "b1ce129678e37070e69f01332f1a8587e18e06b0",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 738,
+          "reviewReceiptId": 740,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not state a single named dataset used to train the model; they describe training on tweets (3,216 human-annotated tweets) and on features derived from them."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "22732cb9476e521452bf0538f3fdb94cf3867651",
+          "entry": "desktop",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 824,
+          "reviewReceiptId": 825,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not describe the specific stylistic features obtained by this work's own method; they only mention stylistic features in prior work and their limitations."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "4e748cb2b5e74d905d9b24b53be6cfdf326e8054",
+          "entry": "desktop",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 851,
+          "reviewReceiptId": 853,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not give a complete itemized list of the specific traditional linguistic features used by the authors' own system."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "6ca938324dc7e1742a840d0a54dc13cc207394a1",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 859,
+          "reviewReceiptId": 860,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The records do not name the other dataset(s) referred to as \"both datasets\" evaluated with case-sensitive de-tokenized BLEU."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "022c365a14fdec406c7a945a1a18e7e79df37f08",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 940,
+          "reviewReceiptId": 942,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "876700622bd6811d903e65314ac75971bbe23dcc",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 905,
+          "reviewReceiptId": 907,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The specific name or identity of the challenge and its released datasets is not recorded."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "37edc25e39515ffc2d92115d2fcd9e6ceb18898b",
+          "entry": "desktop",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 914,
+          "reviewReceiptId": 916,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "The question's intended meaning of \"baseline\" (e.g., baseline scores, baseline setup, or baseline systems) is not specified, so a single baseline value or definition cannot be confirmed."
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        }
+      ]
+    },
+    "connector": {
+      "validReviews": 99,
+      "completeAnswerTrueReviews": 82,
+      "selectedRawUnknownsCleared": 30,
+      "selectedRawUnknownsClearedOutcomes": {
+        "partial": 12,
+        "yes": 13,
+        "no": 5
+      },
+      "completeReviewedFinalGrounded": 82,
+      "completeReviewedFinalGroundedOutcomes": {
+        "partial": 18,
+        "yes": 58,
+        "no": 6
+      },
+      "unknownsClearedCases": [
+        {
+          "id": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+          "entry": "connector",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 22,
+          "reviewReceiptId": 23,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "序列位置是否作为显式输入特征未被明确记录。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+          "entry": "connector",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 94,
+          "reviewReceiptId": 96,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录该架构在模型结构层面如何显式处理义项数量可变（如动态输入长度或聚合机制）的细节。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+          "entry": "connector",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 139,
+          "reviewReceiptId": 141,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录未明确标注“最高性能模型”是哪一具体模型，也未给出其完整的ROUGE-1/ROUGE-2/ROUGE-L各项分数；仅记录了上述平均分与相对提升。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "dd76130ec5fac477123fe8880472d03fbafddef6",
+          "entry": "connector",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 318,
+          "reviewReceiptId": 320,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "论文未在已记录内容中给出该领域现状的完整清单或统一结论。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "7705dd04acedaefee30d8b2c9978537afb2040dc",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 229,
+          "reviewReceiptId": 232,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录未明确说明所比较的基线具体是哪些已发表的词级或字符级模型。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "3355918bbdccac644afe441f085d0ffbbad565d7",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 287,
+          "reviewReceiptId": 289,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "(DISPLAY_FORM4)的具体公式内容未在记录中给出，无法确认完整计算式。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "2a564b092916f2fabbfe893cf13de169945ef2e1",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 307,
+          "reviewReceiptId": 308,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "英文电影语料库的评论数量、平均词数等具体规模未记录。",
+            "电影数据集的具体采集网站名称、时间范围未记录。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "6b9b9e5d154cb963f6d921093539490daa5ebbae",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 281,
+          "reviewReceiptId": 283,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "两个PMI变体的具体名称未完整记录（仅记录NNEGPMI一个）。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "d6ea7a30b0b61ae126b00b59d2a14fff2ef887bf",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 451,
+          "reviewReceiptId": 453,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录未明确“they”具体指谁，也未给出所采用文本分析方法的完整清单或具体方法名称。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "b970f48d30775d3468952795bc72976baab3438e",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 462,
+          "reviewReceiptId": 464,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录未具体列出这些“棘手问题”的内容或种类。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "975e60535724f4149c7488699a199ba2920a062c",
+          "entry": "connector",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 474,
+          "reviewReceiptId": 477,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "“他们”具体指谁不明确；记录中未列出具体学科、机构或人员背景。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "126ff22bfcc14a2f7e1a06a91ba7b646003e9cf0",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 373,
+          "reviewReceiptId": 375,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录基线模型的具体名称、训练超参数或所用数据集名称。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "e6583c60b13b87fc37af75ffc975e7e316d4f4e0",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 379,
+          "reviewReceiptId": 381,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录向受试者呈现以诱发事件相关响应的具体刺激内容或呈现方式。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "7cd22ca9e107d2b13a7cc94252aaa9007976b338",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 481,
+          "reviewReceiptId": 482,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录是否对模型进行过检查，以确认其是否学会了将图像部分与实体相关词语关联。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "ee7e9a948ee6888aa5830b1a3d0d148ff656d864",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 525,
+          "reviewReceiptId": 526,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "“Airbnb的大小”所指不明确；记录中未给出Airbnb公司或平台的规模，仅有约40,000条曼哈顿房源的数据量。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "01e2d10178347d177519f792f86f25575106ddc7",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 637,
+          "reviewReceiptId": 638,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未明确记录三种LORELEI语料库的具体名称或语言列表。",
+            "未明确记录评估所用数据集的完整清单或规模。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "021bfb7e180d67112b74f05ecb3fa13acc036c86",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 642,
+          "reviewReceiptId": 644,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录音素类单元词表的具体发现算法细节（如单元数量确定、初始化方式）。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "5c3e98e3cebaecd5d3e75ec2c9fc3dd267ac3c83",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 702,
+          "reviewReceiptId": 703,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录实验的完整清单、数据集、模型配置或具体指标数值。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "14b8ae5656e7d4ee02237288372d9e682b24fdb8",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 719,
+          "reviewReceiptId": 722,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录“讽刺模式”这一具体术语所指的建模困难；上述困难分别针对讽刺生成、句子转换和情感分析。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "f2155dc4aeab86bf31a838c8ff388c85440fce6e",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 800,
+          "reviewReceiptId": 801,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录该方法在情感分类任务上是否带来提升的具体结论或数值。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "ed6a15f0f7fa4594e51d5bde21cc0c6c1bedbfdc",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 812,
+          "reviewReceiptId": 814,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [
+            "浅层句法感知上下文嵌入在多少个探测任务上优于ELMo嵌入，未记录具体数量。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "86bf75245358f17e35fc133e46a92439ac86d472",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 821,
+          "reviewReceiptId": 823,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "“这两种方法”具体指哪两种方法未明确记录，无法确认其各自相对 ELMo-only 基线的改进。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "9132d56e26844dc13b3355448d0f14b95bd2178a",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 831,
+          "reviewReceiptId": 832,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录下游任务数据上自动获得的具体句法特征种类；仅有任务数据自动分块及浅层句法信息自动获取的笼统记录。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "22732cb9476e521452bf0538f3fdb94cf3867651",
+          "entry": "connector",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 828,
+          "reviewReceiptId": 830,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录“stylistic features”的完整种类清单或分类体系。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "4e748cb2b5e74d905d9b24b53be6cfdf326e8054",
+          "entry": "connector",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 856,
+          "reviewReceiptId": 858,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录传统语言学特征的具体完整清单或逐项定义。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "4fa6fbb9df1a4c32583d4ef70d2b29ece4b3d802",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 854,
+          "reviewReceiptId": 857,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "除 BIBREF26 外，记录中未明确列出其他被比较模型的具体名称。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "6ca938324dc7e1742a840d0a54dc13cc207394a1",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 861,
+          "reviewReceiptId": 864,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "除 WMT'18 英语-土耳其语外，其他数据集名称未在记录中明确列出。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "b5bc34e1e381dbf972d0b594fe8c66ff75305d71",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 934,
+          "reviewReceiptId": 936,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "中文数据集相对哪个基线模型取得上述F1提升，记录未明确说明。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "af34051bf3e628c1e2a00b110bb84e5f018b419f",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 948,
+          "reviewReceiptId": 950,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录基线的完整清单或各基线的具体名称与数量。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "6a31db1aca57a818f36bba9002561724655372a7",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 974,
+          "reviewReceiptId": 975,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [
+            "记录未明确给出中文数据（FBFans）的“size”具体所指或完整规模指标；仅有 32,595 条帖子的记录，其他规模字段未知。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        }
+      ],
+      "completeReviewedNotFullyCorrectCases": [
+        {
+          "id": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+          "entry": "connector",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 22,
+          "reviewReceiptId": 23,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "序列位置是否作为显式输入特征未被明确记录。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+          "entry": "connector",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 87,
+          "reviewReceiptId": 89,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+          "entry": "connector",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 94,
+          "reviewReceiptId": 96,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录该架构在模型结构层面如何显式处理义项数量可变（如动态输入长度或聚合机制）的细节。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "dd76130ec5fac477123fe8880472d03fbafddef6",
+          "entry": "connector",
+          "answerable": true,
+          "split": "development",
+          "generationReceiptId": 318,
+          "reviewReceiptId": 320,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "论文未在已记录内容中给出该领域现状的完整清单或统一结论。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "7705dd04acedaefee30d8b2c9978537afb2040dc",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 229,
+          "reviewReceiptId": 232,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录未明确说明所比较的基线具体是哪些已发表的词级或字符级模型。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "3355918bbdccac644afe441f085d0ffbbad565d7",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 287,
+          "reviewReceiptId": 289,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "(DISPLAY_FORM4)的具体公式内容未在记录中给出，无法确认完整计算式。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "2a564b092916f2fabbfe893cf13de169945ef2e1",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 307,
+          "reviewReceiptId": 308,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "英文电影语料库的评论数量、平均词数等具体规模未记录。",
+            "电影数据集的具体采集网站名称、时间范围未记录。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "d6ea7a30b0b61ae126b00b59d2a14fff2ef887bf",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 451,
+          "reviewReceiptId": 453,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录未明确“they”具体指谁，也未给出所采用文本分析方法的完整清单或具体方法名称。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "b970f48d30775d3468952795bc72976baab3438e",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 462,
+          "reviewReceiptId": 464,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "记录未具体列出这些“棘手问题”的内容或种类。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "975e60535724f4149c7488699a199ba2920a062c",
+          "entry": "connector",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 474,
+          "reviewReceiptId": 477,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "“他们”具体指谁不明确；记录中未列出具体学科、机构或人员背景。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "7cd22ca9e107d2b13a7cc94252aaa9007976b338",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 481,
+          "reviewReceiptId": 482,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录是否对模型进行过检查，以确认其是否学会了将图像部分与实体相关词语关联。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "cb6a8c642575d3577d1840ca2f4cd2cc2c3397c5",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 571,
+          "reviewReceiptId": 574,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "01e2d10178347d177519f792f86f25575106ddc7",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 637,
+          "reviewReceiptId": 638,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未明确记录三种LORELEI语料库的具体名称或语言列表。",
+            "未明确记录评估所用数据集的完整清单或规模。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "5c3e98e3cebaecd5d3e75ec2c9fc3dd267ac3c83",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 702,
+          "reviewReceiptId": 703,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录实验的完整清单、数据集、模型配置或具体指标数值。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "14b8ae5656e7d4ee02237288372d9e682b24fdb8",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 719,
+          "reviewReceiptId": 722,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录“讽刺模式”这一具体术语所指的建模困难；上述困难分别针对讽刺生成、句子转换和情感分析。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "e3a2d8886f03e78ed5e138df870f48635875727e",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 730,
+          "reviewReceiptId": 732,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "b1ce129678e37070e69f01332f1a8587e18e06b0",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 742,
+          "reviewReceiptId": 744,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "ed6a15f0f7fa4594e51d5bde21cc0c6c1bedbfdc",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 812,
+          "reviewReceiptId": 814,
+          "selectedGenerationIndex": 1,
+          "rawUnknowns": [
+            "浅层句法感知上下文嵌入在多少个探测任务上优于ELMo嵌入，未记录具体数量。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "22732cb9476e521452bf0538f3fdb94cf3867651",
+          "entry": "connector",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 828,
+          "reviewReceiptId": 830,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录“stylistic features”的完整种类清单或分类体系。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "4e748cb2b5e74d905d9b24b53be6cfdf326e8054",
+          "entry": "connector",
+          "answerable": false,
+          "split": "holdout",
+          "generationReceiptId": 856,
+          "reviewReceiptId": 858,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "未记录传统语言学特征的具体完整清单或逐项定义。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "6ca938324dc7e1742a840d0a54dc13cc207394a1",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 861,
+          "reviewReceiptId": 864,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [
+            "除 WMT'18 英语-土耳其语外，其他数据集名称未在记录中明确列出。"
+          ],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "022c365a14fdec406c7a945a1a18e7e79df37f08",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 943,
+          "reviewReceiptId": 944,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "no",
+          "humanReviewed": false
+        },
+        {
+          "id": "876700622bd6811d903e65314ac75971bbe23dcc",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 909,
+          "reviewReceiptId": 912,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        },
+        {
+          "id": "37edc25e39515ffc2d92115d2fcd9e6ceb18898b",
+          "entry": "connector",
+          "answerable": true,
+          "split": "holdout",
+          "generationReceiptId": 918,
+          "reviewReceiptId": 920,
+          "selectedGenerationIndex": 0,
+          "rawUnknowns": [],
+          "finalUnknowns": [],
+          "automaticAnswerLabel": "partial",
+          "humanReviewed": false
+        }
+      ]
+    }
+  },
+  "unknownsRisk": {
+    "cases": 62,
+    "automaticLabels": {
+      "partial": 25,
+      "yes": 29,
+      "no": 8
+    },
+    "unanswerableCases": 5,
+    "humanReviewed": false,
+    "interpretation": "Unknowns were present in the selected raw generation and sent to the corresponding real review, then removed in a final grounded result. Automatic non-complete labels identify review candidates, not human-adjudicated errors. completeAnswer=true does not establish independently verified answer completeness."
+  },
+  "manualReviewSample": {
+    "file": ".local-data/public-memory-live-fICS4v/review-sample.json",
+    "sha256": "91b85da3800de79b5af549e2995cb2cd8b7b7fafc4dac98a6208a2ee45217781",
+    "memories": 20,
+    "questions": 10,
+    "humanReviewed": false,
+    "humanReviewStatus": "unreviewed"
+  },
+  "reporting": {
+    "metricsMatched": false,
+    "historicalOriginalAndPairedOldKeptSeparate": true,
+    "fullSplit20And80ComputedWithinFull": true,
+    "threeRunsBilledExactlyOnce": true,
+    "sharedDevelopmentNoteCorrectedBeforeAudit": true,
+    "coreQualityCostAndProducerSelectionMatched": true,
+    "calibrationAssociationIssue": {
+      "kind": "trace_review_round_vs_actual_generation_index",
+      "affectedEntries": [
+        {
+          "id": "4c07c33dfaf4f3e6db55e377da6fa69825d0ba15",
+          "entry": "desktop",
+          "generationReceiptId": 749,
+          "reviewReceiptId": 750,
+          "rawUnknownsEmpty": true,
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        },
+        {
+          "id": "4c07c33dfaf4f3e6db55e377da6fa69825d0ba15",
+          "entry": "connector",
+          "generationReceiptId": 753,
+          "reviewReceiptId": 755,
+          "rawUnknownsEmpty": true,
+          "automaticAnswerLabel": "yes",
+          "humanReviewed": false
+        }
+      ],
+      "unknownsClearedCountsAffected": false,
+      "qualityOrReferenceOrCostOrProducerSelectionAffected": false,
+      "reportedCompleteReviewedFinalGrounded": {
+        "desktop": 85,
+        "connector": 81
+      },
+      "rawReceiptLinkedCompleteReviewedFinalGrounded": {
+        "desktop": 86,
+        "connector": 82
+      },
+      "status": "reported_to_root_for_report_only_correction"
+    }
+  },
+  "notIndependentlyVerified": [
+    "Human semantic correctness of extracted memories, organization fields, every claim, and refusals; assertion precision remains unmeasured.",
+    "No mechanism-level causal attribution; fresh extraction and QA are stochastic.",
+    "No unseen or independent-model evaluation; all100 are fixed previously examined regressions.",
+    "Manual review sample and case-audit observations are not completed human annotation."
+  ],
+  "limitations": [
+    "Reference sufficiency declined and desktop correct abstention declined despite higher complete correctness and lower QA cost.",
+    "Nine unanswerable questions cannot establish general refusal reliability.",
+    "Supplementary post-live reporting tests do not replace frozen pre-live255Rust/92Node evidence."
+  ],
+  "passedWithReportingCaveat": true,
+  "postAuditReportingResolution": {
+    "recordedAt": "2026-10-20T15:35:51.066Z",
+    "resolved": true,
+    "recordedBy": "root",
+    "originalAuditPreserved": true,
+    "issue": "Local first retrieval round without generation shifted trace.reviews relative to answerGenerationIndex for both entries of 4c07c33dfaf4f3e6db55e377da6fa69825d0ba15",
+    "fix": "Associate selected generation with its retrieval-round review using preceding actual query_rewrite receipts; retain selected generation index separately",
+    "completeReviewedFinalGrounded": {
+      "desktop": 86,
+      "connector": 82
+    },
+    "unknownsCleared": {
+      "desktop": 32,
+      "connector": 30
+    },
+    "qualityCostOrProductionChanges": false,
+    "additionalModelRequests": 0,
+    "tests": {
+      "file": "docs/memory-qa-efficient-final-node-validation.json",
+      "passed": 95,
+      "failed": 0
+    },
+    "artifacts": {
+      "scripts/report-memory-qa-efficient.mjs": "1cb8aa954a53b82bdac9275fd480bec52de99f1cb3a17f951afb76e27ea0a787",
+      "scripts/report-memory-qa-efficient.test.mjs": "5d9ca11df86757d64bb0584b71f9737769413fe6aaa1a72738599206cc11b1bb",
+      "docs/memory-qa-efficient-report.md": "79880ae861545730f41f880984c686f63d6ce43a3e5847c38d9565dee1d03e2e",
+      "docs/memory-qa-efficient-metrics.json": "c530d78a846efb3eb6765b80e3aea75a1510d1899c002b1836087eec1cf6fd0a",
+      "docs/memory-qa-efficient-final-node-validation.json": "7b92a37c47921b21eb728c82a715ea28a3c988151cc8d22a950c4aaafa542dc3",
+      "docs/memory-qa-efficient-case-audit.json": "54b9cc048b44ce70a1d401305f49fe770f86e692a46a99a77c30f0873fe7d8e9"
+    }
+  }
+}

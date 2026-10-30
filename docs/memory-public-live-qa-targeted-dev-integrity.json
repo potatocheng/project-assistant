@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-10-21T02:22:04.858Z",
+  "checks": [
+    "frozen dataset/source/binary hashes",
+    "no key in reports/transcripts",
+    "unique receipt indices/request hashes/provider usage",
+    "gold absent from production input envelope",
+    "complete paragraph provenance",
+    "both entries and project scope",
+    "unchanged confirmed facts/facets",
+    "read-only QA",
+    "strict judge memory ID whitelist",
+    "shared request budget"
+  ],
+  "results": [
+    {
+      "file": "docs/memory-public-live-qa-targeted-dev-results.json",
+      "sha256": "d001e988b60f4860d4509975ece4b26c7699354621b6c07f08c633751db11699",
+      "transcriptSha256": "5abedefeb02a04ab2921c9d33896b646c995b411a68109f7f86e4074114344e9",
+      "requests": 238,
+      "totalTokens": 1102421,
+      "questions": 20,
+      "segments": 501,
+      "formalMemories": 940,
+      "rejectedJudgeOutputs": 0,
+      "passed": true
+    }
+  ],
+  "targetedBudget": {
+    "registration": {
+      "file": "docs/memory-qa-targeted-preregistration.json",
+      "sha256": "aaca558787286f3d718aacff1fd1c299f6a7a31b311f27c4bf783dcb82e0b972",
+      "registeredAt": "2026-10-21T01:38:47.015Z",
+      "developmentLimits": {
+        "maxRequests": 1200,
+        "maxTokens": 6000000,
+        "maxFreshAttempts": 4
+      },
+      "fullLimits": {
+        "maxRequests": 2000,
+        "maxTokens": 12000000
+      },
+      "historicalLedgerSha256": "0cd2b1324b1abb8dc1ec2f60edbe2c83f90e0ee6b0b771c9df3586b51adef55d"
+    },
+    "ledger": null,
+    "historical": {
+      "requests": 829,
+      "totalTokens": 3652548
+    },
+    "attempt": 1
+  },
+  "registrationSha256": "aaca558787286f3d718aacff1fd1c299f6a7a31b311f27c4bf783dcb82e0b972"
+}

@@ -1,0 +1,1156 @@
+{
+  "version": "memory-context-fresh-report-v1",
+  "rawReportSha256": "7263e44411803c28401b268efb67bef2ec7ff423a870a736f609eb9a9fc94f5a",
+  "registration": {
+    "version": "memory-context-live-v1",
+    "model": "deepseek-flash",
+    "datasetSha256": "6214777251e5fbc785f727791b893fdb97e1daf161c7b927ab52aa9978d950ac",
+    "binarySha256": {
+      "baseline": "ec4a01b8a601eb9beb6b31b13189298fc8d1a11a78cde1001457bbb12cca10f2",
+      "candidate": "ca80d73e3e289fe2fad99688e213ae0b7a35dec4d17b37d44f6cea539b9e6aa6"
+    },
+    "repeats": 2,
+    "limits": {
+      "requests": 160,
+      "accountedTokens": 800000,
+      "workers": 2
+    },
+    "method": "Production Engine extraction only; no QA; selected cases from the registered synthetic fixture. Same sources/model, two fresh repetitions per arm. All final drafts and confirmable proposals reported separately; no automatic approval of review drafts. Frozen before calls. Same-model anonymized judging, not independent human validation.",
+    "harnessSha256": {
+      "evaluate-memory-context-live.mjs": "395890ec27fc6d3303cc23a1079cbfc8cee9d90c67c26b8f8184bd30aa83fec2",
+      "memory-context-eval-fixture.mjs": "c7db84f69712f6a7e4faadac8d59bc531f1daf5c02f7def6411def6cb5bf0665"
+    }
+  },
+  "finishedAt": "2026-10-28T09:07:39.547Z",
+  "totalFacts": 74,
+  "scope": "Six newly authored diagnostic sources, actual provider calls through production Engine, two repeats per version. Source-aware, not blind or independently human labelled. No production changes during this evaluation.",
+  "integrity": {
+    "passed": true,
+    "sourceAndBinaryHashes": true,
+    "wireHashes": true,
+    "providerUsageAndJobBudgets": true,
+    "quotesValid": true,
+    "formalMemoriesWritten": 0
+  },
+  "arms": {
+    "baseline": {
+      "usage": {
+        "requests": 31,
+        "inputTokens": 120810,
+        "outputTokens": 11685,
+        "tokens": 132495,
+        "cacheHitTokens": 27776
+      },
+      "full": 28,
+      "partial": 10,
+      "missing": 36,
+      "unscored": 0,
+      "readyFull": 4,
+      "ready": 8,
+      "needsReview": 42,
+      "cases": [
+        {
+          "caseId": "dense_30_new",
+          "total": 60,
+          "full": 24,
+          "partial": 0,
+          "missing": 36,
+          "unscored": 0,
+          "readyFull": 0,
+          "usage": {
+            "requests": 4,
+            "inputTokens": 13374,
+            "outputTokens": 5132,
+            "tokens": 18506,
+            "cacheHitTokens": 3584
+          }
+        },
+        {
+          "caseId": "boundary_exception_new",
+          "total": 2,
+          "full": 0,
+          "partial": 2,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 0,
+          "usage": {
+            "requests": 7,
+            "inputTokens": 31537,
+            "outputTokens": 1733,
+            "tokens": 33270,
+            "cacheHitTokens": 6272
+          }
+        },
+        {
+          "caseId": "boundary_reference_variant",
+          "total": 2,
+          "full": 0,
+          "partial": 2,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 0,
+          "usage": {
+            "requests": 6,
+            "inputTokens": 25168,
+            "outputTokens": 1264,
+            "tokens": 26432,
+            "cacheHitTokens": 5376
+          }
+        },
+        {
+          "caseId": "list_scope_new",
+          "total": 4,
+          "full": 0,
+          "partial": 4,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 0,
+          "usage": {
+            "requests": 8,
+            "inputTokens": 36129,
+            "outputTokens": 2494,
+            "tokens": 38623,
+            "cacheHitTokens": 7168
+          }
+        },
+        {
+          "caseId": "english_reference_variant",
+          "total": 2,
+          "full": 0,
+          "partial": 2,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 0,
+          "usage": {
+            "requests": 4,
+            "inputTokens": 10308,
+            "outputTokens": 525,
+            "tokens": 10833,
+            "cacheHitTokens": 3584
+          }
+        },
+        {
+          "caseId": "independent_projects_new",
+          "total": 4,
+          "full": 4,
+          "partial": 0,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 4,
+          "usage": {
+            "requests": 2,
+            "inputTokens": 4294,
+            "outputTokens": 537,
+            "tokens": 4831,
+            "cacheHitTokens": 1792
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "usage": {
+        "requests": 36,
+        "inputTokens": 110274,
+        "outputTokens": 20399,
+        "tokens": 130673,
+        "cacheHitTokens": 32768
+      },
+      "full": 68,
+      "partial": 6,
+      "missing": 0,
+      "unscored": 0,
+      "readyFull": 68,
+      "ready": 94,
+      "needsReview": 4,
+      "cases": [
+        {
+          "caseId": "dense_30_new",
+          "total": 60,
+          "full": 60,
+          "partial": 0,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 60,
+          "usage": {
+            "requests": 14,
+            "inputTokens": 32250,
+            "outputTokens": 14878,
+            "tokens": 47128,
+            "cacheHitTokens": 13056
+          }
+        },
+        {
+          "caseId": "boundary_exception_new",
+          "total": 2,
+          "full": 0,
+          "partial": 2,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 0,
+          "usage": {
+            "requests": 6,
+            "inputTokens": 25643,
+            "outputTokens": 1383,
+            "tokens": 27026,
+            "cacheHitTokens": 5376
+          }
+        },
+        {
+          "caseId": "boundary_reference_variant",
+          "total": 2,
+          "full": 0,
+          "partial": 2,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 0,
+          "usage": {
+            "requests": 4,
+            "inputTokens": 14752,
+            "outputTokens": 785,
+            "tokens": 15537,
+            "cacheHitTokens": 3584
+          }
+        },
+        {
+          "caseId": "list_scope_new",
+          "total": 4,
+          "full": 4,
+          "partial": 0,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 4,
+          "usage": {
+            "requests": 6,
+            "inputTokens": 23023,
+            "outputTokens": 2179,
+            "tokens": 25202,
+            "cacheHitTokens": 5376
+          }
+        },
+        {
+          "caseId": "english_reference_variant",
+          "total": 2,
+          "full": 0,
+          "partial": 2,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 0,
+          "usage": {
+            "requests": 4,
+            "inputTokens": 10284,
+            "outputTokens": 628,
+            "tokens": 10912,
+            "cacheHitTokens": 3584
+          }
+        },
+        {
+          "caseId": "independent_projects_new",
+          "total": 4,
+          "full": 4,
+          "partial": 0,
+          "missing": 0,
+          "unscored": 0,
+          "readyFull": 4,
+          "usage": {
+            "requests": 2,
+            "inputTokens": 4322,
+            "outputTokens": 546,
+            "tokens": 4868,
+            "cacheHitTokens": 1792
+          }
+        }
+      ]
+    }
+  },
+  "denseChecks": [
+    {
+      "runId": "dense_30_new-1-baseline",
+      "arm": "baseline",
+      "retained": 12,
+      "total": 30,
+      "partitioned": 0
+    },
+    {
+      "runId": "dense_30_new-2-baseline",
+      "arm": "baseline",
+      "retained": 12,
+      "total": 30,
+      "partitioned": 0
+    },
+    {
+      "runId": "dense_30_new-1-candidate",
+      "arm": "candidate",
+      "retained": 30,
+      "total": 30,
+      "partitioned": 3
+    },
+    {
+      "runId": "dense_30_new-2-candidate",
+      "arm": "candidate",
+      "retained": 30,
+      "total": 30,
+      "partitioned": 3
+    }
+  ],
+  "scopeChecks": [
+    {
+      "runId": "boundary_exception_new-1-baseline",
+      "arm": "baseline",
+      "caseId": "boundary_exception_new",
+      "candidates": [
+        {
+          "index": 2,
+          "content": "Selene计划于2026-12-08开放数据导出。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 3,
+          "content": "上述计划只有在隐私评审通过后才生效，仅限付费企业租户，不包括试用租户。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "boundary_exception_new-2-baseline",
+      "arm": "baseline",
+      "caseId": "boundary_exception_new",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "Selene计划于2026-12-08开放数据导出。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "上述计划只有在隐私评审通过后才生效，仅限付费企业租户，不包括试用租户。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "boundary_reference_variant-1-baseline",
+      "arm": "baseline",
+      "caseId": "boundary_reference_variant",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "Helios计划于2026-12-12启用批量导入。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "这项安排须先获得数据治理委员会批准，而且仅对境内付费客户开放；境外客户仍禁止启用。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "boundary_reference_variant-2-baseline",
+      "arm": "baseline",
+      "caseId": "boundary_reference_variant",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "Helios计划于2026-12-12启用批量导入。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "这项安排须先获得数据治理委员会批准，而且仅对境内付费客户开放；境外客户仍禁止启用。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "list_scope_new-1-baseline",
+      "arm": "baseline",
+      "caseId": "list_scope_new",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "下列变更只有在灾备演练通过后才允许实施，且仅在预发布环境有效：",
+          "ready": false,
+          "statuses": [
+            "needs_review",
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 3,
+          "content": "- Cedar启用自动故障转移。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 4,
+          "content": "- Maple开启异地备份。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "list_scope_new-2-baseline",
+      "arm": "baseline",
+      "caseId": "list_scope_new",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "下列变更只有在灾备演练通过后才允许实施，且仅在预发布环境有效：",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 4,
+          "content": "- Cedar启用自动故障转移。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 5,
+          "content": "- Maple开启异地备份。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "english_reference_variant-1-baseline",
+      "arm": "baseline",
+      "caseId": "english_reference_variant",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "The Aster release is scheduled for 2026-12-18.",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "This release is contingent on a completed security audit and is restricted to internal pilot accounts. External customers are excluded.",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 2
+    },
+    {
+      "runId": "english_reference_variant-2-baseline",
+      "arm": "baseline",
+      "caseId": "english_reference_variant",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "The Aster release is scheduled for 2026-12-18.",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "This release is contingent on a completed security audit and is restricted to internal pilot accounts. External customers are excluded.",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 2
+    },
+    {
+      "runId": "boundary_exception_new-1-candidate",
+      "arm": "candidate",
+      "caseId": "boundary_exception_new",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "Selene计划于2026-12-08开放数据导出。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "上述计划只有在隐私评审通过后才生效，仅限付费企业租户，不包括试用租户。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "boundary_exception_new-2-candidate",
+      "arm": "candidate",
+      "caseId": "boundary_exception_new",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "Selene计划于2026-12-08开放数据导出。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "上述计划只有在隐私评审通过后才生效，仅限付费企业租户，不包括试用租户。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "boundary_reference_variant-1-candidate",
+      "arm": "candidate",
+      "caseId": "boundary_reference_variant",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "Helios计划于2026-12-12启用批量导入。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "这项安排须先获得数据治理委员会批准，而且仅对境内付费客户开放；境外客户仍禁止启用。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 2
+    },
+    {
+      "runId": "boundary_reference_variant-2-candidate",
+      "arm": "candidate",
+      "caseId": "boundary_reference_variant",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "Helios计划于2026-12-12启用批量导入。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "这项安排须先获得数据治理委员会批准，而且仅对境内付费客户开放；境外客户仍禁止启用。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 2
+    },
+    {
+      "runId": "list_scope_new-1-candidate",
+      "arm": "candidate",
+      "caseId": "list_scope_new",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "下列变更只有在灾备演练通过后才允许实施，且仅在预发布环境有效：",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 3,
+          "content": "下列变更只有在灾备演练通过后才允许实施，且仅在预发布环境有效：\n- Cedar启用自动故障转移。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": true
+        },
+        {
+          "index": 4,
+          "content": "下列变更只有在灾备演练通过后才允许实施，且仅在预发布环境有效：\n- Maple开启异地备份。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": true
+        }
+      ],
+      "incompleteReady": 1
+    },
+    {
+      "runId": "list_scope_new-2-candidate",
+      "arm": "candidate",
+      "caseId": "list_scope_new",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "下列变更只有在灾备演练通过后才允许实施，且仅在预发布环境有效：",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 3,
+          "content": "下列变更只有在灾备演练通过后才允许实施，且仅在预发布环境有效：\n- Cedar启用自动故障转移。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": true
+        },
+        {
+          "index": 4,
+          "content": "下列变更只有在灾备演练通过后才允许实施，且仅在预发布环境有效：\n- Maple开启异地备份。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": true
+        }
+      ],
+      "incompleteReady": 1
+    },
+    {
+      "runId": "english_reference_variant-1-candidate",
+      "arm": "candidate",
+      "caseId": "english_reference_variant",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "The Aster release is scheduled for 2026-12-18.",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "This release is contingent on a completed security audit and is restricted to internal pilot accounts. External customers are excluded.",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 2
+    },
+    {
+      "runId": "english_reference_variant-2-candidate",
+      "arm": "candidate",
+      "caseId": "english_reference_variant",
+      "candidates": [
+        {
+          "index": 1,
+          "content": "The Aster release is scheduled for 2026-12-18.",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        },
+        {
+          "index": 2,
+          "content": "This release is contingent on a completed security audit and is restricted to internal pilot accounts. External customers are excluded.",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ],
+          "literalScopeComplete": false
+        }
+      ],
+      "incompleteReady": 2
+    }
+  ],
+  "judgeUsage": {
+    "requests": 12,
+    "inputTokens": 20556,
+    "outputTokens": 7096,
+    "tokens": 27652,
+    "cacheHitTokens": 10240
+  },
+  "totalUsage": {
+    "requests": 79,
+    "inputTokens": 251640,
+    "outputTokens": 39180,
+    "tokens": 290820,
+    "cacheHitTokens": 70784
+  },
+  "duplicates": [
+    {
+      "runId": "dense_30_new-1-baseline",
+      "arm": "baseline",
+      "uniqueBodies": 12,
+      "candidates": 12,
+      "proposals": 0,
+      "duplicateBodies": []
+    },
+    {
+      "runId": "dense_30_new-1-candidate",
+      "arm": "candidate",
+      "uniqueBodies": 30,
+      "candidates": 30,
+      "proposals": 30,
+      "duplicateBodies": []
+    },
+    {
+      "runId": "dense_30_new-2-candidate",
+      "arm": "candidate",
+      "uniqueBodies": 30,
+      "candidates": 42,
+      "proposals": 42,
+      "duplicateBodies": [
+        {
+          "content": "已生效规则：Q01队列的消息保存上限为41小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q01队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q01队列",
+                "role": "",
+                "topic": "消息保存上限为41小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q02队列的消息保存上限为42小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q02队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q02队列",
+                "role": "",
+                "topic": "消息保存上限为42小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q03队列的消息保存上限为43小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q03队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q03队列",
+                "role": "",
+                "topic": "消息保存上限为43小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q04队列的消息保存上限为44小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q04队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q04队列",
+                "role": "",
+                "topic": "消息保存上限为44小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q05队列的消息保存上限为45小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q05队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q05队列",
+                "role": "",
+                "topic": "消息保存上限为45小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q06队列的消息保存上限为46小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q06队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q06队列",
+                "role": "",
+                "topic": "消息保存上限为46小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q07队列的消息保存上限为47小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q07队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q07队列",
+                "role": "",
+                "topic": "消息保存上限为47小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q08队列的消息保存上限为48小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q08队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q08队列",
+                "role": "",
+                "topic": "消息保存上限为48小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q09队列的消息保存上限为49小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q09队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q09队列",
+                "role": "",
+                "topic": "消息保存上限为49小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q10队列的消息保存上限为50小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q10队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q10队列",
+                "role": "",
+                "topic": "消息保存上限为50小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q11队列的消息保存上限为51小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q11队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q11队列",
+                "role": "",
+                "topic": "消息保存上限为51小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        },
+        {
+          "content": "已生效规则：Q12队列的消息保存上限为52小时。",
+          "variants": [
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q12队列",
+                "role": "",
+                "topic": "消息保存上限",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            },
+            {
+              "facets": {
+                "conditions": [],
+                "entity": "Q12队列",
+                "role": "",
+                "topic": "消息保存上限为52小时",
+                "validFrom": null,
+                "validUntil": null
+              },
+              "ready": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": "dense_30_new-2-baseline",
+      "arm": "baseline",
+      "uniqueBodies": 12,
+      "candidates": 12,
+      "proposals": 0,
+      "duplicateBodies": []
+    }
+  ],
+  "bodyAudit": {
+    "provenance": "Post-run assistant inspection of every non-dense candidate body and exact dense facts; literal checks are not independent human labels or a general semantic classifier. No original model judgments were changed.",
+    "incompleteReady": {
+      "baseline": 4,
+      "candidate": 10
+    },
+    "findings": [
+      {
+        "issue": "dense_recall",
+        "result": "Both v8 repetitions retained all 30 facts; v7 retained 12. v8 used seven requests per repetition."
+      },
+      {
+        "issue": "known_reference_not_recombined",
+        "result": "Selene date and qualifier remained separate. v8 held all four incomplete candidate observations for review but did not produce a complete fact."
+      },
+      {
+        "issue": "reference_variants_bypass_gate",
+        "result": "Chinese 这项安排 and English This release remain outside supported reference matching. Four incomplete Chinese and four incomplete English candidate observations are ready in v8."
+      },
+      {
+        "issue": "list_introduction_bypass",
+        "result": "Two 下列变更 introduction-only candidates remain ready; complete Cedar and Maple candidates also coexist."
+      },
+      {
+        "issue": "duplicate_topic_facets",
+        "result": "Second dense repetition has 42 proposals for 30 literal bodies. The 12 repeated bodies have different topic facet strings; source/body/entity/conditions are otherwise equal in observed examples."
+      },
+      {
+        "issue": "unrelated_neighbors",
+        "result": "Both versions preserve the independent project conditions and dates without crossover in both repetitions."
+      }
+    ]
+  }
+}

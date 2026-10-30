@@ -1,0 +1,3899 @@
+{
+  "corpus": {
+    "foreignMemories": 1,
+    "goldMemories": 19,
+    "noiseMemories": 120,
+    "pendingCandidates": 2
+  },
+  "datasetSha256": "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+  "datasetVersion": "memory-evaluation-v1",
+  "kind": "synthetic_retrieval_and_local_rules_no_real_llm",
+  "latencyScope": "in-process in-memory SQLite debug build; query retrieval plus snapshot validation for main tracks; retrieval only for scale; excludes HTTP/model/network and cold start",
+  "recordedAt": "2026-10-20T06:37:24.956Z",
+  "scale": [
+    {
+      "memories": 19,
+      "p50Ms": 2.9611,
+      "p95Ms": 3.3465000000000003,
+      "queries": 10,
+      "top1Correct": 0
+    },
+    {
+      "memories": 119,
+      "p50Ms": 4.9139,
+      "p95Ms": 5.0172,
+      "queries": 10,
+      "top1Correct": 0
+    },
+    {
+      "memories": 1019,
+      "p50Ms": 22.6237,
+      "p95Ms": 33.6541,
+      "queries": 10,
+      "top1Correct": 0
+    }
+  ],
+  "tracks": {
+    "connector_memory": {
+      "cases": [
+        {
+          "category": "exact",
+          "elapsedMs": 12.2751,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "exact_owner",
+          "localAnswer": null,
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。"
+          ],
+          "question": "支付接口验收由谁负责？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "contact",
+            "recovery"
+          ],
+          "selectedRecordChars": 2190,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 9.723600000000001,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "exact_deadline",
+          "localAnswer": null,
+          "preview": [
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。"
+          ],
+          "question": "支付接口验收截止日期是什么？",
+          "scopeViolation": false,
+          "selected": [
+            "owner",
+            "launch",
+            "contact",
+            "recovery"
+          ],
+          "selectedRecordChars": 2190,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 6.7148,
+          "excerptContainsRequired": null,
+          "gold": [
+            "budget"
+          ],
+          "id": "exact_budget",
+          "localAnswer": null,
+          "preview": [
+            "预算上限80万元，采购审批由许宁负责。",
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。"
+          ],
+          "question": "预算上限是多少万元？",
+          "scopeViolation": false,
+          "selected": [
+            "budget",
+            "rollback"
+          ],
+          "selectedRecordChars": 1070,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 11.226099999999999,
+          "excerptContainsRequired": null,
+          "gold": [
+            "contact"
+          ],
+          "id": "exact_contact",
+          "localAnswer": null,
+          "preview": [
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "客户签字暂缓，需先核对清楚双方账单差额。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。"
+          ],
+          "question": "客户验收联系人是谁？",
+          "scopeViolation": false,
+          "selected": [
+            "contact",
+            "launch",
+            "signature",
+            "owner",
+            "recovery"
+          ],
+          "selectedRecordChars": 2721,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 7.2341999999999995,
+          "excerptContainsRequired": null,
+          "gold": [
+            "recovery"
+          ],
+          "id": "exact_recovery",
+          "localAnswer": null,
+          "preview": [
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。"
+          ],
+          "question": "数据恢复演练多久执行一次？",
+          "scopeViolation": false,
+          "selected": [
+            "recovery",
+            "incident",
+            "rollback"
+          ],
+          "selectedRecordChars": 1668,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 7.3736,
+          "excerptContainsRequired": null,
+          "gold": [
+            "audit"
+          ],
+          "id": "alias_audit",
+          "localAnswer": null,
+          "preview": [
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。",
+            "短信验证码方案已否决，保留邮箱验证码。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "Authentication audit events are retained for 180 days."
+          ],
+          "question": "登录审计需要保留多久？",
+          "scopeViolation": false,
+          "selected": [
+            "login",
+            "sms",
+            "launch",
+            "audit"
+          ],
+          "selectedRecordChars": 2165,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 9.378900000000002,
+          "excerptContainsRequired": null,
+          "gold": [
+            "audit"
+          ],
+          "id": "alias_retention",
+          "localAnswer": null,
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "短信验证码方案已否决，保留邮箱验证码。"
+          ],
+          "question": "审计留存期限是多少？",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "sms"
+          ],
+          "selectedRecordChars": 1100,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 9.0809,
+          "excerptContainsRequired": null,
+          "gold": [
+            "rollback"
+          ],
+          "id": "alias_rollback",
+          "localAnswer": null,
+          "preview": [
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+            "预算上限80万元，采购审批由许宁负责。"
+          ],
+          "question": "rollback 的耗时上限是多少？",
+          "scopeViolation": false,
+          "selected": [
+            "rollback",
+            "budget"
+          ],
+          "selectedRecordChars": 1070,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 8.617700000000001,
+          "excerptContainsRequired": null,
+          "gold": [
+            "pool"
+          ],
+          "id": "alias_pool_missing",
+          "localAnswer": null,
+          "preview": [
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "数据库连接池的最大容量是多少？",
+          "scopeViolation": false,
+          "selected": [
+            "incident"
+          ],
+          "selectedRecordChars": 546,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 7.6935,
+          "excerptContainsRequired": null,
+          "gold": [
+            "pool"
+          ],
+          "id": "english_pool",
+          "localAnswer": null,
+          "preview": [
+            "PostgreSQL connection pool maximum size is 64."
+          ],
+          "question": "PostgreSQL connection pool maximum size?",
+          "scopeViolation": false,
+          "selected": [
+            "pool"
+          ],
+          "selectedRecordChars": 564,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "normalization",
+          "elapsedMs": 4.9257,
+          "excerptContainsRequired": null,
+          "gold": [
+            "pool"
+          ],
+          "id": "fullwidth",
+          "localAnswer": null,
+          "preview": [
+            "PostgreSQL connection pool maximum size is 64."
+          ],
+          "question": "ＰｏｓｔｇｒｅＳＱＬ connection pool maximum size?",
+          "scopeViolation": false,
+          "selected": [
+            "pool"
+          ],
+          "selectedRecordChars": 564,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "normalization",
+          "elapsedMs": 7.296600000000001,
+          "excerptContainsRequired": null,
+          "gold": [
+            "audit"
+          ],
+          "id": "casefold",
+          "localAnswer": null,
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "短信验证码方案已否决，保留邮箱验证码。"
+          ],
+          "question": "AUTHENTICATION AUDIT retention?",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "sms"
+          ],
+          "selectedRecordChars": 1100,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "paraphrase",
+          "elapsedMs": 5.7852,
+          "excerptContainsRequired": null,
+          "gold": [
+            "lockout"
+          ],
+          "id": "paraphrase_lockout",
+          "localAnswer": null,
+          "preview": [
+            "账户连续输错密码5次后锁定15分钟。",
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。"
+          ],
+          "question": "连续输错密码后多久解锁？",
+          "scopeViolation": false,
+          "selected": [
+            "lockout",
+            "login"
+          ],
+          "selectedRecordChars": 1054,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "paraphrase",
+          "elapsedMs": 6.1661,
+          "excerptContainsRequired": null,
+          "gold": [
+            "signature"
+          ],
+          "id": "paraphrase_signature",
+          "localAnswer": null,
+          "preview": [
+            "客户签字暂缓，需先核对清楚双方账单差额。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。"
+          ],
+          "question": "客户为何暂缓签字？",
+          "scopeViolation": false,
+          "selected": [
+            "signature",
+            "contact",
+            "login"
+          ],
+          "selectedRecordChars": 1588,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "paraphrase",
+          "elapsedMs": 8.345,
+          "excerptContainsRequired": null,
+          "gold": [
+            "export"
+          ],
+          "id": "paraphrase_export",
+          "localAnswer": null,
+          "preview": [
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "例行同步记录0：资料已整理，沟通安排另行确认。",
+            "例行同步记录1：资料已整理，沟通安排另行确认。",
+            "例行同步记录2：资料已整理，沟通安排另行确认。",
+            "例行同步记录3：资料已整理，沟通安排另行确认。",
+            "例行同步记录4：资料已整理，沟通安排另行确认。"
+          ],
+          "question": "批量导出安排在哪个阶段？",
+          "scopeViolation": false,
+          "selected": [
+            "export",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004"
+          ],
+          "selectedRecordChars": 2046,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 7.444,
+          "excerptContainsRequired": null,
+          "gold": [
+            "signature"
+          ],
+          "id": "semantic_signature",
+          "localAnswer": null,
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "例行同步记录0：资料已整理，沟通安排另行确认。",
+            "例行同步记录1：资料已整理，沟通安排另行确认。",
+            "例行同步记录2：资料已整理，沟通安排另行确认。",
+            "例行同步记录3：资料已整理，沟通安排另行确认。",
+            "例行同步记录4：资料已整理，沟通安排另行确认。"
+          ],
+          "question": "商务确认为什么迟迟没有完成？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004"
+          ],
+          "selectedRecordChars": 2059,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 15.6081,
+          "excerptContainsRequired": null,
+          "gold": [
+            "export"
+          ],
+          "id": "semantic_export",
+          "localAnswer": null,
+          "preview": [
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与"
+          ],
+          "question": "能一次性下载全部工单吗？",
+          "scopeViolation": false,
+          "selected": [
+            "recovery",
+            "long"
+          ],
+          "selectedRecordChars": 5847,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 4.4923,
+          "excerptContainsRequired": null,
+          "gold": [
+            "incident"
+          ],
+          "id": "semantic_incident",
+          "localAnswer": null,
+          "preview": [],
+          "question": "上次服务中断的根因是什么？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 4.5466999999999995,
+          "excerptContainsRequired": null,
+          "gold": [
+            "offline"
+          ],
+          "id": "semantic_offline",
+          "localAnswer": null,
+          "preview": [],
+          "question": "没网时能否修改手机上的内容？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 15.520199999999999,
+          "excerptContainsRequired": null,
+          "gold": [
+            "lockout"
+          ],
+          "id": "semantic_lockout",
+          "localAnswer": null,
+          "preview": [
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与"
+          ],
+          "question": "口令一直填错会受到怎样的限制？",
+          "scopeViolation": false,
+          "selected": [
+            "incident",
+            "long"
+          ],
+          "selectedRecordChars": 5822,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "negation_evidence",
+          "elapsedMs": 5.7821,
+          "excerptContainsRequired": null,
+          "gold": [
+            "sms"
+          ],
+          "id": "negation_sms",
+          "localAnswer": null,
+          "preview": [
+            "短信验证码方案已否决，保留邮箱验证码。"
+          ],
+          "question": "短信验证码方案是否采用？",
+          "scopeViolation": false,
+          "selected": [
+            "sms"
+          ],
+          "selectedRecordChars": 510,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "negation_evidence",
+          "elapsedMs": 5.3805,
+          "excerptContainsRequired": null,
+          "gold": [
+            "login"
+          ],
+          "id": "negation_sso",
+          "localAnswer": null,
+          "preview": [
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。"
+          ],
+          "question": "一期是否支持单点登录？",
+          "scopeViolation": false,
+          "selected": [
+            "login"
+          ],
+          "selectedRecordChars": 528,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "negation_evidence",
+          "elapsedMs": 5.408399999999999,
+          "excerptContainsRequired": null,
+          "gold": [
+            "offline"
+          ],
+          "id": "negation_offline",
+          "localAnswer": null,
+          "preview": [
+            "当前范围不包含移动端离线编辑，离线能力须另行评审。"
+          ],
+          "question": "移动端离线编辑是否在当前范围？",
+          "scopeViolation": false,
+          "selected": [
+            "offline"
+          ],
+          "selectedRecordChars": 538,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "freshness",
+          "elapsedMs": 6.6911000000000005,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "current_owner",
+          "localAnswer": null,
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。"
+          ],
+          "question": "支付接口验收现在还是张磊负责吗？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "contact",
+            "recovery"
+          ],
+          "selectedRecordChars": 2190,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "freshness",
+          "elapsedMs": 8.4639,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "current_date",
+          "localAnswer": null,
+          "preview": [
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "例行同步记录20：资料已整理，沟通安排另行确认。",
+            "例行同步记录23：资料已整理，沟通安排另行确认。",
+            "例行同步记录10：资料已整理，沟通安排另行确认。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "支付接口验收是10月20日还是10月23日？",
+          "scopeViolation": false,
+          "selected": [
+            "owner",
+            "launch",
+            "noise0020",
+            "noise0023",
+            "noise0010",
+            "incident"
+          ],
+          "selectedRecordChars": 2551,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "long_context",
+          "elapsedMs": 15.641800000000002,
+          "excerptContainsRequired": true,
+          "gold": [
+            "long"
+          ],
+          "id": "long_tail",
+          "localAnswer": null,
+          "mustInclude": "72小时",
+          "preview": [
+            "议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与"
+          ],
+          "question": "天枢档案下载口令几小时失效？",
+          "scopeViolation": false,
+          "selected": [
+            "long"
+          ],
+          "selectedRecordChars": 5277,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "multi_evidence",
+          "elapsedMs": 6.1532,
+          "excerptContainsRequired": null,
+          "gold": [
+            "launch",
+            "reconcile"
+          ],
+          "id": "multi_dependency",
+          "localAnswer": null,
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。"
+          ],
+          "question": "上线需要先完成什么，对账核验卡在哪里？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "reconcile"
+          ],
+          "selectedRecordChars": 1080,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "multi_evidence",
+          "elapsedMs": 8.2393,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner",
+            "reconcile"
+          ],
+          "id": "multi_followup",
+          "localAnswer": null,
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "客户签字暂缓，需先核对清楚双方账单差额。"
+          ],
+          "question": "支付接口验收由谁负责，供应商账单应该找谁？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "reconcile",
+            "contact",
+            "recovery",
+            "signature"
+          ],
+          "selectedRecordChars": 3262,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "multi_evidence",
+          "elapsedMs": 7.142,
+          "excerptContainsRequired": null,
+          "gold": [
+            "launch",
+            "reconcile"
+          ],
+          "id": "multi_cause",
+          "localAnswer": null,
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "客户签字暂缓，需先核对清楚双方账单差额。",
+            "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。"
+          ],
+          "question": "上线为什么延后，应该找谁补账单？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "signature",
+            "reconcile"
+          ],
+          "selectedRecordChars": 1611,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 4.1918,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_whale",
+          "localAnswer": null,
+          "preview": [],
+          "question": "鲸鱼寿命多少年？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 13.5517,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_unique",
+          "localAnswer": null,
+          "preview": [
+            "议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与"
+          ],
+          "question": "织女星服务器口令是什么？",
+          "scopeViolation": false,
+          "selected": [
+            "long"
+          ],
+          "selectedRecordChars": 5277,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 15.9553,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_relevant",
+          "localAnswer": null,
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与"
+          ],
+          "question": "支付接口的生产数据库口令是什么？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "long"
+          ],
+          "selectedRecordChars": 6367,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 7.8152,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_title",
+          "localAnswer": null,
+          "preview": [],
+          "question": "量子隧道专项怎么部署？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unconfirmed",
+          "elapsedMs": 5.093999999999999,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "pending_only",
+          "localAnswer": null,
+          "preview": [],
+          "question": "星舰负责人是谁？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "conflict",
+          "elapsedMs": 7.6635,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "conflict_only",
+          "localAnswer": null,
+          "preview": [],
+          "question": "迁移窗口定在几点？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        }
+      ],
+      "categories": {
+        "conflict": {
+          "allEvidenceAt40": null,
+          "allEvidenceAt6": null,
+          "answerable": 0,
+          "cases": 1,
+          "latencyMs": {
+            "p50": 7.6635,
+            "p95": 7.6635
+          },
+          "mrrAt6": null,
+          "negativeEmptyRate": 1.0,
+          "recallAt1": null,
+          "recallAt3": null,
+          "recallAt40": null,
+          "recallAt6": null,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 1
+        },
+        "cross_language": {
+          "allEvidenceAt40": 0.75,
+          "allEvidenceAt6": 0.75,
+          "answerable": 4,
+          "cases": 4,
+          "latencyMs": {
+            "p50": 8.617700000000001,
+            "p95": 9.378900000000002
+          },
+          "mrrAt6": 0.5625,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.5,
+          "recallAt3": 0.5,
+          "recallAt40": 0.75,
+          "recallAt6": 0.75,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "exact": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 6,
+          "cases": 6,
+          "latencyMs": {
+            "p50": 7.6935,
+            "p95": 12.2751
+          },
+          "mrrAt6": 0.9166666666666666,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.8333333333333334,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "freshness": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 2,
+          "cases": 2,
+          "latencyMs": {
+            "p50": 6.6911000000000005,
+            "p95": 8.4639
+          },
+          "mrrAt6": 0.75,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.5,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "long_context": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 1,
+          "cases": 1,
+          "latencyMs": {
+            "p50": 15.641800000000002,
+            "p95": 15.641800000000002
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "multi_evidence": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 3,
+          "cases": 3,
+          "latencyMs": {
+            "p50": 7.142,
+            "p95": 8.2393
+          },
+          "mrrAt6": 0.8333333333333334,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.3333333333333333,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "negation_evidence": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 3,
+          "cases": 3,
+          "latencyMs": {
+            "p50": 5.408399999999999,
+            "p95": 5.7821
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "normalization": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 2,
+          "cases": 2,
+          "latencyMs": {
+            "p50": 4.9257,
+            "p95": 7.296600000000001
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "paraphrase": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 3,
+          "cases": 3,
+          "latencyMs": {
+            "p50": 6.1661,
+            "p95": 8.345
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "semantic_gap": {
+          "allEvidenceAt40": 0.0,
+          "allEvidenceAt6": 0.0,
+          "answerable": 5,
+          "cases": 5,
+          "latencyMs": {
+            "p50": 7.444,
+            "p95": 15.6081
+          },
+          "mrrAt6": 0.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.0,
+          "recallAt3": 0.0,
+          "recallAt40": 0.0,
+          "recallAt6": 0.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "unanswerable": {
+          "allEvidenceAt40": null,
+          "allEvidenceAt6": null,
+          "answerable": 0,
+          "cases": 4,
+          "latencyMs": {
+            "p50": 7.8152,
+            "p95": 15.9553
+          },
+          "mrrAt6": null,
+          "negativeEmptyRate": 0.5,
+          "recallAt1": null,
+          "recallAt3": null,
+          "recallAt40": null,
+          "recallAt6": null,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 4
+        },
+        "unconfirmed": {
+          "allEvidenceAt40": null,
+          "allEvidenceAt6": null,
+          "answerable": 0,
+          "cases": 1,
+          "latencyMs": {
+            "p50": 5.093999999999999,
+            "p95": 5.093999999999999
+          },
+          "mrrAt6": null,
+          "negativeEmptyRate": 1.0,
+          "recallAt1": null,
+          "recallAt3": null,
+          "recallAt40": null,
+          "recallAt6": null,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 1
+        }
+      },
+      "summary": {
+        "allEvidenceAt40": 0.7931034482758621,
+        "allEvidenceAt6": 0.7931034482758621,
+        "answerable": 29,
+        "cases": 35,
+        "latencyMs": {
+          "p50": 7.444,
+          "p95": 15.641800000000002
+        },
+        "mrrAt6": 0.7155172413793104,
+        "negativeEmptyRate": 0.6666666666666666,
+        "recallAt1": 0.6206896551724138,
+        "recallAt3": 0.7586206896551724,
+        "recallAt40": 0.7931034482758621,
+        "recallAt6": 0.7931034482758621,
+        "scopeViolations": 0,
+        "staleOrConflictViolations": 0,
+        "unanswerable": 6
+      }
+    },
+    "desktop_local_answer": {
+      "cases": [
+        {
+          "category": "exact",
+          "elapsedMs": 61.6589,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "exact_owner",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [2]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [3]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [4]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。"
+          ],
+          "question": "支付接口验收由谁负责？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "contact",
+            "recovery"
+          ],
+          "selectedRecordChars": 3630,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 67.3899,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "exact_deadline",
+          "localAnswer": "找到以下当前记录：\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [1]\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [2]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [3]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [4]",
+          "preview": [
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。"
+          ],
+          "question": "支付接口验收截止日期是什么？",
+          "scopeViolation": false,
+          "selected": [
+            "owner",
+            "launch",
+            "contact",
+            "recovery"
+          ],
+          "selectedRecordChars": 3630,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 54.7857,
+          "excerptContainsRequired": null,
+          "gold": [
+            "budget"
+          ],
+          "id": "exact_budget",
+          "localAnswer": "找到以下当前记录：\n• 预算上限80万元，采购审批由许宁负责。 [1]\n• 发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。 [2]",
+          "preview": [
+            "预算上限80万元，采购审批由许宁负责。",
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。"
+          ],
+          "question": "预算上限是多少万元？",
+          "scopeViolation": false,
+          "selected": [
+            "budget",
+            "rollback"
+          ],
+          "selectedRecordChars": 1766,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 54.9011,
+          "excerptContainsRequired": null,
+          "gold": [
+            "contact"
+          ],
+          "id": "exact_contact",
+          "localAnswer": "找到以下当前记录：\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [1]\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [2]\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [3]\n• 客户签字暂缓，需先核对清楚双方账单差额。 [4]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [5]",
+          "preview": [
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "客户签字暂缓，需先核对清楚双方账单差额。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。"
+          ],
+          "question": "客户验收联系人是谁？",
+          "scopeViolation": false,
+          "selected": [
+            "contact",
+            "launch",
+            "owner",
+            "signature",
+            "recovery"
+          ],
+          "selectedRecordChars": 4509,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 63.0922,
+          "excerptContainsRequired": null,
+          "gold": [
+            "recovery"
+          ],
+          "id": "exact_recovery",
+          "localAnswer": "找到以下当前记录：\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [1]\n• 10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。 [2]\n• 发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。 [3]",
+          "preview": [
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。"
+          ],
+          "question": "数据恢复演练多久执行一次？",
+          "scopeViolation": false,
+          "selected": [
+            "recovery",
+            "incident",
+            "rollback"
+          ],
+          "selectedRecordChars": 2772,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 73.2774,
+          "excerptContainsRequired": null,
+          "gold": [
+            "audit"
+          ],
+          "id": "alias_audit",
+          "localAnswer": "找到以下当前记录：\n• Authentication audit events are retained for 180 days. [1]\n• 一期登录仅支持账号密码，单点登录暂缓至二期评审。 [2]\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [3]\n• 短信验证码方案已否决，保留邮箱验证码。 [4]",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "短信验证码方案已否决，保留邮箱验证码。"
+          ],
+          "question": "登录审计需要保留多久？",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "login",
+            "launch",
+            "sms"
+          ],
+          "selectedRecordChars": 3575,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 57.1696,
+          "excerptContainsRequired": null,
+          "gold": [
+            "audit"
+          ],
+          "id": "alias_retention",
+          "localAnswer": "找到以下当前记录：\n• Authentication audit events are retained for 180 days. [1]\n• 短信验证码方案已否决，保留邮箱验证码。 [2]",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "短信验证码方案已否决，保留邮箱验证码。"
+          ],
+          "question": "审计留存期限是多少？",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "sms"
+          ],
+          "selectedRecordChars": 1822,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 74.8756,
+          "excerptContainsRequired": null,
+          "gold": [
+            "rollback"
+          ],
+          "id": "alias_rollback",
+          "localAnswer": "找到以下当前记录：\n• 发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。 [1]\n• 预算上限80万元，采购审批由许宁负责。 [2]",
+          "preview": [
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+            "预算上限80万元，采购审批由许宁负责。"
+          ],
+          "question": "rollback 的耗时上限是多少？",
+          "scopeViolation": false,
+          "selected": [
+            "rollback",
+            "budget"
+          ],
+          "selectedRecordChars": 1766,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 60.159,
+          "excerptContainsRequired": null,
+          "gold": [
+            "pool"
+          ],
+          "id": "alias_pool_missing",
+          "localAnswer": "找到以下当前记录：\n• 10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。 [1]",
+          "preview": [
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "数据库连接池的最大容量是多少？",
+          "scopeViolation": false,
+          "selected": [
+            "incident"
+          ],
+          "selectedRecordChars": 908,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 61.579299999999996,
+          "excerptContainsRequired": null,
+          "gold": [
+            "pool"
+          ],
+          "id": "english_pool",
+          "localAnswer": "找到以下当前记录：\n• PostgreSQL connection pool maximum size is 64. [1]",
+          "preview": [
+            "PostgreSQL connection pool maximum size is 64."
+          ],
+          "question": "PostgreSQL connection pool maximum size?",
+          "scopeViolation": false,
+          "selected": [
+            "pool"
+          ],
+          "selectedRecordChars": 944,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "normalization",
+          "elapsedMs": 54.3592,
+          "excerptContainsRequired": null,
+          "gold": [
+            "pool"
+          ],
+          "id": "fullwidth",
+          "localAnswer": "找到以下当前记录：\n• PostgreSQL connection pool maximum size is 64. [1]",
+          "preview": [
+            "PostgreSQL connection pool maximum size is 64."
+          ],
+          "question": "ＰｏｓｔｇｒｅＳＱＬ connection pool maximum size?",
+          "scopeViolation": false,
+          "selected": [
+            "pool"
+          ],
+          "selectedRecordChars": 944,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "normalization",
+          "elapsedMs": 55.703700000000005,
+          "excerptContainsRequired": null,
+          "gold": [
+            "audit"
+          ],
+          "id": "casefold",
+          "localAnswer": "找到以下当前记录：\n• Authentication audit events are retained for 180 days. [1]\n• 短信验证码方案已否决，保留邮箱验证码。 [2]",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "短信验证码方案已否决，保留邮箱验证码。"
+          ],
+          "question": "AUTHENTICATION AUDIT retention?",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "sms"
+          ],
+          "selectedRecordChars": 1822,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "paraphrase",
+          "elapsedMs": 55.9971,
+          "excerptContainsRequired": null,
+          "gold": [
+            "lockout"
+          ],
+          "id": "paraphrase_lockout",
+          "localAnswer": "找到以下当前记录：\n• 账户连续输错密码5次后锁定15分钟。 [1]\n• 一期登录仅支持账号密码，单点登录暂缓至二期评审。 [2]",
+          "preview": [
+            "账户连续输错密码5次后锁定15分钟。",
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。"
+          ],
+          "question": "连续输错密码后多久解锁？",
+          "scopeViolation": false,
+          "selected": [
+            "lockout",
+            "login"
+          ],
+          "selectedRecordChars": 1730,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "paraphrase",
+          "elapsedMs": 61.3753,
+          "excerptContainsRequired": null,
+          "gold": [
+            "signature"
+          ],
+          "id": "paraphrase_signature",
+          "localAnswer": "找到以下当前记录：\n• 客户签字暂缓，需先核对清楚双方账单差额。 [1]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [2]\n• 一期登录仅支持账号密码，单点登录暂缓至二期评审。 [3]",
+          "preview": [
+            "客户签字暂缓，需先核对清楚双方账单差额。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。"
+          ],
+          "question": "客户为何暂缓签字？",
+          "scopeViolation": false,
+          "selected": [
+            "signature",
+            "contact",
+            "login"
+          ],
+          "selectedRecordChars": 2622,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "paraphrase",
+          "elapsedMs": 50.8779,
+          "excerptContainsRequired": null,
+          "gold": [
+            "export"
+          ],
+          "id": "paraphrase_export",
+          "localAnswer": "2026-10-20 已记录的安排：\n尚未记录当日已确认日程，或计划日期为当日的未完成任务。",
+          "preview": [],
+          "question": "批量导出安排在哪个阶段？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 73.4163,
+          "excerptContainsRequired": null,
+          "gold": [
+            "signature"
+          ],
+          "id": "semantic_signature",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• Authentication audit events are retained for 180 days. [2]\n• 预算上限80万元，采购审批由许宁负责。 [3]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [4]\n• 批量导出功能仅在第二阶段实施，首期不交付。 [5]\n• 10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。 [6]\n• 账户连续输错密码5次后锁定15分钟。 [7]\n• 一期登录仅支持账号密码，单点登录暂缓至二期评审。 [8]\n• 会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。 [9]\n• 当前范围不包含移动端离线编辑，离线能力须另行评审。 [10]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "商务确认为什么迟迟没有完成？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "lockout",
+            "login",
+            "long",
+            "offline"
+          ],
+          "selectedRecordChars": 14755,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 61.2463,
+          "excerptContainsRequired": null,
+          "gold": [
+            "export"
+          ],
+          "id": "semantic_export",
+          "localAnswer": "找到以下当前记录：\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [1]\n• 例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。 [2]",
+          "preview": [
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项"
+          ],
+          "question": "能一次性下载全部工单吗？",
+          "scopeViolation": false,
+          "selected": [
+            "recovery",
+            "long"
+          ],
+          "selectedRecordChars": 7717,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 55.676700000000004,
+          "excerptContainsRequired": null,
+          "gold": [
+            "incident"
+          ],
+          "id": "semantic_incident",
+          "localAnswer": "本地记录中未找到与问题匹配的充分依据。可以询问“今天先催谁”“哪里有阻塞”“本周状态”，或提供任务名称。",
+          "preview": [],
+          "question": "上次服务中断的根因是什么？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 73.8209,
+          "excerptContainsRequired": null,
+          "gold": [
+            "offline"
+          ],
+          "id": "semantic_offline",
+          "localAnswer": "本地记录中未找到与问题匹配的充分依据。可以询问“今天先催谁”“哪里有阻塞”“本周状态”，或提供任务名称。",
+          "preview": [],
+          "question": "没网时能否修改手机上的内容？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 76.6773,
+          "excerptContainsRequired": null,
+          "gold": [
+            "lockout"
+          ],
+          "id": "semantic_lockout",
+          "localAnswer": "找到以下当前记录：\n• 10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。 [1]\n• 例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。 [2]",
+          "preview": [
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项"
+          ],
+          "question": "口令一直填错会受到怎样的限制？",
+          "scopeViolation": false,
+          "selected": [
+            "incident",
+            "long"
+          ],
+          "selectedRecordChars": 7674,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "negation_evidence",
+          "elapsedMs": 58.875099999999996,
+          "excerptContainsRequired": null,
+          "gold": [
+            "sms"
+          ],
+          "id": "negation_sms",
+          "localAnswer": "找到以下当前记录：\n• 短信验证码方案已否决，保留邮箱验证码。 [1]",
+          "preview": [
+            "短信验证码方案已否决，保留邮箱验证码。"
+          ],
+          "question": "短信验证码方案是否采用？",
+          "scopeViolation": false,
+          "selected": [
+            "sms"
+          ],
+          "selectedRecordChars": 832,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "negation_evidence",
+          "elapsedMs": 56.163900000000005,
+          "excerptContainsRequired": null,
+          "gold": [
+            "login"
+          ],
+          "id": "negation_sso",
+          "localAnswer": "找到以下当前记录：\n• 一期登录仅支持账号密码，单点登录暂缓至二期评审。 [1]",
+          "preview": [
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。"
+          ],
+          "question": "一期是否支持单点登录？",
+          "scopeViolation": false,
+          "selected": [
+            "login"
+          ],
+          "selectedRecordChars": 868,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "negation_evidence",
+          "elapsedMs": 61.144999999999996,
+          "excerptContainsRequired": null,
+          "gold": [
+            "offline"
+          ],
+          "id": "negation_offline",
+          "localAnswer": "找到以下当前记录：\n• 当前范围不包含移动端离线编辑，离线能力须另行评审。 [1]",
+          "preview": [
+            "当前范围不包含移动端离线编辑，离线能力须另行评审。"
+          ],
+          "question": "移动端离线编辑是否在当前范围？",
+          "scopeViolation": false,
+          "selected": [
+            "offline"
+          ],
+          "selectedRecordChars": 888,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "freshness",
+          "elapsedMs": 62.549800000000005,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "current_owner",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [2]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [3]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [4]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。"
+          ],
+          "question": "支付接口验收现在还是张磊负责吗？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "contact",
+            "recovery"
+          ],
+          "selectedRecordChars": 3630,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "freshness",
+          "elapsedMs": 60.4634,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "current_date",
+          "localAnswer": "找到以下当前记录：\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [1]\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [2]\n• 10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。 [3]\n• 例行同步记录10：资料已整理，沟通安排另行确认。 [4]\n• 发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。 [5]\n• 例行同步记录20：资料已整理，沟通安排另行确认。 [6]\n• 例行同步记录23：资料已整理，沟通安排另行确认。 [7]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [8]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [9]",
+          "preview": [
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "例行同步记录10：资料已整理，沟通安排另行确认。",
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+            "例行同步记录20：资料已整理，沟通安排另行确认。"
+          ],
+          "question": "支付接口验收是10月20日还是10月23日？",
+          "scopeViolation": false,
+          "selected": [
+            "owner",
+            "launch",
+            "incident",
+            "noise0010",
+            "rollback",
+            "noise0020",
+            "noise0023",
+            "contact",
+            "recovery"
+          ],
+          "selectedRecordChars": 6810,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "long_context",
+          "elapsedMs": 58.111999999999995,
+          "excerptContainsRequired": true,
+          "gold": [
+            "long"
+          ],
+          "id": "long_tail",
+          "localAnswer": "找到以下当前记录：\n• 例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。 [1]",
+          "mustInclude": "72小时",
+          "preview": [
+            "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项"
+          ],
+          "question": "天枢档案下载口令几小时失效？",
+          "scopeViolation": false,
+          "selected": [
+            "long"
+          ],
+          "selectedRecordChars": 6767,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "multi_evidence",
+          "elapsedMs": 57.496199999999995,
+          "excerptContainsRequired": null,
+          "gold": [
+            "launch",
+            "reconcile"
+          ],
+          "id": "multi_dependency",
+          "localAnswer": "截至 2026-10-20 的已记录阻塞和依赖：\n已检索记录中，没有明确标记的阻塞或未完成依赖；这不代表不存在未记录的问题。",
+          "preview": [],
+          "question": "上线需要先完成什么，对账核验卡在哪里？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "multi_evidence",
+          "elapsedMs": 69.1457,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner",
+            "reconcile"
+          ],
+          "id": "multi_followup",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [2]\n• 对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。 [3]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [4]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [5]\n• 客户签字暂缓，需先核对清楚双方账单差额。 [6]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "客户签字暂缓，需先核对清楚双方账单差额。"
+          ],
+          "question": "支付接口验收由谁负责，供应商账单应该找谁？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "reconcile",
+            "contact",
+            "recovery",
+            "signature"
+          ],
+          "selectedRecordChars": 5408,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "multi_evidence",
+          "elapsedMs": 55.483200000000004,
+          "excerptContainsRequired": null,
+          "gold": [
+            "launch",
+            "reconcile"
+          ],
+          "id": "multi_cause",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• 对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。 [2]\n• 客户签字暂缓，需先核对清楚双方账单差额。 [3]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "客户签字暂缓，需先核对清楚双方账单差额。"
+          ],
+          "question": "上线为什么延后，应该找谁补账单？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "reconcile",
+            "signature"
+          ],
+          "selectedRecordChars": 2665,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 52.7424,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_whale",
+          "localAnswer": "本地记录中未找到与问题匹配的充分依据。可以询问“今天先催谁”“哪里有阻塞”“本周状态”，或提供任务名称。",
+          "preview": [],
+          "question": "鲸鱼寿命多少年？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 61.3314,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_unique",
+          "localAnswer": "找到以下当前记录：\n• 例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。 [1]",
+          "preview": [
+            "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项"
+          ],
+          "question": "织女星服务器口令是什么？",
+          "scopeViolation": false,
+          "selected": [
+            "long"
+          ],
+          "selectedRecordChars": 6767,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 69.82140000000001,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_relevant",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [2]\n• 例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。 [3]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项"
+          ],
+          "question": "支付接口的生产数据库口令是什么？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "long"
+          ],
+          "selectedRecordChars": 8571,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 59.730900000000005,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_title",
+          "localAnswer": "找到以下当前记录：\n• 仅记录了例会地点为B301。 [1]",
+          "preview": [
+            "仅记录了例会地点为B301。"
+          ],
+          "question": "量子隧道专项怎么部署？",
+          "scopeViolation": false,
+          "selected": [
+            "title_only"
+          ],
+          "selectedRecordChars": 864,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unconfirmed",
+          "elapsedMs": 53.369800000000005,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "pending_only",
+          "localAnswer": "本地记录中未找到与问题匹配的充分依据。可以询问“今天先催谁”“哪里有阻塞”“本周状态”，或提供任务名称。",
+          "preview": [],
+          "question": "星舰负责人是谁？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "conflict",
+          "elapsedMs": 58.914,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "conflict_only",
+          "localAnswer": "本地记录中未找到与问题匹配的充分依据。可以询问“今天先催谁”“哪里有阻塞”“本周状态”，或提供任务名称。",
+          "preview": [],
+          "question": "迁移窗口定在几点？",
+          "scopeViolation": false,
+          "selected": [],
+          "selectedRecordChars": 2,
+          "staleOrConflictViolation": false
+        }
+      ],
+      "categories": {
+        "conflict": {
+          "allEvidenceAt40": null,
+          "allEvidenceAt6": null,
+          "answerable": 0,
+          "cases": 1,
+          "latencyMs": {
+            "p50": 58.914,
+            "p95": 58.914
+          },
+          "mrrAt6": null,
+          "negativeEmptyRate": 1.0,
+          "recallAt1": null,
+          "recallAt3": null,
+          "recallAt40": null,
+          "recallAt6": null,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 1
+        },
+        "cross_language": {
+          "allEvidenceAt40": 0.75,
+          "allEvidenceAt6": 0.75,
+          "answerable": 4,
+          "cases": 4,
+          "latencyMs": {
+            "p50": 60.159,
+            "p95": 74.8756
+          },
+          "mrrAt6": 0.75,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.75,
+          "recallAt3": 0.75,
+          "recallAt40": 0.75,
+          "recallAt6": 0.75,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "exact": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 6,
+          "cases": 6,
+          "latencyMs": {
+            "p50": 61.579299999999996,
+            "p95": 67.3899
+          },
+          "mrrAt6": 0.9166666666666666,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.8333333333333334,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "freshness": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 2,
+          "cases": 2,
+          "latencyMs": {
+            "p50": 60.4634,
+            "p95": 62.549800000000005
+          },
+          "mrrAt6": 0.75,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.5,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "long_context": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 1,
+          "cases": 1,
+          "latencyMs": {
+            "p50": 58.111999999999995,
+            "p95": 58.111999999999995
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "multi_evidence": {
+          "allEvidenceAt40": 0.6666666666666666,
+          "allEvidenceAt6": 0.6666666666666666,
+          "answerable": 3,
+          "cases": 3,
+          "latencyMs": {
+            "p50": 57.496199999999995,
+            "p95": 69.1457
+          },
+          "mrrAt6": 0.5,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.16666666666666666,
+          "recallAt3": 0.6666666666666666,
+          "recallAt40": 0.6666666666666666,
+          "recallAt6": 0.6666666666666666,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "negation_evidence": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 3,
+          "cases": 3,
+          "latencyMs": {
+            "p50": 58.875099999999996,
+            "p95": 61.144999999999996
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "normalization": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 2,
+          "cases": 2,
+          "latencyMs": {
+            "p50": 54.3592,
+            "p95": 55.703700000000005
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "paraphrase": {
+          "allEvidenceAt40": 0.6666666666666666,
+          "allEvidenceAt6": 0.6666666666666666,
+          "answerable": 3,
+          "cases": 3,
+          "latencyMs": {
+            "p50": 55.9971,
+            "p95": 61.3753
+          },
+          "mrrAt6": 0.6666666666666666,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.6666666666666666,
+          "recallAt3": 0.6666666666666666,
+          "recallAt40": 0.6666666666666666,
+          "recallAt6": 0.6666666666666666,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "semantic_gap": {
+          "allEvidenceAt40": 0.0,
+          "allEvidenceAt6": 0.0,
+          "answerable": 5,
+          "cases": 5,
+          "latencyMs": {
+            "p50": 73.4163,
+            "p95": 76.6773
+          },
+          "mrrAt6": 0.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.0,
+          "recallAt3": 0.0,
+          "recallAt40": 0.0,
+          "recallAt6": 0.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "unanswerable": {
+          "allEvidenceAt40": null,
+          "allEvidenceAt6": null,
+          "answerable": 0,
+          "cases": 4,
+          "latencyMs": {
+            "p50": 59.730900000000005,
+            "p95": 69.82140000000001
+          },
+          "mrrAt6": null,
+          "negativeEmptyRate": 0.25,
+          "recallAt1": null,
+          "recallAt3": null,
+          "recallAt40": null,
+          "recallAt6": null,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 4
+        },
+        "unconfirmed": {
+          "allEvidenceAt40": null,
+          "allEvidenceAt6": null,
+          "answerable": 0,
+          "cases": 1,
+          "latencyMs": {
+            "p50": 53.369800000000005,
+            "p95": 53.369800000000005
+          },
+          "mrrAt6": null,
+          "negativeEmptyRate": 1.0,
+          "recallAt1": null,
+          "recallAt3": null,
+          "recallAt40": null,
+          "recallAt6": null,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 1
+        }
+      },
+      "summary": {
+        "allEvidenceAt40": 0.7241379310344828,
+        "allEvidenceAt6": 0.7241379310344828,
+        "answerable": 29,
+        "cases": 35,
+        "latencyMs": {
+          "p50": 60.159,
+          "p95": 74.8756
+        },
+        "mrrAt6": 0.6724137931034483,
+        "negativeEmptyRate": 0.5,
+        "recallAt1": 0.603448275862069,
+        "recallAt3": 0.7241379310344828,
+        "recallAt40": 0.7241379310344828,
+        "recallAt6": 0.7241379310344828,
+        "scopeViolations": 0,
+        "staleOrConflictViolations": 0,
+        "unanswerable": 6
+      }
+    },
+    "desktop_model_context": {
+      "cases": [
+        {
+          "category": "exact",
+          "elapsedMs": 63.1722,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "exact_owner",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [2]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [3]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [4]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。"
+          ],
+          "question": "支付接口验收由谁负责？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "contact",
+            "recovery",
+            "audit",
+            "budget",
+            "export",
+            "incident",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 20188,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 62.121700000000004,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "exact_deadline",
+          "localAnswer": "找到以下当前记录：\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [1]\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [2]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [3]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [4]",
+          "preview": [
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。"
+          ],
+          "question": "支付接口验收截止日期是什么？",
+          "scopeViolation": false,
+          "selected": [
+            "owner",
+            "launch",
+            "contact",
+            "recovery",
+            "audit",
+            "budget",
+            "export",
+            "incident",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 20188,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 61.7003,
+          "excerptContainsRequired": null,
+          "gold": [
+            "budget"
+          ],
+          "id": "exact_budget",
+          "localAnswer": "找到以下当前记录：\n• 预算上限80万元，采购审批由许宁负责。 [1]\n• 发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。 [2]",
+          "preview": [
+            "预算上限80万元，采购审批由许宁负责。",
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+            "Authentication audit events are retained for 180 days.",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "预算上限是多少万元？",
+          "scopeViolation": false,
+          "selected": [
+            "budget",
+            "rollback",
+            "audit",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19685,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 62.2825,
+          "excerptContainsRequired": null,
+          "gold": [
+            "contact"
+          ],
+          "id": "exact_contact",
+          "localAnswer": "找到以下当前记录：\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [1]\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [2]\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [3]\n• 客户签字暂缓，需先核对清楚双方账单差额。 [4]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [5]",
+          "preview": [
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "客户签字暂缓，需先核对清楚双方账单差额。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "Authentication audit events are retained for 180 days."
+          ],
+          "question": "客户验收联系人是谁？",
+          "scopeViolation": false,
+          "selected": [
+            "contact",
+            "launch",
+            "owner",
+            "signature",
+            "recovery",
+            "audit",
+            "budget",
+            "export",
+            "incident",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 20616,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 65.8122,
+          "excerptContainsRequired": null,
+          "gold": [
+            "recovery"
+          ],
+          "id": "exact_recovery",
+          "localAnswer": "找到以下当前记录：\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [1]\n• 10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。 [2]\n• 发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。 [3]",
+          "preview": [
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。"
+          ],
+          "question": "数据恢复演练多久执行一次？",
+          "scopeViolation": false,
+          "selected": [
+            "recovery",
+            "incident",
+            "rollback",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 20184,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 67.70819999999999,
+          "excerptContainsRequired": null,
+          "gold": [
+            "audit"
+          ],
+          "id": "alias_audit",
+          "localAnswer": "找到以下当前记录：\n• Authentication audit events are retained for 180 days. [1]\n• 一期登录仅支持账号密码，单点登录暂缓至二期评审。 [2]\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [3]\n• 短信验证码方案已否决，保留邮箱验证码。 [4]",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "短信验证码方案已否决，保留邮箱验证码。",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。"
+          ],
+          "question": "登录审计需要保留多久？",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "login",
+            "launch",
+            "sms",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "lockout",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19602,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 69.1764,
+          "excerptContainsRequired": null,
+          "gold": [
+            "audit"
+          ],
+          "id": "alias_retention",
+          "localAnswer": "找到以下当前记录：\n• Authentication audit events are retained for 180 days. [1]\n• 短信验证码方案已否决，保留邮箱验证码。 [2]",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "短信验证码方案已否决，保留邮箱验证码。",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "审计留存期限是多少？",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "sms",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19602,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 65.4054,
+          "excerptContainsRequired": null,
+          "gold": [
+            "rollback"
+          ],
+          "id": "alias_rollback",
+          "localAnswer": "找到以下当前记录：\n• 发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。 [1]\n• 预算上限80万元，采购审批由许宁负责。 [2]",
+          "preview": [
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+            "预算上限80万元，采购审批由许宁负责。",
+            "Authentication audit events are retained for 180 days.",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "rollback 的耗时上限是多少？",
+          "scopeViolation": false,
+          "selected": [
+            "rollback",
+            "budget",
+            "audit",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19685,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "cross_language",
+          "elapsedMs": 63.472100000000005,
+          "excerptContainsRequired": null,
+          "gold": [
+            "pool"
+          ],
+          "id": "alias_pool_missing",
+          "localAnswer": "找到以下当前记录：\n• 10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。 [1]",
+          "preview": [
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。"
+          ],
+          "question": "数据库连接池的最大容量是多少？",
+          "scopeViolation": false,
+          "selected": [
+            "incident",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "exact",
+          "elapsedMs": 62.417699999999996,
+          "excerptContainsRequired": null,
+          "gold": [
+            "pool"
+          ],
+          "id": "english_pool",
+          "localAnswer": "找到以下当前记录：\n• PostgreSQL connection pool maximum size is 64. [1]",
+          "preview": [
+            "PostgreSQL connection pool maximum size is 64.",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "PostgreSQL connection pool maximum size?",
+          "scopeViolation": false,
+          "selected": [
+            "pool",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19714,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "normalization",
+          "elapsedMs": 62.112,
+          "excerptContainsRequired": null,
+          "gold": [
+            "pool"
+          ],
+          "id": "fullwidth",
+          "localAnswer": "找到以下当前记录：\n• PostgreSQL connection pool maximum size is 64. [1]",
+          "preview": [
+            "PostgreSQL connection pool maximum size is 64.",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "ＰｏｓｔｇｒｅＳＱＬ connection pool maximum size?",
+          "scopeViolation": false,
+          "selected": [
+            "pool",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19714,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "normalization",
+          "elapsedMs": 64.9299,
+          "excerptContainsRequired": null,
+          "gold": [
+            "audit"
+          ],
+          "id": "casefold",
+          "localAnswer": "找到以下当前记录：\n• Authentication audit events are retained for 180 days. [1]\n• 短信验证码方案已否决，保留邮箱验证码。 [2]",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "短信验证码方案已否决，保留邮箱验证码。",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "AUTHENTICATION AUDIT retention?",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "sms",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19602,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "paraphrase",
+          "elapsedMs": 62.6328,
+          "excerptContainsRequired": null,
+          "gold": [
+            "lockout"
+          ],
+          "id": "paraphrase_lockout",
+          "localAnswer": "找到以下当前记录：\n• 账户连续输错密码5次后锁定15分钟。 [1]\n• 一期登录仅支持账号密码，单点登录暂缓至二期评审。 [2]",
+          "preview": [
+            "账户连续输错密码5次后锁定15分钟。",
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。"
+          ],
+          "question": "连续输错密码后多久解锁？",
+          "scopeViolation": false,
+          "selected": [
+            "lockout",
+            "login",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "paraphrase",
+          "elapsedMs": 64.35770000000001,
+          "excerptContainsRequired": null,
+          "gold": [
+            "signature"
+          ],
+          "id": "paraphrase_signature",
+          "localAnswer": "找到以下当前记录：\n• 客户签字暂缓，需先核对清楚双方账单差额。 [1]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [2]\n• 一期登录仅支持账号密码，单点登录暂缓至二期评审。 [3]",
+          "preview": [
+            "客户签字暂缓，需先核对清楚双方账单差额。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "批量导出功能仅在第二阶段实施，首期不交付。"
+          ],
+          "question": "客户为何暂缓签字？",
+          "scopeViolation": false,
+          "selected": [
+            "signature",
+            "contact",
+            "login",
+            "audit",
+            "budget",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19650,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "paraphrase",
+          "elapsedMs": 53.6485,
+          "excerptContainsRequired": null,
+          "gold": [
+            "export"
+          ],
+          "id": "paraphrase_export",
+          "localAnswer": "2026-10-20 已记录的安排：\n尚未记录当日已确认日程，或计划日期为当日的未完成任务。",
+          "preview": [
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "例行同步记录0：资料已整理，沟通安排另行确认。",
+            "例行同步记录1：资料已整理，沟通安排另行确认。",
+            "例行同步记录2：资料已整理，沟通安排另行确认。",
+            "例行同步记录3：资料已整理，沟通安排另行确认。",
+            "例行同步记录4：资料已整理，沟通安排另行确认。"
+          ],
+          "question": "批量导出安排在哪个阶段？",
+          "scopeViolation": false,
+          "selected": [
+            "export",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "noise0011",
+            "noise0012",
+            "noise0013",
+            "noise0014",
+            "noise0015",
+            "noise0016",
+            "noise0017",
+            "noise0018",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 9844,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 78.09190000000001,
+          "excerptContainsRequired": null,
+          "gold": [
+            "signature"
+          ],
+          "id": "semantic_signature",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• Authentication audit events are retained for 180 days. [2]\n• 预算上限80万元，采购审批由许宁负责。 [3]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [4]\n• 批量导出功能仅在第二阶段实施，首期不交付。 [5]\n• 10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。 [6]\n• 账户连续输错密码5次后锁定15分钟。 [7]\n• 一期登录仅支持账号密码，单点登录暂缓至二期评审。 [8]\n• 会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。 [9]\n• 当前范围不包含移动端离线编辑，离线能力须另行评审。 [10]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "商务确认为什么迟迟没有完成？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "lockout",
+            "login",
+            "long",
+            "offline",
+            "owner",
+            "pool",
+            "reconcile",
+            "recovery",
+            "rollback",
+            "signature",
+            "sms",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 22835,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 64.5699,
+          "excerptContainsRequired": null,
+          "gold": [
+            "export"
+          ],
+          "id": "semantic_export",
+          "localAnswer": "找到以下当前记录：\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [1]\n• 例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。 [2]",
+          "preview": [
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。"
+          ],
+          "question": "能一次性下载全部工单吗？",
+          "scopeViolation": false,
+          "selected": [
+            "recovery",
+            "long",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19721,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 65.0489,
+          "excerptContainsRequired": null,
+          "gold": [
+            "incident"
+          ],
+          "id": "semantic_incident",
+          "localAnswer": "本地记录中未找到与问题匹配的充分依据。可以询问“今天先催谁”“哪里有阻塞”“本周状态”，或提供任务名称。",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。"
+          ],
+          "question": "上次服务中断的根因是什么？",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 66.3276,
+          "excerptContainsRequired": null,
+          "gold": [
+            "offline"
+          ],
+          "id": "semantic_offline",
+          "localAnswer": "本地记录中未找到与问题匹配的充分依据。可以询问“今天先催谁”“哪里有阻塞”“本周状态”，或提供任务名称。",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。"
+          ],
+          "question": "没网时能否修改手机上的内容？",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "semantic_gap",
+          "elapsedMs": 65.1615,
+          "excerptContainsRequired": null,
+          "gold": [
+            "lockout"
+          ],
+          "id": "semantic_lockout",
+          "localAnswer": "找到以下当前记录：\n• 10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。 [1]\n• 例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。 [2]",
+          "preview": [
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。"
+          ],
+          "question": "口令一直填错会受到怎样的限制？",
+          "scopeViolation": false,
+          "selected": [
+            "incident",
+            "long",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "launch",
+            "lockout",
+            "login",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "negation_evidence",
+          "elapsedMs": 77.6375,
+          "excerptContainsRequired": null,
+          "gold": [
+            "sms"
+          ],
+          "id": "negation_sms",
+          "localAnswer": "找到以下当前记录：\n• 短信验证码方案已否决，保留邮箱验证码。 [1]",
+          "preview": [
+            "短信验证码方案已否决，保留邮箱验证码。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "短信验证码方案是否采用？",
+          "scopeViolation": false,
+          "selected": [
+            "sms",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19602,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "negation_evidence",
+          "elapsedMs": 71.8612,
+          "excerptContainsRequired": null,
+          "gold": [
+            "login"
+          ],
+          "id": "negation_sso",
+          "localAnswer": "找到以下当前记录：\n• 一期登录仅支持账号密码，单点登录暂缓至二期评审。 [1]",
+          "preview": [
+            "一期登录仅支持账号密码，单点登录暂缓至二期评审。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "一期是否支持单点登录？",
+          "scopeViolation": false,
+          "selected": [
+            "login",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "negation_evidence",
+          "elapsedMs": 74.9499,
+          "excerptContainsRequired": null,
+          "gold": [
+            "offline"
+          ],
+          "id": "negation_offline",
+          "localAnswer": "找到以下当前记录：\n• 当前范围不包含移动端离线编辑，离线能力须另行评审。 [1]",
+          "preview": [
+            "当前范围不包含移动端离线编辑，离线能力须另行评审。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "移动端离线编辑是否在当前范围？",
+          "scopeViolation": false,
+          "selected": [
+            "offline",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19658,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "freshness",
+          "elapsedMs": 62.3331,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "current_owner",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [2]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [3]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [4]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。"
+          ],
+          "question": "支付接口验收现在还是张磊负责吗？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "contact",
+            "recovery",
+            "audit",
+            "budget",
+            "export",
+            "incident",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 20188,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "freshness",
+          "elapsedMs": 66.28920000000001,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner"
+          ],
+          "id": "current_date",
+          "localAnswer": "找到以下当前记录：\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [1]\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [2]\n• 10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。 [3]\n• 例行同步记录10：资料已整理，沟通安排另行确认。 [4]\n• 发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。 [5]\n• 例行同步记录20：资料已整理，沟通安排另行确认。 [6]\n• 例行同步记录23：资料已整理，沟通安排另行确认。 [7]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [8]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [9]",
+          "preview": [
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "例行同步记录10：资料已整理，沟通安排另行确认。",
+            "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+            "例行同步记录20：资料已整理，沟通安排另行确认。"
+          ],
+          "question": "支付接口验收是10月20日还是10月23日？",
+          "scopeViolation": false,
+          "selected": [
+            "owner",
+            "launch",
+            "incident",
+            "noise0010",
+            "rollback",
+            "noise0020",
+            "noise0023",
+            "contact",
+            "recovery",
+            "audit",
+            "budget",
+            "export",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 20657,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "long_context",
+          "elapsedMs": 66.46000000000001,
+          "excerptContainsRequired": true,
+          "gold": [
+            "long"
+          ],
+          "id": "long_tail",
+          "localAnswer": "找到以下当前记录：\n• 例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。 [1]",
+          "mustInclude": "72小时",
+          "preview": [
+            "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "天枢档案下载口令几小时失效？",
+          "scopeViolation": false,
+          "selected": [
+            "long",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "multi_evidence",
+          "elapsedMs": 65.3441,
+          "excerptContainsRequired": null,
+          "gold": [
+            "launch",
+            "reconcile"
+          ],
+          "id": "multi_dependency",
+          "localAnswer": "截至 2026-10-20 的已记录阻塞和依赖：\n已检索记录中，没有明确标记的阻塞或未完成依赖；这不代表不存在未记录的问题。",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。"
+          ],
+          "question": "上线需要先完成什么，对账核验卡在哪里？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "reconcile",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19670,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "multi_evidence",
+          "elapsedMs": 71.9931,
+          "excerptContainsRequired": null,
+          "gold": [
+            "owner",
+            "reconcile"
+          ],
+          "id": "multi_followup",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [2]\n• 对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。 [3]\n• 客户验收联系人为赵岚，电话在客户通讯录中维护。 [4]\n• 数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。 [5]\n• 客户签字暂缓，需先核对清楚双方账单差额。 [6]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "数据恢复演练每月执行一次，验收要求RTO不超过30分钟、RPO不超过5分钟。",
+            "客户签字暂缓，需先核对清楚双方账单差额。"
+          ],
+          "question": "支付接口验收由谁负责，供应商账单应该找谁？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "reconcile",
+            "contact",
+            "recovery",
+            "signature",
+            "audit",
+            "budget",
+            "export",
+            "incident",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 21064,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "multi_evidence",
+          "elapsedMs": 62.438,
+          "excerptContainsRequired": null,
+          "gold": [
+            "launch",
+            "reconcile"
+          ],
+          "id": "multi_cause",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• 对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。 [2]\n• 客户签字暂缓，需先核对清楚双方账单差额。 [3]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "客户签字暂缓，需先核对清楚双方账单差额。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。"
+          ],
+          "question": "上线为什么延后，应该找谁补账单？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "reconcile",
+            "signature",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 20098,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 73.02300000000001,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_whale",
+          "localAnswer": "本地记录中未找到与问题匹配的充分依据。可以询问“今天先催谁”“哪里有阻塞”“本周状态”，或提供任务名称。",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。"
+          ],
+          "question": "鲸鱼寿命多少年？",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 77.195,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_unique",
+          "localAnswer": "找到以下当前记录：\n• 例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。 [1]",
+          "preview": [
+            "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "织女星服务器口令是什么？",
+          "scopeViolation": false,
+          "selected": [
+            "long",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 61.800399999999996,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_relevant",
+          "localAnswer": "找到以下当前记录：\n• 上线前必须完成支付接口验收，验收需要先完成对账核验。 [1]\n• 支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。 [2]\n• 例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。 [3]",
+          "preview": [
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。"
+          ],
+          "question": "支付接口的生产数据库口令是什么？",
+          "scopeViolation": false,
+          "selected": [
+            "launch",
+            "owner",
+            "long",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "lockout",
+            "login",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19689,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unanswerable",
+          "elapsedMs": 68.4246,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "unknown_title",
+          "localAnswer": "找到以下当前记录：\n• 仅记录了例会地点为B301。 [1]",
+          "preview": [
+            "仅记录了例会地点为B301。",
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。"
+          ],
+          "question": "量子隧道专项怎么部署？",
+          "scopeViolation": false,
+          "selected": [
+            "title_only",
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19634,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "unconfirmed",
+          "elapsedMs": 58.232800000000005,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "pending_only",
+          "localAnswer": "本地记录中未找到与问题匹配的充分依据。可以询问“今天先催谁”“哪里有阻塞”“本周状态”，或提供任务名称。",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。"
+          ],
+          "question": "星舰负责人是谁？",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        },
+        {
+          "category": "conflict",
+          "elapsedMs": 62.333800000000004,
+          "excerptContainsRequired": null,
+          "gold": [],
+          "id": "conflict_only",
+          "localAnswer": "本地记录中未找到与问题匹配的充分依据。可以询问“今天先催谁”“哪里有阻塞”“本周状态”，或提供任务名称。",
+          "preview": [
+            "Authentication audit events are retained for 180 days.",
+            "预算上限80万元，采购审批由许宁负责。",
+            "客户验收联系人为赵岚，电话在客户通讯录中维护。",
+            "批量导出功能仅在第二阶段实施，首期不交付。",
+            "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "上线前必须完成支付接口验收，验收需要先完成对账核验。"
+          ],
+          "question": "迁移窗口定在几点？",
+          "scopeViolation": false,
+          "selected": [
+            "audit",
+            "budget",
+            "contact",
+            "export",
+            "incident",
+            "launch",
+            "lockout",
+            "login",
+            "long",
+            "noise0000",
+            "noise0001",
+            "noise0002",
+            "noise0003",
+            "noise0004",
+            "noise0005",
+            "noise0006",
+            "noise0007",
+            "noise0008",
+            "noise0009",
+            "noise0010",
+            "project:alpha"
+          ],
+          "selectedRecordChars": 19224,
+          "staleOrConflictViolation": false
+        }
+      ],
+      "categories": {
+        "conflict": {
+          "allEvidenceAt40": null,
+          "allEvidenceAt6": null,
+          "answerable": 0,
+          "cases": 1,
+          "latencyMs": {
+            "p50": 62.333800000000004,
+            "p95": 62.333800000000004
+          },
+          "mrrAt6": null,
+          "negativeEmptyRate": 0.0,
+          "recallAt1": null,
+          "recallAt3": null,
+          "recallAt40": null,
+          "recallAt6": null,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 1
+        },
+        "cross_language": {
+          "allEvidenceAt40": 0.75,
+          "allEvidenceAt6": 0.75,
+          "answerable": 4,
+          "cases": 4,
+          "latencyMs": {
+            "p50": 65.4054,
+            "p95": 69.1764
+          },
+          "mrrAt6": 0.75,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.75,
+          "recallAt3": 0.75,
+          "recallAt40": 0.75,
+          "recallAt6": 0.75,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "exact": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 6,
+          "cases": 6,
+          "latencyMs": {
+            "p50": 62.2825,
+            "p95": 65.8122
+          },
+          "mrrAt6": 0.9166666666666666,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.8333333333333334,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "freshness": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 2,
+          "cases": 2,
+          "latencyMs": {
+            "p50": 62.3331,
+            "p95": 66.28920000000001
+          },
+          "mrrAt6": 0.75,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.5,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "long_context": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 1,
+          "cases": 1,
+          "latencyMs": {
+            "p50": 66.46000000000001,
+            "p95": 66.46000000000001
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "multi_evidence": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 3,
+          "cases": 3,
+          "latencyMs": {
+            "p50": 65.3441,
+            "p95": 71.9931
+          },
+          "mrrAt6": 0.8333333333333334,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.3333333333333333,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "negation_evidence": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 3,
+          "cases": 3,
+          "latencyMs": {
+            "p50": 74.9499,
+            "p95": 77.6375
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "normalization": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 2,
+          "cases": 2,
+          "latencyMs": {
+            "p50": 62.112,
+            "p95": 64.9299
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "paraphrase": {
+          "allEvidenceAt40": 1.0,
+          "allEvidenceAt6": 1.0,
+          "answerable": 3,
+          "cases": 3,
+          "latencyMs": {
+            "p50": 62.6328,
+            "p95": 64.35770000000001
+          },
+          "mrrAt6": 1.0,
+          "negativeEmptyRate": null,
+          "recallAt1": 1.0,
+          "recallAt3": 1.0,
+          "recallAt40": 1.0,
+          "recallAt6": 1.0,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "semantic_gap": {
+          "allEvidenceAt40": 0.8,
+          "allEvidenceAt6": 0.4,
+          "answerable": 5,
+          "cases": 5,
+          "latencyMs": {
+            "p50": 65.1615,
+            "p95": 78.09190000000001
+          },
+          "mrrAt6": 0.07333333333333333,
+          "negativeEmptyRate": null,
+          "recallAt1": 0.0,
+          "recallAt3": 0.0,
+          "recallAt40": 0.8,
+          "recallAt6": 0.4,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 0
+        },
+        "unanswerable": {
+          "allEvidenceAt40": null,
+          "allEvidenceAt6": null,
+          "answerable": 0,
+          "cases": 4,
+          "latencyMs": {
+            "p50": 68.4246,
+            "p95": 77.195
+          },
+          "mrrAt6": null,
+          "negativeEmptyRate": 0.0,
+          "recallAt1": null,
+          "recallAt3": null,
+          "recallAt40": null,
+          "recallAt6": null,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 4
+        },
+        "unconfirmed": {
+          "allEvidenceAt40": null,
+          "allEvidenceAt6": null,
+          "answerable": 0,
+          "cases": 1,
+          "latencyMs": {
+            "p50": 58.232800000000005,
+            "p95": 58.232800000000005
+          },
+          "mrrAt6": null,
+          "negativeEmptyRate": 0.0,
+          "recallAt1": null,
+          "recallAt3": null,
+          "recallAt40": null,
+          "recallAt6": null,
+          "scopeViolations": 0,
+          "staleOrConflictViolations": 0,
+          "unanswerable": 1
+        }
+      },
+      "summary": {
+        "allEvidenceAt40": 0.9310344827586207,
+        "allEvidenceAt6": 0.8620689655172413,
+        "answerable": 29,
+        "cases": 35,
+        "latencyMs": {
+          "p50": 65.0489,
+          "p95": 77.6375
+        },
+        "mrrAt6": 0.7540229885057471,
+        "negativeEmptyRate": 0.0,
+        "recallAt1": 0.6551724137931034,
+        "recallAt3": 0.7931034482758621,
+        "recallAt40": 0.9310344827586207,
+        "recallAt6": 0.8620689655172413,
+        "scopeViolations": 0,
+        "staleOrConflictViolations": 0,
+        "unanswerable": 6
+      }
+    }
+  }
+}

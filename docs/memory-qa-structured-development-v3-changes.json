@@ -1,0 +1,58 @@
+{
+  "version": "qa-structured-development-v3-changes-v1",
+  "recordedAt": "2026-10-23T05:09:13.873Z",
+  "previousResult": "docs/memory-public-live-qa-structured-dev-v2-results.json",
+  "frozenBinary": "ecdbe7ea8c72eb0c2083c6c615fc50fb29c6daecf9f2732c80b81cba1d777173",
+  "testEvidence": "docs/memory-qa-structured-development-third-live-regressions.json",
+  "ordinaryRustTests": 429,
+  "nodeTests": 213,
+  "changes": [
+    {
+      "files": [
+        "crates/core/src/memory_links.rs",
+        "crates/core/src/qa.rs",
+        "crates/core/src/assistant_qa.rs",
+        "crates/core/src/question_flow.rs"
+      ],
+      "feature": "surveyCoverage actual-reference navigation",
+      "properties": [
+        "At most one selected directory and four groups of two selected reference indices.",
+        "All indices refer to the actual current call array; review citations use their own order.",
+        "Projected connector citations rebind only to a unique exact ID/revision/content/project match in the validated selected pack, never the candidate pool.",
+        "Revision/hash/source-position/member checks remain required; no new body, title, name or completeness verdict.",
+        "Whole hint including referenceArray is at most900characters; invalid or ambiguous metadata disables the hint."
+      ]
+    },
+    {
+      "files": [
+        "crates/core/src/question_plan.rs",
+        "crates/core/src/answer_contract.rs",
+        "crates/core/src/question_flow.rs"
+      ],
+      "feature": "source-bounded survey scope",
+      "properties": [
+        "survey_summary distinguishes source_representatives from explicitly requested_exhaustive.",
+        "Review source-described representative approaches and their anchored roles separately from the authors contribution.",
+        "No automatic unknown deletion, partial-to-complete upgrade, new semantic call or protocol relaxation.",
+        "Explicit exhaustive requests, unsupported roles and reviewer-retained unknowns still preserve partial or refusal behavior."
+      ]
+    }
+  ],
+  "preservedTestFailures": [
+    "docs/memory-qa-structured-development-v3-initial-regressions.json",
+    "docs/memory-qa-structured-development-v3-transient-launch-failure.json"
+  ],
+  "registeredAttempt": 3,
+  "registeredMaximumFreshAttempts": 3,
+  "priorSpent": {
+    "requests": 751,
+    "tokens": 3332908
+  },
+  "gradingAndRegistrationChanged": false,
+  "remainingLimitations": [
+    "Variable-cardinality reviews may resolve unknown IDs but reintroduce equivalent missingAspects; no heuristic upgrade was added.",
+    "Decoder independence does not establish weight sharing.",
+    "Position-input human answers and automatic judgments have conflicting interpretations.",
+    "Independent human/blind business validation remains unavailable."
+  ]
+}

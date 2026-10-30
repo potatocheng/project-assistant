@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Check, ChevronDown, GitBranch, ListChecks, RefreshCw } from 'lucide-react';
 import { asError, execute } from '../../api';
 import { TASK_STATUS, type Task, type TaskStatus } from '../../types';
@@ -24,7 +25,7 @@ export interface PlanningOverview {
 const labels: Record<string, string> = { merge: '归并重复任务', proposal: '核对原文任务', memory_task: '从记忆建立跟进', dependency: '确认前置依赖', blocker: '确认阻塞', estimate: '确认预计用时' };
 const mins = (n: number) => `${n} 分钟`;
 
-export function DailyPlanning({ day, projectId, tasks, onChanged, onOverview }: { day: string; projectId: string; tasks: Task[]; onChanged: () => Promise<unknown>; onOverview: (data: PlanningOverview) => void }) {
+export function DailyPlanning({ day, projectId, tasks, onChanged, onOverview, children }: { day: string; projectId: string; tasks: Task[]; onChanged: () => Promise<unknown>; onOverview: (data: PlanningOverview) => void; children?: ReactNode }) {
   const [data, setData] = useState<PlanningOverview | null>(null);
   const [minutes, setMinutes] = useState(''); const [buffer, setBuffer] = useState('0');
   const [capacityBase, setCapacityBase] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export function DailyPlanning({ day, projectId, tasks, onChanged, onOverview }: 
     const run = ++sequence.current;
     const next = await execute<PlanningOverview>('get_daily_planning', { date: day, ...(projectId ? { projectId } : {}) });
     if (!alive.current || run !== sequence.current) return;
-    setData(next); onOverviewRef.current(next);
+    setData(next); setError(''); onOverviewRef.current(next);
     if (!initial.current) { initial.current = true; setMinutes(next.capacity ? String(next.capacity.minutes) : ''); setBuffer(String(next.capacity?.bufferMinutes ?? 0)); setCapacityBase(next.capacity?.revision ?? null); setUseModel(next.modelAvailable); }
   }, [day, projectId]);
   useEffect(() => {
@@ -79,7 +80,7 @@ export function DailyPlanning({ day, projectId, tasks, onChanged, onOverview }: 
         <h3><ListChecks size={17} />时间与排期</h3>
         <p>{availableMinutes !== null ? <><strong>可排 {mins(availableMinutes)}</strong><span>{freshDrafts.length ? `${freshDrafts.length} 份草案待确认` : pendingDrafts.length ? '草案需重新生成' : data?.confirmedPlan ? `已安排 ${mins(data.confirmedPlan.result.scheduledMinutes)}` : '时间已设置，可以开始排期'}</span></> : historical ? '这一天未设置可用时间。' : '设置可用时间，再安排任务。'}</p>
       </div>
-      <div className="planning-heading-actions">
+      <div className="planning-heading-actions">{children}
         {data?.confirmedPlan && !pendingDrafts.length && <span className="planning-confirmed"><Check size={13} />已确认</span>}
         {!expanded && !historical && <button className={`button ${latestDraft ? 'primary' : 'secondary'} compact`} disabled={!!busy || !data} onClick={() => {
           if (latestDraft) { setDraft(latestDraft); return; }

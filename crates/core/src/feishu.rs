@@ -8,6 +8,7 @@
 //!   im_messages_reply,im_chat_search}.go (MIT): wire formats, not a CLI dependency.
 use crate::{id, now, AppError, Result};
 mod knowledge;
+mod permissions;
 use base64::Engine as _;
 use reqwest::{blocking::Client, Method, Url};
 use rusqlite::{params, Connection, OptionalExtension};
@@ -144,6 +145,7 @@ struct PendingAuthorization {
 struct State {
     saved: Saved,
     authorization: Option<PendingAuthorization>,
+    permissions: Option<permissions::Pending>,
     polling: bool,
     last_poll_at: Option<String>,
     last_error: Option<String>,
@@ -155,6 +157,7 @@ struct Api {
     base: String,
     exchange: String,
     refresh: String,
+    registration: String,
     last_request: Mutex<Option<Instant>>,
 }
 impl Api {
@@ -170,6 +173,7 @@ impl Api {
             base: API_BASE.into(),
             exchange: format!("{API_BASE}/open-apis/authen/v2/oauth/token"),
             refresh: "https://accounts.feishu.cn/oauth/v3/token".into(),
+            registration: "https://accounts.feishu.cn/oauth/v1/app/registration".into(),
             last_request: Mutex::new(None),
         })
     }
@@ -246,6 +250,13 @@ impl Api {
         &self,
         response: std::result::Result<reqwest::blocking::Response, reqwest::Error>,
     ) -> Result<Value> {
+        let (status, value) = self.response_value(response)?;
+        self.checked(status, value)
+    }
+    fn response_value(
+        &self,
+        response: std::result::Result<reqwest::blocking::Response, reqwest::Error>,
+    ) -> Result<(reqwest::StatusCode, Value)> {
         let response = response.map_err(|_| {
             error(
                 "FEISHU_NETWORK",
@@ -274,7 +285,7 @@ impl Api {
         }
         let value: Value = serde_json::from_slice(&bytes)
             .map_err(|_| error("FEISHU_RESPONSE", "飞书返回了无效响应"))?;
-        self.checked(status, value)
+        Ok((status, value))
     }
     fn checked(&self, status: reqwest::StatusCode, value: Value) -> Result<Value> {
         let code = value["code"].as_i64().unwrap_or(0);
@@ -294,7 +305,7 @@ impl Api {
             if status.as_u16() == 403 || [20010, 20027, 20068, 99991672, 99991679].contains(&code) {
                 return Err(error(
                     "FEISHU_PERMISSION",
-                    "飞书权限不足，请检查应用权限、发布状态及个人授权",
+                    "飞书权限不足，请在连接账号页点击「自动申请权限并连接」，确认应用权限后重新授权",
                 ));
             }
             // Do not copy server messages: they may contain credentials or chat content.
@@ -378,6 +389,7 @@ impl Connector {
             state: Mutex::new(State {
                 saved,
                 authorization: None,
+                permissions: None,
                 polling: false,
                 last_poll_at: None,
                 last_error: None,
@@ -424,6 +436,7 @@ impl Connector {
             "get_feishu_status" => self.inner.status(),
             "save_feishu_settings" => self.inner.save_settings(p),
             "begin_feishu_authorization" => self.inner.begin_authorization(),
+            "begin_feishu_connection" => self.inner.begin_permissions(),
             "disconnect_feishu" => self.inner.disconnect(),
             "poll_feishu_now" => self.inner.trigger(),
             "list_feishu_chats" => self.inner.list_chats(),
@@ -460,10 +473,15 @@ impl Inner {
     fn status(&self) -> Result<Value> {
         let state = lock(&self.state)?;
         let s = &state.saved;
-        let auth = if state
-            .authorization
+        let permission = state
+            .permissions
             .as_ref()
-            .is_some_and(|p| p.expires_at > timestamp())
+            .filter(|p| p.expires_at > timestamp());
+        let auth = if permission.is_some()
+            || state
+                .authorization
+                .as_ref()
+                .is_some_and(|p| p.expires_at > timestamp())
         {
             "authorizing"
         } else if s.session.as_ref().is_some_and(|s| {
@@ -478,7 +496,14 @@ impl Inner {
         let settings = public_settings(s);
         let mut authorization = json!({"status":auth,"user":s.session.as_ref().map(|s| &s.user)});
         if auth == "authorizing" {
-            authorization["authorizationUrl"] = json!(state.authorization.as_ref().map(|p| &p.url));
+            authorization["authorizationUrl"] = json!(permission
+                .map(|p| &p.url)
+                .or_else(|| state.authorization.as_ref().map(|p| &p.url)));
+            authorization["stage"] = json!(if permission.is_some() {
+                "permissions"
+            } else {
+                "account"
+            });
         }
         let runtime = json!({"polling":state.polling,"lastPollAt":state.last_poll_at,"lastError":state.last_error});
         drop(state);
@@ -510,6 +535,7 @@ impl Inner {
         self.persist(&next)?;
         state.saved = next;
         state.authorization = None;
+        state.permissions = None;
         drop(state);
         self.cancel_pending("配置或工作区已更新，本次回复取消")
     }
@@ -520,6 +546,7 @@ impl Inner {
         self.persist(&next)?;
         state.saved = next;
         state.authorization = None;
+        state.permissions = None;
         drop(state);
         self.cancel_pending("飞书设置已更新，本次回复取消")?;
         let _ = self.wake.try_send(());
@@ -536,6 +563,7 @@ impl Inner {
         self.persist(&next)?;
         state.saved = next;
         state.authorization = None;
+        state.permissions = None;
         state.last_error = None;
         drop(state);
         self.cancel_pending("个人账号已断开，本次回复取消")?;
@@ -555,8 +583,22 @@ impl Inner {
         Ok(json!({"queued":true}))
     }
     fn begin_authorization(self: &Arc<Self>) -> Result<Value> {
+        self.begin_authorization_for(None)
+    }
+    fn begin_authorization_for(self: &Arc<Self>, generation: Option<&str>) -> Result<Value> {
         let _gate = lock(&self.send_gate)?;
         let mut state = lock(&self.state)?;
+        if self.stopped.load(Ordering::SeqCst)
+            || generation.is_some_and(|g| g != state.saved.generation)
+        {
+            return Err(error("FEISHU_CANCELLED", "飞书连接已取消或设置已变化"));
+        }
+        if state.permissions.is_some() {
+            return Err(error(
+                "FEISHU_AUTH_BUSY",
+                "请先在飞书确认本次权限申请，随后会自动继续个人授权",
+            ));
+        }
         if let Some(p) = state
             .authorization
             .as_ref()
@@ -1187,7 +1229,7 @@ impl Inner {
                         &row.id,
                         "failed",
                         None,
-                        Some("项目记忆问答失败，请检查记忆、模型配置和资料访问授权"),
+                        Some("项目问答失败，请检查项目记录、模型配置和资料访问授权"),
                     )?;
                     continue;
                 }
@@ -1208,7 +1250,7 @@ impl Inner {
                     &row.id,
                     "skipped",
                     None,
-                    Some("没有足够的项目记忆依据，未自动回复"),
+                    Some("没有足够的项目记录依据，未自动回复"),
                 )?;
                 continue;
             }
@@ -1217,7 +1259,7 @@ impl Inner {
                     &row.id,
                     "skipped",
                     None,
-                    Some("记忆回答为空或过长，未自动回复"),
+                    Some("项目回答为空或过长，未自动回复"),
                 )?;
                 continue;
             };
@@ -1257,7 +1299,7 @@ impl Inner {
                     &row.id,
                     "cancelled",
                     Some(&answer),
-                    Some("记忆版本、模型配置或工作区已变化，本次回复取消"),
+                    Some("项目记录、模型配置或工作区已变化，本次回复取消"),
                 )?;
                 continue;
             }
@@ -1752,7 +1794,7 @@ fn session_from_token(token: &Value, user: User) -> Result<Session> {
         if !granted.contains(required) {
             return Err(AppError::new(
                 "FEISHU_PERMISSION",
-                format!("个人授权缺少 {required} 权限，请在飞书应用后台开通并重新授权"),
+                format!("个人授权缺少 {required} 权限，请在连接账号页点击「自动申请权限并连接」补充权限"),
             ));
         }
     }
@@ -1890,18 +1932,21 @@ fn load_saved(root: &Path) -> Result<Saved> {
         use std::os::unix::fs::PermissionsExt;
         fs::set_permissions(&path, fs::Permissions::from_mode(0o600))?;
     }
-    let saved: Saved = serde_json::from_slice(&fs::read(path)?).map_err(|_| {
-        error(
-            "FEISHU_SECRET_CONFIG",
-            "飞书私有配置无法读取，请检查本地配置文件",
-        )
-    })?;
+    let saved: Saved =
+        serde_json::from_slice(&crate::protection::decode_secret(root, &fs::read(path)?)?)
+            .map_err(|_| {
+                error(
+                    "FEISHU_SECRET_CONFIG",
+                    "飞书私有配置无法读取，请检查本地配置文件",
+                )
+            })?;
     if !(30..=3600).contains(&saved.poll_interval_seconds) || saved.bindings.len() > 100 {
         return Err(error("FEISHU_SECRET_CONFIG", "飞书私有配置无效"));
     }
     Ok(saved)
 }
 fn save_private(root: &Path, saved: &Saved) -> Result<()> {
+    let _guard = crate::protection::guard()?;
     let directory = private_directory(root)?;
     let destination = directory.join("feishu-settings.json");
     reject_symlink(&destination)?;
@@ -1916,6 +1961,7 @@ fn save_private(root: &Path, saved: &Saved) -> Result<()> {
     let mut file = options.open(&temporary)?;
     let bytes = serde_json::to_vec(saved)
         .map_err(|_| error("FEISHU_SECRET_CONFIG", "飞书私有配置保存失败"))?;
+    let bytes = crate::protection::encode_secret(root, &bytes)?;
     if let Err(e) = file.write_all(&bytes).and_then(|_| file.sync_all()) {
         let _ = fs::remove_file(&temporary);
         return Err(e.into());
@@ -2013,15 +2059,38 @@ mod tests {
                                     .find(|(k, _)| k.eq_ignore_ascii_case("authorization"))
                                     .map(|(_, v)| v.trim().to_owned())
                                     .unwrap_or_default(),
-                                body: serde_json::from_slice(
-                                    bytes.get(header_end..header_end + length).unwrap_or(&[]),
-                                )
-                                .unwrap_or(Value::Null),
+                                body: {
+                                    let body =
+                                        bytes.get(header_end..header_end + length).unwrap_or(&[]);
+                                    if pairs.iter().any(|(k, v)| {
+                                        k.eq_ignore_ascii_case("content-type")
+                                            && v.contains("application/x-www-form-urlencoded")
+                                    }) {
+                                        serde_json::to_value(
+                                            Url::parse(&format!(
+                                                "http://localhost/?{}",
+                                                String::from_utf8_lossy(body)
+                                            ))
+                                            .unwrap()
+                                            .query_pairs()
+                                            .into_owned()
+                                            .collect::<std::collections::HashMap<_, _>>(),
+                                        )
+                                        .unwrap()
+                                    } else {
+                                        serde_json::from_slice(body).unwrap_or(Value::Null)
+                                    }
+                                },
                             };
                             seen.lock().unwrap().push(request.clone());
                             if let Some(value) = handler(&request) {
                                 let body = value.to_string();
-                                let output=format!("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",body.len(),body);
+                                let status = if value.get("error").is_some() {
+                                    "400 Bad Request"
+                                } else {
+                                    "200 OK"
+                                };
+                                let output=format!("HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",body.len(),body);
                                 let _ = stream.write_all(output.as_bytes());
                                 let _ = stream.flush();
                                 let _ = stream.shutdown(std::net::Shutdown::Write);
@@ -2057,6 +2126,7 @@ mod tests {
                 base: self.base.clone(),
                 exchange: format!("{}/token/exchange", self.base),
                 refresh: format!("{}/token/refresh", self.base),
+                registration: format!("{}/registration", self.base),
                 last_request: Mutex::new(None),
             }
         }
@@ -2506,18 +2576,21 @@ mod tests {
         .unwrap();
         c.inner.save_knowledge(&json!({"enabled":true,"intervalSeconds":60,"sources":[{"kind":"chat","target":"oc_selected","projectId":"project-1","enabled":true,"historyDays":7},{"kind":"chat","target":"oc_disabled","projectId":"project-1","enabled":false,"historyDays":7}]})).unwrap();
         let out = c.inner.sync_knowledge().unwrap();
-        assert_eq!(out["imported"], 1);
+        assert_eq!(out["imported"], 2);
         assert_eq!(out["failures"], 0);
         assert_eq!(c.inner.sync_knowledge().unwrap()["imported"], 0);
-        assert_eq!(collected.lock().unwrap().len(), 1);
+        assert_eq!(collected.lock().unwrap().len(), 2);
         assert_eq!(
             collected.lock().unwrap()[0]["origin"]["provider"],
             "feishu_chat"
         );
-        let text = collected.lock().unwrap()[0]["text"]
-            .as_str()
+        let text = collected
+            .lock()
             .unwrap()
-            .to_owned();
+            .iter()
+            .map(|p| p["text"].as_str().unwrap())
+            .collect::<Vec<_>>()
+            .join("\n");
         assert!(
             text.contains("om_old_topic_reply")
                 && text.contains("om_thread_reply")
@@ -2689,6 +2762,238 @@ mod tests {
             .iter()
             .filter(|r| r.target.contains("/reply"))
             .count()
+    }
+
+    fn permission_begin() -> Value {
+        json!({"device_code":"private-device-code","verification_uri_complete":"https://accounts.feishu.cn/page/launcher?user_code=fixture-confirmation","interval":1,"expires_in":600})
+    }
+
+    #[test]
+    fn permission_confirmation_contains_exact_project_scopes_and_no_credentials() {
+        let s = saved();
+        let p = permissions::Pending::new(&permission_begin(), &s).unwrap();
+        let url = Url::parse(&p.url).unwrap();
+        let query: std::collections::HashMap<_, _> = url.query_pairs().collect();
+        assert_eq!(query["clientID"], s.app_id);
+        assert_eq!(query["user_code"], "fixture-confirmation");
+        assert!(!query.contains_key("createOnly"));
+        let compressed = base64::engine::general_purpose::URL_SAFE_NO_PAD
+            .decode(query["addons"].as_bytes())
+            .unwrap();
+        let payload: Value =
+            serde_json::from_reader(flate2::read::GzDecoder::new(compressed.as_slice())).unwrap();
+        assert_eq!(
+            payload,
+            json!({"preset":false,"scopes":{"user":SCOPES.split_whitespace().collect::<Vec<_>>()}})
+        );
+        for secret in [
+            "private-device-code",
+            "private-app-secret",
+            "private-rotated-user-token",
+        ] {
+            assert!(!p.url.contains(secret));
+        }
+        for bad in [
+            "http://accounts.feishu.cn/page/launcher",
+            "https://accounts.feishu.cn.attacker.invalid/",
+            "https://user:secret@accounts.feishu.cn/",
+            "https://accounts.feishu.cn:8443/",
+        ] {
+            let mut response = permission_begin();
+            response["verification_uri_complete"] = json!(bad);
+            assert!(permissions::Pending::new(&response, &s).is_err());
+        }
+        assert!(permissions::Pending::new(&json!({}), &s).is_err());
+    }
+
+    #[test]
+    fn permission_registration_handles_device_grant_http_400_states() {
+        for expected in [
+            "authorization_pending",
+            "slow_down",
+            "access_denied",
+            "expired_token",
+        ] {
+            let fixture = Fixture::new(move |r| {
+                assert_eq!(r.method, "POST");
+                assert_eq!(r.body["action"], "poll");
+                assert_eq!(r.body["device_code"], "private-device-code");
+                assert!(r.authorization.is_empty());
+                Some(json!({"error":expected}))
+            });
+            assert_eq!(
+                fixture
+                    .api()
+                    .registration(&[("action", "poll"), ("device_code", "private-device-code")])
+                    .unwrap()["error"],
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn permission_confirmation_automatically_continues_personal_oauth() {
+        let polls = Arc::new(AtomicUsize::new(0));
+        let count = polls.clone();
+        let fixture = Fixture::new(move |r| {
+            if r.target == "/registration" {
+                assert!(r.authorization.is_empty());
+                if r.body["action"] == "begin" {
+                    assert_eq!(r.body["archetype"], "PersonalAgent");
+                    assert_eq!(r.body["auth_method"], "client_secret");
+                    return Some(permission_begin());
+                }
+                assert_eq!(r.body["device_code"], "private-device-code");
+                if count.fetch_add(1, Ordering::SeqCst) == 0 {
+                    return Some(json!({"error":"authorization_pending"}));
+                }
+                return Some(
+                    json!({"client_id":"cli_fixture","client_secret":"private-updated-app-secret"}),
+                );
+            }
+            if r.target == "/token/exchange" {
+                assert_eq!(r.body["client_secret"], "private-updated-app-secret");
+                return Some(token());
+            }
+            Some(identity())
+        });
+        let dir = tempfile::tempdir().unwrap();
+        let c = connector(
+            dir.path(),
+            &fixture,
+            Arc::new(|_, _| panic!("connection must not send messages")),
+        );
+        let first = c
+            .handle("begin_feishu_connection", &json!({}))
+            .unwrap()
+            .unwrap();
+        let again = c
+            .handle("begin_feishu_connection", &json!({}))
+            .unwrap()
+            .unwrap();
+        assert_eq!(first, again);
+        let status = c.inner.status().unwrap();
+        assert_eq!(status["authorization"]["stage"], "permissions");
+        assert!(!status.to_string().contains("private-device-code"));
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while c.inner.state.lock().unwrap().authorization.is_none() && Instant::now() < deadline {
+            thread::sleep(Duration::from_millis(20));
+        }
+        let status = c.inner.status().unwrap();
+        assert_eq!(status["authorization"]["stage"], "account", "{status}");
+        let p = c.inner.state.lock().unwrap().authorization.clone().unwrap();
+        c.inner
+            .finish_authorization(&format!(
+                "/feishu/callback?code=fixture_code&state={}",
+                p.state
+            ))
+            .unwrap();
+        assert_eq!(
+            c.inner.status().unwrap()["authorization"]["status"],
+            "connected"
+        );
+        assert_eq!(
+            load_saved(dir.path()).unwrap().app_secret.as_deref(),
+            Some("private-updated-app-secret")
+        );
+        assert!(!c
+            .inner
+            .status()
+            .unwrap()
+            .to_string()
+            .contains("private-updated-app-secret"));
+        assert_eq!(
+            fixture
+                .requests
+                .lock()
+                .unwrap()
+                .iter()
+                .filter(|r| r.target == "/registration" && r.body["action"] == "begin")
+                .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn permission_confirmation_cannot_overwrite_changed_settings_or_accept_another_app() {
+        let fixture = Fixture::new(|_| panic!("no network expected"));
+        let dir = tempfile::tempdir().unwrap();
+        let c = connector(dir.path(), &fixture, Arc::new(|_, _| Ok(answer())));
+        let pending =
+            permissions::Pending::new(&permission_begin(), &c.inner.state.lock().unwrap().saved)
+                .unwrap();
+        c.inner.state.lock().unwrap().permissions = Some(pending.clone());
+        assert_eq!(
+            c.inner
+                .finish_permissions(
+                    &pending,
+                    &json!({"client_id":"cli_other","client_secret":"private-new-secret"})
+                )
+                .unwrap_err()
+                .code,
+            "FEISHU_APP_MISMATCH"
+        );
+        assert_eq!(
+            c.inner
+                .finish_permissions(
+                    &pending,
+                    &json!({"client_id":"cli_fixture","client_secret":""})
+                )
+                .unwrap_err()
+                .code,
+            "FEISHU_RESPONSE"
+        );
+        c.inner.disconnect().unwrap();
+        assert_eq!(
+            c.inner
+                .finish_permissions(
+                    &pending,
+                    &json!({"client_id":"cli_fixture","client_secret":"private-new-secret"})
+                )
+                .unwrap_err()
+                .code,
+            "FEISHU_CANCELLED"
+        );
+        assert_eq!(
+            load_saved(dir.path()).unwrap().app_secret.as_deref(),
+            Some("private-app-secret")
+        );
+        assert!(c.inner.state.lock().unwrap().authorization.is_none());
+    }
+
+    #[test]
+    fn permission_denial_and_expiry_clear_pending_and_explain_retry() {
+        for expires in [false, true] {
+            let fixture = Fixture::new(move |r| {
+                if r.body["action"] == "begin" {
+                    let mut response = permission_begin();
+                    if expires {
+                        response["expires_in"] = json!(1);
+                    }
+                    Some(response)
+                } else {
+                    Some(json!({"error":"access_denied"}))
+                }
+            });
+            let dir = tempfile::tempdir().unwrap();
+            let c = connector(dir.path(), &fixture, Arc::new(|_, _| Ok(answer())));
+            c.inner.begin_permissions().unwrap();
+            let deadline = Instant::now() + Duration::from_secs(5);
+            while c.inner.state.lock().unwrap().permissions.is_some() && Instant::now() < deadline {
+                thread::sleep(Duration::from_millis(20));
+            }
+            let state = c.inner.state.lock().unwrap();
+            assert!(state.permissions.is_none());
+            assert!(state.authorization.is_none());
+            assert!(state
+                .last_error
+                .as_ref()
+                .is_some_and(|e| e.contains(if expires { "过期" } else { "取消" })));
+            assert_eq!(
+                state.saved.app_secret.as_deref(),
+                Some("private-app-secret")
+            );
+        }
     }
 
     #[test]
@@ -3267,5 +3572,75 @@ mod tests {
                 .unwrap()
                 .invalid
         );
+    }
+
+    #[test]
+    fn knowledge_reads_explicit_old_parent_and_rejects_a_foreign_chat_parent() {
+        for foreign in [false, true] {
+            let at = timestamp();
+            let fixture = Fixture::new(move |request| {
+                if request.target.starts_with("/open-apis/authen/v1/user_info") {
+                    return Some(identity());
+                }
+                if request
+                    .target
+                    .starts_with("/open-apis/im/v1/messages/search?")
+                {
+                    return Some(json!({"code":0,"data":{"items":[],"has_more":false}}));
+                }
+                if request
+                    .target
+                    .starts_with("/open-apis/im/v1/messages/mget?")
+                {
+                    assert!(request.target.contains("om_root"));
+                    let mut parent = message();
+                    parent["message_id"] = json!("om_root");
+                    parent["chat_id"] = json!(if foreign { "oc_other" } else { "oc_selected" });
+                    parent["create_time"] = json!((at - 86400).to_string());
+                    parent["body"]["content"] = json!(json!({"text":"计划周五发布。"}).to_string());
+                    return Some(json!({"code":0,"data":{"items":[parent]}}));
+                }
+                if request.target.starts_with("/open-apis/im/v1/messages?") {
+                    let mut reply = message();
+                    reply["message_id"] = json!("om_reply");
+                    reply["chat_id"] = json!("oc_selected");
+                    reply["root_id"] = json!("om_root");
+                    reply["parent_id"] = json!("om_root");
+                    reply["create_time"] = json!(at.to_string());
+                    reply["body"]["content"] = json!(json!({"text":"仅限内部员工。"}).to_string());
+                    return Some(json!({"code":0,"data":{"items":[reply],"has_more":false}}));
+                }
+                panic!("unexpected endpoint {}", request.target)
+            });
+            let dir = tempfile::tempdir().unwrap();
+            let c = connector(
+                dir.path(),
+                &fixture,
+                Arc::new(|_, _| panic!("source sync cannot answer")),
+            );
+            let captured = Arc::new(Mutex::new(Vec::<Value>::new()));
+            let sink = captured.clone();
+            c.set_ingest(Arc::new(move |p| {
+                sink.lock().unwrap().push(p.clone());
+                Ok(json!({"duplicate":false}))
+            }))
+            .unwrap();
+            c.inner.save_knowledge(&json!({"enabled":true,"intervalSeconds":60,"sources":[{"kind":"chat","target":"oc_selected","projectId":"project-1","enabled":true,"historyDays":7}]})).unwrap();
+            let result = c.inner.sync_knowledge().unwrap();
+            if foreign {
+                assert_eq!(result["failures"], 1);
+                assert!(captured.lock().unwrap().is_empty());
+            } else {
+                assert_eq!(result["failures"], 0);
+                assert_eq!(result["imported"], 1);
+                let items = captured.lock().unwrap();
+                let text = items[0]["text"].as_str().unwrap();
+                assert!(
+                    text.contains("计划周五发布。")
+                        && text.contains("仅限内部员工。")
+                        && text.contains("parentId")
+                );
+            }
+        }
     }
 }

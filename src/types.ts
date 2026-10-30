@@ -1,6 +1,6 @@
 export type MemoryKind = 'fact' | 'decision' | 'requirement' | 'risk';
 export type ManagementKind = 'governance' | 'change' | 'deliverable' | 'meeting' | 'meeting_action' | 'weekly_report';
-export type Page = 'proactive' | 'chat-replies' | 'governance' | 'changes' | 'coordination' | 'overview' | 'followups' | 'assistant' | 'daily' | 'tasks' | 'reports' | 'sources' | 'memories' | 'backups';
+export type Page = 'proactive' | 'chat-replies' | 'workbench' | 'inbox' | 'governance' | 'changes' | 'coordination' | 'overview' | 'followups' | 'assistant' | 'daily' | 'tasks' | 'reports' | 'sources' | 'memories' | 'backups';
 
 export interface Project { id: string; name: string; description: string; createdAt: string }
 export interface Source {
@@ -9,7 +9,10 @@ export interface Source {
   status: 'processing' | 'ready' | 'failed'; segmentCount: number; error: string | null;
 }
 export interface Segment { id: string; sourceVersionId: string; ordinal: number; locator: string; text: string }
+export interface RetentionPolicy { layer: "durable" | "working" | "clarify" | "archive"; reason: string; reviewAfter?: string | null }
 export interface Proposal {
+  retention?: RetentionPolicy;
+  facets?: Partial<MemoryFacets>;
   id: string; projectId: string; sourceId: string; kind: MemoryKind; content: string;
   status: 'pending' | 'confirmed' | 'rejected'; segmentIds: string[];
   createdAt: string; memoryId: string | null;
@@ -17,12 +20,30 @@ export interface Proposal {
   promptVersion: string | null; extractionJobId: string | null;
   quotes: Array<{ segmentId: string; quote: string }>; edited: boolean;
 }
+export interface ExtractionDraft {
+  id: string; jobId: string; sourceId: string; projectId: string; batchKey: string;
+  candidate: { retention?: RetentionPolicy; kind: MemoryKind; content: string; facets: MemoryFacets; evidence: Array<{ segmentId: string; quote: string }> };
+  facets: MemoryFacets; issues: Array<{ field: string; reason: string; severity: string; value?: unknown }>;
+  status: 'ready' | 'needs_review' | 'rejected' | 'reviewed' | 'retained'; proposalId: string | null;
+  reviewReason: string; createdAt: string; reviewedAt: string | null;
+}
 export interface Memory {
+  retention?: RetentionPolicy;
   id: string; projectId: string; kind: MemoryKind; content: string; revision: number;
   state: 'active'; sourceTitle: string; confirmedAt: string; updatedAt: string;
 }
 export interface Evidence { segmentId: string; sourceId: string; sourceTitle: string; locator: string; text: string }
+export interface MemoryFacets {
+  entity: string; topic: string; role: '' | 'owner' | 'approver' | 'contact'; conditions: string[];
+  validFrom: string | null; validUntil: string | null;
+}
+export interface AnswerClaim {
+  text: string; citationIds: string[]; supportQuotes: Array<{ citationId: string; quote: string }>;
+}
+export type AnswerStatus = 'answered' | 'partial' | 'unknown' | 'conflicted';
 export interface Revision {
+  retention?: RetentionPolicy;
+  facets?: Partial<MemoryFacets>;
   id: string; memoryId: string; number: number; content: string; reason: string;
   origin: 'confirmation' | 'user_correction' | 'automatic'; createdAt: string; evidence: Evidence[];
 }
@@ -45,11 +66,16 @@ export interface Backup {
   counts: Counts; kind?: 'manual' | 'safety';
 }
 export interface AppState {
-  workspace: { dataDir: string; schemaVersion: number; recoveredJobs: number };
+  lifecycle?: Array<{ kind: 'project' | 'source'; id: string; archived: boolean; replacementId: string | null; reason: string; version: number }>;
+  workspace: { dataDir: string; schemaVersion: number; recoveredJobs: number; revision?: string };
   projects: Project[]; sources: Source[]; proposals: Proposal[];
+  extractionDrafts?: ExtractionDraft[];
+  extractionBatches?: { jobId: string; sourceId: string; batchKey: string; status: string; coverage?: { previousCandidates?: { content: string }[]; issues?: { field: string; reason: string; segmentId?: string }[] } }[];
   memories: Memory[]; jobs: Job[]; backups: Backup[];
   aiSettings: AiSettings; memoryReviewCount: number;
   managementRevision?: string;
+  assistanceRevision?: string;
+  assistantPreferenceVersion?: number;
   tasks: Task[]; taskProposals: TaskProposal[]; reports: ReportSummary[];
 }
 export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done' | 'cancelled';
@@ -90,7 +116,7 @@ export interface SourceDetail { source: Source; segments: Segment[] }
 export interface MemoryDetail { memory: Memory; revisions: Revision[] }
 export interface BackupInspection { formatVersion: number; createdAt: string; counts: Counts; compatible: boolean }
 export interface ImportResult { jobId: string; duplicate: boolean; sourceId: string }
-export interface FileInput { filename: string; contentBase64: string }
+export interface FileInput { filename: string; contentBase64: string; password?: string }
 
 export interface FeishuBinding {
   chatId: string; projectId: string; enabled: boolean;
@@ -110,13 +136,33 @@ export interface FeishuStatus {
   authorization: {
     status: 'disconnected' | 'authorizing' | 'connected' | 'expired';
     user: { openId: string; name: string } | null; authorizationUrl?: string | null;
+    stage?: 'permissions' | 'account';
   };
   runtime: { polling: boolean; lastPollAt: string | null; lastError: string | null };
   recentMessages: FeishuMessage[];
 }
 export interface ProjectAnswer {
   answer: string; grounded: boolean; context: unknown;
-  citations: Array<{ memoryId: string; revision: number; content: string; sourceTitle: string; evidence: Evidence[] }>;
+  citations: Array<{ id?: string; kind?: 'source_passage'; memoryId?: string; revision?: number; sourceId?: string; segmentId?: string; locator?: string; content: string; sourceTitle: string; evidence: Evidence[] }>;
+  queryTrace?: MemoryQueryTrace; qualityReview?: MemoryQualityReview;
+  status?: AnswerStatus; claims?: AnswerClaim[]; unknowns?: string[];
+}
+
+export interface MemoryQueryTrace {
+  modelCalls: number; maxModelCalls: number; inputChars: number; maxInputChars: number;
+  maxOutputCharsPerCall: number; elapsedMs: number; timeoutSeconds: number;
+  searchQueries?: string[]; supplementStatus?: string;
+  retrievalMs?: number[]; reportedTokens?: number; usageComplete?: boolean;
+  reportedTokenStopThreshold?: number; tokenBudgetMode?: string;
+  stages?: Array<{ stage: string; elapsedMs: number; inputChars: number; errorCode?: string;
+    usage: { inputTokens: number; outputTokens: number; totalTokens: number } | null }>;
+
+  rounds?: Array<{ version: string; scanned: number; matched: number; returned: number; limited: boolean;
+    catalogEntries: number; catalogLimited: boolean; ranking: Array<{ id: string; score: number }> }>;
+}
+export interface MemoryQualityReview {
+  supported: boolean; unsupportedClaims?: string[]; reason?: string; version?: string;
+  status?: 'unavailable'; errorCode?: string;
 }
 
 export const KIND_LABELS: Record<MemoryKind, string> = {

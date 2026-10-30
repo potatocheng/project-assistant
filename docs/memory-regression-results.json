@@ -1,0 +1,99 @@
+{
+    "usesRealModel":  false,
+    "checks":  [
+                   {
+                       "command":  "cargo clippy --workspace --all-targets --locked -- -D warnings",
+                       "passed":  true
+                   },
+                   {
+                       "command":  "npm run build",
+                       "note":  "Vite chunk-size warning remains",
+                       "passed":  true
+                   }
+               ],
+    "rust":  {
+                 "passed":  172,
+                 "failed":  0,
+                 "logSha256":  "5128747503bb0e42911818e77dd49fdfb8b3b82ba1a60d6a2e4b60b31ffb9e11",
+                 "command":  "cargo test -p project-assistant-core --locked --no-fail-fast",
+                 "integration":  63,
+                 "unit":  109,
+                 "logFile":  ".local-data/memory-regression-tests.log"
+             },
+    "recordedAt":  "2026-10-20T06:37:05.384Z",
+    "fixes":  [
+                  {
+                      "regressionTest":  "maintenance::tests::polling_memory_workbench_does_not_reset_idle_or_cancel_work",
+                      "description":  "只读工作简报、偏好、质量读取不再重置空闲整理计时或取消进行中的整理",
+                      "kind":  "runtime"
+                  },
+                  {
+                      "kind":  "stale_test_expectation",
+                      "description":  "旧 workspace_lock_and_reopen 测试的 schema 7 断言同步为当前 schema 8"
+                  }
+              ],
+    "process":  [
+                    {
+                        "command":  "npm run verify:restart",
+                        "proofFile":  ".local-data/restart-proof-Cy84m8/verification.json",
+                        "usesRealModel":  false,
+                        "checks":  [
+                                       "中文与表情原文",
+                                       "确认幂等",
+                                       "修订历史",
+                                       "真实进程重启",
+                                       "备份校验",
+                                       "还原及安全副本",
+                                       "还原后再次重启"
+                                   ],
+                        "passed":  true
+                    },
+                    {
+                        "command":  "npm run verify:ai",
+                        "proofFile":  ".local-data/ai-proof-VY7ngg/verification.json",
+                        "usesRealModel":  false,
+                        "checks":  [
+                                       "saved provider auth and structured request through actual HTTP fixture",
+                                       "import automatically generates pending AI candidate with exact source quotes, never formal memory",
+                                       "candidate edit preserves provenance, explicit confirmation is idempotent",
+                                       "repeated extraction deduplicates original AI fingerprints even after user edit",
+                                       "unknown evidence fails with no candidates; explicit retry succeeds",
+                                       "valid zero-candidate output remains a successful distinct state",
+                                       "database stays responsive during HTTP; cancelled late result cannot write back",
+                                       "restart preserves AI provenance and formal memory; key is private and excluded from SQLite/backup",
+                                       "real phase-one backup restores and migrates without losing current device credentials"
+                                   ],
+                        "passed":  true
+                    },
+                    {
+                        "command":  "npm run verify:workflow",
+                        "proofFile":  ".local-data/workflow-proof-M56CNs/verification.json",
+                        "usesRealModel":  false,
+                        "checks":  [
+                                       "local create is idempotent; conflicting request reuse, invalid dates and progress are rejected",
+                                       "daily list includes planned and overdue work, excludes old completion/unscheduled/future work, and honors project scope",
+                                       "progress/status events retain business dates, stale edits and reverse-date overwrites are rejected",
+                                       "local report is based on dated events: old completions, reopened work and cancellations are not counted as new completion",
+                                       "report saves create immutable versions; later rename/reopen/completion cannot leak into regenerated historical reports or lists",
+                                       "memory-to-task freezes the current revision and correct evidence; user progress never inherits source evidence and cross-project links are rejected",
+                                       "real restart and ZIP restoration retain tasks, event histories and every report version",
+                                       "AI task candidates remain separate pending proposals; editing and explicit confirmation retain source provenance and are idempotent",
+                                       "reviewed AI feedback updates only the chosen same-project task; source-backed progress and task proposals survive backup restoration",
+                                       "real schema-two backup migrates with AI memory provenance intact and empty task/report tables",
+                                       "empty day produces an explicit no-record draft without invented accomplishments"
+                                   ],
+                        "passed":  true
+                    },
+                    {
+                        "command":  "npm run verify:planning",
+                        "proofFile":  ".local-data/planning-proof-pUS6Jk/verification.json",
+                        "usesRealModel":  false,
+                        "checks":  [
+                                       "mandatory daily capacity; explicit duplicate merge and dependency review; drafts never modify task state",
+                                       "duration and skip changes require a fresh preview; approved order is capacity-bounded and confirmation is idempotent",
+                                       "real process restart and archive restore preserve capacity, graph and approved plan; pending previews cannot apply after restore"
+                                   ],
+                        "passed":  true
+                    }
+                ]
+}

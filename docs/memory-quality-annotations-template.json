@@ -1,0 +1,2641 @@
+{
+  "version": "memory-quality-v1",
+  "provenance": {
+    "kind": "synthetic",
+    "independentReview": false,
+    "reviewer": null,
+    "importedResultsSha256": "854200c0999aecd7e4eaa7346995d1179576b12e83d8159612413f14432d58ff"
+  },
+  "cases": [
+    {
+      "id": "desktop:exact_owner",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "支付接口验收由谁负责？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2646.981799999994,
+        "totalTokens": null,
+        "answerText": "支付接口验收由陈雨负责；王敏负责联调。记录同时注明验收截止日期为2026-10-23。",
+        "citations": [
+          {
+            "content": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "5cd642ef-cca3-4229-9910-2b13211ba077",
+                "sourceId": "38b2756f-0c38-4af7-8779-d9ea83578312",
+                "sourceTitle": "项目确认纪要",
+                "text": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+                "textHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+                "truncated": false
+              }
+            ],
+            "id": "memory:72029ab5-f611-480a-bf01-e940dd614be5",
+            "kind": "memory",
+            "memoryId": "72029ab5-f611-480a-bf01-e940dd614be5",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+              "contentHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "5cd642ef-cca3-4229-9910-2b13211ba077",
+                  "sourceId": "38b2756f-0c38-4af7-8779-d9ea83578312",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+                  "textHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+                  "truncated": false
+                }
+              ],
+              "id": "72029ab5-f611-480a-bf01-e940dd614be5",
+              "kind": "fact",
+              "memoryId": "72029ab5-f611-480a-bf01-e940dd614be5",
+              "origin": "user_correction",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 2,
+              "revisionId": "002bd31e-0d0d-4521-a359-720c21a83a37",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:09.852Z"
+            },
+            "revision": 2,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:09.852Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "支付接口验收由陈雨负责；王敏负责联调。记录同时注明验收截止日期为2026-10-23。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:alias_pool_missing",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "数据库连接池的最大容量是多少？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1199.2909999999974,
+        "totalTokens": null,
+        "answerText": "根据《项目确认纪要》中的记录，PostgreSQL 连接池的最大容量为 64。",
+        "citations": [
+          {
+            "content": "PostgreSQL connection pool maximum size is 64.",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "cb907254-654c-49a6-be2c-2213cbc778d5",
+                "sourceId": "b74568d1-6dbc-4415-8108-d1087352a939",
+                "sourceTitle": "项目确认纪要",
+                "text": "PostgreSQL connection pool maximum size is 64.",
+                "textHash": "d1c49c60695e9a46818644e8372ebe4508e1a3ec93537967cc732f0ebf38ddf3",
+                "truncated": false
+              }
+            ],
+            "id": "memory:e3188976-5084-415d-8f33-99d1e32b0521",
+            "kind": "memory",
+            "memoryId": "e3188976-5084-415d-8f33-99d1e32b0521",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "PostgreSQL connection pool maximum size is 64.",
+              "contentHash": "d1c49c60695e9a46818644e8372ebe4508e1a3ec93537967cc732f0ebf38ddf3",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "cb907254-654c-49a6-be2c-2213cbc778d5",
+                  "sourceId": "b74568d1-6dbc-4415-8108-d1087352a939",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "PostgreSQL connection pool maximum size is 64.",
+                  "textHash": "d1c49c60695e9a46818644e8372ebe4508e1a3ec93537967cc732f0ebf38ddf3",
+                  "truncated": false
+                }
+              ],
+              "id": "e3188976-5084-415d-8f33-99d1e32b0521",
+              "kind": "fact",
+              "memoryId": "e3188976-5084-415d-8f33-99d1e32b0521",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "16a37b9c-0a17-4896-b233-78630cb797da",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:10.521Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:10.521Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "根据《项目确认纪要》中的记录，PostgreSQL 连接池的最大容量为 64。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:paraphrase_export",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "批量导出安排在哪个阶段？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1710.5278999999864,
+        "totalTokens": null,
+        "answerText": "根据《项目确认纪要》中的决定：批量导出功能仅在第二阶段实施，首期不交付。记录未说明第二阶段的具体起止时间或负责人。",
+        "citations": [
+          {
+            "content": "批量导出功能仅在第二阶段实施，首期不交付。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "e3cb87d3-9984-4fc1-b7d9-764c5eeaaa70",
+                "sourceId": "25cdafc5-e52a-4dc0-b275-23ffb0e0d164",
+                "sourceTitle": "项目确认纪要",
+                "text": "批量导出功能仅在第二阶段实施，首期不交付。",
+                "textHash": "6107d1c8b0b76b0e62cb8c3947a1e29f6bcbe8d955c21647709c06f35dbe2f55",
+                "truncated": false
+              }
+            ],
+            "id": "memory:b03216be-520b-45a0-98da-265d1859c373",
+            "kind": "memory",
+            "memoryId": "b03216be-520b-45a0-98da-265d1859c373",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "批量导出功能仅在第二阶段实施，首期不交付。",
+              "contentHash": "6107d1c8b0b76b0e62cb8c3947a1e29f6bcbe8d955c21647709c06f35dbe2f55",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "e3cb87d3-9984-4fc1-b7d9-764c5eeaaa70",
+                  "sourceId": "25cdafc5-e52a-4dc0-b275-23ffb0e0d164",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "批量导出功能仅在第二阶段实施，首期不交付。",
+                  "textHash": "6107d1c8b0b76b0e62cb8c3947a1e29f6bcbe8d955c21647709c06f35dbe2f55",
+                  "truncated": false
+                }
+              ],
+              "id": "b03216be-520b-45a0-98da-265d1859c373",
+              "kind": "decision",
+              "memoryId": "b03216be-520b-45a0-98da-265d1859c373",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "89236475-1580-4760-980a-4f1cdc4798fc",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:10.699Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:10.699Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "根据《项目确认纪要》中的决定：批量导出功能仅在第二阶段实施，首期不交付。记录未说明第二阶段的具体起止时间或负责人。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:semantic_signature",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "商务确认为什么迟迟没有完成？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 8152.260599999994,
+        "totalTokens": null,
+        "answerText": "现有记录中没有直接以“商务确认”命名的任务，因此无法确认“商务确认迟迟未完成”这一前提对应的具体事项；以下仅列出与确认、对账相关的已记录事实：\n\n1. 对账核验被供应商账单缺失阻塞，供应商对接人为刘涛（memory:8e69f32c-bb3b-4c3e-8daf-5779aab0aaac）。\n2. 客户签字暂缓，需先核对清楚双方账单差额（memory:b7da96be-6bee-4f10-bd0d-16dd50fd56e3）。\n3. 上线前必须完成支付接口验收，验收需要先完成对账核验（memory:f9c27af8-bbe7-4e26-a457-1cda9569bcc1）。\n\n据此可核实的是：对账核验受供应商账单缺失阻塞，且客户签字以核对双方账单差额为前提；这两项与“商务确认”是否为同一事项，记录中未明确关联，无法确认。记录未给出商务确认的负责人、截止日期或预计完成时间，也未记录其当前实际进展，故不能判断是否“迟迟未完成”或延误程度。",
+        "citations": [
+          {
+            "content": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "c9533ce2-2010-444c-bb9e-d5de6891bbff",
+                "sourceId": "70d6af4e-dccd-4da0-ba46-534729d63c1c",
+                "sourceTitle": "项目确认纪要",
+                "text": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+                "textHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+                "truncated": false
+              }
+            ],
+            "id": "memory:8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+            "kind": "memory",
+            "memoryId": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+              "contentHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "c9533ce2-2010-444c-bb9e-d5de6891bbff",
+                  "sourceId": "70d6af4e-dccd-4da0-ba46-534729d63c1c",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+                  "textHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+                  "truncated": false
+                }
+              ],
+              "id": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+              "kind": "risk",
+              "memoryId": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "0c101ecd-f471-4744-948d-7e39e221d1a8",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:12.051Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:12.051Z"
+          },
+          {
+            "content": "客户签字暂缓，需先核对清楚双方账单差额。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "532a628c-b539-4dd6-b0bd-4da88e18834b",
+                "sourceId": "56ae8eac-4b73-417f-a7d3-0b1fa142d0a0",
+                "sourceTitle": "项目确认纪要",
+                "text": "客户签字暂缓，需先核对清楚双方账单差额。",
+                "textHash": "2936a5df2931916a16f20302701de6e1a5477cafd3499db8868049a393623831",
+                "truncated": false
+              }
+            ],
+            "id": "memory:b7da96be-6bee-4f10-bd0d-16dd50fd56e3",
+            "kind": "memory",
+            "memoryId": "b7da96be-6bee-4f10-bd0d-16dd50fd56e3",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "客户签字暂缓，需先核对清楚双方账单差额。",
+              "contentHash": "2936a5df2931916a16f20302701de6e1a5477cafd3499db8868049a393623831",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "532a628c-b539-4dd6-b0bd-4da88e18834b",
+                  "sourceId": "56ae8eac-4b73-417f-a7d3-0b1fa142d0a0",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "客户签字暂缓，需先核对清楚双方账单差额。",
+                  "textHash": "2936a5df2931916a16f20302701de6e1a5477cafd3499db8868049a393623831",
+                  "truncated": false
+                }
+              ],
+              "id": "b7da96be-6bee-4f10-bd0d-16dd50fd56e3",
+              "kind": "risk",
+              "memoryId": "b7da96be-6bee-4f10-bd0d-16dd50fd56e3",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "03ca77dd-163f-4332-83a6-dfbab330caba",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:10.084Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:10.084Z"
+          },
+          {
+            "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "aa9ed395-c6c2-4591-b30a-9dc2967bc182",
+                "sourceId": "2e5668d0-6d27-4d76-9831-8316cecc0a9f",
+                "sourceTitle": "项目确认纪要",
+                "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                "truncated": false
+              }
+            ],
+            "id": "memory:f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+            "kind": "memory",
+            "memoryId": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+              "contentHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "aa9ed395-c6c2-4591-b30a-9dc2967bc182",
+                  "sourceId": "2e5668d0-6d27-4d76-9831-8316cecc0a9f",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                  "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                  "truncated": false
+                }
+              ],
+              "id": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+              "kind": "requirement",
+              "memoryId": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "af1e0502-7aef-4766-8d30-ab88f821a844",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:11.866Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:11.866Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "现有记录中没有直接以“商务确认”命名的任务，因此无法确认“商务确认迟迟未完成”这一前提对应的具体事项；以下仅列出与确认、对账相关的已记录事实：\n\n1. 对账核验被供应商账单缺失阻塞，供应商对接人为刘涛（memory:8e69f32c-bb3b-4c3e-8daf-5779aab0aaac）。\n2. 客户签字暂缓，需先核对清楚双方账单差额（memory:b7da96be-6bee-4f10-bd0d-16dd50fd56e3）。\n3. 上线前必须完成支付接口验收，验收需要先完成对账核验（memory:f9c27af8-bbe7-4e26-a457-1cda9569bcc1）。\n\n据此可核实的是：对账核验受供应商账单缺失阻塞，且客户签字以核对双方账单差额为前提；这两项与“商务确认”是否为同一事项，记录中未明确关联，无法确认。记录未给出商务确认的负责人、截止日期或预计完成时间，也未记录其当前实际进展，故不能判断是否“迟迟未完成”或延误程度。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:semantic_export",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "能一次性下载全部工单吗？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2942.407699999996,
+        "totalTokens": null,
+        "answerText": "不能。项目确认纪要明确：批量导出功能仅在第二阶段实施，首期不交付。因此首期无法一次性下载全部工单；第二阶段是否已实施、何时可用，现有记录未说明。另有一条记录提到“天枢档案下载口令有效期为72小时”，但该记录未说明其与工单批量下载的关系，无法据此确认对应关系。",
+        "citations": [
+          {
+            "content": "批量导出功能仅在第二阶段实施，首期不交付。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "e3cb87d3-9984-4fc1-b7d9-764c5eeaaa70",
+                "sourceId": "25cdafc5-e52a-4dc0-b275-23ffb0e0d164",
+                "sourceTitle": "项目确认纪要",
+                "text": "批量导出功能仅在第二阶段实施，首期不交付。",
+                "textHash": "6107d1c8b0b76b0e62cb8c3947a1e29f6bcbe8d955c21647709c06f35dbe2f55",
+                "truncated": false
+              }
+            ],
+            "id": "memory:b03216be-520b-45a0-98da-265d1859c373",
+            "kind": "memory",
+            "memoryId": "b03216be-520b-45a0-98da-265d1859c373",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "批量导出功能仅在第二阶段实施，首期不交付。",
+              "contentHash": "6107d1c8b0b76b0e62cb8c3947a1e29f6bcbe8d955c21647709c06f35dbe2f55",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "e3cb87d3-9984-4fc1-b7d9-764c5eeaaa70",
+                  "sourceId": "25cdafc5-e52a-4dc0-b275-23ffb0e0d164",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "批量导出功能仅在第二阶段实施，首期不交付。",
+                  "textHash": "6107d1c8b0b76b0e62cb8c3947a1e29f6bcbe8d955c21647709c06f35dbe2f55",
+                  "truncated": false
+                }
+              ],
+              "id": "b03216be-520b-45a0-98da-265d1859c373",
+              "kind": "decision",
+              "memoryId": "b03216be-520b-45a0-98da-265d1859c373",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "89236475-1580-4760-980a-4f1cdc4798fc",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:10.699Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:10.699Z"
+          },
+          {
+            "content": "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "cb0739a2-6147-4942-b606-2f52348a8a2e",
+                "sourceId": "d20696c6-4377-4553-81c3-994d7eba4d37",
+                "sourceTitle": "项目确认纪要",
+                "text": "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。",
+                "textHash": "2730925327400dc8e5f9309b2800470609fc3b391a65c3666990b753ea1a37bb",
+                "truncated": true
+              }
+            ],
+            "id": "memory:1e4f748e-a20c-4634-97b7-865f2da4dce3",
+            "kind": "memory",
+            "memoryId": "1e4f748e-a20c-4634-97b7-865f2da4dce3",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。",
+              "contentHash": "2730925327400dc8e5f9309b2800470609fc3b391a65c3666990b753ea1a37bb",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "cb0739a2-6147-4942-b606-2f52348a8a2e",
+                  "sourceId": "d20696c6-4377-4553-81c3-994d7eba4d37",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。",
+                  "textHash": "2730925327400dc8e5f9309b2800470609fc3b391a65c3666990b753ea1a37bb",
+                  "truncated": true
+                }
+              ],
+              "id": "1e4f748e-a20c-4634-97b7-865f2da4dce3",
+              "kind": "requirement",
+              "memoryId": "1e4f748e-a20c-4634-97b7-865f2da4dce3",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "5757ae1f-2c00-4b81-9894-efcebfc206e4",
+              "sourceTitle": "项目确认纪要",
+              "truncated": true,
+              "updatedAt": "2026-10-20T08:09:12.848Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:12.848Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "不能。项目确认纪要明确：批量导出功能仅在第二阶段实施，首期不交付。因此首期无法一次性下载全部工单；第二阶段是否已实施、何时可用，现有记录未说明。另有一条记录提到“天枢档案下载口令有效期为72小时”，但该记录未说明其与工单批量下载的关系，无法据此确认对应关系。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:semantic_incident",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "上次服务中断的根因是什么？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2157.754700000005,
+        "totalTokens": null,
+        "answerText": "根据《项目确认纪要》的记录，10月18日故障的原因是缓存连接耗尽；扩容并限制并发后恢复。该记录未说明其他服务中断事件，因此无法确认“上次”是否即指10月18日这次故障。",
+        "citations": [
+          {
+            "content": "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "0b92cb6e-b02e-4924-8a03-cc5b892066c2",
+                "sourceId": "01bae11b-9756-41a4-a72a-13bb105b1be0",
+                "sourceTitle": "项目确认纪要",
+                "text": "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+                "textHash": "7ad1b873548679900f64dd09342f217c63ad67ea5f9970395cb4092fcd73a80a",
+                "truncated": false
+              }
+            ],
+            "id": "memory:c2943eb8-7659-41eb-be81-aee495758bc6",
+            "kind": "memory",
+            "memoryId": "c2943eb8-7659-41eb-be81-aee495758bc6",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+              "contentHash": "7ad1b873548679900f64dd09342f217c63ad67ea5f9970395cb4092fcd73a80a",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "0b92cb6e-b02e-4924-8a03-cc5b892066c2",
+                  "sourceId": "01bae11b-9756-41a4-a72a-13bb105b1be0",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+                  "textHash": "7ad1b873548679900f64dd09342f217c63ad67ea5f9970395cb4092fcd73a80a",
+                  "truncated": false
+                }
+              ],
+              "id": "c2943eb8-7659-41eb-be81-aee495758bc6",
+              "kind": "fact",
+              "memoryId": "c2943eb8-7659-41eb-be81-aee495758bc6",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "9a02eb34-662c-4071-8bbb-7f26051aa38d",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:12.231Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:12.231Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "根据《项目确认纪要》的记录，10月18日故障的原因是缓存连接耗尽；扩容并限制并发后恢复。该记录未说明其他服务中断事件，因此无法确认“上次”是否即指10月18日这次故障。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:semantic_offline",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "没网时能否修改手机上的内容？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2728.454300000012,
+        "totalTokens": null,
+        "answerText": "根据《项目确认纪要》的记录，当前范围不包含移动端离线编辑，离线能力须另行评审。因此，现有记录不能支持“没网时可以修改手机上的内容”这一说法；该能力尚未纳入当前范围，是否支持需另行评审后才能确定。",
+        "citations": [
+          {
+            "content": "当前范围不包含移动端离线编辑，离线能力须另行评审。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "b1ceaffd-62db-49a4-812d-53e9d6a9f1f9",
+                "sourceId": "35f3512f-c40c-46de-9768-403c98765f68",
+                "sourceTitle": "项目确认纪要",
+                "text": "当前范围不包含移动端离线编辑，离线能力须另行评审。",
+                "textHash": "49c795f6950346fd834f255bc3a73a9a11c124dc33e6def553ab0eba4c0008da",
+                "truncated": false
+              }
+            ],
+            "id": "memory:f55f999f-0fed-4821-b1be-80cc4eb96f7c",
+            "kind": "memory",
+            "memoryId": "f55f999f-0fed-4821-b1be-80cc4eb96f7c",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "当前范围不包含移动端离线编辑，离线能力须另行评审。",
+              "contentHash": "49c795f6950346fd834f255bc3a73a9a11c124dc33e6def553ab0eba4c0008da",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "b1ceaffd-62db-49a4-812d-53e9d6a9f1f9",
+                  "sourceId": "35f3512f-c40c-46de-9768-403c98765f68",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "当前范围不包含移动端离线编辑，离线能力须另行评审。",
+                  "textHash": "49c795f6950346fd834f255bc3a73a9a11c124dc33e6def553ab0eba4c0008da",
+                  "truncated": false
+                }
+              ],
+              "id": "f55f999f-0fed-4821-b1be-80cc4eb96f7c",
+              "kind": "decision",
+              "memoryId": "f55f999f-0fed-4821-b1be-80cc4eb96f7c",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "7f3162f2-0d0f-446a-877c-97126f7394ae",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:12.659Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:12.659Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "根据《项目确认纪要》的记录，当前范围不包含移动端离线编辑，离线能力须另行评审。因此，现有记录不能支持“没网时可以修改手机上的内容”这一说法；该能力尚未纳入当前范围，是否支持需另行评审后才能确定。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:semantic_lockout",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "口令一直填错会受到怎样的限制？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1976.0948000000062,
+        "totalTokens": null,
+        "answerText": "根据项目确认纪要，账户连续输错密码5次后会被锁定15分钟。记录中未说明超过15分钟后是否还有其他限制，也未说明“口令”是否与“密码”指同一对象；若“口令”指天枢档案下载口令，现有记录只说明其有效期为72小时，未记录输错后的限制。",
+        "citations": [
+          {
+            "content": "账户连续输错密码5次后锁定15分钟。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "9226e89e-1bd6-47a6-a811-c3220c1c50e2",
+                "sourceId": "2b5eabd7-731c-4181-ae30-d451753f2cb7",
+                "sourceTitle": "项目确认纪要",
+                "text": "账户连续输错密码5次后锁定15分钟。",
+                "textHash": "b69d4146d3468ba5a9b3ae331d284488ce0a64ff0c5df7e6e354dda003e0c238",
+                "truncated": false
+              }
+            ],
+            "id": "memory:9d3a5f36-9147-41f3-82ff-00c9d7315866",
+            "kind": "memory",
+            "memoryId": "9d3a5f36-9147-41f3-82ff-00c9d7315866",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "账户连续输错密码5次后锁定15分钟。",
+              "contentHash": "b69d4146d3468ba5a9b3ae331d284488ce0a64ff0c5df7e6e354dda003e0c238",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "9226e89e-1bd6-47a6-a811-c3220c1c50e2",
+                  "sourceId": "2b5eabd7-731c-4181-ae30-d451753f2cb7",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "账户连续输错密码5次后锁定15分钟。",
+                  "textHash": "b69d4146d3468ba5a9b3ae331d284488ce0a64ff0c5df7e6e354dda003e0c238",
+                  "truncated": false
+                }
+              ],
+              "id": "9d3a5f36-9147-41f3-82ff-00c9d7315866",
+              "kind": "requirement",
+              "memoryId": "9d3a5f36-9147-41f3-82ff-00c9d7315866",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "ebcca928-a75a-4794-a24c-84bc332c717a",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:10.876Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:10.876Z"
+          },
+          {
+            "content": "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "cb0739a2-6147-4942-b606-2f52348a8a2e",
+                "sourceId": "d20696c6-4377-4553-81c3-994d7eba4d37",
+                "sourceTitle": "项目确认纪要",
+                "text": "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。",
+                "textHash": "2730925327400dc8e5f9309b2800470609fc3b391a65c3666990b753ea1a37bb",
+                "truncated": true
+              }
+            ],
+            "id": "memory:1e4f748e-a20c-4634-97b7-865f2da4dce3",
+            "kind": "memory",
+            "memoryId": "1e4f748e-a20c-4634-97b7-865f2da4dce3",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。",
+              "contentHash": "2730925327400dc8e5f9309b2800470609fc3b391a65c3666990b753ea1a37bb",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "cb0739a2-6147-4942-b606-2f52348a8a2e",
+                  "sourceId": "d20696c6-4377-4553-81c3-994d7eba4d37",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。会议背景与例行事项说明。天枢档案下载口令有效期为72小时。",
+                  "textHash": "2730925327400dc8e5f9309b2800470609fc3b391a65c3666990b753ea1a37bb",
+                  "truncated": true
+                }
+              ],
+              "id": "1e4f748e-a20c-4634-97b7-865f2da4dce3",
+              "kind": "requirement",
+              "memoryId": "1e4f748e-a20c-4634-97b7-865f2da4dce3",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "5757ae1f-2c00-4b81-9894-efcebfc206e4",
+              "sourceTitle": "项目确认纪要",
+              "truncated": true,
+              "updatedAt": "2026-10-20T08:09:12.848Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:12.848Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "根据项目确认纪要，账户连续输错密码5次后会被锁定15分钟。记录中未说明超过15分钟后是否还有其他限制，也未说明“口令”是否与“密码”指同一对象；若“口令”指天枢档案下载口令，现有记录只说明其有效期为72小时，未记录输错后的限制。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:multi_dependency",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "上线需要先完成什么，对账核验卡在哪里？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 4179.656300000002,
+        "totalTokens": null,
+        "answerText": "上线前置条件：上线前必须完成支付接口验收，而验收需要先完成对账核验（memory:f9c27af8-bbe7-4e26-a457-1cda9569bcc1）。\n\n对账核验卡点：对账核验被供应商账单缺失阻塞，记录中供应商对接人为刘涛（memory:8e69f32c-bb3b-4c3e-8daf-5779aab0aaac）。\n\n补充说明：现有记录未给出该阻塞的预计解除时间或对账核验的完成日期，无法判断上线时间影响。另有记录显示“海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%”（memory:1bd1e928-bfaa-4e63-aab8-332fea77feaf），但该记录未明确与上述支付接口验收或对账核验的对应关系，不能据此合并为同一事项。权益兑换的实名核验要求（memory:6a5c71df-9d1c-423c-ba30-85e0d73e3972）与本次上线前置条件无直接关联记录。",
+        "citations": [
+          {
+            "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "aa9ed395-c6c2-4591-b30a-9dc2967bc182",
+                "sourceId": "2e5668d0-6d27-4d76-9831-8316cecc0a9f",
+                "sourceTitle": "项目确认纪要",
+                "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                "truncated": false
+              }
+            ],
+            "id": "memory:f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+            "kind": "memory",
+            "memoryId": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+              "contentHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "aa9ed395-c6c2-4591-b30a-9dc2967bc182",
+                  "sourceId": "2e5668d0-6d27-4d76-9831-8316cecc0a9f",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                  "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                  "truncated": false
+                }
+              ],
+              "id": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+              "kind": "requirement",
+              "memoryId": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "af1e0502-7aef-4766-8d30-ab88f821a844",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:11.866Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:11.866Z"
+          },
+          {
+            "content": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "c9533ce2-2010-444c-bb9e-d5de6891bbff",
+                "sourceId": "70d6af4e-dccd-4da0-ba46-534729d63c1c",
+                "sourceTitle": "项目确认纪要",
+                "text": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+                "textHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+                "truncated": false
+              }
+            ],
+            "id": "memory:8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+            "kind": "memory",
+            "memoryId": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+              "contentHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "c9533ce2-2010-444c-bb9e-d5de6891bbff",
+                  "sourceId": "70d6af4e-dccd-4da0-ba46-534729d63c1c",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+                  "textHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+                  "truncated": false
+                }
+              ],
+              "id": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+              "kind": "risk",
+              "memoryId": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "0c101ecd-f471-4744-948d-7e39e221d1a8",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:12.051Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:12.051Z"
+          },
+          {
+            "content": "海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "0e77953e-1f9e-45e6-acab-0d074d7f52d5",
+                "sourceId": "3074b70a-2cae-4bd8-a459-53fdf044bd74",
+                "sourceTitle": "项目确认纪要",
+                "text": "海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。",
+                "textHash": "b049c64661eb173064bc2cabae0c7f991c1d096dfa372904360f8d71bf75831d",
+                "truncated": false
+              }
+            ],
+            "id": "memory:1bd1e928-bfaa-4e63-aab8-332fea77feaf",
+            "kind": "memory",
+            "memoryId": "1bd1e928-bfaa-4e63-aab8-332fea77feaf",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。",
+              "contentHash": "b049c64661eb173064bc2cabae0c7f991c1d096dfa372904360f8d71bf75831d",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "0e77953e-1f9e-45e6-acab-0d074d7f52d5",
+                  "sourceId": "3074b70a-2cae-4bd8-a459-53fdf044bd74",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。",
+                  "textHash": "b049c64661eb173064bc2cabae0c7f991c1d096dfa372904360f8d71bf75831d",
+                  "truncated": false
+                }
+              ],
+              "id": "1bd1e928-bfaa-4e63-aab8-332fea77feaf",
+              "kind": "fact",
+              "memoryId": "1bd1e928-bfaa-4e63-aab8-332fea77feaf",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "aad8ea9c-a8e1-49df-ac41-3760d73e9678",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:14.013Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:14.013Z"
+          },
+          {
+            "content": "权益兑换采用实名核验，同一身份证号码只能领取一份。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "0619ae5f-c388-4a00-ac2e-fafa1310cdd3",
+                "sourceId": "1223ebe1-b055-42c9-8c4e-135597077117",
+                "sourceTitle": "项目确认纪要",
+                "text": "权益兑换采用实名核验，同一身份证号码只能领取一份。",
+                "textHash": "4211066c126fd2107036061c088d02103785d252d69dd19f42cbc144f0ada8d0",
+                "truncated": false
+              }
+            ],
+            "id": "memory:6a5c71df-9d1c-423c-ba30-85e0d73e3972",
+            "kind": "memory",
+            "memoryId": "6a5c71df-9d1c-423c-ba30-85e0d73e3972",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "权益兑换采用实名核验，同一身份证号码只能领取一份。",
+              "contentHash": "4211066c126fd2107036061c088d02103785d252d69dd19f42cbc144f0ada8d0",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "0619ae5f-c388-4a00-ac2e-fafa1310cdd3",
+                  "sourceId": "1223ebe1-b055-42c9-8c4e-135597077117",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "权益兑换采用实名核验，同一身份证号码只能领取一份。",
+                  "textHash": "4211066c126fd2107036061c088d02103785d252d69dd19f42cbc144f0ada8d0",
+                  "truncated": false
+                }
+              ],
+              "id": "6a5c71df-9d1c-423c-ba30-85e0d73e3972",
+              "kind": "requirement",
+              "memoryId": "6a5c71df-9d1c-423c-ba30-85e0d73e3972",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "56a1bef5-7057-47dc-b6a5-28e3ad6a87f7",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:13.426Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:13.426Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "上线前置条件：上线前必须完成支付接口验收，而验收需要先完成对账核验（memory:f9c27af8-bbe7-4e26-a457-1cda9569bcc1）。\n\n对账核验卡点：对账核验被供应商账单缺失阻塞，记录中供应商对接人为刘涛（memory:8e69f32c-bb3b-4c3e-8daf-5779aab0aaac）。\n\n补充说明：现有记录未给出该阻塞的预计解除时间或对账核验的完成日期，无法判断上线时间影响。另有记录显示“海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%”（memory:1bd1e928-bfaa-4e63-aab8-332fea77feaf），但该记录未明确与上述支付接口验收或对账核验的对应关系，不能据此合并为同一事项。权益兑换的实名核验要求（memory:6a5c71df-9d1c-423c-ba30-85e0d73e3972）与本次上线前置条件无直接关联记录。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:multi_cause",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "上线为什么延后，应该找谁补账单？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2917.972299999994,
+        "totalTokens": null,
+        "answerText": "关于上线延后：现有记录只说明上线前必须完成支付接口验收，而验收需先完成对账核验；对账核验又被供应商账单缺失阻塞。记录未直接写明“上线已延后”或延后的正式原因，因此只能确认上述前置依赖链，不能据此断定实际延期事实。\n\n关于补账单找谁：记录明确供应商对接人为刘涛，可向其补齐供应商账单。另记录显示客户签字暂缓，需先核对清楚双方账单差额；但记录未明确“补账单”是否仅指供应商侧，也未记录刘涛之外的其他负责人或截止日期，相关字段未知。",
+        "citations": [
+          {
+            "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "aa9ed395-c6c2-4591-b30a-9dc2967bc182",
+                "sourceId": "2e5668d0-6d27-4d76-9831-8316cecc0a9f",
+                "sourceTitle": "项目确认纪要",
+                "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                "truncated": false
+              }
+            ],
+            "id": "memory:f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+            "kind": "memory",
+            "memoryId": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+              "contentHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "aa9ed395-c6c2-4591-b30a-9dc2967bc182",
+                  "sourceId": "2e5668d0-6d27-4d76-9831-8316cecc0a9f",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                  "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                  "truncated": false
+                }
+              ],
+              "id": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+              "kind": "requirement",
+              "memoryId": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "af1e0502-7aef-4766-8d30-ab88f821a844",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:11.866Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:11.866Z"
+          },
+          {
+            "content": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "c9533ce2-2010-444c-bb9e-d5de6891bbff",
+                "sourceId": "70d6af4e-dccd-4da0-ba46-534729d63c1c",
+                "sourceTitle": "项目确认纪要",
+                "text": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+                "textHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+                "truncated": false
+              }
+            ],
+            "id": "memory:8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+            "kind": "memory",
+            "memoryId": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+              "contentHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "c9533ce2-2010-444c-bb9e-d5de6891bbff",
+                  "sourceId": "70d6af4e-dccd-4da0-ba46-534729d63c1c",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+                  "textHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+                  "truncated": false
+                }
+              ],
+              "id": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+              "kind": "risk",
+              "memoryId": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "0c101ecd-f471-4744-948d-7e39e221d1a8",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:12.051Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:12.051Z"
+          },
+          {
+            "content": "客户签字暂缓，需先核对清楚双方账单差额。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "532a628c-b539-4dd6-b0bd-4da88e18834b",
+                "sourceId": "56ae8eac-4b73-417f-a7d3-0b1fa142d0a0",
+                "sourceTitle": "项目确认纪要",
+                "text": "客户签字暂缓，需先核对清楚双方账单差额。",
+                "textHash": "2936a5df2931916a16f20302701de6e1a5477cafd3499db8868049a393623831",
+                "truncated": false
+              }
+            ],
+            "id": "memory:b7da96be-6bee-4f10-bd0d-16dd50fd56e3",
+            "kind": "memory",
+            "memoryId": "b7da96be-6bee-4f10-bd0d-16dd50fd56e3",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "客户签字暂缓，需先核对清楚双方账单差额。",
+              "contentHash": "2936a5df2931916a16f20302701de6e1a5477cafd3499db8868049a393623831",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "532a628c-b539-4dd6-b0bd-4da88e18834b",
+                  "sourceId": "56ae8eac-4b73-417f-a7d3-0b1fa142d0a0",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "客户签字暂缓，需先核对清楚双方账单差额。",
+                  "textHash": "2936a5df2931916a16f20302701de6e1a5477cafd3499db8868049a393623831",
+                  "truncated": false
+                }
+              ],
+              "id": "b7da96be-6bee-4f10-bd0d-16dd50fd56e3",
+              "kind": "risk",
+              "memoryId": "b7da96be-6bee-4f10-bd0d-16dd50fd56e3",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "03ca77dd-163f-4332-83a6-dfbab330caba",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:10.084Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:10.084Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "关于上线延后：现有记录只说明上线前必须完成支付接口验收，而验收需先完成对账核验；对账核验又被供应商账单缺失阻塞。记录未直接写明“上线已延后”或延后的正式原因，因此只能确认上述前置依赖链，不能据此断定实际延期事实。\n\n关于补账单找谁：记录明确供应商对接人为刘涛，可向其补齐供应商账单。另记录显示客户签字暂缓，需先核对清楚双方账单差额；但记录未明确“补账单”是否仅指供应商侧，也未记录刘涛之外的其他负责人或截止日期，相关字段未知。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:unknown_relevant",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "支付接口的生产数据库口令是什么？",
+      "answer": {
+        "actualStatus": "unknown",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 4826.389500000005,
+        "totalTokens": null,
+        "answerText": "现有记录不足以回答此问题，请补充项目记录。",
+        "citations": [],
+        "claims": []
+      }
+    },
+    {
+      "id": "desktop:conflict_only",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "迁移窗口定在几点？",
+      "answer": {
+        "actualStatus": "unknown",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 3534.0746999999974,
+        "totalTokens": null,
+        "answerText": "现有记录不足以回答此问题，请补充项目记录。",
+        "citations": [],
+        "claims": []
+      }
+    },
+    {
+      "id": "desktop:challenge_reward_search",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "怎样防止一个人反复薅羊毛领赠品？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 3062.528299999991,
+        "totalTokens": null,
+        "answerText": "根据项目确认纪要，防止同一人反复领取赠品的已记录措施是：权益兑换采用实名核验，同一身份证号码只能领取一份。\n\n其他记录（对账核验被供应商账单缺失阻塞、10月18日缓存连接耗尽故障、上线前需完成支付接口验收）与防止重复领取赠品没有直接关联，不能作为该问题的措施依据。",
+        "citations": [
+          {
+            "content": "权益兑换采用实名核验，同一身份证号码只能领取一份。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "0619ae5f-c388-4a00-ac2e-fafa1310cdd3",
+                "sourceId": "1223ebe1-b055-42c9-8c4e-135597077117",
+                "sourceTitle": "项目确认纪要",
+                "text": "权益兑换采用实名核验，同一身份证号码只能领取一份。",
+                "textHash": "4211066c126fd2107036061c088d02103785d252d69dd19f42cbc144f0ada8d0",
+                "truncated": false
+              }
+            ],
+            "id": "memory:6a5c71df-9d1c-423c-ba30-85e0d73e3972",
+            "kind": "memory",
+            "memoryId": "6a5c71df-9d1c-423c-ba30-85e0d73e3972",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "权益兑换采用实名核验，同一身份证号码只能领取一份。",
+              "contentHash": "4211066c126fd2107036061c088d02103785d252d69dd19f42cbc144f0ada8d0",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "0619ae5f-c388-4a00-ac2e-fafa1310cdd3",
+                  "sourceId": "1223ebe1-b055-42c9-8c4e-135597077117",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "权益兑换采用实名核验，同一身份证号码只能领取一份。",
+                  "textHash": "4211066c126fd2107036061c088d02103785d252d69dd19f42cbc144f0ada8d0",
+                  "truncated": false
+                }
+              ],
+              "id": "6a5c71df-9d1c-423c-ba30-85e0d73e3972",
+              "kind": "requirement",
+              "memoryId": "6a5c71df-9d1c-423c-ba30-85e0d73e3972",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "56a1bef5-7057-47dc-b6a5-28e3ad6a87f7",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:13.426Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:13.426Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "根据项目确认纪要，防止同一人反复领取赠品的已记录措施是：权益兑换采用实名核验，同一身份证号码只能领取一份。\n\n其他记录（对账核验被供应商账单缺失阻塞、10月18日缓存连接耗尽故障、上线前需完成支付接口验收）与防止重复领取赠品没有直接关联，不能作为该问题的措施依据。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:challenge_mfa_scope",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "泽川后台二次验证能靠手机短信完成吗？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2533.995999999999,
+        "totalTokens": null,
+        "answerText": "不能。记录明确说明：泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子。另有记录显示“短信验证码方案已否决，保留邮箱验证码”，但该条未明确指向泽川后台，因此不能据此认定泽川后台可用邮箱验证码；泽川后台是否支持邮箱验证码，现有记录无法确认。",
+        "citations": [
+          {
+            "content": "泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "14152187-4c18-432e-946f-fb8d61047e58",
+                "sourceId": "e7fbc2bc-9139-469d-8050-58f5f8027d2e",
+                "sourceTitle": "项目确认纪要",
+                "text": "泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子。",
+                "textHash": "f6b8fc20ef81542a9daf62372f99ad38ae97aa7a5cb60a976870e09b2a75c028",
+                "truncated": false
+              }
+            ],
+            "id": "memory:cf3ff98c-5ecc-48b0-8dc6-dbdd03ad61d7",
+            "kind": "memory",
+            "memoryId": "cf3ff98c-5ecc-48b0-8dc6-dbdd03ad61d7",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子。",
+              "contentHash": "f6b8fc20ef81542a9daf62372f99ad38ae97aa7a5cb60a976870e09b2a75c028",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "14152187-4c18-432e-946f-fb8d61047e58",
+                  "sourceId": "e7fbc2bc-9139-469d-8050-58f5f8027d2e",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子。",
+                  "textHash": "f6b8fc20ef81542a9daf62372f99ad38ae97aa7a5cb60a976870e09b2a75c028",
+                  "truncated": false
+                }
+              ],
+              "id": "cf3ff98c-5ecc-48b0-8dc6-dbdd03ad61d7",
+              "kind": "requirement",
+              "memoryId": "cf3ff98c-5ecc-48b0-8dc6-dbdd03ad61d7",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "cb4d2b53-a250-4245-8601-0f5d43546849",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:13.604Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:13.604Z"
+          },
+          {
+            "content": "短信验证码方案已否决，保留邮箱验证码。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "3e986c4b-bf62-423e-b03f-8601f632f1bb",
+                "sourceId": "6e2aa718-386b-449c-aed6-17a193f2217a",
+                "sourceTitle": "项目确认纪要",
+                "text": "短信验证码方案已否决，保留邮箱验证码。",
+                "textHash": "4b49f385bf8c8ed9a54700ac6db651197593981355b8696168db14838537f978",
+                "truncated": false
+              }
+            ],
+            "id": "memory:8dc14503-3d94-4b94-9929-80a79ff80edc",
+            "kind": "memory",
+            "memoryId": "8dc14503-3d94-4b94-9929-80a79ff80edc",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "短信验证码方案已否决，保留邮箱验证码。",
+              "contentHash": "4b49f385bf8c8ed9a54700ac6db651197593981355b8696168db14838537f978",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "3e986c4b-bf62-423e-b03f-8601f632f1bb",
+                  "sourceId": "6e2aa718-386b-449c-aed6-17a193f2217a",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "短信验证码方案已否决，保留邮箱验证码。",
+                  "textHash": "4b49f385bf8c8ed9a54700ac6db651197593981355b8696168db14838537f978",
+                  "truncated": false
+                }
+              ],
+              "id": "8dc14503-3d94-4b94-9929-80a79ff80edc",
+              "kind": "decision",
+              "memoryId": "8dc14503-3d94-4b94-9929-80a79ff80edc",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "f94a6ad4-6228-45b4-a58f-fc3670a2f863",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:11.674Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:11.674Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "不能。记录明确说明：泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子。另有记录显示“短信验证码方案已否决，保留邮箱验证码”，但该条未明确指向泽川后台，因此不能据此认定泽川后台可用邮箱验证码；泽川后台是否支持邮箱验证码，现有记录无法确认。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:challenge_archive_condition",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "北辰合同资料年限到了就能直接删掉吗？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1586.1506000000081,
+        "totalTokens": null,
+        "answerText": "不能。根据项目确认纪要的记录，北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁；也就是说，年限届满并不等于可以直接删除，必须先完成法务复核批准这一环节。其余日常记录只提到“资料已整理，沟通安排另行确认”，未涉及北辰合同的保存或销毁规则，不能作为依据。",
+        "citations": [
+          {
+            "content": "北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "44444fab-eaaa-4a53-b92e-911d03ff3099",
+                "sourceId": "6ccda8c4-640e-4f68-8ac2-cfcd08f0a507",
+                "sourceTitle": "项目确认纪要",
+                "text": "北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁。",
+                "textHash": "3201f43091294aa10307f38b790abc6679b1172c5f2be7d3106879c411de3347",
+                "truncated": false
+              }
+            ],
+            "id": "memory:ba49d2da-ae9a-407c-b859-82baa974c6e5",
+            "kind": "memory",
+            "memoryId": "ba49d2da-ae9a-407c-b859-82baa974c6e5",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁。",
+              "contentHash": "3201f43091294aa10307f38b790abc6679b1172c5f2be7d3106879c411de3347",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "44444fab-eaaa-4a53-b92e-911d03ff3099",
+                  "sourceId": "6ccda8c4-640e-4f68-8ac2-cfcd08f0a507",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁。",
+                  "textHash": "3201f43091294aa10307f38b790abc6679b1172c5f2be7d3106879c411de3347",
+                  "truncated": false
+                }
+              ],
+              "id": "ba49d2da-ae9a-407c-b859-82baa974c6e5",
+              "kind": "requirement",
+              "memoryId": "ba49d2da-ae9a-407c-b859-82baa974c6e5",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "331c4fc3-db56-42ac-bee1-53b05494930c",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:13.779Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:13.779Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "不能。根据项目确认纪要的记录，北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁；也就是说，年限届满并不等于可以直接删除，必须先完成法务复核批准这一环节。其余日常记录只提到“资料已整理，沟通安排另行确认”，未涉及北辰合同的保存或销毁规则，不能作为依据。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:challenge_progress_premise",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "海桥是否已完成验收，92%是不是项目完成率？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 3233.782400000011,
+        "totalTokens": null,
+        "answerText": "两个前提均不成立。\n\n1. 海桥验收状态：记录显示“海桥迁移开发工作已结束，验收尚未启动”，因此不能认定海桥已完成验收。\n2. 92%的含义：同一记录明确该92%是“测试覆盖率”，并注明“未记录任务完成百分比”，因此92%不是项目完成率。\n\n补充说明：记录中另有“支付接口验收”的负责人（陈雨）及截止日期（2026-10-23），但该记录未明确其与“海桥”为同一事项，无法据此确认海桥验收的负责人或截止日期。",
+        "citations": [
+          {
+            "content": "海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "0e77953e-1f9e-45e6-acab-0d074d7f52d5",
+                "sourceId": "3074b70a-2cae-4bd8-a459-53fdf044bd74",
+                "sourceTitle": "项目确认纪要",
+                "text": "海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。",
+                "textHash": "b049c64661eb173064bc2cabae0c7f991c1d096dfa372904360f8d71bf75831d",
+                "truncated": false
+              }
+            ],
+            "id": "memory:1bd1e928-bfaa-4e63-aab8-332fea77feaf",
+            "kind": "memory",
+            "memoryId": "1bd1e928-bfaa-4e63-aab8-332fea77feaf",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。",
+              "contentHash": "b049c64661eb173064bc2cabae0c7f991c1d096dfa372904360f8d71bf75831d",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "0e77953e-1f9e-45e6-acab-0d074d7f52d5",
+                  "sourceId": "3074b70a-2cae-4bd8-a459-53fdf044bd74",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。",
+                  "textHash": "b049c64661eb173064bc2cabae0c7f991c1d096dfa372904360f8d71bf75831d",
+                  "truncated": false
+                }
+              ],
+              "id": "1bd1e928-bfaa-4e63-aab8-332fea77feaf",
+              "kind": "fact",
+              "memoryId": "1bd1e928-bfaa-4e63-aab8-332fea77feaf",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "aad8ea9c-a8e1-49df-ac41-3760d73e9678",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:14.013Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:14.013Z"
+          },
+          {
+            "content": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "5cd642ef-cca3-4229-9910-2b13211ba077",
+                "sourceId": "38b2756f-0c38-4af7-8779-d9ea83578312",
+                "sourceTitle": "项目确认纪要",
+                "text": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+                "textHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+                "truncated": false
+              }
+            ],
+            "id": "memory:72029ab5-f611-480a-bf01-e940dd614be5",
+            "kind": "memory",
+            "memoryId": "72029ab5-f611-480a-bf01-e940dd614be5",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+              "contentHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "5cd642ef-cca3-4229-9910-2b13211ba077",
+                  "sourceId": "38b2756f-0c38-4af7-8779-d9ea83578312",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+                  "textHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+                  "truncated": false
+                }
+              ],
+              "id": "72029ab5-f611-480a-bf01-e940dd614be5",
+              "kind": "fact",
+              "memoryId": "72029ab5-f611-480a-bf01-e940dd614be5",
+              "origin": "user_correction",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 2,
+              "revisionId": "002bd31e-0d0d-4521-a359-720c21a83a37",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:09.852Z"
+            },
+            "revision": 2,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:09.852Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "两个前提均不成立。\n\n1. 海桥验收状态：记录显示“海桥迁移开发工作已结束，验收尚未启动”，因此不能认定海桥已完成验收。\n2. 92%的含义：同一记录明确该92%是“测试覆盖率”，并注明“未记录任务完成百分比”，因此92%不是项目完成率。\n\n补充说明：记录中另有“支付接口验收”的负责人（陈雨）及截止日期（2026-10-23），但该记录未明确其与“海桥”为同一事项，无法据此确认海桥验收的负责人或截止日期。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:challenge_release_premise",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "天衡发布为什么已经推迟？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2899.879799999995,
+        "totalTokens": null,
+        "answerText": "现有记录不能证明“天衡发布已经推迟”。可核实的事实是：天衡发布前必须通过压力测试；当前压测因测试环境未就绪而未启动；记录未记载发布实际日期发生变化，因此无法确认发布是否推迟及推迟原因。另有一条发布失败回滚要求（切换到上一稳定版本，耗时上限10分钟），但该记录未说明与本次发布日期变化存在关联，不能作为推迟原因。",
+        "citations": [
+          {
+            "content": "天衡发布前必须通过压力测试；当前压测因测试环境未就绪而未启动，未记录发布实际日期变化。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "0a8c1b4c-dee5-4246-b003-ca23935085a6",
+                "sourceId": "396094a5-bcaf-4dd9-a46f-aeb12705494f",
+                "sourceTitle": "项目确认纪要",
+                "text": "天衡发布前必须通过压力测试；当前压测因测试环境未就绪而未启动，未记录发布实际日期变化。",
+                "textHash": "e7efcb965b20096401bd04749c7755ca45bfdbe6af04163e67b28c8f13f8341b",
+                "truncated": false
+              }
+            ],
+            "id": "memory:da4fb74c-ae3e-4ca9-986f-7055bd98e7d7",
+            "kind": "memory",
+            "memoryId": "da4fb74c-ae3e-4ca9-986f-7055bd98e7d7",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "天衡发布前必须通过压力测试；当前压测因测试环境未就绪而未启动，未记录发布实际日期变化。",
+              "contentHash": "e7efcb965b20096401bd04749c7755ca45bfdbe6af04163e67b28c8f13f8341b",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "0a8c1b4c-dee5-4246-b003-ca23935085a6",
+                  "sourceId": "396094a5-bcaf-4dd9-a46f-aeb12705494f",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "天衡发布前必须通过压力测试；当前压测因测试环境未就绪而未启动，未记录发布实际日期变化。",
+                  "textHash": "e7efcb965b20096401bd04749c7755ca45bfdbe6af04163e67b28c8f13f8341b",
+                  "truncated": false
+                }
+              ],
+              "id": "da4fb74c-ae3e-4ca9-986f-7055bd98e7d7",
+              "kind": "risk",
+              "memoryId": "da4fb74c-ae3e-4ca9-986f-7055bd98e7d7",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "aab38839-c9e3-476b-9941-da88458185dd",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:14.214Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:14.214Z"
+          },
+          {
+            "content": "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "c5ee2459-ea9c-49a9-a086-fcefbddb2431",
+                "sourceId": "7804c517-cbfe-494e-a17b-1ea9f6ec9c4d",
+                "sourceTitle": "项目确认纪要",
+                "text": "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+                "textHash": "b74b387d8a4f7384e6c37293c1785791b07247e0e7649f9ba3a076d5a332d09d",
+                "truncated": false
+              }
+            ],
+            "id": "memory:b90f22f5-d269-4a84-b1c4-8c244d876700",
+            "kind": "memory",
+            "memoryId": "b90f22f5-d269-4a84-b1c4-8c244d876700",
+            "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+            "record": {
+              "content": "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+              "contentHash": "b74b387d8a4f7384e6c37293c1785791b07247e0e7649f9ba3a076d5a332d09d",
+              "evidence": [
+                {
+                  "locator": "第 1 行",
+                  "segmentId": "c5ee2459-ea9c-49a9-a086-fcefbddb2431",
+                  "sourceId": "7804c517-cbfe-494e-a17b-1ea9f6ec9c4d",
+                  "sourceTitle": "项目确认纪要",
+                  "text": "发布失败时执行回滚，切换到上一稳定版本，耗时上限10分钟。",
+                  "textHash": "b74b387d8a4f7384e6c37293c1785791b07247e0e7649f9ba3a076d5a332d09d",
+                  "truncated": false
+                }
+              ],
+              "id": "b90f22f5-d269-4a84-b1c4-8c244d876700",
+              "kind": "requirement",
+              "memoryId": "b90f22f5-d269-4a84-b1c4-8c244d876700",
+              "origin": "confirmation",
+              "projectId": "6bcbb0a7-5944-413d-bbec-6ebc893d7eb9",
+              "revision": 1,
+              "revisionId": "5d84ee32-2d1f-49d6-96ee-05036edf72fb",
+              "sourceTitle": "项目确认纪要",
+              "truncated": false,
+              "updatedAt": "2026-10-20T08:09:11.074Z"
+            },
+            "revision": 1,
+            "sourceTitle": "项目确认纪要",
+            "title": "项目确认纪要",
+            "updatedAt": "2026-10-20T08:09:11.074Z"
+          }
+        ],
+        "claims": [
+          {
+            "text": "现有记录不能证明“天衡发布已经推迟”。可核实的事实是：天衡发布前必须通过压力测试；当前压测因测试环境未就绪而未启动；记录未记载发布实际日期发生变化，因此无法确认发布是否推迟及推迟原因。另有一条发布失败回滚要求（切换到上一稳定版本，耗时上限10分钟），但该记录未说明与本次发布日期变化存在关联，不能作为推迟原因。",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "desktop:challenge_unknown_owner",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "泽川硬件安全密钥采购负责人是谁？",
+      "answer": {
+        "actualStatus": "unknown",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 5027.617399999988,
+        "totalTokens": null,
+        "answerText": "现有记录不足以回答此问题，请补充项目记录。",
+        "citations": [],
+        "claims": []
+      }
+    },
+    {
+      "id": "connector:exact_owner",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "支付接口验收由谁负责？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2074.275299999994,
+        "totalTokens": null,
+        "answerText": "支付接口验收由陈雨负责；王敏负责联调。验收截止日期为2026-10-23。\n\n依据：\n[1] 项目确认纪要 · 记忆 v2 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "5cd642ef-cca3-4229-9910-2b13211ba077",
+                "sourceId": "38b2756f-0c38-4af7-8779-d9ea83578312",
+                "sourceTitle": "项目确认纪要",
+                "text": "支付接口验收由陈雨负责，王敏负责联调；验收截止日期为2026-10-23。",
+                "textHash": "ed0a6544328deefa53ab7d5d8432521391c459b2ded3074e3464c6e4d5a203cf",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "72029ab5-f611-480a-bf01-e940dd614be5",
+            "origin": "user_correction",
+            "revision": 2,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "支付接口验收由陈雨负责；王敏负责联调。验收截止日期为2026-10-23。\n\n依据：\n[1] 项目确认纪要 · 记忆 v2 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:alias_pool_missing",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "数据库连接池的最大容量是多少？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1000.5990999999922,
+        "totalTokens": null,
+        "answerText": "PostgreSQL 连接池的最大容量是 64。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "PostgreSQL connection pool maximum size is 64.",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "cb907254-654c-49a6-be2c-2213cbc778d5",
+                "sourceId": "b74568d1-6dbc-4415-8108-d1087352a939",
+                "sourceTitle": "项目确认纪要",
+                "text": "PostgreSQL connection pool maximum size is 64.",
+                "textHash": "d1c49c60695e9a46818644e8372ebe4508e1a3ec93537967cc732f0ebf38ddf3",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "e3188976-5084-415d-8f33-99d1e32b0521",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "PostgreSQL 连接池的最大容量是 64。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:paraphrase_export",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "批量导出安排在哪个阶段？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 814.789499999999,
+        "totalTokens": null,
+        "answerText": "批量导出功能仅在第二阶段实施，首期不交付。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "批量导出功能仅在第二阶段实施，首期不交付。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "e3cb87d3-9984-4fc1-b7d9-764c5eeaaa70",
+                "sourceId": "25cdafc5-e52a-4dc0-b275-23ffb0e0d164",
+                "sourceTitle": "项目确认纪要",
+                "text": "批量导出功能仅在第二阶段实施，首期不交付。",
+                "textHash": "6107d1c8b0b76b0e62cb8c3947a1e29f6bcbe8d955c21647709c06f35dbe2f55",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "b03216be-520b-45a0-98da-265d1859c373",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "批量导出功能仅在第二阶段实施，首期不交付。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:semantic_signature",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "商务确认为什么迟迟没有完成？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 4632.595300000001,
+        "totalTokens": null,
+        "answerText": "记忆中没有“商务确认”这一事项的记录，无法确认其是否迟迟未完成。可核实的相关事实是：客户签字暂缓，需先核对清楚双方账单差额；而对账核验又被供应商账单缺失阻塞，供应商对接人为刘涛。此外，上线前必须完成支付接口验收，验收需要先完成对账核验。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[2] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[3] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "客户签字暂缓，需先核对清楚双方账单差额。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "532a628c-b539-4dd6-b0bd-4da88e18834b",
+                "sourceId": "56ae8eac-4b73-417f-a7d3-0b1fa142d0a0",
+                "sourceTitle": "项目确认纪要",
+                "text": "客户签字暂缓，需先核对清楚双方账单差额。",
+                "textHash": "2936a5df2931916a16f20302701de6e1a5477cafd3499db8868049a393623831",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "b7da96be-6bee-4f10-bd0d-16dd50fd56e3",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          },
+          {
+            "content": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "c9533ce2-2010-444c-bb9e-d5de6891bbff",
+                "sourceId": "70d6af4e-dccd-4da0-ba46-534729d63c1c",
+                "sourceTitle": "项目确认纪要",
+                "text": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+                "textHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          },
+          {
+            "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "aa9ed395-c6c2-4591-b30a-9dc2967bc182",
+                "sourceId": "2e5668d0-6d27-4d76-9831-8316cecc0a9f",
+                "sourceTitle": "项目确认纪要",
+                "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "记忆中没有“商务确认”这一事项的记录，无法确认其是否迟迟未完成。可核实的相关事实是：客户签字暂缓，需先核对清楚双方账单差额；而对账核验又被供应商账单缺失阻塞，供应商对接人为刘涛。此外，上线前必须完成支付接口验收，验收需要先完成对账核验。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[2] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[3] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:semantic_export",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "能一次性下载全部工单吗？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1835.6680000000051,
+        "totalTokens": null,
+        "answerText": "不能。批量导出功能仅在第二阶段实施，首期不交付，因此首期无法一次性下载全部工单。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "批量导出功能仅在第二阶段实施，首期不交付。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "e3cb87d3-9984-4fc1-b7d9-764c5eeaaa70",
+                "sourceId": "25cdafc5-e52a-4dc0-b275-23ffb0e0d164",
+                "sourceTitle": "项目确认纪要",
+                "text": "批量导出功能仅在第二阶段实施，首期不交付。",
+                "textHash": "6107d1c8b0b76b0e62cb8c3947a1e29f6bcbe8d955c21647709c06f35dbe2f55",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "b03216be-520b-45a0-98da-265d1859c373",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "不能。批量导出功能仅在第二阶段实施，首期不交付，因此首期无法一次性下载全部工单。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:semantic_incident",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "上次服务中断的根因是什么？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1920.188399999999,
+        "totalTokens": null,
+        "answerText": "10月18日故障的根因是缓存连接耗尽，扩容并限制并发后恢复。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "0b92cb6e-b02e-4924-8a03-cc5b892066c2",
+                "sourceId": "01bae11b-9756-41a4-a72a-13bb105b1be0",
+                "sourceTitle": "项目确认纪要",
+                "text": "10月18日故障原因是缓存连接耗尽，扩容并限制并发后恢复。",
+                "textHash": "7ad1b873548679900f64dd09342f217c63ad67ea5f9970395cb4092fcd73a80a",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "c2943eb8-7659-41eb-be81-aee495758bc6",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "10月18日故障的根因是缓存连接耗尽，扩容并限制并发后恢复。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:semantic_offline",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "没网时能否修改手机上的内容？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1939.6845999999932,
+        "totalTokens": null,
+        "answerText": "当前范围不包含移动端离线编辑，因此没网时无法在手机上修改内容；离线能力须另行评审。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "当前范围不包含移动端离线编辑，离线能力须另行评审。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "b1ceaffd-62db-49a4-812d-53e9d6a9f1f9",
+                "sourceId": "35f3512f-c40c-46de-9768-403c98765f68",
+                "sourceTitle": "项目确认纪要",
+                "text": "当前范围不包含移动端离线编辑，离线能力须另行评审。",
+                "textHash": "49c795f6950346fd834f255bc3a73a9a11c124dc33e6def553ab0eba4c0008da",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "f55f999f-0fed-4821-b1be-80cc4eb96f7c",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "当前范围不包含移动端离线编辑，因此没网时无法在手机上修改内容；离线能力须另行评审。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:semantic_lockout",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "口令一直填错会受到怎样的限制？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 842.2445000000007,
+        "totalTokens": null,
+        "answerText": "账户连续输错密码5次后会被锁定15分钟。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "账户连续输错密码5次后锁定15分钟。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "9226e89e-1bd6-47a6-a811-c3220c1c50e2",
+                "sourceId": "2b5eabd7-731c-4181-ae30-d451753f2cb7",
+                "sourceTitle": "项目确认纪要",
+                "text": "账户连续输错密码5次后锁定15分钟。",
+                "textHash": "b69d4146d3468ba5a9b3ae331d284488ce0a64ff0c5df7e6e354dda003e0c238",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "9d3a5f36-9147-41f3-82ff-00c9d7315866",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "账户连续输错密码5次后会被锁定15分钟。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:multi_dependency",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "上线需要先完成什么，对账核验卡在哪里？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1153.492299999998,
+        "totalTokens": null,
+        "answerText": "上线前必须完成支付接口验收，而验收需要先完成对账核验。对账核验目前被供应商账单缺失阻塞，供应商对接人为刘涛。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[2] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "aa9ed395-c6c2-4591-b30a-9dc2967bc182",
+                "sourceId": "2e5668d0-6d27-4d76-9831-8316cecc0a9f",
+                "sourceTitle": "项目确认纪要",
+                "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          },
+          {
+            "content": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "c9533ce2-2010-444c-bb9e-d5de6891bbff",
+                "sourceId": "70d6af4e-dccd-4da0-ba46-534729d63c1c",
+                "sourceTitle": "项目确认纪要",
+                "text": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+                "textHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "上线前必须完成支付接口验收，而验收需要先完成对账核验。对账核验目前被供应商账单缺失阻塞，供应商对接人为刘涛。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[2] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:multi_cause",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "上线为什么延后，应该找谁补账单？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2694.1647999999986,
+        "totalTokens": null,
+        "answerText": "记忆中没有“上线已延后”的明确记录，无法确认上线是否延后及延后原因。可核实的是：上线前必须完成支付接口验收，而验收需先完成对账核验；对账核验目前被供应商账单缺失阻塞，供应商对接人为刘涛，补账单应联系刘涛。另记录客户签字暂缓，需先核对清楚双方账单差额。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[2] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[3] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "aa9ed395-c6c2-4591-b30a-9dc2967bc182",
+                "sourceId": "2e5668d0-6d27-4d76-9831-8316cecc0a9f",
+                "sourceTitle": "项目确认纪要",
+                "text": "上线前必须完成支付接口验收，验收需要先完成对账核验。",
+                "textHash": "d72d2f7815a69747d7f8e9ba7ad79acb9f848f54d0c054722192f00b68e54314",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "f9c27af8-bbe7-4e26-a457-1cda9569bcc1",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          },
+          {
+            "content": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "c9533ce2-2010-444c-bb9e-d5de6891bbff",
+                "sourceId": "70d6af4e-dccd-4da0-ba46-534729d63c1c",
+                "sourceTitle": "项目确认纪要",
+                "text": "对账核验被供应商账单缺失阻塞，供应商对接人为刘涛。",
+                "textHash": "2be1b23b7444089b0da408a379cf1e17a4ccfd51e220f5bca16c2979bea50310",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "8e69f32c-bb3b-4c3e-8daf-5779aab0aaac",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          },
+          {
+            "content": "客户签字暂缓，需先核对清楚双方账单差额。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "532a628c-b539-4dd6-b0bd-4da88e18834b",
+                "sourceId": "56ae8eac-4b73-417f-a7d3-0b1fa142d0a0",
+                "sourceTitle": "项目确认纪要",
+                "text": "客户签字暂缓，需先核对清楚双方账单差额。",
+                "textHash": "2936a5df2931916a16f20302701de6e1a5477cafd3499db8868049a393623831",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "b7da96be-6bee-4f10-bd0d-16dd50fd56e3",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "记忆中没有“上线已延后”的明确记录，无法确认上线是否延后及延后原因。可核实的是：上线前必须完成支付接口验收，而验收需先完成对账核验；对账核验目前被供应商账单缺失阻塞，供应商对接人为刘涛，补账单应联系刘涛。另记录客户签字暂缓，需先核对清楚双方账单差额。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[2] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[3] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:unknown_relevant",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "支付接口的生产数据库口令是什么？",
+      "answer": {
+        "actualStatus": "unknown",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2769.343200000003,
+        "totalTokens": null,
+        "answerText": "项目记忆中没有足够依据，暂不自动回复。",
+        "citations": [],
+        "claims": []
+      }
+    },
+    {
+      "id": "connector:conflict_only",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "迁移窗口定在几点？",
+      "answer": {
+        "actualStatus": "unknown",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2238.053,
+        "totalTokens": null,
+        "answerText": "项目记忆中没有足够依据，暂不自动回复。",
+        "citations": [],
+        "claims": []
+      }
+    },
+    {
+      "id": "connector:challenge_reward_search",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "怎样防止一个人反复薅羊毛领赠品？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2545.3151999999973,
+        "totalTokens": null,
+        "answerText": "权益兑换采用实名核验，同一身份证号码只能领取一份，可据此防止同一人反复领取。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "权益兑换采用实名核验，同一身份证号码只能领取一份。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "0619ae5f-c388-4a00-ac2e-fafa1310cdd3",
+                "sourceId": "1223ebe1-b055-42c9-8c4e-135597077117",
+                "sourceTitle": "项目确认纪要",
+                "text": "权益兑换采用实名核验，同一身份证号码只能领取一份。",
+                "textHash": "4211066c126fd2107036061c088d02103785d252d69dd19f42cbc144f0ada8d0",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "6a5c71df-9d1c-423c-ba30-85e0d73e3972",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "权益兑换采用实名核验，同一身份证号码只能领取一份，可据此防止同一人反复领取。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:challenge_mfa_scope",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "泽川后台二次验证能靠手机短信完成吗？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 955.6490000000049,
+        "totalTokens": null,
+        "answerText": "不能。泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子；短信验证码方案已否决，保留邮箱验证码。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[2] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "14152187-4c18-432e-946f-fb8d61047e58",
+                "sourceId": "e7fbc2bc-9139-469d-8050-58f5f8027d2e",
+                "sourceTitle": "项目确认纪要",
+                "text": "泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子。",
+                "textHash": "f6b8fc20ef81542a9daf62372f99ad38ae97aa7a5cb60a976870e09b2a75c028",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "cf3ff98c-5ecc-48b0-8dc6-dbdd03ad61d7",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          },
+          {
+            "content": "短信验证码方案已否决，保留邮箱验证码。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "3e986c4b-bf62-423e-b03f-8601f632f1bb",
+                "sourceId": "6e2aa718-386b-449c-aed6-17a193f2217a",
+                "sourceTitle": "项目确认纪要",
+                "text": "短信验证码方案已否决，保留邮箱验证码。",
+                "textHash": "4b49f385bf8c8ed9a54700ac6db651197593981355b8696168db14838537f978",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "8dc14503-3d94-4b94-9929-80a79ff80edc",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "不能。泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子；短信验证码方案已否决，保留邮箱验证码。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）\n[2] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:challenge_archive_condition",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "北辰合同资料年限到了就能直接删掉吗？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1013.4379999999946,
+        "totalTokens": null,
+        "answerText": "不能。北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "44444fab-eaaa-4a53-b92e-911d03ff3099",
+                "sourceId": "6ccda8c4-640e-4f68-8ac2-cfcd08f0a507",
+                "sourceTitle": "项目确认纪要",
+                "text": "北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁。",
+                "textHash": "3201f43091294aa10307f38b790abc6679b1172c5f2be7d3106879c411de3347",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "ba49d2da-ae9a-407c-b859-82baa974c6e5",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "不能。北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:challenge_progress_premise",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "海桥是否已完成验收，92%是不是项目完成率？",
+      "answer": {
+        "actualStatus": "answered",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 1979.917100000006,
+        "totalTokens": null,
+        "answerText": "海桥迁移开发工作已结束，但验收尚未启动，因此不能说已完成验收。92%是测试覆盖率，不是项目完成率；记录中未记录任务完成百分比。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+        "citations": [
+          {
+            "content": "海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。",
+            "evidence": [
+              {
+                "locator": "第 1 行",
+                "segmentId": "0e77953e-1f9e-45e6-acab-0d074d7f52d5",
+                "sourceId": "3074b70a-2cae-4bd8-a459-53fdf044bd74",
+                "sourceTitle": "项目确认纪要",
+                "text": "海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。",
+                "textHash": "b049c64661eb173064bc2cabae0c7f991c1d096dfa372904360f8d71bf75831d",
+                "truncated": false
+              }
+            ],
+            "evidenceLabel": "当前版本原文依据",
+            "memoryId": "1bd1e928-bfaa-4e63-aab8-332fea77feaf",
+            "origin": "confirmation",
+            "revision": 1,
+            "sourceTitle": "项目确认纪要"
+          }
+        ],
+        "claims": [
+          {
+            "text": "海桥迁移开发工作已结束，但验收尚未启动，因此不能说已完成验收。92%是测试覆盖率，不是项目完成率；记录中未记录任务完成百分比。\n\n依据：\n[1] 项目确认纪要 · 记忆 v1 · 当前版本原文依据（第 1 行）",
+            "supported": null,
+            "relevant": null,
+            "citationComplete": null,
+            "scopeCorrect": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "connector:challenge_release_premise",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "天衡发布为什么已经推迟？",
+      "answer": {
+        "actualStatus": "unknown",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2802.5725000000093,
+        "totalTokens": null,
+        "answerText": "项目记忆中没有足够依据，暂不自动回复。",
+        "citations": [],
+        "claims": []
+      }
+    },
+    {
+      "id": "connector:challenge_unknown_owner",
+      "projectGroup": "shared-corpus:562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+      "sourceHashes": [
+        "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6"
+      ],
+      "split": "unassigned",
+      "question": "泽川硬件安全密钥采购负责人是谁？",
+      "answer": {
+        "actualStatus": "unknown",
+        "expectedStatus": null,
+        "requestSatisfied": null,
+        "segmentationReviewed": false,
+        "elapsedMs": 2368.996100000004,
+        "totalTokens": null,
+        "answerText": "项目记忆中没有足够依据，暂不自动回复。",
+        "citations": [],
+        "claims": []
+      }
+    }
+  ]
+}

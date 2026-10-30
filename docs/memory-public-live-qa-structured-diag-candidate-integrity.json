@@ -1,0 +1,474 @@
+{
+  "checkedAt": "2026-10-23T03:49:58.492Z",
+  "checks": [
+    "frozen dataset/source/binary hashes",
+    "no key in reports/transcripts",
+    "unique receipt indices/request hashes/provider usage",
+    "gold absent from production input envelope",
+    "complete paragraph provenance",
+    "both entries and project scope",
+    "unchanged confirmed facts/facets",
+    "read-only QA",
+    "strict judge memory ID whitelist",
+    "shared request budget"
+  ],
+  "results": [
+    {
+      "file": "docs/memory-public-live-qa-structured-diag-candidate-results.json",
+      "sha256": "043fbe76d27b04f647cae5713858d0d02ce0ac6fb109968ec578ae20b986e919",
+      "transcriptSha256": "006307fad9066dd5b8eff0a7cb2eed71100eac754baea6e025b014d19d9089e5",
+      "requests": 160,
+      "totalTokens": 752485,
+      "questions": 20,
+      "segments": 501,
+      "formalMemories": 938,
+      "rejectedJudgeOutputs": 0,
+      "passed": true
+    }
+  ],
+  "structured": {
+    "judgeInputs": {
+      "questions": 20,
+      "stages": 60
+    },
+    "finalClaimProvenance": [
+      {
+        "questionId": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "584af673429c7f8621c6bf83362a37048daa0e5d",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 4,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "584af673429c7f8621c6bf83362a37048daa0e5d",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 4,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 0,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 0,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "747b847d687f703cc20a87877c5b138f26ff137d",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 3,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "747b847d687f703cc20a87877c5b138f26ff137d",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          1
+        ]
+      },
+      {
+        "questionId": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          1
+        ]
+      },
+      {
+        "questionId": "6bf5620f295b5243230bc97b340fae6e92304595",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "6bf5620f295b5243230bc97b340fae6e92304595",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "521280a87c43fcdf9f577da235e7072a23f0673e",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "521280a87c43fcdf9f577da235e7072a23f0673e",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "10fb7dc031075946153baf0a0599e126de29e3a4",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 4,
+        "generationIndices": [
+          0,
+          1
+        ]
+      },
+      {
+        "questionId": "10fb7dc031075946153baf0a0599e126de29e3a4",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 5,
+        "generationIndices": [
+          0,
+          1
+        ]
+      },
+      {
+        "questionId": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 1,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 3,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0,
+          1
+        ]
+      },
+      {
+        "questionId": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0,
+          1
+        ]
+      },
+      {
+        "questionId": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 0,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 0,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 4,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 2,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 11,
+        "generationIndices": [
+          0,
+          1
+        ]
+      },
+      {
+        "questionId": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 6,
+        "generationIndices": [
+          0,
+          1
+        ]
+      },
+      {
+        "questionId": "dd76130ec5fac477123fe8880472d03fbafddef6",
+        "entry": "desktop",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 6,
+        "generationIndices": [
+          0
+        ]
+      },
+      {
+        "questionId": "dd76130ec5fac477123fe8880472d03fbafddef6",
+        "entry": "connector",
+        "mode": "explicit-multiple-producers",
+        "claimCount": 9,
+        "generationIndices": [
+          0
+        ]
+      }
+    ],
+    "producerPackMethod": "union of actual selected contexts, not one supplied pack",
+    "diagnostic": {
+      "kind": "fixed-confirmed-memory-qa-only",
+      "arm": "candidate",
+      "frozenReport": "docs\\memory-public-live-qa-targeted-dev-v4-results.json",
+      "frozenReportSha256": "486bdbe6236f70f81ad50098a6253cd82592ed0b5c870d33466e8d8b8dc0b023",
+      "suppliedPackFrozen": false,
+      "interpretation": "Same confirmed content/facets/provenance. Actual production retrieval and packing may differ. Baseline arm executes old binary now, not historical answers; candidate arm uses unchanged anonymous separated judges for both fresh systems."
+    }
+  },
+  "structuredBudget": {
+    "registration": {
+      "file": "docs/memory-qa-structured-preregistration.json",
+      "sha256": "5c3333085ac1296dc66abe25d18cbc4cc55583ca304e8fe5645774ed381692d0",
+      "registeredAt": "2026-10-23T03:21:09.406Z",
+      "developmentLimits": {
+        "maxRequests": 1200,
+        "maxTokens": 6000000,
+        "maxFreshAttempts": 3,
+        "maxDiagnosticPairs": 1
+      },
+      "fullLimits": {
+        "maxRequests": 2000,
+        "maxTokens": 12000000
+      },
+      "historicalLedgerSha256": [
+        {
+          "name": "qa-targeted",
+          "sha256": "61657ded1c06b0008ce038f597bbb3a6aed6470a8f74113a564c1ce693fc96cd"
+        },
+        {
+          "name": "qa-calibrated",
+          "sha256": "0cd2b1324b1abb8dc1ec2f60edbe2c83f90e0ee6b0b771c9df3586b51adef55d"
+        }
+      ]
+    },
+    "ledger": {
+      "version": "memory-public-live-prior-ledger-v1",
+      "entries": [
+        {
+          "file": "docs/memory-public-live-qa-structured-diag-baseline-results.json",
+          "sha256": "0175a2a2dc6abc43d3fc1c9aa704b6846d6c3e120781c21780f76945ca2ae30e",
+          "detailFile": ".local-data/public-memory-live-xIbpaI/results.json",
+          "detailSha256": "5e282aabc167d83457de2096dfbcad8e6277f59cabb2df1c0a6f06a9dd1d96ae",
+          "transcriptFile": ".local-data/public-memory-live-xIbpaI/receipts.jsonl",
+          "transcriptSha256": "6113abba07aa7993e5b1cc1520c415e2d9fe13f0ee685cdf53001364654d914e",
+          "workspace": ".local-data\\public-memory-live-xIbpaI",
+          "outputTag": "qa-structured-diag-baseline",
+          "startedAt": "2026-10-23T03:45:10.860Z",
+          "finishedAt": "2026-10-23T03:46:15.038Z",
+          "requests": 89,
+          "totalTokens": 257768
+        }
+      ],
+      "requests": 89,
+      "totalTokens": 257768,
+      "sha256": "847a3fd78d98845dc7e031b3e474a56d4f46b8d37f8c7399261b79f2118c027c"
+    },
+    "historical": [
+      {
+        "name": "qa-targeted",
+        "requests": 977,
+        "totalTokens": 4480674
+      },
+      {
+        "name": "qa-calibrated",
+        "requests": 829,
+        "totalTokens": 3652548
+      }
+    ],
+    "attempt": null
+  }
+}

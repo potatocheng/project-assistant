@@ -171,10 +171,11 @@ pub(crate) fn load(root: &Path) -> Result<SavedSettings> {
         use std::os::unix::fs::PermissionsExt;
         fs::set_permissions(&path, fs::Permissions::from_mode(0o600))?;
     }
-    serde_json::from_slice(&fs::read(path)?)
+    serde_json::from_slice(&crate::protection::decode_secret(root, &fs::read(path)?)?)
         .map_err(|_| AppError::new("SECRET_CONFIG", "模型配置无法读取，请重新配置"))
 }
 pub(crate) fn save(root: &Path, p: &Value) -> Result<(SavedSettings, bool)> {
+    let _guard = crate::protection::guard()?;
     let old = load(root)?;
     let provider = crate::required(p, "provider")?.to_owned();
     let raw_url = crate::required(p, "baseUrl")?.trim();
@@ -241,6 +242,7 @@ pub(crate) fn save(root: &Path, p: &Value) -> Result<(SavedSettings, bool)> {
     let mut file = options.open(&temporary)?;
     let bytes = serde_json::to_vec(&next)
         .map_err(|_| AppError::new("SECRET_CONFIG", "模型配置保存失败"))?;
+    let bytes = crate::protection::encode_secret(root, &bytes)?;
     if let Err(error) = file.write_all(&bytes).and_then(|_| file.sync_all()) {
         let _ = fs::remove_file(&temporary);
         return Err(error.into());

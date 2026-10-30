@@ -19,9 +19,9 @@ export function ExtractionStatus({ source, job, settings, busy, onStart, onRetry
   if (source.status === 'processing') { title = '正在解析原文'; note = settings?.autoExtract && canRun ? '解析完成后将自动提取候选。' : '解析完成后可选择原文或启动提取。'; }
   else if (source.status === 'failed') { title = '原文尚未完成解析'; note = '请先处理资料解析错误，再启动提取。'; }
   else if (active) { title = job?.status === 'queued' ? '等待提取候选' : '正在提取候选'; note = job?.totalBatches ? `已处理 ${job.completedBatches} / ${job.totalBatches} 批原文` : '正在准备资料与模型请求…'; }
-  else if (failed) { title = '候选提取失败'; note = job?.error || '本次处理未完成，可检查设置后重试。'; }
+  else if (failed) { title = '候选提取未完成'; note = `${job?.error || '本次处理未完成，可检查设置后重试。'}${job?.completedBatches ? ` 已保存 ${job.completedBatches}/${job.totalBatches} 批；现有候选只覆盖部分原文，恢复时跳过已完成批次。` : ''}`; }
   else if (cancelled) { title = '提取已取消'; note = '已停止后续处理，已发送的请求无法撤回。'; }
-  else if (complete) { const count = job.candidateCount + (job.taskCandidateCount ?? 0); title = count ? `已生成 ${count} 条候选` : '没有新增候选'; note = count ? `${job.candidateCount} 条记忆 · ${job.taskCandidateCount ?? 0} 条任务，核对原文后即可确认。` : '相同候选不会重复生成，也可选中原文手动整理。'; }
+  else if (complete) { const count = job.candidateCount + (job.taskCandidateCount ?? 0); title = count ? `已生成 ${count} 条候选` : '提取处理完成'; note = job.stage || `${job.candidateCount} 条记忆 · ${job.taskCandidateCount ?? 0} 条任务，核对原文后即可确认。`; }
   else if (!canRun) { title = settings?.configured && !settings.remoteConsent ? '等待资料发送授权' : '先连接模型'; note = '在模型设置中完成配置后即可提取，也可手动整理原文。'; }
 
   return <section className={`extraction-status ${failed ? 'extraction-failed' : ''}`} aria-label="资料提取状态">

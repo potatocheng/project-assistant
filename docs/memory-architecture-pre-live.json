@@ -1,0 +1,113 @@
+{
+  "version": "memory-architecture-pre-live-v1",
+  "outputTag": "qa-architecture-dev",
+  "registrationSha256": "d0f66522a98ba036e60b2c82a317d4bda67f8047fafc3327b0a587eef07c5cca",
+  "passed": true,
+  "startedAt": "2026-10-26T07:17:52.000Z",
+  "finishedAt": "2026-10-26T07:26:54.101Z",
+  "commands": [
+    {
+      "command": "cargo test -p project-assistant-core --locked",
+      "exitCode": 0,
+      "log": ".local-data/memory-architecture-rust-tests-final.log",
+      "logSha256": "ab6a26f760ee700b9e19e4d55df579c67a97dd0f1829dc1231ffceec7bc9473b"
+    },
+    {
+      "command": "node --test scripts/*.test.mjs",
+      "exitCode": 0,
+      "log": ".local-data/memory-architecture-node-tests-final.log",
+      "logSha256": "c6872f354a80b24a653ca941ce982da8d6cc45fe1534ca5b3a46e6ae31d33c6c"
+    },
+    {
+      "command": "cargo clippy -p project-assistant-core --locked --lib --tests -- -D warnings",
+      "exitCode": 0,
+      "log": ".local-data/memory-architecture-clippy-final.log",
+      "logSha256": "f27bd1e8460709509db0f19be7e397c6b9948a80aa64a7c3216c1a574507ef98"
+    },
+    {
+      "command": "cargo build -p project-assistant-core --locked --bin pm-host",
+      "exitCode": 0,
+      "log": ".local-data/memory-architecture-build-final.log",
+      "logSha256": "9d2f80581197ed3f66e3256193935473b56a466d0ccfabaca646e9d9b285decf"
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": ".local-data/memory-architecture-typecheck.log",
+      "logSha256": "124f5b2d50849bab76b358acf03a3662e27a987f03adc7bf40a0fb4e73ef615c"
+    }
+  ],
+  "testTotals": {
+    "rust": {
+      "passed": 466,
+      "ignored": 5
+    },
+    "node": {
+      "passed": 242,
+      "failed": 0
+    }
+  },
+  "productionSha256": {
+    "ai.rs": "7de28184814e8916e45b54a3a00109508efbdc5740bdb2cb9856d1ef978a05af",
+    "answer_contract.rs": "2948f3dd7223ab9277e3ab1ad076182a080c9b399b4646d0a414451e1939f051",
+    "answer_repair.rs": "aeb59d69402262df5493b4d96d795c9e192c6ead9d055da60508ec94c59d7140",
+    "assistant_qa.rs": "05aea5e77736df2d563682cfd2aec0d18d6b174bb9a9fce54ba718133547f78e",
+    "backup.rs": "54df70f761956d2096622f3e20e14905484206f3d1a67b23f278780b1ec07a9e",
+    "bin\\pm-host.rs": "eb36bfd48207dca3b9694efd5bcde70316c466746c736efbeba99e40521937aa",
+    "change_control.rs": "9e8bf7c92d5ec3cb30e8d48c4411a4684169952d5d2c803478b04e37fdb014b2",
+    "coordination.rs": "551852f9918597e85407fd2d10647e5a7ea52df3a8bfdf604d62c3267210a703",
+    "db.rs": "9d2504455d03b8493be24f51fb30ad64013b6a0faeb43a3c687a160121704319",
+    "delivery.rs": "3036ea1f332c6a757946df25c48ec682211e188a1ca10065bbf5548e99a0aa49",
+    "evidence_pack.rs": "f56e56e6eccbe9de0f4b8144ecb185b5eaa35915c1e88ebf78ac6c317236bae4",
+    "extraction_store.rs": "298342225d79afa8f851881fe32b9c481808b4a7dc88fe2c96cbc72daae862c7",
+    "feishu.rs": "f909f9368448aee02312b32130b319e45bd3b0a2e558dfb680cdec16ab28a6d1",
+    "feishu\\knowledge.rs": "b98b21b69564801a09ef5bf005e217c164e0d3b323bbf6662f31c1380147fdf4",
+    "governance.rs": "fbc8b6bdc3b5d619f806433967ef561370a6801c357911e2421a47a1eaf2e180",
+    "lib.rs": "2e01f4edbfb3e68e91a4e61a289a5be91cbff468377d8cffc9279dbadf15ef51",
+    "maintenance.rs": "797fa3deb63fa364efecc8e84627a45564985f4b1b7e733847fbce2db2a7f907",
+    "management.rs": "3ef4b58e1c5e09ca728157797192d6d6fcf8a27fda375d918e8b6b80124a6aad",
+    "memory.rs": "d0fd214f460c5e217c8720355754d2e66138922da0d1a00ded4dd6a7d35afea8",
+    "memory_evaluation.rs": "d229ba9f7a5110747bf2e536bc48425b5739882e380f060c2c66b9969e9cd8c9",
+    "memory_facts.rs": "86bbc4b9f74d5e74ac5fa46029364e7de051ab7d6d19149271b0a6a4b3d50d62",
+    "memory_links.rs": "5cafd729d837e5c49fe5cbec1a8609af92989047e325cd0995ccfd3cfe8e5269",
+    "memory_query.rs": "6bc176ab8045c21693162dba2060ad8c84d75f3c3219441bd17c3290bbb5ec28",
+    "memory_workbench.rs": "be51d0a44fe1b2b6b35ac6c1fc3fd6b4977a8a1ad829542c5e2fd85f4554a856",
+    "parse.rs": "4ed5828c2445639784ff0c997d78ce3c4113712848e7fe788734bc2ebb9b4c58",
+    "planning.rs": "1b06c2662ad5e3ee85fc286264dd04ad5702f96473145031d4288f9f837ad405",
+    "qa.rs": "d4b9542e372388b2ad9d1a47eb11a0f26036355d80704d8c597bd89605d0e86d",
+    "question_flow.rs": "cba45f7cdf4afafae702178f9b4ed0c4a80da65f32fc7c6b156e1ba1a5481807",
+    "question_plan.rs": "8637dfccb7a872e640707098ccff4c971c2a64f887202ca63c0e75802b73c8fe",
+    "question_target.rs": "9f986cc1ccadcf35eef18ece01b8cc4b6bb0ac78ee6d10d2766f25744fd268c8",
+    "search.rs": "19e2d0b4ab7958a13a5c820a40574f950d425bcfcfb54a005fabb740274d413f",
+    "settings.rs": "373c0139373a061fca84eccccc700abc5bff0e261950aca631616f4bdb463117",
+    "source_passages.rs": "ab29f5dc980afdef8167ee1af5fa2ddde53bd153e62e6f54bb5e5b00b4423559",
+    "tasks.rs": "861efd389b78a55c0bb2a46f6fa4cf420ce879e9dc68720fe4191a8b473e01ca"
+  },
+  "binarySha256": "3d6c3f6385b05c0024299eee9ade9696efe88b370d9e573b7fd587bcb9e11231",
+  "evaluationSha256": {
+    "scripts/evaluate-memory-architecture-live.mjs": "221b1d83c15b3b7ca3bbb8f863b54c3727582a18005ca7bf812417ccdc17295a",
+    "scripts/memory-architecture-evaluation.mjs": "ef78edfc76f74a335646b2e50a839ba15ff414c007319a30e366360231d38ed6",
+    "scripts/memory-architecture-evaluation.test.mjs": "10736876127a94a830fed2ea08ad1b241fff0b4bbd1f6a961fb92f0adf2f559e",
+    "scripts/verify-memory-architecture-results.mjs": "35ed2c6fb46c47534f84ff994d2624bb554d49e5f6cca306af9a485af32c8cee",
+    "scripts/report-memory-architecture.mjs": "ebfd60dad6ca8113c04241b67e9148d1607bfd299e11417493e7a8b4f0854109",
+    "scripts/report-memory-architecture.test.mjs": "a9f1e04aa4485b6a4aed776376c686b1b188e690ea4e99470b29effe5b7b386b",
+    "scripts/report-memory-qa-reliability.mjs": "4e6f53698cd564a3526853ff32bb3123670ecac21132fc81110238233aac9134",
+    "scripts/report-memory-qa-reliability.test.mjs": "f5a0e0e9b0eac432f55da99a15bc2e102ddf494e501ab2215cba93bf55924eaf",
+    "docs/memory-architecture-preregistration.json": "d0f66522a98ba036e60b2c82a317d4bda67f8047fafc3327b0a587eef07c5cca",
+    "scripts/memory-qa-structured-judges.mjs": "2c950bd9120182064d73d66623d998427c357cbfc576c3e395b85171962e34c0",
+    "scripts/memory-qa-structured-capture.mjs": "6c7cab02a01a6a497b62b2ce462244c44822b3f39fad131d57195e5d511e9593",
+    "scripts/memory-qa-structured-freeze.mjs": "d28f39a4900328e29e5632addd2e5a04e463ae0dae7809aaacf6e2519feff127",
+    "scripts/capture-memory-evaluation-references.mjs": "a6c7fa49265d5d11e14d7180b2b7cd403690c2e04f061ebcd85334c2e7c576e3",
+    "scripts/memory-public-live-options.mjs": "455c7c2f6b71198c543411f79666765393fd8279ea41150e6082eb3f156e27ee",
+    "scripts/memory-public-live-io.mjs": "e6f1b2d4576661ffaabaffa71dbb7c2ad32a4233783a511a06ccc196e02cc74d",
+    "scripts/memory-public-live-budget.mjs": "d9d8e5f39dab1400c9e67d6c0514f6a376e32be6364ee09a1bbefe96b748bd1b",
+    "scripts/memory-public-live-judges.mjs": "09cca6b4c8ea7fecffbfe6c1fdc7d4c320cf56a817587bfb0a196ba9eba1d70c",
+    "scripts/verify-memory-qa-structured-results.mjs": "7c0280a657576c26877c6e34f1658be8a85894e15257fb6dde1b042cf4925b0e",
+    "scripts/verify-memory-public-live.mjs": "ee595e6b47cc934700d356b951ad51d8fade1f76a74018a7e781c8f39f916dac",
+    "scripts/memory-qa-structured-budget.mjs": "9a3622dee7d02760664c9b4b5e9c716394a7ca96b918b39ddd3cc69bd7e0653f",
+    "scripts/memory-qa-structured-review-mapping.mjs": "ae4a6100d1d9d67eb921ed702047375075e40c2d446cab9ecf04550182b95daf",
+    "scripts/memory-qa-structured-observations.mjs": "6c4489632395c9142b8e3bb6de109430f1be30ed918c45f295ee6d1dc0711d9a",
+    "scripts/score-memory-qa-structured-live.mjs": "ac6e18453acc0c398a5bb86bb5116bdc6d90736ab970bfd08bff48c663d2409c",
+    "scripts/compare-memory-public-live.mjs": "2699e6c1c044221602c2b9aac8e1dd745676747f08ae23b7600194aba72bc834"
+  }
+}

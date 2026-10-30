@@ -26,3 +26,5 @@ src-tauri/gen/schemas/
 *.dmg
 *.zip
 !crates/core/tests/fixtures/*.zip
+
+/src-tauri/tauri.release.local.json

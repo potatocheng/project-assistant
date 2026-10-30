@@ -1,0 +1,33 @@
+{
+  "version": "project-manager-questions-v1",
+  "description": "贴近日常交付场景的合成题集；不代表真实业务金标或模型准确率。",
+  "date": "2026-10-28",
+  "projectName": "客户服务平台交付",
+  "tasks": [
+    {"key":"audit","title":"登录审计接口","assignee":"小林","status":"done","progress":100,"dueDate":"2026-11-02","workDate":"2026-10-26","update":{"status":"in_progress","progress":65,"note":"验收发现日志缺失，重新处理，正在补齐审计事件。","workDate":"2026-10-28"}},
+    {"key":"migration","title":"数据迁移","assignee":null,"status":"todo","progress":0,"dueDate":null,"workDate":"2026-10-28"},
+    {"key":"regression","title":"回归测试","assignee":"小周","status":"todo","progress":0,"dueDate":null,"workDate":"2026-10-28"},
+    {"key":"integration","title":"支付联调","assignee":"小陈","status":"blocked","progress":30,"dueDate":"2026-10-30","workDate":"2026-10-28","description":"测试证书尚未开通，等待运维提供证书；没有记录实际上线延期。"}
+  ],
+  "milestones": [
+    {"title":"首轮验收","description":"联调和审计补齐后开展验收。","status":"in_progress","baselineDate":"2026-10-29","forecastDate":"2026-11-03","taskKeys":["audit","integration"]}
+  ],
+  "governance": [
+    {"kind":"decision","title":"上线窗口决策","description":"客户要求保留月底结算窗口，调整为结算后发布。","owner":"项目经理","status":"closed","decisionMaker":"李经理","conclusion":"保留月底结算窗口，结算后再发布。","resolution":"发布窗口已确认","closureReason":"已完成拍板与记录"},
+    {"kind":"decision","title":"灰度范围待拍板","description":"需要确认首批客户范围。","owner":"项目经理","status":"open","decisionMaker":"","conclusion":"","resolution":"","closureReason":""}
+  ],
+  "questions": [
+    {"id":"latest_reopened_progress","question":"登录审计接口现在进展如何？","contains":["65%","验收发现日志缺失"],"notContains":["100%"],"citationKinds":["task"],"review":"应回答当前重新处理状态，不能以历史完成状态认定已交付。"},
+    {"id":"known_owner","question":"登录审计接口负责人是谁？","contains":["小林"],"status":"answered","citationKinds":["task"],"review":"负责人来自当前任务字段。"},
+    {"id":"known_deadline","question":"登录审计接口截止日期是哪天？","contains":["2026-11-02"],"status":"answered","citationKinds":["task"],"review":"截止日期不等于预计实际完成日期。"},
+    {"id":"missing_owner","question":"数据迁移的负责人是谁？","contains":["未记录"],"status":"unknown","citationKinds":["task"],"review":"不能用其他任务负责人或项目经理代填。"},
+    {"id":"missing_deadline","question":"数据迁移截止日期是哪天？","contains":["未记录"],"status":"unknown","citationKinds":["task"],"review":"不能用里程碑日期代填任务截止日期。"},
+    {"id":"partial_fields","question":"回归测试的负责人是谁，截止日期是哪天？","contains":["小周","未记录"],"status":"partial","citationKinds":["task"],"review":"保留已知负责人，单列缺失截止日期。"},
+    {"id":"delivery_signals","question":"哪些交付可能延期？","contains":["首轮验收","2026-11-03","支付联调"],"notContains":["没有实际上线延期","实际上线未延期","未发生延期"],"citationKinds":["milestone","task"],"review":"区分预计日期后移、阻塞与实际上线延期，不能自行预测完成时间；没有延期记录也不等于明确未延期。"},
+    {"id":"blocker","question":"本周卡在哪里？","contains":["支付联调","测试证书"],"citationKinds":["task"],"review":"保留阻塞事项和记录的原因，不能推断其他任务因果。"},
+    {"id":"follow_up","question":"今天先跟进谁？","contains":["支付联调","小陈"],"citationKinds":["task"],"review":"说明跟进对象和阻塞依据，不声称已经发送催办。"},
+    {"id":"pending_decision","question":"有哪些待决策事项？","contains":["灰度范围待拍板"],"notContains":["上线窗口决策"],"citationKinds":["governance"],"review":"已关闭的决策不能列为待决策。"},
+    {"id":"decision_reason_and_owner","question":"上线窗口决策为什么调整，谁拍板？","contains":["李经理","月底结算窗口"],"citationKinds":["governance"],"review":"拍板人与执行负责人应区分，原因需来自决策记录。"},
+    {"id":"unknown_fact","question":"退款服务部署在哪台服务器？","status":"unknown","citationKinds":[],"review":"没有服务器信息时应明确不知道，不能用同项目其他记录凑答案。"}
+  ]
+}

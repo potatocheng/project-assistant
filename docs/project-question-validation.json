@@ -1,0 +1,748 @@
+{
+  "version": "project-question-validation-v1",
+  "evaluatedAt": "2026-10-28T13:29:12.332Z",
+  "usesSyntheticProjectOnly": true,
+  "noRealFeishuMessagesSent": true,
+  "semanticReview": {
+    "reviewer": "Codex agent",
+    "humanGoldStandard": false,
+    "scope": "Read every final answer and citation against the fixed fixture; automatic term/status checks are not a model accuracy score."
+  },
+  "fixtureSha256": "caa998655e9f1c2da84cfb06341c736a7cffde6a58aba04c6a9cccabdcf28893",
+  "binarySha256": "21d32438fb84c39ad888d0afc3d9006e7447954e6123b40e31bfa7cf5ef1c69f",
+  "finalRun": {
+    "report": ".local-data/project-questions-d2eZ5Z/results.json",
+    "summary": {
+      "cases": 24,
+      "errors": 0,
+      "automaticChecksPassed": 24,
+      "requiresSemanticReview": true,
+      "realModelRequests": 16,
+      "reportedTokens": 37118,
+      "usageComplete": true
+    },
+    "model": "deepseek-flash"
+  },
+  "testRuns": [
+    {
+      "report": ".local-data/project-questions-Ef43rh/results.json",
+      "summary": {
+        "cases": 24,
+        "errors": 0,
+        "automaticChecksPassed": 21,
+        "requiresSemanticReview": true,
+        "realModelRequests": 29,
+        "reportedTokens": 66530,
+        "usageComplete": true
+      }
+    },
+    {
+      "report": ".local-data/project-questions-4SGPe6/results.json",
+      "summary": {
+        "cases": 24,
+        "errors": 0,
+        "automaticChecksPassed": 24,
+        "requiresSemanticReview": true,
+        "realModelRequests": 20,
+        "reportedTokens": 45962,
+        "usageComplete": true
+      }
+    },
+    {
+      "report": ".local-data/project-questions-KrNlqK/results.json",
+      "summary": {
+        "cases": 24,
+        "errors": 0,
+        "automaticChecksPassed": 23,
+        "requiresSemanticReview": true,
+        "realModelRequests": 23,
+        "reportedTokens": 52626,
+        "usageComplete": true
+      }
+    },
+    {
+      "report": ".local-data/project-questions-d2eZ5Z/results.json",
+      "summary": {
+        "cases": 24,
+        "errors": 0,
+        "automaticChecksPassed": 24,
+        "requiresSemanticReview": true,
+        "realModelRequests": 16,
+        "reportedTokens": 37118,
+        "usageComplete": true
+      }
+    }
+  ],
+  "totalLiveRequests": 88,
+  "totalReportedTokens": 202236,
+  "cases": [
+    {
+      "caseId": "latest_reopened_progress",
+      "command": "ask_assistant",
+      "question": "登录审计接口现在进展如何？",
+      "reviewGuide": "应回答当前重新处理状态，不能以历史完成状态认定已交付。",
+      "mode": "model",
+      "status": "answered",
+      "queryMode": null,
+      "answer": "登录审计接口当前状态为进行中，记录进度65%，负责人小林，截止日期2026-11-02。 [1]\n最新记录显示：验收发现日志缺失，正在重新处理并补齐审计事件。 [1]\n关联的首轮验收里程碑也在进行中，原定2026-10-29，当前预计2026-11-03，需在联调和审计补齐后开展验收。 [2]",
+      "unknowns": [],
+      "modelCalls": 2,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "登录审计接口",
+          "version": 2
+        },
+        {
+          "kind": "milestone",
+          "title": "首轮验收",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "latest_reopened_progress",
+      "command": "ask_project_question",
+      "question": "登录审计接口现在进展如何？",
+      "reviewGuide": "应回答当前重新处理状态，不能以历史完成状态认定已交付。",
+      "mode": "model",
+      "status": "answered",
+      "queryMode": null,
+      "answer": "登录审计接口当前状态为进行中，进度65%，负责人小林，截止日期2026-11-02。 [1]\n最新记录显示：验收发现日志缺失，正在重新处理并补齐审计事件。 [1]\n关联的首轮验收里程碑仍在进行中，原定2026-10-29，当前预计2026-11-03，需在联调和审计补齐后开展验收。 [2]\n\n依据：\n[1] 任务 · 登录审计接口 · v2 · 更新 2026-10-28T13:28:50.512Z\n[2] 里程碑 · 首轮验收 · v1 · 更新 2026-10-28T13:28:50.656Z\n核对日期：2026-10-28；依据当前记录，历史报告保留生成时的状态。",
+      "unknowns": [],
+      "modelCalls": 2,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "登录审计接口",
+          "version": 2
+        },
+        {
+          "kind": "milestone",
+          "title": "首轮验收",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "known_owner",
+      "command": "ask_assistant",
+      "question": "登录审计接口负责人是谁？",
+      "reviewGuide": "负责人来自当前任务字段。",
+      "mode": "local",
+      "status": "answered",
+      "queryMode": "structured_field",
+      "answer": "登录审计接口的负责人：小林。 [1]",
+      "unknowns": [],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "登录审计接口",
+          "version": 2
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "known_owner",
+      "command": "ask_project_question",
+      "question": "登录审计接口负责人是谁？",
+      "reviewGuide": "负责人来自当前任务字段。",
+      "mode": "local",
+      "status": "answered",
+      "queryMode": "structured_field",
+      "answer": "登录审计接口的负责人：小林。 [1]\n\n依据：\n[1] 任务 · 登录审计接口 · v2 · 更新 2026-10-28T13:28:50.512Z\n核对日期：2026-10-28；依据当前记录，历史报告保留生成时的状态。",
+      "unknowns": [],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "登录审计接口",
+          "version": 2
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "known_deadline",
+      "command": "ask_assistant",
+      "question": "登录审计接口截止日期是哪天？",
+      "reviewGuide": "截止日期不等于预计实际完成日期。",
+      "mode": "local",
+      "status": "answered",
+      "queryMode": "structured_field",
+      "answer": "登录审计接口的截止日期：2026-11-02。 [1]",
+      "unknowns": [],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "登录审计接口",
+          "version": 2
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "known_deadline",
+      "command": "ask_project_question",
+      "question": "登录审计接口截止日期是哪天？",
+      "reviewGuide": "截止日期不等于预计实际完成日期。",
+      "mode": "local",
+      "status": "answered",
+      "queryMode": "structured_field",
+      "answer": "登录审计接口的截止日期：2026-11-02。 [1]\n\n依据：\n[1] 任务 · 登录审计接口 · v2 · 更新 2026-10-28T13:28:50.512Z\n核对日期：2026-10-28；依据当前记录，历史报告保留生成时的状态。",
+      "unknowns": [],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "登录审计接口",
+          "version": 2
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "missing_owner",
+      "command": "ask_assistant",
+      "question": "数据迁移的负责人是谁？",
+      "reviewGuide": "不能用其他任务负责人或项目经理代填。",
+      "mode": "local",
+      "status": "unknown",
+      "queryMode": "structured_field",
+      "answer": "数据迁移的负责人：未记录。 [1]",
+      "unknowns": [
+        "数据迁移的负责人尚未记录，需补充确认。"
+      ],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "数据迁移",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "missing_owner",
+      "command": "ask_project_question",
+      "question": "数据迁移的负责人是谁？",
+      "reviewGuide": "不能用其他任务负责人或项目经理代填。",
+      "mode": "local",
+      "status": "unknown",
+      "queryMode": "structured_field",
+      "answer": "数据迁移的负责人：未记录。 [1]",
+      "unknowns": [
+        "数据迁移的负责人尚未记录，需补充确认。"
+      ],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "数据迁移",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "missing_deadline",
+      "command": "ask_assistant",
+      "question": "数据迁移截止日期是哪天？",
+      "reviewGuide": "不能用里程碑日期代填任务截止日期。",
+      "mode": "local",
+      "status": "unknown",
+      "queryMode": "structured_field",
+      "answer": "数据迁移的截止日期：未记录。 [1]",
+      "unknowns": [
+        "数据迁移的截止日期尚未记录，需补充确认。"
+      ],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "数据迁移",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "missing_deadline",
+      "command": "ask_project_question",
+      "question": "数据迁移截止日期是哪天？",
+      "reviewGuide": "不能用里程碑日期代填任务截止日期。",
+      "mode": "local",
+      "status": "unknown",
+      "queryMode": "structured_field",
+      "answer": "数据迁移的截止日期：未记录。 [1]",
+      "unknowns": [
+        "数据迁移的截止日期尚未记录，需补充确认。"
+      ],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "数据迁移",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "partial_fields",
+      "command": "ask_assistant",
+      "question": "回归测试的负责人是谁，截止日期是哪天？",
+      "reviewGuide": "保留已知负责人，单列缺失截止日期。",
+      "mode": "local",
+      "status": "partial",
+      "queryMode": "structured_field",
+      "answer": "回归测试的负责人：小周。 [1]\n回归测试的截止日期：未记录。 [1]",
+      "unknowns": [
+        "回归测试的截止日期尚未记录，需补充确认。"
+      ],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "回归测试",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "partial_fields",
+      "command": "ask_project_question",
+      "question": "回归测试的负责人是谁，截止日期是哪天？",
+      "reviewGuide": "保留已知负责人，单列缺失截止日期。",
+      "mode": "local",
+      "status": "partial",
+      "queryMode": "structured_field",
+      "answer": "回归测试的负责人：小周。 [1]\n回归测试的截止日期：未记录。 [1]\n\n依据：\n[1] 任务 · 回归测试 · v1 · 更新 2026-10-28T13:28:50.588Z\n核对日期：2026-10-28；依据当前记录，历史报告保留生成时的状态。",
+      "unknowns": [
+        "回归测试的截止日期尚未记录，需补充确认。"
+      ],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "回归测试",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "delivery_signals",
+      "command": "ask_assistant",
+      "question": "哪些交付可能延期？",
+      "reviewGuide": "区分预计日期后移、阻塞与实际上线延期，不能自行预测完成时间；没有延期记录也不等于明确未延期。",
+      "mode": "local",
+      "status": "answered",
+      "queryMode": "delivery_risk_signals",
+      "answer": "截至 2026-10-28，已记录的交付延期信号：\n• 首轮验收：进行中；原定 2026-10-29；当前预计 2026-11-03；联调和审计补齐后开展验收。（当前预计日期晚于原定日期） [1]\n• 任务交付信号：支付联调：阻塞，进度 30%，小陈，截止 2026-10-30；说明：测试证书尚未开通，等待运维提供证书；没有记录实际上线延期。；最新记录：创建任务 [2]",
+      "unknowns": [],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "milestone",
+          "title": "首轮验收",
+          "version": 1
+        },
+        {
+          "kind": "task",
+          "title": "支付联调",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "delivery_signals",
+      "command": "ask_project_question",
+      "question": "哪些交付可能延期？",
+      "reviewGuide": "区分预计日期后移、阻塞与实际上线延期，不能自行预测完成时间；没有延期记录也不等于明确未延期。",
+      "mode": "local",
+      "status": "answered",
+      "queryMode": "delivery_risk_signals",
+      "answer": "截至 2026-10-28，已记录的交付延期信号：\n• 首轮验收：进行中；原定 2026-10-29；当前预计 2026-11-03；联调和审计补齐后开展验收。（当前预计日期晚于原定日期） [1]\n• 任务交付信号：支付联调：阻塞，进度 30%，小陈，截止 2026-10-30；说明：测试证书尚未开通，等待运维提供证书；没有记录实际上线延期。；最新记录：创建任务 [2]\n\n依据：\n[1] 里程碑 · 首轮验收 · v1 · 更新 2026-10-28T13:28:50.656Z\n[2] 任务 · 支付联调 · v1 · 更新 2026-10-28T13:28:50.623Z\n核对日期：2026-10-28；依据当前记录，历史报告保留生成时的状态。",
+      "unknowns": [],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "milestone",
+          "title": "首轮验收",
+          "version": 1
+        },
+        {
+          "kind": "task",
+          "title": "支付联调",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "blocker",
+      "command": "ask_assistant",
+      "question": "本周卡在哪里？",
+      "reviewGuide": "保留阻塞事项和记录的原因，不能推断其他任务因果。",
+      "mode": "model",
+      "status": "answered",
+      "queryMode": null,
+      "answer": "支付联调当前处于阻塞状态，进度30%，负责人小陈，截止2026-10-30。 [1]\n阻塞原因是测试证书尚未开通，正在等待运维提供证书。 [1]",
+      "unknowns": [],
+      "modelCalls": 2,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "支付联调",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "blocker",
+      "command": "ask_project_question",
+      "question": "本周卡在哪里？",
+      "reviewGuide": "保留阻塞事项和记录的原因，不能推断其他任务因果。",
+      "mode": "model",
+      "status": "answered",
+      "queryMode": null,
+      "answer": "本周卡在支付联调：该任务状态为阻塞，进度30%，负责人小陈，截止2026-10-30。 [1]\n阻塞原因是测试证书尚未开通，正在等待运维提供证书。 [1]\n\n依据：\n[1] 任务 · 支付联调 · v1 · 更新 2026-10-28T13:28:50.623Z\n核对日期：2026-10-28；依据当前记录，历史报告保留生成时的状态。",
+      "unknowns": [],
+      "modelCalls": 2,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "支付联调",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "follow_up",
+      "command": "ask_assistant",
+      "question": "今天先跟进谁？",
+      "reviewGuide": "说明跟进对象和阻塞依据，不声称已经发送催办。",
+      "mode": "local",
+      "status": "answered",
+      "queryMode": "follow_up_priority",
+      "answer": "截至 2026-10-28，建议按阻塞、逾期、到期和长期未更新的顺序跟进：\n• 支付联调：阻塞，进度 30%，小陈，截止 2026-10-30；说明：测试证书尚未开通，等待运维提供证书；没有记录实际上线延期。；最新记录：创建任务（当前阻塞） [1]",
+      "unknowns": [],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "支付联调",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "follow_up",
+      "command": "ask_project_question",
+      "question": "今天先跟进谁？",
+      "reviewGuide": "说明跟进对象和阻塞依据，不声称已经发送催办。",
+      "mode": "local",
+      "status": "answered",
+      "queryMode": "follow_up_priority",
+      "answer": "截至 2026-10-28，建议按阻塞、逾期、到期和长期未更新的顺序跟进：\n• 支付联调：阻塞，进度 30%，小陈，截止 2026-10-30；说明：测试证书尚未开通，等待运维提供证书；没有记录实际上线延期。；最新记录：创建任务（当前阻塞） [1]\n\n依据：\n[1] 任务 · 支付联调 · v1 · 更新 2026-10-28T13:28:50.623Z\n核对日期：2026-10-28；依据当前记录，历史报告保留生成时的状态。",
+      "unknowns": [],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "task",
+          "title": "支付联调",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "pending_decision",
+      "command": "ask_assistant",
+      "question": "有哪些待决策事项？",
+      "reviewGuide": "已关闭的决策不能列为待决策。",
+      "mode": "local",
+      "status": "answered",
+      "queryMode": "pending_decisions",
+      "answer": "截至 2026-10-28 的项目管理记录：\n• 灰度范围待拍板：待决策事项：需要确认首批客户范围。；状态：待处理；负责人：项目经理；影响：影响发布安排；处理方案：按确认结论跟进；处理期限：；复查日期：；升级对象：；拍板人：；结论：；处理结果：；关闭原因：。 [1]",
+      "unknowns": [],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "governance",
+          "title": "灰度范围待拍板",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "pending_decision",
+      "command": "ask_project_question",
+      "question": "有哪些待决策事项？",
+      "reviewGuide": "已关闭的决策不能列为待决策。",
+      "mode": "local",
+      "status": "answered",
+      "queryMode": "pending_decisions",
+      "answer": "截至 2026-10-28 的项目管理记录：\n• 灰度范围待拍板：待决策事项：需要确认首批客户范围。；状态：待处理；负责人：项目经理；影响：影响发布安排；处理方案：按确认结论跟进；处理期限：；复查日期：；升级对象：；拍板人：；结论：；处理结果：；关闭原因：。 [1]\n\n依据：\n[1] 风险与决策 · 灰度范围待拍板 · v1 · 更新 2026-10-28T13:28:50.724Z\n核对日期：2026-10-28；依据当前记录，历史报告保留生成时的状态。",
+      "unknowns": [],
+      "modelCalls": 0,
+      "citations": [
+        {
+          "kind": "governance",
+          "title": "灰度范围待拍板",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "decision_reason_and_owner",
+      "command": "ask_assistant",
+      "question": "上线窗口决策为什么调整，谁拍板？",
+      "reviewGuide": "拍板人与执行负责人应区分，原因需来自决策记录。",
+      "mode": "model",
+      "status": "answered",
+      "queryMode": null,
+      "answer": "上线窗口决策调整的原因是客户要求保留月底结算窗口，因此调整为结算后发布。 [1]\n该决策的拍板人是李经理。 [1]\n该决策已关闭，结论为保留月底结算窗口、结算后再发布，处理结果为发布窗口已确认。 [1]",
+      "unknowns": [],
+      "modelCalls": 2,
+      "citations": [
+        {
+          "kind": "governance",
+          "title": "上线窗口决策",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "decision_reason_and_owner",
+      "command": "ask_project_question",
+      "question": "上线窗口决策为什么调整，谁拍板？",
+      "reviewGuide": "拍板人与执行负责人应区分，原因需来自决策记录。",
+      "mode": "model",
+      "status": "answered",
+      "queryMode": null,
+      "answer": "上线窗口决策调整的原因是客户要求保留月底结算窗口，因此调整为结算后发布。 [1]\n该决策的拍板人是李经理。 [1]\n该决策已关闭，结论为保留月底结算窗口、结算后再发布，处理结果为发布窗口已确认。 [1]\n\n依据：\n[1] 风险与决策 · 上线窗口决策 · v1 · 更新 2026-10-28T13:28:50.691Z\n核对日期：2026-10-28；依据当前记录，历史报告保留生成时的状态。",
+      "unknowns": [],
+      "modelCalls": 2,
+      "citations": [
+        {
+          "kind": "governance",
+          "title": "上线窗口决策",
+          "version": 1
+        }
+      ],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "unknown_fact",
+      "command": "ask_assistant",
+      "question": "退款服务部署在哪台服务器？",
+      "reviewGuide": "没有服务器信息时应明确不知道，不能用同项目其他记录凑答案。",
+      "mode": "model",
+      "status": "unknown",
+      "queryMode": null,
+      "answer": "现有记录不足以支持完整结论或问题前提，请核对原文或补充记录。",
+      "unknowns": [],
+      "modelCalls": 2,
+      "citations": [],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    },
+    {
+      "caseId": "unknown_fact",
+      "command": "ask_project_question",
+      "question": "退款服务部署在哪台服务器？",
+      "reviewGuide": "没有服务器信息时应明确不知道，不能用同项目其他记录凑答案。",
+      "mode": "model",
+      "status": "unknown",
+      "queryMode": null,
+      "answer": "现有记录不足以支持完整结论或问题前提，请核对原文或补充记录。",
+      "unknowns": [],
+      "modelCalls": 2,
+      "citations": [],
+      "checks": {
+        "scoped": true,
+        "expectedStatus": true,
+        "expectedTerms": true,
+        "forbiddenTermsAbsent": true,
+        "expectedCitationKinds": true,
+        "missingFieldsExplicit": true
+      }
+    }
+  ]
+}

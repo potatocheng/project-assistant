@@ -41,7 +41,8 @@ export async function startFixture({ port = 0, expectedApiKey = null } = {}) {
     const quote = first.text.trim().slice(0, 180);
     const id = first.id ?? first.segmentId;
     const candidates = state.mode === 'empty' ? [] : [{
-      kind: 'decision', content: `资料确认：${quote}`,
+      kind: 'decision', content: quote,
+      retention: { layer: 'durable', reason: '合成固定事实，验收人工确认与保存协议' },
       evidence: [{ segmentId: state.mode === 'bad-evidence' ? 'not-a-real-segment' : id, quote }],
     }];
     if (state.mode === 'slow') await new Promise((resolve) => setTimeout(resolve, 900));

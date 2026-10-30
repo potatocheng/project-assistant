@@ -95,8 +95,8 @@ function finishTask(task) {
 }
 
 // A one-field stopped-workspace fixture is used solely to distinguish a startup
-// scan from task-write and settings-write scans. Python's standard sqlite3 is
-// available on the supported macOS development environment and CI runner.
+// scan from task-write and settings-write scans. Use the platform's Python name
+// (or an explicit override) for its standard sqlite3 module.
 async function enableStartupFixture() {
   const code = `import sqlite3,sys
 with sqlite3.connect(sys.argv[1]) as db:
@@ -105,7 +105,8 @@ with sqlite3.connect(sys.argv[1]) as db:
     assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     assert not db.execute("PRAGMA foreign_key_check").fetchall()
 `;
-  const child = spawn('python3', ['-c', code, path.join(workspace, 'workspace.sqlite')], { stdio: ['ignore', 'inherit', 'inherit'] });
+  const python = process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
+  const child = spawn(python, ['-c', code, path.join(workspace, 'workspace.sqlite')], { stdio: ['ignore', 'inherit', 'inherit'] });
   const [codeResult] = await once(child, 'exit');
   assert.equal(codeResult, 0, 'The isolated startup settings fixture must be valid.');
 }
@@ -114,7 +115,7 @@ try {
   const initial = await center();
   assert.equal(initial.settings.enabled, true);
   assert.equal(initial.settings.reviewMinutes, 60);
-  assert.equal((await host.call('get_state')).workspace.schemaVersion, 8);
+  assert.equal((await host.call('get_state')).workspace.schemaVersion, 13);
   await assert.rejects(host.call('_proactive_tick'), 'Internal timer commands must not be public.');
   await assert.rejects(host.call('save_proactive_settings', { enabled: true, reviewMinutes: 4, baseRevision: initial.settings.revision }));
   await configure(false);

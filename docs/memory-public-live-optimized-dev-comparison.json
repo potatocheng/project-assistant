@@ -1,0 +1,989 @@
+{
+  "version": "qasper-production-comparison-v1",
+  "createdAt": "2026-10-20T11:11:43.436Z",
+  "datasetSha256": "803537c32e89dce765c8e6cef6484f332d6ef5a9c91b726a4ea957e68b461d87",
+  "current": {
+    "workspace": ".local-data\\public-memory-live-C1BNFm",
+    "outputTag": "optimized-dev",
+    "model": "deepseek-flash",
+    "complete": true
+  },
+  "baseline": {
+    "workspace": ".local-data\\public-memory-live-11wyk8",
+    "model": "deepseek-flash"
+  },
+  "sameModel": true,
+  "downstreamCodeUnchanged": {
+    "qa.rs": true,
+    "assistant_qa.rs": true,
+    "answer_contract.rs": true,
+    "question_flow.rs": true,
+    "memory_query.rs": true
+  },
+  "methodology": "Same frozen questions. Current and baseline final answers are graded anonymously in the same isolated answer-judge call when pairedGrade is true. Legacy grades remain visible for scoring-drift audit. All answerable questions remain in denominators, errors and missing judgments never count as correct. Memory retention judge does not see retrieval or answers and sees only formal content, never provenance quotes. Automatic same-model estimates; no independent human review. Prior 80 held-out questions are now fixed regression cases, not unseen blind evaluation.",
+  "summary": {
+    "all:desktop": {
+      "cases": 20,
+      "pairedJudged": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "beforeFullyCorrect": {
+        "count": 0,
+        "denominator": 19,
+        "rate": 0
+      },
+      "afterFullyCorrect": {
+        "count": 2,
+        "denominator": 19,
+        "rate": 0.10526315789473684
+      },
+      "absoluteImprovement": 0.10526315789473684,
+      "answerableChanges": {
+        "still_unsuccessful": 17,
+        "new_success": 2
+      },
+      "beforeCorrectAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "afterCorrectAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "retainedMemoryYes": {
+        "count": 11,
+        "denominator": 19,
+        "rate": 0.5789473684210527
+      },
+      "retainedMemoryYesOrPartial": {
+        "count": 12,
+        "denominator": 19,
+        "rate": 0.631578947368421
+      },
+      "beforeProtocolErrors": {},
+      "afterProtocolErrors": {
+        "ASSISTANT_GROUNDING": 11
+      }
+    },
+    "all:connector": {
+      "cases": 20,
+      "pairedJudged": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "beforeFullyCorrect": {
+        "count": 0,
+        "denominator": 19,
+        "rate": 0
+      },
+      "afterFullyCorrect": {
+        "count": 2,
+        "denominator": 19,
+        "rate": 0.10526315789473684
+      },
+      "absoluteImprovement": 0.10526315789473684,
+      "answerableChanges": {
+        "still_unsuccessful": 17,
+        "new_success": 2
+      },
+      "beforeCorrectAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "afterCorrectAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "retainedMemoryYes": {
+        "count": 11,
+        "denominator": 19,
+        "rate": 0.5789473684210527
+      },
+      "retainedMemoryYesOrPartial": {
+        "count": 12,
+        "denominator": 19,
+        "rate": 0.631578947368421
+      },
+      "beforeProtocolErrors": {},
+      "afterProtocolErrors": {
+        "QA_GROUNDING": 13
+      }
+    },
+    "development:desktop": {
+      "cases": 20,
+      "pairedJudged": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "beforeFullyCorrect": {
+        "count": 0,
+        "denominator": 19,
+        "rate": 0
+      },
+      "afterFullyCorrect": {
+        "count": 2,
+        "denominator": 19,
+        "rate": 0.10526315789473684
+      },
+      "absoluteImprovement": 0.10526315789473684,
+      "answerableChanges": {
+        "still_unsuccessful": 17,
+        "new_success": 2
+      },
+      "beforeCorrectAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "afterCorrectAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "retainedMemoryYes": {
+        "count": 11,
+        "denominator": 19,
+        "rate": 0.5789473684210527
+      },
+      "retainedMemoryYesOrPartial": {
+        "count": 12,
+        "denominator": 19,
+        "rate": 0.631578947368421
+      },
+      "beforeProtocolErrors": {},
+      "afterProtocolErrors": {
+        "ASSISTANT_GROUNDING": 11
+      }
+    },
+    "development:connector": {
+      "cases": 20,
+      "pairedJudged": 20,
+      "answerable": 19,
+      "unanswerable": 1,
+      "beforeFullyCorrect": {
+        "count": 0,
+        "denominator": 19,
+        "rate": 0
+      },
+      "afterFullyCorrect": {
+        "count": 2,
+        "denominator": 19,
+        "rate": 0.10526315789473684
+      },
+      "absoluteImprovement": 0.10526315789473684,
+      "answerableChanges": {
+        "still_unsuccessful": 17,
+        "new_success": 2
+      },
+      "beforeCorrectAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "afterCorrectAbstention": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "retainedMemoryYes": {
+        "count": 11,
+        "denominator": 19,
+        "rate": 0.5789473684210527
+      },
+      "retainedMemoryYesOrPartial": {
+        "count": 12,
+        "denominator": 19,
+        "rate": 0.631578947368421
+      },
+      "beforeProtocolErrors": {},
+      "afterProtocolErrors": {
+        "QA_GROUNDING": 13
+      }
+    },
+    "holdout:desktop": {
+      "cases": 0,
+      "pairedJudged": 0,
+      "answerable": 0,
+      "unanswerable": 0,
+      "beforeFullyCorrect": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "afterFullyCorrect": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "absoluteImprovement": null,
+      "answerableChanges": {},
+      "beforeCorrectAbstention": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "afterCorrectAbstention": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "retainedMemoryYes": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "retainedMemoryYesOrPartial": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "beforeProtocolErrors": {},
+      "afterProtocolErrors": {}
+    },
+    "holdout:connector": {
+      "cases": 0,
+      "pairedJudged": 0,
+      "answerable": 0,
+      "unanswerable": 0,
+      "beforeFullyCorrect": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "afterFullyCorrect": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "absoluteImprovement": null,
+      "answerableChanges": {},
+      "beforeCorrectAbstention": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "afterCorrectAbstention": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "retainedMemoryYes": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "retainedMemoryYesOrPartial": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "beforeProtocolErrors": {},
+      "afterProtocolErrors": {}
+    }
+  },
+  "extraction": {
+    "before": {
+      "papers": 6,
+      "statuses": {
+        "succeeded": 1,
+        "failed": 5
+      },
+      "formalMemories": 0,
+      "drafts": {},
+      "requests": 13,
+      "tokens": 90198
+    },
+    "after": {
+      "papers": 6,
+      "statuses": {
+        "succeeded": 6
+      },
+      "formalMemories": 765,
+      "drafts": {
+        "ready": 773,
+        "needs_review": 228
+      },
+      "requests": 100,
+      "tokens": 408868
+    }
+  },
+  "usage": {
+    "beforeMatched": 120483,
+    "after": {
+      "prompt_tokens": 840478,
+      "completion_tokens": 172514,
+      "total_tokens": 1012992,
+      "prompt_cache_hit_tokens": 109440,
+      "prompt_cache_miss_tokens": 731038
+    },
+    "afterRequests": 224
+  },
+  "rows": [
+    {
+      "id": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "partial",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "partial",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6bf5620f295b5243230bc97b340fae6e92304595",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "6bf5620f295b5243230bc97b340fae6e92304595",
+      "paperId": "1603.01514",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "yes",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": true,
+      "change": "new_success",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "yes",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": true,
+      "change": "new_success",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "yes",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": true,
+      "change": "new_success",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "521280a87c43fcdf9f577da235e7072a23f0673e",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "521280a87c43fcdf9f577da235e7072a23f0673e",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+      "paperId": "1902.09666",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "paperId": "1806.00738",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+      "paperId": "1908.07245",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "yes",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "oldCorrect": false,
+      "newCorrect": true,
+      "change": "new_success",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": false,
+      "before": "yes",
+      "after": "yes",
+      "baselineOriginalGrade": "yes",
+      "pairedGrade": true,
+      "oldCorrect": true,
+      "newCorrect": true,
+      "change": "retained_success",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": false,
+      "before": "yes",
+      "after": "yes",
+      "baselineOriginalGrade": "yes",
+      "pairedGrade": true,
+      "oldCorrect": true,
+      "newCorrect": true,
+      "change": "retained_success",
+      "memorySufficiency": "no",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "partial",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "partial",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "yes"
+    },
+    {
+      "id": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+      "paperId": "1902.09243",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "partial"
+    },
+    {
+      "id": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "paperId": "1705.01214",
+      "split": "development",
+      "entry": "desktop",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "ASSISTANT_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "no"
+    },
+    {
+      "id": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "paperId": "1705.01214",
+      "split": "development",
+      "entry": "connector",
+      "answerable": true,
+      "before": "no",
+      "after": "no",
+      "baselineOriginalGrade": "no",
+      "pairedGrade": true,
+      "afterError": "QA_GROUNDING",
+      "oldCorrect": false,
+      "newCorrect": false,
+      "change": "still_unsuccessful",
+      "memorySufficiency": "yes",
+      "retrievalSufficiency": "no"
+    }
+  ]
+}

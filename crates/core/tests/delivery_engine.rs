@@ -65,6 +65,118 @@ fn contains_reason(center: &Value, task: &Value, kind: &str) -> bool {
                 .any(|r| r["kind"] == kind)
     })
 }
+
+#[test]
+fn follow_up_outcomes_update_both_histories_without_treating_promises_as_delivery() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = Engine::open(dir.path()).unwrap();
+    let p = project(&engine, "新手跟进");
+    let task = create_task(
+        &engine,
+        &p,
+        "登录接口联调",
+        "follow_up",
+        "todo",
+        Some("2026-10-30"),
+        "2026-10-29",
+    );
+    call(
+        &engine,
+        "record_follow_up",
+        json!({"taskId":task["id"],"baseVersion":0,"workDate":"2026-10-29","note":"小周承诺周五给版本，实际交付待核实","nextFollowUpDate":"2026-10-30"}),
+    );
+    let unchanged = call(&engine, "get_task", json!({"taskId":task["id"]}));
+    assert_eq!(unchanged["task"], task);
+    assert_eq!(unchanged["events"].as_array().unwrap().len(), 1);
+
+    let blocked = call(
+        &engine,
+        "record_follow_up",
+        json!({"taskId":task["id"],"baseVersion":1,"workDate":"2026-10-30","note":"缺少测试账号","nextFollowUpDate":"2026-10-31","taskOutcome":{"baseVersion":1,"status":"blocked"}}),
+    );
+    assert_eq!(blocked["task"]["status"], "blocked");
+    assert_eq!(blocked["task"]["progress"], 0);
+    assert_eq!(blocked["task"]["dueDate"], "2026-10-30");
+    let done = call(
+        &engine,
+        "record_follow_up",
+        json!({"taskId":task["id"],"baseVersion":2,"workDate":"2026-10-31","note":"已交付并确认检查通过","nextFollowUpDate":null,"taskOutcome":{"baseVersion":2,"status":"done"}}),
+    );
+    assert_eq!(done["task"]["status"], "done");
+    assert_eq!(done["task"]["progress"], 100);
+    assert!(done["nextFollowUpDate"].is_null());
+    let center = center(&engine, &p, "2026-11-01");
+    assert!(center["items"].as_array().unwrap().is_empty());
+    assert_eq!(center["history"].as_array().unwrap().len(), 3);
+    drop(engine);
+    let engine = Engine::open(dir.path()).unwrap();
+    let detail = call(&engine, "get_task", json!({"taskId":task["id"]}));
+    assert_eq!(detail["task"]["status"], "done");
+    assert_eq!(detail["events"].as_array().unwrap().len(), 3);
+    assert_eq!(detail["events"][0]["note"], "已交付并确认检查通过");
+}
+
+#[test]
+fn follow_up_outcomes_roll_back_on_either_version_conflict_or_invalid_dates() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = Engine::open(dir.path()).unwrap();
+    let p = project(&engine, "原子保存");
+    let task = create_task(
+        &engine,
+        &p,
+        "确认范围",
+        "action",
+        "todo",
+        None,
+        "2026-10-29",
+    );
+    let mut input = json!({"taskId":task["id"],"baseVersion":0,"workDate":"2026-10-29","note":"有实际进展","nextFollowUpDate":null,"taskOutcome":{"baseVersion":99,"status":"in_progress"}});
+    assert_eq!(
+        error(&engine, "record_follow_up", input.clone()).code,
+        "VERSION_CONFLICT"
+    );
+    assert!(center(&engine, &p, "2026-10-29")["history"]
+        .as_array()
+        .unwrap()
+        .is_empty());
+    input["taskOutcome"]["baseVersion"] = json!(1);
+    input["baseVersion"] = json!(99);
+    assert_eq!(
+        error(&engine, "record_follow_up", input.clone()).code,
+        "VERSION_CONFLICT"
+    );
+    input["baseVersion"] = json!(0);
+    input["taskOutcome"]["status"] = json!("done");
+    input["nextFollowUpDate"] = json!("2026-10-30");
+    assert_eq!(
+        error(&engine, "record_follow_up", input.clone()).code,
+        "VALIDATION"
+    );
+    input["nextFollowUpDate"] = Value::Null;
+    input["taskOutcome"]["status"] = json!("in_progress");
+    call(
+        &engine,
+        "record_follow_up",
+        json!({"taskId":task["id"],"baseVersion":0,"workDate":"2026-10-31","note":"暂未收到回复","nextFollowUpDate":null}),
+    );
+    input["baseVersion"] = json!(1);
+    // The task event is attempted first, then the follow-up date fails. The
+    // transaction must roll back the task event as well as the task row.
+    assert_eq!(
+        error(&engine, "record_follow_up", input).code,
+        "WORK_DATE_ORDER"
+    );
+    let detail = call(&engine, "get_task", json!({"taskId":task["id"]}));
+    assert_eq!(detail["task"], task);
+    assert_eq!(detail["events"].as_array().unwrap().len(), 1);
+    assert_eq!(
+        center(&engine, &p, "2026-10-31")["history"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+}
 fn milestone_payload(project: &Value, tasks: &[&Value], status: &str) -> Value {
     json!({"projectId":project["id"],"title":"周五联调","description":"完成接口和联调","status":status,"baselineDate":"2026-10-20","forecastDate":"2026-10-23","taskIds":tasks.iter().map(|t|t["id"].clone()).collect::<Vec<_>>()})
 }
@@ -527,11 +639,11 @@ fn schema_five_workspace_migrates_without_changing_existing_projects_and_tasks()
     );
     drop(engine);
     let conn = rusqlite::Connection::open(dir.path().join("workspace.sqlite")).unwrap();
-    conn.execute_batch("DROP TABLE proactive_history;DROP TABLE proactive_actions;DROP TABLE proactive_settings;DROP TABLE coordination_action_versions;DROP TABLE coordination_actions;DROP TABLE coordination_meeting_versions;DROP TABLE coordination_meetings;DROP TABLE coordination_report_versions;DROP TABLE coordination_reports;DROP TABLE deliverable_history;DROP TABLE deliverables;DROP TABLE change_request_history;DROP TABLE change_requests;DROP TABLE governance_revisions;DROP TABLE governance_items;DROP TABLE milestone_tasks;DROP TABLE milestones;DROP TABLE task_follow_ups;DROP TABLE task_follow_up_state;DROP TABLE project_profiles;PRAGMA user_version=5;").unwrap();
+    conn.execute_batch("DROP TABLE proactive_history;DROP TABLE proactive_actions;DROP TABLE proactive_settings;DROP TABLE assistant_turns;DROP TABLE assistant_sessions;DROP TABLE workspace_drafts;DROP TABLE workspace_lifecycle_events;DROP TABLE workspace_lifecycle;DROP TABLE workspace_options;DROP TABLE extraction_drafts;DROP TABLE extraction_batches;DROP TABLE extraction_budget;DROP TABLE memory_lexical;DROP TABLE memory_lexical_state;DROP TABLE revision_facets;DROP TABLE proposal_facets;DROP TABLE extraction_assessments;DROP TABLE memory_corrections;DROP TABLE project_briefs;DROP TABLE assistant_preferences;DROP TABLE coordination_action_versions;DROP TABLE coordination_actions;DROP TABLE coordination_meeting_versions;DROP TABLE coordination_meetings;DROP TABLE coordination_report_versions;DROP TABLE coordination_reports;DROP TABLE deliverable_history;DROP TABLE deliverables;DROP TABLE change_request_history;DROP TABLE change_requests;DROP TABLE governance_revisions;DROP TABLE governance_items;DROP TABLE milestone_tasks;DROP TABLE milestones;DROP TABLE task_follow_ups;DROP TABLE task_follow_up_state;DROP TABLE project_profiles;PRAGMA user_version=5;").unwrap();
     drop(conn);
     let engine = Engine::open(dir.path()).unwrap();
     let state = call(&engine, "get_state", json!({}));
-    assert_eq!(state["workspace"]["schemaVersion"], 8);
+    assert_eq!(state["workspace"]["schemaVersion"], 13);
     assert_eq!(state["tasks"][0], task);
     let overview = call(
         &engine,

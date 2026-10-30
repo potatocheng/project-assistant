@@ -1,0 +1,22 @@
+{
+    "resultsSha256":  "4036096962c79f61eb238ff43be779ecf7bf735de8e3649a79c8dc0e116e68ce",
+    "checks":  [
+                   "JSON对象和JSON Schema模式都传递完整输出schema",
+                   "修复前新增用例失败，修复后通过",
+                   "真实模型报告未包含API Key",
+                   "两类标准记忆问答前后业务状态保持只读"
+               ],
+    "clippy":  {
+                   "command":  "cargo clippy --workspace --all-targets --locked -- -D warnings",
+                   "passed":  true
+               },
+    "rust":  {
+                 "command":  "cargo test -p project-assistant-core --locked --no-fail-fast",
+                 "unit":  109,
+                 "integration":  64,
+                 "failed":  0,
+                 "passed":  173
+             },
+    "recordedAt":  "2026-10-20T07:00:38.922Z",
+    "regressionTest":  "model_output_schema_is_visible_in_both_json_modes"
+}

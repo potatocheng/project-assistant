@@ -1,4 +1,4 @@
-import type { AppState, Evidence, ManagementKind, Task } from '../../types';
+import type { AppState, Evidence, ManagementKind, Task, MemoryQueryTrace, MemoryQualityReview } from '../../types';
 
 export interface DeliveryProps {
   state: AppState;
@@ -8,6 +8,8 @@ export interface DeliveryProps {
   onTaskOpen: (taskId: string, projectId: string) => void;
   notify: (message: string, error?: boolean) => void;
   onManagementOpen?: (kind: ManagementKind, id: string, projectId: string) => void;
+  onMemoryOpen?: (memoryId: string, projectId: string) => void;
+  onEvidence?: (evidence: Evidence) => void;
 }
 export type ProjectStatus = 'active' | 'on_hold' | 'completed' | 'cancelled';
 export type MilestoneStatus = 'planned' | 'in_progress' | 'completed' | 'cancelled';
@@ -57,7 +59,7 @@ export interface FollowUpTaskState {
   taskId: string; projectId: string; followUpVersion: number; nextFollowUpDate: string | null; snoozedUntil: string | null; updatedAt: string | null;
 }
 export interface AssistantCitation {
-  id: string; kind: ManagementKind | 'task' | 'memory' | 'milestone' | 'project' | 'report' | 'relation' | 'plan' | 'follow_up';
+  id: string; kind: ManagementKind | 'task' | 'memory' | 'source_passage' | 'milestone' | 'project' | 'report' | 'relation' | 'plan' | 'follow_up';
   projectId: string; title: string; updatedAt: string; content: string;
   taskId?: string; memoryId?: string; milestoneId?: string; reportId?: string; sourceId?: string;
   evidence?: Evidence[];
@@ -66,4 +68,6 @@ export interface AssistantCitation {
 export interface AssistantAnswer {
   answer: string; grounded: boolean; mode: 'local' | 'model'; citations: AssistantCitation[];
   updatedAt: string; dataUpdatedAt?: string | null; limitations: string[]; context: unknown;
+  status?: import('../../types').AnswerStatus; claims?: import('../../types').AnswerClaim[]; unknowns?: string[];
+  queryMode?: 'structured_field' | 'follow_up_priority' | 'pending_decisions' | 'delivery_risk_signals'; queryTrace?: MemoryQueryTrace; qualityReview?: MemoryQualityReview;
 }

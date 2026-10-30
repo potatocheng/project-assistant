@@ -1,0 +1,63 @@
+{
+  "version": "extraction-optimized-regressions-v1",
+  "startedAt": "2026-10-20T11:03:03.943Z",
+  "logs": ".local-data\\extraction-regressions-yUwMmp",
+  "passed": true,
+  "commands": [
+    {
+      "command": "cargo.exe test -p project-assistant-core --locked",
+      "exitCode": 0,
+      "elapsedMs": 81851,
+      "log": ".local-data\\extraction-regressions-yUwMmp\\1.log"
+    },
+    {
+      "command": "cargo.exe clippy -p project-assistant-core --locked --lib --tests -- -D warnings",
+      "exitCode": 0,
+      "elapsedMs": 10853,
+      "log": ".local-data\\extraction-regressions-yUwMmp\\2.log"
+    },
+    {
+      "command": "cargo.exe build -p project-assistant-core --bin pm-host --locked",
+      "exitCode": 0,
+      "elapsedMs": 1015,
+      "log": ".local-data\\extraction-regressions-yUwMmp\\3.log"
+    },
+    {
+      "command": "powershell.exe -NoProfile -Command npm run build",
+      "exitCode": 0,
+      "elapsedMs": 16817,
+      "log": ".local-data\\extraction-regressions-yUwMmp\\4.log"
+    },
+    {
+      "command": "node.exe --test scripts/score-memory-public-live.test.mjs scripts/memory-public-live-options.test.mjs scripts/evaluate-memory-quality.test.mjs scripts/check-memory-public-development.test.mjs",
+      "exitCode": 0,
+      "elapsedMs": 618,
+      "log": ".local-data\\extraction-regressions-yUwMmp\\5.log"
+    },
+    {
+      "command": "node.exe scripts/verify-restart.mjs",
+      "exitCode": 0,
+      "elapsedMs": 3923,
+      "log": ".local-data\\extraction-regressions-yUwMmp\\6.log"
+    },
+    {
+      "command": "node.exe scripts/verify-extraction-recovery.mjs",
+      "exitCode": 0,
+      "elapsedMs": 4220,
+      "log": ".local-data\\extraction-regressions-yUwMmp\\7.log"
+    },
+    {
+      "command": "node.exe scripts/verify-memory-public-live.mjs --no-write",
+      "exitCode": 0,
+      "elapsedMs": 782,
+      "log": ".local-data\\extraction-regressions-yUwMmp\\8.log"
+    },
+    {
+      "command": "cargo.exe test -p project-assistant-core --lib --locked replay_public_live_extraction_v5 -- --ignored --nocapture",
+      "exitCode": 0,
+      "elapsedMs": 1724,
+      "log": ".local-data\\extraction-regressions-yUwMmp\\9.log"
+    }
+  ],
+  "finishedAt": "2026-10-20T11:05:05.756Z"
+}

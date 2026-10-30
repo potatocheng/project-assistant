@@ -1,0 +1,38 @@
+name: Desktop installers
+on:
+  pull_request:
+    paths: ['src/**', 'src-tauri/**', 'crates/**', 'Cargo.*', 'package*.json', '.github/workflows/desktop.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  installers:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - run: rustup show active-toolchain
+      - run: npm ci
+      - run: cargo check -p project-assistant-desktop --locked
+      - run: npm run desktop:build -- --ci
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-installer-${{ matrix.os }}
+          path: |
+            target/release/bundle/nsis/*.exe
+            target/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+          retention-days: 14

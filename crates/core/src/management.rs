@@ -62,6 +62,9 @@ pub(crate) fn attention(conn: &Connection, p: &Value) -> Result<Value> {
             items.push(json!({"kind":"deliverable","id":item["id"],"projectId":item["projectId"],"title":item["title"],"version":item["version"],"reasons":[{"kind":"acceptance_attention","label":reason}]}));
         }
     }
+    let mut visible = json!({"items":items});
+    crate::daily_use::filter_context(conn, &mut visible)?;
+    let mut items = visible["items"].as_array().cloned().unwrap_or_default();
     items.sort_by(|a, b| {
         a["kind"]
             .as_str()
@@ -146,6 +149,7 @@ pub(crate) fn qa_records(conn: &Connection, p: &Value) -> Result<Vec<Value>> {
     for item in governance["items"].as_array().into_iter().flatten() {
         let kind = match item["kind"].as_str() {
             Some("risk") => "风险",
+            Some("decision") if item["status"] == "closed" => "已关闭决策",
             Some("decision") => "待决策事项",
             _ => "问题",
         };

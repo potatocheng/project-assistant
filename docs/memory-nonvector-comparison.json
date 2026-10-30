@@ -1,0 +1,177 @@
+{
+  "generatedAt": "2026-10-20T08:19:24.869Z",
+  "datasetSha256": "562cb974a4eba8146974df0e2a6b0bca912bde0a5d62073cf9f4001718d3a6a6",
+  "before": {
+    "connector_memory": {
+      "allEvidenceAt40": 0.7931034482758621,
+      "allEvidenceAt6": 0.7931034482758621,
+      "answerable": 29,
+      "cases": 35,
+      "latencyMs": {
+        "p50": 7.444,
+        "p95": 15.641800000000002
+      },
+      "mrrAt6": 0.7155172413793104,
+      "negativeEmptyRate": 0.6666666666666666,
+      "recallAt1": 0.6206896551724138,
+      "recallAt3": 0.7586206896551724,
+      "recallAt40": 0.7931034482758621,
+      "recallAt6": 0.7931034482758621,
+      "scopeViolations": 0,
+      "staleOrConflictViolations": 0,
+      "unanswerable": 6
+    },
+    "desktop_local_answer": {
+      "allEvidenceAt40": 0.7241379310344828,
+      "allEvidenceAt6": 0.7241379310344828,
+      "answerable": 29,
+      "cases": 35,
+      "latencyMs": {
+        "p50": 60.159,
+        "p95": 74.8756
+      },
+      "mrrAt6": 0.6724137931034483,
+      "negativeEmptyRate": 0.5,
+      "recallAt1": 0.603448275862069,
+      "recallAt3": 0.7241379310344828,
+      "recallAt40": 0.7241379310344828,
+      "recallAt6": 0.7241379310344828,
+      "scopeViolations": 0,
+      "staleOrConflictViolations": 0,
+      "unanswerable": 6
+    },
+    "desktop_model_context": {
+      "allEvidenceAt40": 0.9310344827586207,
+      "allEvidenceAt6": 0.8620689655172413,
+      "answerable": 29,
+      "cases": 35,
+      "latencyMs": {
+        "p50": 65.0489,
+        "p95": 77.6375
+      },
+      "mrrAt6": 0.7540229885057471,
+      "negativeEmptyRate": 0,
+      "recallAt1": 0.6551724137931034,
+      "recallAt3": 0.7931034482758621,
+      "recallAt40": 0.9310344827586207,
+      "recallAt6": 0.8620689655172413,
+      "scopeViolations": 0,
+      "staleOrConflictViolations": 0,
+      "unanswerable": 6
+    }
+  },
+  "after": {
+    "connector_memory": {
+      "allEvidenceAt40": 0.9655172413793104,
+      "allEvidenceAt6": 0.9655172413793104,
+      "answerable": 29,
+      "cases": 35,
+      "latencyMs": {
+        "p50": 19.991600000000002,
+        "p95": 44.1447
+      },
+      "mrrAt6": 0.8994252873563218,
+      "negativeEmptyRate": 0.6666666666666666,
+      "recallAt1": 0.8103448275862069,
+      "recallAt3": 0.9310344827586207,
+      "recallAt40": 0.9655172413793104,
+      "recallAt6": 0.9655172413793104,
+      "scopeViolations": 0,
+      "staleOrConflictViolations": 0,
+      "unanswerable": 6
+    },
+    "desktop_local_answer": {
+      "allEvidenceAt40": 0.9655172413793104,
+      "allEvidenceAt6": 0.9655172413793104,
+      "answerable": 29,
+      "cases": 35,
+      "latencyMs": {
+        "p50": 131.3894,
+        "p95": 144.3456
+      },
+      "mrrAt6": 0.9655172413793104,
+      "negativeEmptyRate": 0.6666666666666666,
+      "recallAt1": 0.9137931034482759,
+      "recallAt3": 0.9655172413793104,
+      "recallAt40": 0.9655172413793104,
+      "recallAt6": 0.9655172413793104,
+      "scopeViolations": 0,
+      "staleOrConflictViolations": 0,
+      "unanswerable": 6
+    },
+    "desktop_model_context": {
+      "allEvidenceAt40": 0.9655172413793104,
+      "allEvidenceAt6": 0.9655172413793104,
+      "answerable": 29,
+      "cases": 35,
+      "latencyMs": {
+        "p50": 138.15109999999999,
+        "p95": 152.7209
+      },
+      "mrrAt6": 0.9655172413793104,
+      "negativeEmptyRate": 0.6666666666666666,
+      "recallAt1": 0.9137931034482759,
+      "recallAt3": 0.9655172413793104,
+      "recallAt40": 0.9655172413793104,
+      "recallAt6": 0.9655172413793104,
+      "scopeViolations": 0,
+      "staleOrConflictViolations": 0,
+      "unanswerable": 6
+    }
+  },
+  "liveComparison": {
+    "desktop": {
+      "old": {
+        "passed": 5,
+        "total": 10
+      },
+      "new": {
+        "passed": 10,
+        "total": 10
+      }
+    },
+    "connector": {
+      "old": {
+        "passed": 4,
+        "total": 10
+      },
+      "new": {
+        "passed": 10,
+        "total": 10
+      }
+    }
+  },
+  "liveSummary": {
+    "desktop": {
+      "cases": 18,
+      "errors": 0,
+      "answerable": 15,
+      "groundedAnswerable": 15,
+      "expectedClaimsPresent": 15,
+      "allGoldEvidenceCited": 15,
+      "unanswerable": 3,
+      "correctAbstentions": 3,
+      "scopeViolations": 0,
+      "p50Ms": 2899.879799999995,
+      "p95Ms": 8152.260599999994
+    },
+    "connector": {
+      "cases": 18,
+      "errors": 0,
+      "answerable": 15,
+      "groundedAnswerable": 14,
+      "expectedClaimsPresent": 14,
+      "allGoldEvidenceCited": 14,
+      "unanswerable": 3,
+      "correctAbstentions": 3,
+      "scopeViolations": 0,
+      "p50Ms": 1939.6845999999932,
+      "p95Ms": 4632.595300000001
+    }
+  },
+  "rust": {
+    "passed": 185,
+    "failed": 0,
+    "suites": 16
+  }
+}

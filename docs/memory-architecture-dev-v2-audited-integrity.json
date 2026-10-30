@@ -1,0 +1,62 @@
+{
+  "version": "memory-architecture-integrity-v1",
+  "passed": true,
+  "checkedAt": "2026-10-26T08:12:02.872Z",
+  "results": [
+    {
+      "file": "D:\\project\\project-assistant\\docs\\memory-architecture-dev-v2-audited-results.json",
+      "sha256": "7be6f419796585e2dd182a2f612699859edc780db8a59777df2e5ab92a8ad77e",
+      "transcriptSha256": "d72ae0bfecc97deffa4197f248ad0b8d8d3e80a0819b572bc0d8c9f6dc9f89f1",
+      "requests": 156,
+      "totalTokens": 1382741,
+      "questions": 20,
+      "segments": 501,
+      "formalMemories": 929,
+      "rejectedJudgeOutputs": 0,
+      "passed": true
+    }
+  ],
+  "sourceReferences": 358,
+  "formalMemories": 929,
+  "judgmentStages": 60,
+  "claimProvenanceEntries": 40,
+  "budget": {
+    "registration": {
+      "file": "docs/memory-architecture-preregistration.json",
+      "sha256": "d0f66522a98ba036e60b2c82a317d4bda67f8047fafc3327b0a587eef07c5cca",
+      "registeredAt": "2026-10-26T07:00:10.988Z",
+      "developmentLimits": {
+        "maxRequests": 600,
+        "maxTokens": 3200000,
+        "maxFreshAttempts": 2,
+        "perAttemptRequests": 300,
+        "perAttemptTokens": 1600000
+      },
+      "baselineSha256": "bb1f6b3b25950b1d933a0d3038115c4e6137e32044b0d55dd1340ed9d70fee3c",
+      "frozenMemorySha256": "bb1f6b3b25950b1d933a0d3038115c4e6137e32044b0d55dd1340ed9d70fee3c"
+    },
+    "attempt": 2,
+    "ledger": {
+      "entries": [
+        {
+          "file": ".local-data\\memory-architecture-live-70z4PQ\\progress.json",
+          "workspace": ".local-data\\memory-architecture-live-70z4PQ",
+          "outputTag": "qa-architecture-dev",
+          "requests": 151,
+          "totalTokens": 1288508
+        }
+      ],
+      "requests": 151,
+      "totalTokens": 1288508
+    },
+    "limits": {
+      "requests": 300,
+      "observedTotalTokens": 1600000
+    }
+  },
+  "technicalAmendment": {
+    "file": "docs\\memory-architecture-dev-v2-technical-amendment.json",
+    "sha256": "c8ece5152c1ba2776866ebdea55a479f97630ebc89fe371a47519dd4486ef611",
+    "projectReferences": 1
+  }
+}

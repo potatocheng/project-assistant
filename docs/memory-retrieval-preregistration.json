@@ -1,0 +1,35 @@
+{
+  "version": "memory-retrieval-preregistration-v1",
+  "registeredAt": "2026-10-20T12:12:25.834Z",
+  "datasetSha256": "803537c32e89dce765c8e6cef6484f332d6ef5a9c91b726a4ea957e68b461d87",
+  "baselineDevelopment": {
+    "file": "docs/memory-public-live-optimized-dev-v2-results.json",
+    "sha256": "bb3d29978dcdc4ecfcceaec5f89395820c42f465892014b82aa4eca45cc5cf83"
+  },
+  "baselineFull": {
+    "file": "docs/memory-public-live-optimized-full-results.json",
+    "sha256": "30a37b98eb087cf2e0db1715faeaf18da827b2c604ac26ea676242b2613edb5b"
+  },
+  "thresholds": {
+    "retainedYesOrPartial": 15,
+    "desktopComplete": 9,
+    "connectorComplete": 9,
+    "desktopReferencesSufficient": 11,
+    "connectorReferencesSufficient": 9,
+    "desktopCorrectAbstention": 1,
+    "connectorCorrectAbstention": 1,
+    "desktopPairedNetImprovement": 1,
+    "connectorPairedNetImprovement": 1
+  },
+  "limits": {
+    "development": {
+      "maxRequests": 600,
+      "maxTokens": 3000000
+    },
+    "full": {
+      "maxRequests": 2000,
+      "maxTokens": 12000000
+    }
+  },
+  "methodology": "Fresh question-independent extraction, unedited ready proposals confirmed only in isolated evaluation workspaces, both real production entries, unchanged separated same-model judges; same frozen dataset, no production gold. Prior 80-question holdout is now a fixed regression, not unseen blind data. Original previous scores and anonymously regraded paired previous answers are reported separately."
+}

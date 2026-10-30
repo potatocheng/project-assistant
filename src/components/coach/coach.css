@@ -1,0 +1,31 @@
+.term-help { display: inline; padding: 0; border: 0; background: transparent; color: var(--green); font: inherit; text-align: inherit; text-decoration: underline dotted; text-underline-offset: 4px; }
+.term-help > span { font-size: 10px; margin-left: 3px; vertical-align: super; text-decoration: none; }
+.term-explanation { display: grid; gap: 15px; overflow-wrap: anywhere; }
+.task-coach { border-top: 1px solid var(--line); padding: 18px 0; min-width: 0; }
+.task-inspector > .task-coach { padding: 20px 24px; }
+.coach-actions, .coach-choices, .coach-draft-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.coach-actions .button { flex: 1 1 auto; }
+.coach-guide { padding-top: 16px; }
+.coach-guide h4 { margin: 0 0 12px; font-size: 14px; }
+.coach-choices { margin-bottom: 16px; }
+.coach-choices button[aria-pressed="true"] { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+.coach-advice { display: grid; gap: 12px; overflow-wrap: anywhere; }
+.coach-advice p { line-height: 1.7; }
+.coach-advice textarea { min-height: 130px; }
+.coach-advice details > summary, .coach-terms > summary { color: var(--muted); cursor: pointer; }
+.coach-advice details p { margin-top: 8px; }
+.coach-terms { margin-top: 16px; font-size: 12px; }
+.coach-terms > div { display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 10px; }
+.coach-history { margin-top: 16px; }
+.coach-history > summary { cursor: pointer; color: var(--secondary); }
+.coach-history article { border-bottom: 1px solid var(--line); padding: 12px 0; }
+.coach-history article p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 7px 0; line-height: 1.65; }
+.coach-result .draft-fields { display: grid; gap: 16px; }
+.coach-result label > .field-label { margin-bottom: 6px; }
+.coach-result .coach-choices { margin: 8px 0 0; }
+.coach-result-preview { padding: 12px 0; border-top: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+.coach-home-task { display: flex; align-items: center; gap: 8px; }
+.coach-home-task > .ah-task { flex: 1; min-width: 0; }
+.coach-home-task > .text-button { flex-shrink: 0; }
+@media (max-width: 600px) { .coach-home-task { flex-wrap: wrap; } .coach-home-task > .text-button { margin: 0 0 14px 40px; } }
+@media (prefers-reduced-motion: no-preference) { .coach-guide { animation: coach-reveal .16s ease-out; } @keyframes coach-reveal { from { transform: translateY(3px); opacity: .6; } to { transform: translateY(0); opacity: 1; } } }

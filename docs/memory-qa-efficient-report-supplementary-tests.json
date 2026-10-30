@@ -1,0 +1,17 @@
+{
+  "version": "memory-qa-efficient-report-supplementary-tests-v1",
+  "kind": "post-live-report-only-supplement",
+  "startedAt": "2026-10-20T15:10:04.0863459Z",
+  "finishedAt": "2026-10-20T15:10:04.4691246Z",
+  "command": "node --test scripts/report-memory-qa-efficient.test.mjs",
+  "exitCode": 0,
+  "passed": true,
+  "tests": 14,
+  "productionOrEvaluationChanges": false,
+  "frozenPreLiveEvidence": "docs/memory-qa-efficient-regressions.json",
+  "log": ".local-data/qa-efficient-report-tests-20261020T151004229/report-tests.log",
+  "sourceSha256": {
+    "scripts/report-memory-qa-efficient.mjs": "0549a1fdcaf11a8f5d4a6eb6481b6371740119fbdf9c1e31804476662afe2cf9",
+    "scripts/report-memory-qa-efficient.test.mjs": "9117b09964e7fa2483833e4e07fef3e39e84ab968bdf514fea51684d1f9e863d"
+  }
+}

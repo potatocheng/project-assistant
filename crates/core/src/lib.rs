@@ -1,21 +1,45 @@
 mod ai;
+mod answer_contract;
+mod answer_repair;
+mod assistance;
+#[cfg(test)]
+mod assistance_tests;
 mod assistant_qa;
 mod backup;
 mod change_control;
+mod conversations;
 mod coordination;
+mod daily_use;
 mod db;
 mod delivery;
+mod evidence_pack;
+mod extraction_context;
+mod extraction_store;
 mod feishu;
 mod governance;
 mod maintenance;
 mod management;
 mod memory;
+#[cfg(test)]
+mod memory_evaluation;
+mod memory_facts;
+mod memory_links;
+mod memory_query;
+mod memory_workbench;
 mod parse;
 mod planning;
 mod proactive;
+mod protection;
 mod qa;
+mod question_flow;
+mod question_plan;
+mod question_target;
+mod retention;
+mod search;
 mod settings;
+mod source_passages;
 mod tasks;
+mod workspace_policy;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -72,6 +96,13 @@ impl From<zip::result::ZipError> for AppError {
         Self::new("ARCHIVE", e.to_string())
     }
 }
+pub fn encrypt_backup_bytes(
+    bytes: &[u8],
+    password: &str,
+) -> std::result::Result<Vec<u8>, AppError> {
+    protection::encrypt_backup(bytes, password)
+}
+
 pub(crate) type Result<T> = std::result::Result<T, AppError>;
 pub(crate) fn now() -> String {
     chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
@@ -118,6 +149,13 @@ enum Message {
     ClaimExtract(String, u64, mpsc::Sender<Result<Option<db::AiTask>>>),
     ProgressExtract(String, u64, i64, usize, usize, mpsc::Sender<bool>),
     CompleteExtract(String, u64, i64, Result<ai::ExtractionResult>),
+    CheckpointExtract(
+        String,
+        u64,
+        i64,
+        ai::ExtractionCheckpoint,
+        mpsc::Sender<bool>,
+    ),
     ClaimMaintenance(mpsc::Sender<Result<Option<memory::Task>>>),
     CompleteMaintenance(String, Value, memory::Output, Arc<maintenance::Worker>, u64),
     Shutdown,
@@ -136,6 +174,7 @@ struct Inner {
     actor: Mutex<Option<thread::JoinHandle<()>>>,
     connector: feishu::Connector,
     maintenance: Arc<maintenance::Worker>,
+    assistance_cache: Mutex<assistance::Cache>,
     _lock: File,
 }
 impl Drop for Inner {
@@ -226,6 +265,17 @@ impl Engine {
                                 .progress_extract(&job, epoch, generation, done, total)
                                 .unwrap_or(false);
                             let _ = reply.send(alive);
+                        }
+                        Message::CheckpointExtract(job, epoch, generation, checkpoint, reply) => {
+                            let saved = crate::extraction_store::persist(
+                                &mut db,
+                                &job,
+                                epoch,
+                                generation,
+                                &checkpoint,
+                            )
+                            .unwrap_or(false);
+                            let _ = reply.send(saved);
                         }
                         Message::CompleteExtract(job, epoch, generation, result) => {
                             if let Err(error) = db.complete_extract(&job, epoch, generation, result)
@@ -370,11 +420,29 @@ impl Engine {
                                 };
                                 let result =
                                     std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                                        ai::extract(
+                                        ai::extract_with_context(
                                             &task.settings.config(),
                                             task.settings.api_key.as_deref(),
                                             &task.segments,
+                                            &task.checkpoints,
+                                            &task.project_context,
                                             progress,
+                                            |checkpoint| {
+                                                let (tx, rx) = mpsc::channel();
+                                                if ai_sender
+                                                    .send(Message::CheckpointExtract(
+                                                        job.clone(),
+                                                        epoch,
+                                                        task.generation,
+                                                        checkpoint.clone(),
+                                                        tx,
+                                                    ))
+                                                    .is_err()
+                                                {
+                                                    return false;
+                                                }
+                                                rx.recv().unwrap_or(false)
+                                            },
                                         )
                                     }))
                                     .unwrap_or_else(|_| {
@@ -408,7 +476,7 @@ impl Engine {
         let connector = match feishu::Connector::open(
             engine_root.clone(),
             Arc::new(move |project, question| {
-                ask_project(
+                assistant_qa::ask_project_question(
                     &question_sender,
                     &question_root,
                     &json!({"projectId":project,"question":question}),
@@ -418,7 +486,7 @@ impl Engine {
                 actor_call(
                     &validation_sender,
                     Request {
-                        command: "_validate_qa_context".into(),
+                        command: "_validate_assistant_context".into(),
                         payload: context.clone(),
                     },
                 )
@@ -455,6 +523,7 @@ impl Engine {
                 actor: Mutex::new(Some(actor)),
                 connector,
                 maintenance,
+                assistance_cache: Mutex::new(assistance::Cache::new()),
                 _lock: workspace_lock,
             }),
         };
@@ -476,7 +545,21 @@ impl Engine {
         if !matches!(
             request.command.as_str(),
             "get_state"
+                | "get_desktop_settings"
+                | "get_notification_digest"
+                | "ack_notification"
+                | "get_backup_policy"
+                | "run_automatic_backup"
+                | "get_workspace_revision"
+                | "get_draft"
+                | "save_draft"
+                | "delete_draft"
+                | "get_retention_reviews"
+                | "lifecycle_impact"
                 | "get_memory_maintenance"
+                | "get_project_brief"
+                | "get_assistant_preferences"
+                | "get_memory_quality"
                 | "get_feishu_status"
                 | "get_feishu_sources"
                 | "get_daily_planning"
@@ -501,6 +584,16 @@ impl Engine {
                 payload: json!({"bindings":request.payload["sources"]}),
             })?;
         }
+        if request.command == "get_credential_protection" {
+            return Ok(
+                json!({"enabled":protection::enabled(&self.inner.root),"supported":cfg!(any(target_os="windows",target_os="macos"))}),
+            );
+        }
+        if request.command == "enable_credential_protection" {
+            self.inner.connector.pause()?;
+            protection::enable(&self.inner.root)?;
+            return Ok(json!({"enabled":true}));
+        }
         if request.command == "test_ai_connection" {
             let settings = settings::load(&self.inner.root)?;
             settings.validate_credentials()?;
@@ -509,8 +602,24 @@ impl Engine {
         if request.command == "ask_project" {
             return ask_project(&self.inner.sender, &self.inner.root, &request.payload);
         }
+        if request.command == "ask_project_question" {
+            return assistant_qa::ask_project_question(
+                &self.inner.sender,
+                &self.inner.root,
+                &request.payload,
+            );
+        }
+        if request.command == "ask_conversation" {
+            return conversations::ask(self, &request.payload);
+        }
         if request.command == "ask_assistant" {
             return assistant_qa::ask(self, &request.payload);
+        }
+        if matches!(
+            request.command.as_str(),
+            "generate_today_brief" | "generate_task_coaching"
+        ) {
+            return assistance::run(self, &request.command, &request.payload);
         }
         if request.command == "analyze_task_workload" {
             let configuration = settings::load(&self.inner.root)?;
@@ -613,23 +722,30 @@ fn affects_proactive_actions(command: &str) -> bool {
 fn ask_project(sender: &mpsc::SyncSender<Message>, root: &Path, payload: &Value) -> Result<Value> {
     // Take a project-scoped snapshot on the database actor; network I/O stays outside it.
     let configuration = settings::load(root)?;
-    let mut context = actor_call(
-        sender,
-        Request {
-            command: "_retrieve_qa_context".into(),
-            payload: payload.clone(),
+    question_flow::run(
+        &configuration,
+        payload,
+        false,
+        |payload| {
+            actor_call(
+                sender,
+                Request {
+                    command: "_retrieve_qa_context".into(),
+                    payload,
+                },
+            )
         },
-    )?;
-    context["modelRevision"] = json!(configuration.revision);
-    let answer = qa::answer(&configuration, &context)?;
-    actor_call(
-        sender,
-        Request {
-            command: "_validate_qa_context".into(),
-            payload: context,
+        |context| {
+            actor_call(
+                sender,
+                Request {
+                    command: "_validate_qa_context".into(),
+                    payload: context.clone(),
+                },
+            )
+            .map(|_| ())
         },
-    )?;
-    Ok(answer)
+    )
 }
 fn actor_call(sender: &mpsc::SyncSender<Message>, request: Request) -> Result<Value> {
     let (tx, rx) = mpsc::channel();

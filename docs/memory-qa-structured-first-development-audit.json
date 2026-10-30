@@ -1,0 +1,3104 @@
+{
+  "version": "memory-qa-structured-first-development-audit-v1",
+  "createdAt": "2026-10-23T04:28:48.727Z",
+  "providerRequestsByAudit": 0,
+  "methodology": "Read-only audit. Existing grades and raw samples retained; no new judgment, no relabel, no source/gold/evaluation mutation.",
+  "source": {
+    "file": "docs/memory-public-live-qa-structured-dev-results.json",
+    "sha256": "07d143cd9afe4ec7f6ce615cb7be71fe66071b5c50f4a8bbb0184ac4d8750717",
+    "diagnosticFile": "docs/memory-public-live-qa-structured-diag-candidate-results.json",
+    "diagnosticSha256": "043fbe76d27b04f647cae5713858d0d02ce0ac6fb109968ec578ae20b986e919"
+  },
+  "current": {
+    "binarySha256": "e02d181562cb81b66e170ce9efd4be2a300981f84a06c98396eeeda5819701c3",
+    "productionSha256": {
+      "ai.rs": "3955214b5d9eb0b4a427f40e9c3fd954eac4835b24687924a83980426d38f17e",
+      "answer_contract.rs": "4f325027fa8e715fc0c4f99b8686a33c247e2903d2df1dec494a7856ce4d1853",
+      "assistant_qa.rs": "a65375b20fb49de26c16c3a28e4b028aad444f1166f15f25192cfc2ac1d27983",
+      "backup.rs": "54df70f761956d2096622f3e20e14905484206f3d1a67b23f278780b1ec07a9e",
+      "bin\\pm-host.rs": "eb36bfd48207dca3b9694efd5bcde70316c466746c736efbeba99e40521937aa",
+      "change_control.rs": "9e8bf7c92d5ec3cb30e8d48c4411a4684169952d5d2c803478b04e37fdb014b2",
+      "coordination.rs": "551852f9918597e85407fd2d10647e5a7ea52df3a8bfdf604d62c3267210a703",
+      "db.rs": "9d2504455d03b8493be24f51fb30ad64013b6a0faeb43a3c687a160121704319",
+      "delivery.rs": "3036ea1f332c6a757946df25c48ec682211e188a1ca10065bbf5548e99a0aa49",
+      "evidence_pack.rs": "130146d75dc8f980eb55325f169c78239877838dfcbd02caf9d813779038904d",
+      "extraction_store.rs": "013aa5df7efe9051bdab8c96d0084e37ffd4a3c33ca6a1e12f3fb51a3a9aecbc",
+      "feishu.rs": "f909f9368448aee02312b32130b319e45bd3b0a2e558dfb680cdec16ab28a6d1",
+      "feishu\\knowledge.rs": "b98b21b69564801a09ef5bf005e217c164e0d3b323bbf6662f31c1380147fdf4",
+      "governance.rs": "fbc8b6bdc3b5d619f806433967ef561370a6801c357911e2421a47a1eaf2e180",
+      "lib.rs": "9f60e24e11a67dbbf3420e6753171c48f2c0b40b8a786e8ac962e69f6e2bd1fd",
+      "maintenance.rs": "797fa3deb63fa364efecc8e84627a45564985f4b1b7e733847fbce2db2a7f907",
+      "management.rs": "3ef4b58e1c5e09ca728157797192d6d6fcf8a27fda375d918e8b6b80124a6aad",
+      "memory.rs": "d0fd214f460c5e217c8720355754d2e66138922da0d1a00ded4dd6a7d35afea8",
+      "memory_evaluation.rs": "d229ba9f7a5110747bf2e536bc48425b5739882e380f060c2c66b9969e9cd8c9",
+      "memory_facts.rs": "86bbc4b9f74d5e74ac5fa46029364e7de051ab7d6d19149271b0a6a4b3d50d62",
+      "memory_links.rs": "775e84402be64904c1afd2d7732c197eab27a4c170da85c3b471ae1a63e9d699",
+      "memory_query.rs": "2b0aff8d9ab4d3a7b5eb5e2078b92c664ec8c85acd91ad18779f768d575e5cde",
+      "memory_workbench.rs": "be51d0a44fe1b2b6b35ac6c1fc3fd6b4977a8a1ad829542c5e2fd85f4554a856",
+      "parse.rs": "4ed5828c2445639784ff0c997d78ce3c4113712848e7fe788734bc2ebb9b4c58",
+      "planning.rs": "1b06c2662ad5e3ee85fc286264dd04ad5702f96473145031d4288f9f837ad405",
+      "qa.rs": "b2cefe2fac4312bc5278f8f7ad36e0ad4c411693020a199623de48eee0f12a6b",
+      "question_flow.rs": "53b24d2232d3e3213764629d9be14681044c48ad388c2ff31c09402941a1de8e",
+      "question_plan.rs": "0dd1aed43e98765b6880eb80c7a05f337a5eb7239ed858495aec7e45bd7d7b06",
+      "question_target.rs": "9f986cc1ccadcf35eef18ece01b8cc4b6bb0ac78ee6d10d2766f25744fd268c8",
+      "search.rs": "19e2d0b4ab7958a13a5c820a40574f950d425bcfcfb54a005fabb740274d413f",
+      "settings.rs": "373c0139373a061fca84eccccc700abc5bff0e261950aca631616f4bdb463117",
+      "tasks.rs": "861efd389b78a55c0bb2a46f6fa4cf420ce879e9dc68720fe4191a8b473e01ca"
+    },
+    "formalMemories": 960,
+    "all": {
+      "requests": 251,
+      "tokens": 1166755
+    },
+    "extraction": {
+      "requests": 100,
+      "tokens": 438078
+    },
+    "qa": {
+      "requests": 91,
+      "tokens": 287123
+    },
+    "judge": {
+      "requests": 60,
+      "tokens": 441554
+    }
+  },
+  "diagnostic": {
+    "binarySha256": "f72ec4422c5112235e32c513206daff0c6bb3190c3947eff3e159de02cc9f3e5",
+    "productionSha256": {
+      "ai.rs": "3955214b5d9eb0b4a427f40e9c3fd954eac4835b24687924a83980426d38f17e",
+      "answer_contract.rs": "ef6ca9b7d95322048d3636f6a0b452b59164633fa95808fa0fd39f94281d782c",
+      "assistant_qa.rs": "256540bbbeb6d1b22229293dc66f8e06f747ba21d87b62a3137e9dc8853fc85c",
+      "backup.rs": "54df70f761956d2096622f3e20e14905484206f3d1a67b23f278780b1ec07a9e",
+      "bin\\pm-host.rs": "eb36bfd48207dca3b9694efd5bcde70316c466746c736efbeba99e40521937aa",
+      "change_control.rs": "9e8bf7c92d5ec3cb30e8d48c4411a4684169952d5d2c803478b04e37fdb014b2",
+      "coordination.rs": "551852f9918597e85407fd2d10647e5a7ea52df3a8bfdf604d62c3267210a703",
+      "db.rs": "9d2504455d03b8493be24f51fb30ad64013b6a0faeb43a3c687a160121704319",
+      "delivery.rs": "3036ea1f332c6a757946df25c48ec682211e188a1ca10065bbf5548e99a0aa49",
+      "evidence_pack.rs": "fca2a3c6e17d9b8377ab2ff99fe606d272687bb994482ccf7bd842380b5a5cb6",
+      "extraction_store.rs": "013aa5df7efe9051bdab8c96d0084e37ffd4a3c33ca6a1e12f3fb51a3a9aecbc",
+      "feishu.rs": "f909f9368448aee02312b32130b319e45bd3b0a2e558dfb680cdec16ab28a6d1",
+      "feishu\\knowledge.rs": "b98b21b69564801a09ef5bf005e217c164e0d3b323bbf6662f31c1380147fdf4",
+      "governance.rs": "fbc8b6bdc3b5d619f806433967ef561370a6801c357911e2421a47a1eaf2e180",
+      "lib.rs": "9f60e24e11a67dbbf3420e6753171c48f2c0b40b8a786e8ac962e69f6e2bd1fd",
+      "maintenance.rs": "797fa3deb63fa364efecc8e84627a45564985f4b1b7e733847fbce2db2a7f907",
+      "management.rs": "3ef4b58e1c5e09ca728157797192d6d6fcf8a27fda375d918e8b6b80124a6aad",
+      "memory.rs": "d0fd214f460c5e217c8720355754d2e66138922da0d1a00ded4dd6a7d35afea8",
+      "memory_evaluation.rs": "d229ba9f7a5110747bf2e536bc48425b5739882e380f060c2c66b9969e9cd8c9",
+      "memory_facts.rs": "86bbc4b9f74d5e74ac5fa46029364e7de051ab7d6d19149271b0a6a4b3d50d62",
+      "memory_links.rs": "ce9eb3d16642e413311d22df21b9bca8948a211a6352420e850661c71d40e6fe",
+      "memory_query.rs": "f49c94d6e1b94dc14fc43a50c5cdcf340c13af7f3e03b686304bd23e16866446",
+      "memory_workbench.rs": "be51d0a44fe1b2b6b35ac6c1fc3fd6b4977a8a1ad829542c5e2fd85f4554a856",
+      "parse.rs": "4ed5828c2445639784ff0c997d78ce3c4113712848e7fe788734bc2ebb9b4c58",
+      "planning.rs": "1b06c2662ad5e3ee85fc286264dd04ad5702f96473145031d4288f9f837ad405",
+      "qa.rs": "3a0aff73b3062318df4ba8e047354b7d69a3d04d0191094f96ad50bca080dfb0",
+      "question_flow.rs": "af7149d3d49d99d2aa44a18407bd81cc151f6259ac7f5aab5571df975d0ac5e8",
+      "question_plan.rs": "b18dfaa089f89a5f8f1b6216c6a1738f4eb7fd04873eaf3a1c577aa42f59951b",
+      "question_target.rs": "9f986cc1ccadcf35eef18ece01b8cc4b6bb0ac78ee6d10d2766f25744fd268c8",
+      "search.rs": "19e2d0b4ab7958a13a5c820a40574f950d425bcfcfb54a005fabb740274d413f",
+      "settings.rs": "373c0139373a061fca84eccccc700abc5bff0e261950aca631616f4bdb463117",
+      "tasks.rs": "861efd389b78a55c0bb2a46f6fa4cf420ce879e9dc68720fe4191a8b473e01ca"
+    },
+    "formalMemories": 938,
+    "all": {
+      "requests": 160,
+      "tokens": 752485
+    },
+    "extraction": {
+      "requests": 0,
+      "tokens": 0
+    },
+    "qa": {
+      "requests": 100,
+      "tokens": 304078
+    },
+    "judge": {
+      "requests": 60,
+      "tokens": 448407
+    }
+  },
+  "versionComparison": {
+    "sameBinary": false,
+    "changedProductionFiles": [
+      "answer_contract.rs",
+      "assistant_qa.rs",
+      "evidence_pack.rs",
+      "memory_links.rs",
+      "memory_query.rs",
+      "qa.rs",
+      "question_flow.rs",
+      "question_plan.rs"
+    ],
+    "sameConfirmedMemories": false,
+    "inferenceLimit": "Fresh pipeline re-extracted960 memories with binarye02d..., prior frozen-memory diagnostic used938 memories and binaryf72e.... Cross-run differences cannot prove a fixed-memory causal gain for final code."
+  },
+  "currentQuality": {
+    "desktop": {
+      "correct": 13,
+      "referencesSufficient": 16,
+      "correctNegative": 1,
+      "sameCallBaselineCorrect": 12
+    },
+    "connector": {
+      "correct": 14,
+      "referencesSufficient": 16,
+      "correctNegative": 1,
+      "sameCallBaselineCorrect": 11
+    }
+  },
+  "costComparison": {
+    "qaDifferenceFromDiagnostic": -16955,
+    "qaFractionFromDiagnostic": -0.055758719802156076,
+    "hardMaximum": 288410,
+    "remainingMargin": 1287,
+    "costRecoveryReference": 262191,
+    "costAboveRecovery": 24932
+  },
+  "mechanicalChecks": {
+    "producerEntries": 40,
+    "allProducerMappingsPass": true,
+    "readOnly": true,
+    "protocolErrorEntries": 2,
+    "maximumActualGenerationReferences": 24
+  },
+  "protocol": [
+    {
+      "questionId": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "entry": "connector",
+      "reviewIndex": 1,
+      "errorCode": "QA_REVIEW_SCHEMA",
+      "protocolErrors": [
+        "invalid-unknown-decision-row",
+        "invalid-unknown-decision-row",
+        "invalid-unknown-decision-row",
+        "missing-or-duplicate-unknown:u1",
+        "missing-or-duplicate-unknown:u2",
+        "missing-or-duplicate-unknown:u3"
+      ],
+      "reason": "Provider answered unknowns reference a partial obligation; not missing IDs or missing fields. Invalid rows are discarded, producing secondary missing-or-duplicate unknown diagnostics.",
+      "rawProviderReview": {
+        "claimReviews": [
+          {
+            "claimId": "c1",
+            "obligationIds": [
+              "o1"
+            ],
+            "verdict": "supported"
+          },
+          {
+            "claimId": "c2",
+            "obligationIds": [
+              "o1"
+            ],
+            "verdict": "supported"
+          },
+          {
+            "claimId": "c3",
+            "obligationIds": [
+              "o1"
+            ],
+            "verdict": "supported"
+          }
+        ],
+        "consistentWithVerifiedClaims": true,
+        "missingAspects": [
+          "未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量（如是否逐词义分别构造句对并逐一分类）"
+        ],
+        "obligations": [
+          {
+            "claimIds": [
+              "c1",
+              "c2",
+              "c3"
+            ],
+            "obligationId": "o1",
+            "status": "partial"
+          }
+        ],
+        "reason": "c1-c3均直接锚定原文：逐词义提取gloss、构造N个上下文-释义对、测试时逐对打分取最高概率，说明按词义逐项构造句对并分类的可变基数处理方式；但未明确讨论词义数量不固定/未知时的动态机制，故o1为partial。",
+        "unknownDecisions": [
+          {
+            "claimIds": [
+              "c1",
+              "c2",
+              "c3"
+            ],
+            "disposition": "answered",
+            "unknownId": "u1"
+          },
+          {
+            "claimIds": [
+              "c1",
+              "c2",
+              "c3"
+            ],
+            "disposition": "answered",
+            "unknownId": "u2"
+          },
+          {
+            "claimIds": [
+              "c1",
+              "c2",
+              "c3"
+            ],
+            "disposition": "answered",
+            "unknownId": "u3"
+          }
+        ]
+      },
+      "inputUnknowns": [
+        "记录未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量（如是否逐词义分别构造句对并逐一分类）。",
+        "未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量（如是否逐词义分别构造句对并逐一分类）",
+        "How does the neural network architecture accomodate an unknown amount of senses per word?"
+      ],
+      "effectiveStatus": "partial",
+      "retainedClaimIndices": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "questionId": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "entry": "desktop",
+      "reviewIndex": 1,
+      "errorCode": "QA_REVIEW_SCHEMA",
+      "protocolErrors": [
+        "invalid-unknown-decision-row",
+        "missing-or-duplicate-unknown:u4"
+      ],
+      "reason": "Provider answered unknowns reference a partial obligation; not missing IDs or missing fields. Invalid rows are discarded, producing secondary missing-or-duplicate unknown diagnostics.",
+      "rawProviderReview": {
+        "claimReviews": [
+          {
+            "claimId": "c1",
+            "obligationIds": [
+              "o1"
+            ],
+            "verdict": "supported"
+          },
+          {
+            "claimId": "c2",
+            "obligationIds": [
+              "o1"
+            ],
+            "verdict": "supported"
+          }
+        ],
+        "consistentWithVerifiedClaims": true,
+        "missingAspects": [
+          "最高性能模型的单独 ROUGE-1、ROUGE-2、ROUGE-L 分数未给出，仅有 33.33 的三项平均分。"
+        ],
+        "obligations": [
+          {
+            "claimIds": [
+              "c1"
+            ],
+            "obligationId": "o1",
+            "status": "partial"
+          }
+        ],
+        "reason": "c1 直接给出最高性能模型（state-of-the-art）在 CNN/Daily Mail 上的 33.33 三项平均 ROUGE 分，回答了所问的 ROUGE 分数；c2 仅说明报告的是 full-length F-1 指标，不提供数值。单独各指标分数及“最高性能”的显式比较未记录，故 o1 为 partial。",
+        "unknownDecisions": [
+          {
+            "claimIds": [],
+            "disposition": "retain",
+            "unknownId": "u1"
+          },
+          {
+            "claimIds": [],
+            "disposition": "retain",
+            "unknownId": "u2"
+          },
+          {
+            "claimIds": [],
+            "disposition": "retain",
+            "unknownId": "u3"
+          },
+          {
+            "claimIds": [
+              "c1"
+            ],
+            "disposition": "answered",
+            "unknownId": "u4"
+          },
+          {
+            "claimIds": [],
+            "disposition": "retain",
+            "unknownId": "u5"
+          },
+          {
+            "claimIds": [],
+            "disposition": "retain",
+            "unknownId": "u6"
+          }
+        ]
+      },
+      "inputUnknowns": [
+        "The individual ROUGE-1, ROUGE-2 and ROUGE-L values for the highest-performing model are not recorded; only the 33.33 average across the three metrics is given.",
+        "The record does not explicitly state that the full model is the highest-performing model among all compared systems.",
+        "最高性能模型的单独 ROUGE-1、ROUGE-2、ROUGE-L 分数未给出，仅有 33.33 的三项平均分。",
+        "What is the ROUGE score of the highest performing model?",
+        "最高性能模型的单独 ROUGE-1、ROUGE-2、ROUGE-L 分数未记录，仅有 33.33 的三项平均分。",
+        "记录未明确说明该模型是所有对比系统中性能最高的模型。"
+      ],
+      "effectiveStatus": "partial",
+      "retainedClaimIndices": [
+        1,
+        2
+      ]
+    }
+  ],
+  "producerMappings": [
+    {
+      "questionId": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 3,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "55bd59076a49b19d3283af41c5e3ccb875f3eb0c",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 2,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "5daeb8d4d6f3b8543ec6309a7a35523e160437eb",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "521280a87c43fcdf9f577da235e7072a23f0673e",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "521280a87c43fcdf9f577da235e7072a23f0673e",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "5a8cc8f80509ea77d8213ed28c5ead501c68c725",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 2,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "1be54c5b3ea67d837ffba2290a40c1e720d9587f",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 2,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 6,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 4,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 3,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "c37f65c9f0d543a35c784263b79236ccf1c44fac",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 2,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 2,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 0,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 3,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "747b847d687f703cc20a87877c5b138f26ff137d",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 3,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 2,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "111afb77cfbf4c98e0458606378fa63a0e965e36",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 5,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 0,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "6bf5620f295b5243230bc97b340fae6e92304595",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "6bf5620f295b5243230bc97b340fae6e92304595",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 5,
+      "generationIndices": [
+        0,
+        1
+      ]
+    },
+    {
+      "questionId": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 3,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "c5b0ed5db65051eebd858beaf303809aa815e8e5",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 3,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "7ab9c0b4ceca1c142ff068f85015a249b14282d0",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 3,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 2,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 1,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 0,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "63488da6c7aff9e374561a24ba224e9ce7f65e40",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 0,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 4,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "c1c44fd96c3fa6e16949ae8fa453e511c6435c68",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 4,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 3,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "feafcc1c4026d7f55a2c8ce7850d7e12030b5c22",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 4,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "entry": "desktop",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 6,
+      "generationIndices": [
+        0
+      ]
+    },
+    {
+      "questionId": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "entry": "connector",
+      "mode": "explicit-multiple-producers",
+      "claimCount": 8,
+      "generationIndices": [
+        0
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "questionId": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "entry": "desktop",
+      "question": "How is the sequential nature of the story captured?",
+      "memoryGrade": "yes",
+      "currentGrade": {
+        "answerCorrect": "yes",
+        "reason": "Explains encoder processes images in order per timestep, context via last hidden state, decoders initialized with context and image embedding, and concatenated outputs—matching gold."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "yes",
+        "reason": "Describes ordered per-timestep encoding, LSTM context at t=5, five decoders initialized with context and image embedding, and concatenated story."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "yes",
+        "reason": "References include encoder processing images in order per timestep, context vector initializing decoders, per-image word sequences, and concatenation into final story, covering the sequential mechanism."
+      },
+      "finalStatus": "answered",
+      "claims": [
+        "The encoder takes the images in order, one at every timestep t, producing representations e(I_1),...,e(I_5) via Inception v3.",
+        "The model's first component is an LSTM RNN that summarizes the sequence of images; at time t=5 it has encoded the 5 images and provides the sequence's context through its last hidden state h_e^(t).",
+        "The model contains five independent decoders, one for each image in the sequence; each uses the encoder's last hidden state as its first hidden state and the corresponding image embedding as its first input.",
+        "Each decoder generates a word sequence for its image, and the final story is the concatenation of the outputs of the 5 decoders.",
+        "The first decoder generates words for the first image, the second for the second image, and so on, allowing each decoder to learn a specific language model for each position of the sequence.",
+        "The decoder is provided with the context of the whole sequence and the content of the current image (global and local information) to generate the corresponding text contributing to the overall story."
+      ],
+      "unknowns": [],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "memory:78f57441-ba5a-4214-b551-24ef07c6f738",
+          "contentSha256": "db981816c8a1eace7a92b74257412510493244fd41223fb957a9e72035a9783d"
+        },
+        {
+          "id": "memory:ef466f5e-3d6d-4e30-a816-c9d8152f1c19",
+          "contentSha256": "0bfec7c9963cad60902903638c7f16e4ffe510af4ae5c6ab750936c65021e28a"
+        },
+        {
+          "id": "memory:f7abd9a8-ed85-4f31-b1cd-8ce0122389cb",
+          "contentSha256": "99930f93e880a0b5458e37555ccbc77f379bb24b461ccca3ea95dd1f2c6717d0"
+        },
+        {
+          "id": "memory:96e36ef7-6045-432a-9b8c-4a2ecad49fbd",
+          "contentSha256": "855debeee8a5896b0ba647e652c47dd845cb08cf6c8949f9a6201878ae68dab3"
+        },
+        {
+          "id": "memory:628b155b-3a04-434a-80dc-de264580ec78",
+          "contentSha256": "3d5146f9a2ac057dea961ac12211935c786dd423fe7d7a40de48469180e410ca"
+        },
+        {
+          "id": "memory:5cf93f8a-11c2-490f-8ada-3a274360722a",
+          "contentSha256": "03d6f7cb96aebeec1c239c501a98e7a5e9e7e0c754a6447278b4db29171e9ce9"
+        },
+        {
+          "id": "memory:1b14ecdf-fcac-4c9e-a416-2033ba1f4d9e",
+          "contentSha256": "5880e913c212eb8509bb4750482e0da0bb246f06f70dcafa0512cdc617862ef4"
+        },
+        {
+          "id": "memory:af3b27af-f4d7-494a-b7a4-b01edd94dad6",
+          "contentSha256": "67a634742e0cdd4435d662fd716a4ff2445cdd135cd2533c4df3fa9f60eac753"
+        },
+        {
+          "id": "memory:6a95d74e-ca39-4b89-bba6-088d6ca13908",
+          "contentSha256": "43be4d03b39bdc0c9e4081c90061976090eddcd0cc82afe24d2f485cf44be2c4"
+        },
+        {
+          "id": "memory:3c4aab04-32a9-4dc9-a304-89a63347281e",
+          "contentSha256": "0a9d8382a5b1e0e36f8dd5d0713abb9f9642be9c2bce545dfe30009d5318a07b"
+        },
+        {
+          "id": "memory:d9677812-d680-4172-a0b9-8fdca30c2be5",
+          "contentSha256": "8c2f349ea2c1d0774afceedfef1e030512e00b262e534aee5d716619df91a035"
+        },
+        {
+          "id": "memory:f900b2d4-9f97-43ec-b3a2-31858397609c",
+          "contentSha256": "c5c22bded4e452f59171f814cf74872803086eea917ec08c0aff5698a27aeea4"
+        },
+        {
+          "id": "memory:e0e2112a-ae58-4f38-825e-2053d02070f5",
+          "contentSha256": "23ff71647264b8e72db0f4a33582241f888981407ebf69204ec46e1426f42cdb"
+        },
+        {
+          "id": "memory:cb7da1df-2a32-4b49-b26a-1099e4d831f8",
+          "contentSha256": "87702b6e1371827734cd699ae7ead640daf26f3ba384cc025fad654f04dc8d30"
+        },
+        {
+          "id": "memory:f961b1be-7b80-4c4b-98f6-71a85b485aac",
+          "contentSha256": "21d40795d509fdf52b3902383384ee673eb2cdf795590b6d48a238ded5482363"
+        },
+        {
+          "id": "memory:f37e8329-2aab-4170-af01-3dae1502864b",
+          "contentSha256": "803f7bbc485d70f45b1c011e5bb206c227dc7374e29d2ece4afa02a646a3c067"
+        },
+        {
+          "id": "memory:8297c81d-e9d4-46ea-86cd-8d10f878a81e",
+          "contentSha256": "67a634742e0cdd4435d662fd716a4ff2445cdd135cd2533c4df3fa9f60eac753"
+        },
+        {
+          "id": "memory:9aaad43d-3353-4050-a179-c71d35d0e1d1",
+          "contentSha256": "e46775f35c3c5aa9ccf7016ad413f20bf7f31dfd17f9f7f8b056e8348c09414d"
+        },
+        {
+          "id": "memory:bd4d4431-5109-4070-a463-8c893f63812a",
+          "contentSha256": "cddee5da4a6f48f8f0a5a37fd710a7b93f48346c75720bfc385e4274ce046e55"
+        },
+        {
+          "id": "memory:d7406717-c564-4eac-ae8b-caf7a6a8aaf4",
+          "contentSha256": "13118160e174af86720304b06912260787d796b0b1d84c188c2d2632afcb1103"
+        },
+        {
+          "id": "memory:d559e3f6-6624-4684-a208-5c6562bf6ff0",
+          "contentSha256": "13118160e174af86720304b06912260787d796b0b1d84c188c2d2632afcb1103"
+        },
+        {
+          "id": "memory:4f962bd7-9c19-4adc-a382-445d3e1081be",
+          "contentSha256": "f188211d128562410ddfb7ec3a46e056cb1d55a847f0f56d38748a35faca33f9"
+        },
+        {
+          "id": "memory:6153ec3b-7d1b-4b6c-b2c3-ba1197c7d2fa",
+          "contentSha256": "09ec11ebd4d33e25115b89e908130c6332c9ddde558811f5cdeabc5ac5a1e2d9"
+        },
+        {
+          "id": "memory:28fcb2f5-5bab-4143-be0f-1c51e5ac1489",
+          "contentSha256": "77523ac82b064714be435ebc0fc878492c28cd54cda63c56ab41f7b2ad154b0a"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": false,
+        "PARRY": false,
+        "A.L.I.C.E.": false,
+        "Cleverbot": false
+      },
+      "supplementDecision": {
+        "attempted": false,
+        "mode": "local-first",
+        "stopReason": "not-needed"
+      },
+      "qaUsage": {
+        "requests": 2,
+        "tokens": 7188
+      }
+    },
+    {
+      "questionId": "584af673429c7f8621c6bf83362a37048daa0e5d",
+      "entry": "connector",
+      "question": "How is the sequential nature of the story captured?",
+      "memoryGrade": "yes",
+      "currentGrade": {
+        "answerCorrect": "yes",
+        "reason": "Covers ordered per-timestep encoding, context vector from last hidden state, five decoders using context and image embedding, and concatenation."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "yes",
+        "reason": "States encoder processes images sequentially per timestep, context initializes decoders with image embeddings, and outputs concatenated."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "yes",
+        "reason": "Same content present: ordered encoder timesteps, context vector, per-image decoder outputs, and concatenation of 5 decoders' outputs capture sequential nature."
+      },
+      "finalStatus": "answered",
+      "claims": [
+        "模型先用编码器按顺序逐时间步接收图像序列，在t=5时由LSTM的最后一个隐藏状态给出整段序列的上下文向量。",
+        "模型包含五个独立解码器，每个解码器对应序列中的一张图像，分别生成该位置的词序列，从而让每个解码器学习该位置特定的语言模型。",
+        "每个解码器以编码器最后隐藏状态（上下文）初始化其首个隐藏状态，并以对应图像嵌入作为首个输入，从而同时获得整段序列的上下文和当前图像内容。",
+        "最终故事由五个解码器的输出拼接而成。"
+      ],
+      "unknowns": [],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "78f57441-ba5a-4214-b551-24ef07c6f738",
+          "contentSha256": "db981816c8a1eace7a92b74257412510493244fd41223fb957a9e72035a9783d"
+        },
+        {
+          "id": "ef466f5e-3d6d-4e30-a816-c9d8152f1c19",
+          "contentSha256": "0bfec7c9963cad60902903638c7f16e4ffe510af4ae5c6ab750936c65021e28a"
+        },
+        {
+          "id": "f7abd9a8-ed85-4f31-b1cd-8ce0122389cb",
+          "contentSha256": "99930f93e880a0b5458e37555ccbc77f379bb24b461ccca3ea95dd1f2c6717d0"
+        },
+        {
+          "id": "96e36ef7-6045-432a-9b8c-4a2ecad49fbd",
+          "contentSha256": "855debeee8a5896b0ba647e652c47dd845cb08cf6c8949f9a6201878ae68dab3"
+        },
+        {
+          "id": "628b155b-3a04-434a-80dc-de264580ec78",
+          "contentSha256": "3d5146f9a2ac057dea961ac12211935c786dd423fe7d7a40de48469180e410ca"
+        },
+        {
+          "id": "5cf93f8a-11c2-490f-8ada-3a274360722a",
+          "contentSha256": "03d6f7cb96aebeec1c239c501a98e7a5e9e7e0c754a6447278b4db29171e9ce9"
+        },
+        {
+          "id": "1b14ecdf-fcac-4c9e-a416-2033ba1f4d9e",
+          "contentSha256": "5880e913c212eb8509bb4750482e0da0bb246f06f70dcafa0512cdc617862ef4"
+        },
+        {
+          "id": "af3b27af-f4d7-494a-b7a4-b01edd94dad6",
+          "contentSha256": "67a634742e0cdd4435d662fd716a4ff2445cdd135cd2533c4df3fa9f60eac753"
+        },
+        {
+          "id": "6a95d74e-ca39-4b89-bba6-088d6ca13908",
+          "contentSha256": "43be4d03b39bdc0c9e4081c90061976090eddcd0cc82afe24d2f485cf44be2c4"
+        },
+        {
+          "id": "3c4aab04-32a9-4dc9-a304-89a63347281e",
+          "contentSha256": "0a9d8382a5b1e0e36f8dd5d0713abb9f9642be9c2bce545dfe30009d5318a07b"
+        },
+        {
+          "id": "d9677812-d680-4172-a0b9-8fdca30c2be5",
+          "contentSha256": "8c2f349ea2c1d0774afceedfef1e030512e00b262e534aee5d716619df91a035"
+        },
+        {
+          "id": "f900b2d4-9f97-43ec-b3a2-31858397609c",
+          "contentSha256": "c5c22bded4e452f59171f814cf74872803086eea917ec08c0aff5698a27aeea4"
+        },
+        {
+          "id": "e0e2112a-ae58-4f38-825e-2053d02070f5",
+          "contentSha256": "23ff71647264b8e72db0f4a33582241f888981407ebf69204ec46e1426f42cdb"
+        },
+        {
+          "id": "cb7da1df-2a32-4b49-b26a-1099e4d831f8",
+          "contentSha256": "87702b6e1371827734cd699ae7ead640daf26f3ba384cc025fad654f04dc8d30"
+        },
+        {
+          "id": "f961b1be-7b80-4c4b-98f6-71a85b485aac",
+          "contentSha256": "21d40795d509fdf52b3902383384ee673eb2cdf795590b6d48a238ded5482363"
+        },
+        {
+          "id": "f37e8329-2aab-4170-af01-3dae1502864b",
+          "contentSha256": "803f7bbc485d70f45b1c011e5bb206c227dc7374e29d2ece4afa02a646a3c067"
+        },
+        {
+          "id": "8297c81d-e9d4-46ea-86cd-8d10f878a81e",
+          "contentSha256": "67a634742e0cdd4435d662fd716a4ff2445cdd135cd2533c4df3fa9f60eac753"
+        },
+        {
+          "id": "9aaad43d-3353-4050-a179-c71d35d0e1d1",
+          "contentSha256": "e46775f35c3c5aa9ccf7016ad413f20bf7f31dfd17f9f7f8b056e8348c09414d"
+        },
+        {
+          "id": "bd4d4431-5109-4070-a463-8c893f63812a",
+          "contentSha256": "cddee5da4a6f48f8f0a5a37fd710a7b93f48346c75720bfc385e4274ce046e55"
+        },
+        {
+          "id": "d7406717-c564-4eac-ae8b-caf7a6a8aaf4",
+          "contentSha256": "13118160e174af86720304b06912260787d796b0b1d84c188c2d2632afcb1103"
+        },
+        {
+          "id": "d559e3f6-6624-4684-a208-5c6562bf6ff0",
+          "contentSha256": "13118160e174af86720304b06912260787d796b0b1d84c188c2d2632afcb1103"
+        },
+        {
+          "id": "4f962bd7-9c19-4adc-a382-445d3e1081be",
+          "contentSha256": "f188211d128562410ddfb7ec3a46e056cb1d55a847f0f56d38748a35faca33f9"
+        },
+        {
+          "id": "6153ec3b-7d1b-4b6c-b2c3-ba1197c7d2fa",
+          "contentSha256": "09ec11ebd4d33e25115b89e908130c6332c9ddde558811f5cdeabc5ac5a1e2d9"
+        },
+        {
+          "id": "28fcb2f5-5bab-4143-be0f-1c51e5ac1489",
+          "contentSha256": "77523ac82b064714be435ebc0fc878492c28cd54cda63c56ab41f7b2ad154b0a"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": false,
+        "PARRY": false,
+        "A.L.I.C.E.": false,
+        "Cleverbot": false
+      },
+      "supplementDecision": {
+        "attempted": false,
+        "mode": "local-first",
+        "stopReason": "not-needed"
+      },
+      "qaUsage": {
+        "requests": 2,
+        "tokens": 7585
+      }
+    },
+    {
+      "questionId": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "entry": "desktop",
+      "question": "Do the decoder LSTMs all have the same weights?",
+      "memoryGrade": "no",
+      "currentGrade": {
+        "answerCorrect": "partial",
+        "reason": "Notes five independent decoders and that each learns a specific language model, but does not clearly answer whether weights are shared; human answers are empty so no explicit yes/no is confirmed."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "no",
+        "reason": "Generic refusal/uncertainty with no answer to the weight-sharing question."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "no",
+        "reason": "References describe five independent decoders and their inputs, but never state whether the decoder LSTMs share or differ in weights."
+      },
+      "finalStatus": "partial",
+      "claims": [
+        "The model contains five independent decoders, one for each image in the sequence.",
+        "Each decoder is described as learning a specific language model for its position in the sequence, which indicates the decoders are not presented as sharing one language model."
+      ],
+      "unknowns": [
+        "The records do not explicitly state whether the five decoder LSTMs share the same weights or have separate weights.",
+        "未明确说明五个解码器LSTM是否共享同一组权重或各自拥有独立权重",
+        "Do the decoder LSTMs all have the same weights?"
+      ],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "memory:86b3ae66-92a3-41ca-807d-280f5ca7bdb9",
+          "contentSha256": "49d45690a14e8ecf689df58f9962e4ef50f94ccd6e87a1c989fb5aa7f3d0b086"
+        },
+        {
+          "id": "memory:5cf93f8a-11c2-490f-8ada-3a274360722a",
+          "contentSha256": "03d6f7cb96aebeec1c239c501a98e7a5e9e7e0c754a6447278b4db29171e9ce9"
+        },
+        {
+          "id": "memory:6a95d74e-ca39-4b89-bba6-088d6ca13908",
+          "contentSha256": "43be4d03b39bdc0c9e4081c90061976090eddcd0cc82afe24d2f485cf44be2c4"
+        },
+        {
+          "id": "memory:f7abd9a8-ed85-4f31-b1cd-8ce0122389cb",
+          "contentSha256": "99930f93e880a0b5458e37555ccbc77f379bb24b461ccca3ea95dd1f2c6717d0"
+        },
+        {
+          "id": "memory:62b0b1a2-6121-40af-9f42-c38f979dbc9d",
+          "contentSha256": "dbed3ca6cb5b0e4ea75d76dca4b733a0150faf4a503626652df4a5e59de3299c"
+        },
+        {
+          "id": "memory:e0e2112a-ae58-4f38-825e-2053d02070f5",
+          "contentSha256": "23ff71647264b8e72db0f4a33582241f888981407ebf69204ec46e1426f42cdb"
+        },
+        {
+          "id": "memory:ef466f5e-3d6d-4e30-a816-c9d8152f1c19",
+          "contentSha256": "0bfec7c9963cad60902903638c7f16e4ffe510af4ae5c6ab750936c65021e28a"
+        },
+        {
+          "id": "memory:96e36ef7-6045-432a-9b8c-4a2ecad49fbd",
+          "contentSha256": "855debeee8a5896b0ba647e652c47dd845cb08cf6c8949f9a6201878ae68dab3"
+        },
+        {
+          "id": "memory:99f27c37-0d13-4612-a756-ab97011e2e68",
+          "contentSha256": "6b8f48e8f19b49285d9954fb352dd03cb1c13aa07c7f4992d5c7b19eda90c74f"
+        },
+        {
+          "id": "memory:53b83d1a-1dda-4978-94f0-3752238a33aa",
+          "contentSha256": "2d54672359411cf657b6e22bd9ae29e2676762d94d32802c1086fdfbdd8a2e7e"
+        },
+        {
+          "id": "memory:1b14ecdf-fcac-4c9e-a416-2033ba1f4d9e",
+          "contentSha256": "5880e913c212eb8509bb4750482e0da0bb246f06f70dcafa0512cdc617862ef4"
+        },
+        {
+          "id": "memory:8297c81d-e9d4-46ea-86cd-8d10f878a81e",
+          "contentSha256": "67a634742e0cdd4435d662fd716a4ff2445cdd135cd2533c4df3fa9f60eac753"
+        },
+        {
+          "id": "memory:af3b27af-f4d7-494a-b7a4-b01edd94dad6",
+          "contentSha256": "67a634742e0cdd4435d662fd716a4ff2445cdd135cd2533c4df3fa9f60eac753"
+        },
+        {
+          "id": "memory:628b155b-3a04-434a-80dc-de264580ec78",
+          "contentSha256": "3d5146f9a2ac057dea961ac12211935c786dd423fe7d7a40de48469180e410ca"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": false,
+        "PARRY": false,
+        "A.L.I.C.E.": false,
+        "Cleverbot": false
+      },
+      "supplementDecision": {
+        "askedGaps": [
+          "未明确说明五个解码器LSTM是否共享同一组权重或各自拥有独立权重",
+          "Do the decoder LSTMs all have the same weights?",
+          "The records do not explicitly state whether the five decoder LSTMs share the same weights or have separate weights."
+        ],
+        "attempted": true,
+        "attempts": [
+          {
+            "kind": "local-literal",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 3,
+            "queries": [
+              "未明确说明五个解码器LSTM是否共享同一组权重或各自拥有独立权重",
+              "Do the decoder LSTMs all have the same weights?",
+              "The records do not explicitly state whether the five decoder LSTMs share the same weights or have separate weights."
+            ],
+            "retrievalRound": 1,
+            "witnesses": []
+          },
+          {
+            "kind": "necessary-gap-navigation",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 0,
+            "queries": [
+              "five independent decoders weights",
+              "decoders share weights",
+              "decoder LSTM independent weights"
+            ],
+            "retrievalRound": 2,
+            "witnesses": []
+          }
+        ],
+        "gaps": [
+          {
+            "gap": "未明确说明五个解码器LSTM是否共享同一组权重或各自拥有独立权重",
+            "scope": "explicitly-asked"
+          },
+          {
+            "gap": "Do the decoder LSTMs all have the same weights?",
+            "scope": "explicitly-asked"
+          },
+          {
+            "gap": "The records do not explicitly state whether the five decoder LSTMs share the same weights or have separate weights.",
+            "scope": "explicitly-asked"
+          }
+        ],
+        "mode": "local-first",
+        "navigationFallbackReason": "reviewed-necessary-gap-with-no-local-witness",
+        "newFactCount": 0,
+        "queries": [
+          "five independent decoders weights",
+          "decoders share weights",
+          "decoder LSTM independent weights"
+        ],
+        "stopReason": "no-new-current-fact",
+        "witnessGapIndexBase": 0,
+        "witnesses": []
+      },
+      "qaUsage": {
+        "requests": 3,
+        "tokens": 6423
+      }
+    },
+    {
+      "questionId": "b08f88d1facefceb87e134ba2c1fa90035018e83",
+      "entry": "connector",
+      "question": "Do the decoder LSTMs all have the same weights?",
+      "memoryGrade": "no",
+      "currentGrade": {
+        "answerCorrect": "no",
+        "reason": "Refuses to answer with no substantive response, while the question is answerable."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "no",
+        "reason": "Refuses to answer; question is answerable."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "no",
+        "reason": "Same references; they mention independent decoders but do not address whether the decoder LSTM weights are shared or identical."
+      },
+      "finalStatus": "unknown",
+      "claims": [],
+      "unknowns": [],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "86b3ae66-92a3-41ca-807d-280f5ca7bdb9",
+          "contentSha256": "49d45690a14e8ecf689df58f9962e4ef50f94ccd6e87a1c989fb5aa7f3d0b086"
+        },
+        {
+          "id": "5cf93f8a-11c2-490f-8ada-3a274360722a",
+          "contentSha256": "03d6f7cb96aebeec1c239c501a98e7a5e9e7e0c754a6447278b4db29171e9ce9"
+        },
+        {
+          "id": "6a95d74e-ca39-4b89-bba6-088d6ca13908",
+          "contentSha256": "43be4d03b39bdc0c9e4081c90061976090eddcd0cc82afe24d2f485cf44be2c4"
+        },
+        {
+          "id": "f7abd9a8-ed85-4f31-b1cd-8ce0122389cb",
+          "contentSha256": "99930f93e880a0b5458e37555ccbc77f379bb24b461ccca3ea95dd1f2c6717d0"
+        },
+        {
+          "id": "62b0b1a2-6121-40af-9f42-c38f979dbc9d",
+          "contentSha256": "dbed3ca6cb5b0e4ea75d76dca4b733a0150faf4a503626652df4a5e59de3299c"
+        },
+        {
+          "id": "e0e2112a-ae58-4f38-825e-2053d02070f5",
+          "contentSha256": "23ff71647264b8e72db0f4a33582241f888981407ebf69204ec46e1426f42cdb"
+        },
+        {
+          "id": "ef466f5e-3d6d-4e30-a816-c9d8152f1c19",
+          "contentSha256": "0bfec7c9963cad60902903638c7f16e4ffe510af4ae5c6ab750936c65021e28a"
+        },
+        {
+          "id": "96e36ef7-6045-432a-9b8c-4a2ecad49fbd",
+          "contentSha256": "855debeee8a5896b0ba647e652c47dd845cb08cf6c8949f9a6201878ae68dab3"
+        },
+        {
+          "id": "99f27c37-0d13-4612-a756-ab97011e2e68",
+          "contentSha256": "6b8f48e8f19b49285d9954fb352dd03cb1c13aa07c7f4992d5c7b19eda90c74f"
+        },
+        {
+          "id": "53b83d1a-1dda-4978-94f0-3752238a33aa",
+          "contentSha256": "2d54672359411cf657b6e22bd9ae29e2676762d94d32802c1086fdfbdd8a2e7e"
+        },
+        {
+          "id": "1b14ecdf-fcac-4c9e-a416-2033ba1f4d9e",
+          "contentSha256": "5880e913c212eb8509bb4750482e0da0bb246f06f70dcafa0512cdc617862ef4"
+        },
+        {
+          "id": "8297c81d-e9d4-46ea-86cd-8d10f878a81e",
+          "contentSha256": "67a634742e0cdd4435d662fd716a4ff2445cdd135cd2533c4df3fa9f60eac753"
+        },
+        {
+          "id": "af3b27af-f4d7-494a-b7a4-b01edd94dad6",
+          "contentSha256": "67a634742e0cdd4435d662fd716a4ff2445cdd135cd2533c4df3fa9f60eac753"
+        },
+        {
+          "id": "628b155b-3a04-434a-80dc-de264580ec78",
+          "contentSha256": "3d5146f9a2ac057dea961ac12211935c786dd423fe7d7a40de48469180e410ca"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": false,
+        "PARRY": false,
+        "A.L.I.C.E.": false,
+        "Cleverbot": false
+      },
+      "supplementDecision": {
+        "askedGaps": [
+          "Do the decoder LSTMs all have the same weights?"
+        ],
+        "attempted": true,
+        "attempts": [
+          {
+            "kind": "local-literal",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 0,
+            "queries": [
+              "Do the decoder LSTMs all have the same weights?"
+            ],
+            "retrievalRound": 1,
+            "witnesses": []
+          }
+        ],
+        "gaps": [
+          {
+            "gap": "Do the decoder LSTMs all have the same weights?",
+            "scope": "explicitly-asked"
+          }
+        ],
+        "mode": "local-first",
+        "newFactCount": 0,
+        "queries": [
+          "Do the decoder LSTMs all have the same weights?"
+        ],
+        "stopReason": "no-new-current-fact",
+        "witnessGapIndexBase": 0,
+        "witnesses": []
+      },
+      "qaUsage": {
+        "requests": 1,
+        "tokens": 3457
+      }
+    },
+    {
+      "questionId": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "entry": "desktop",
+      "question": "What does an individual model consist of?",
+      "memoryGrade": "yes",
+      "currentGrade": {
+        "answerCorrect": "no",
+        "reason": "Refuses/claims insufficient records despite the answer being present in the gold passage."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "yes",
+        "reason": "States the base monolingual model is the Bayesian model of garg2012unsupervised, matching the gold answer."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "yes",
+        "reason": "Reference 337337b7 states the base monolingual model is the Bayesian model of garg2012unsupervised, matching the gold evidence that an individual model consists of this base monolingual model."
+      },
+      "finalStatus": "unknown",
+      "claims": [],
+      "unknowns": [],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "memory:7ca0f398-f02e-4ac7-8c60-3dc34c7a0d78",
+          "contentSha256": "129daa3d1ea371e0017f96d741dc03b028d415968e47a11eb96a02826fe662c6"
+        },
+        {
+          "id": "memory:7179de5e-f33b-4a8b-a80e-b49122078b51",
+          "contentSha256": "1104b56ace9be285626cafbda6efd8242911eb02a80b6df78ee3e8af9fc722a3"
+        },
+        {
+          "id": "memory:0a2ab941-0512-4399-b21e-10de94c1947a",
+          "contentSha256": "524aea3fa3d433dad64061fad8b9ab220ed441c0b4a5c4cdd5c50e79c545449e"
+        },
+        {
+          "id": "memory:b80ce275-df1c-4b24-b589-e2a98d515136",
+          "contentSha256": "5ce00cae20d4159edee9ffe00db83fd394ee79d5ca85a8d9ad2366c17ecc0dae"
+        },
+        {
+          "id": "memory:941783b1-651b-4151-9951-e9874bcad91c",
+          "contentSha256": "2dd90e6cc1964f582f4c663fb41608097852eee7164e0a8a437d72009423a972"
+        },
+        {
+          "id": "memory:32b22280-92f8-4bac-814c-f5bb1f16d021",
+          "contentSha256": "6f819339339f9c383a9b0b8da4763b82a7c8141e4c102c41d644cd60184bbfda"
+        },
+        {
+          "id": "memory:4c5422c3-dcfd-41a8-85ea-d68ceb146e92",
+          "contentSha256": "b69f3aeac193bd7ca263c6874585ce2d0536d0f86701c0d05209a4f3f62699a6"
+        },
+        {
+          "id": "memory:30c67768-57d4-4686-a004-57f8bed8277c",
+          "contentSha256": "7bb41e4e3f594c356e541ef094abef902ae080294a407a703b26a18f008acf58"
+        },
+        {
+          "id": "memory:6a5eebd6-90bf-4847-9065-14242be7347c",
+          "contentSha256": "7cf2c6e904656822c67f5a8e3d5457d2dc38b4dca92ca097c4175d8d5521b2a4"
+        },
+        {
+          "id": "memory:7ea2c0a9-6c5c-4eb2-bed2-5196983b3979",
+          "contentSha256": "89a1b500043b82d7e06a8ddf7c7dedc265fe182bd046ce7d9bf2fd8a3aacdd7a"
+        },
+        {
+          "id": "memory:07a2be38-f318-4e49-9542-97e02bbd8784",
+          "contentSha256": "3c5062d61abe3964addcce04558ed604a97f3ee879719fd5c259dcf8975d3d99"
+        },
+        {
+          "id": "memory:337337b7-f93b-45cf-9ddb-2cca047008f8",
+          "contentSha256": "afc498482d655cae0c7f8cbd729d9fa46b453bcd9853988dc867b13b3c05f8a5"
+        },
+        {
+          "id": "memory:3d33ff2c-f42e-40f3-a93f-bed563e4a319",
+          "contentSha256": "975c3d0a45e0ffeee78a4441d966132c5de0e28953dd28f359fc14577246cbb3"
+        },
+        {
+          "id": "memory:a66c1c07-89d4-43aa-96cc-54650536c0a0",
+          "contentSha256": "f6e6921784bee0fb65eb69e8e6f85900aba8373eaa22be040ddc0ba9ca33971b"
+        },
+        {
+          "id": "memory:398f615f-3d32-46cc-8f5b-c66295722e33",
+          "contentSha256": "1c899fd3f61bc9fb82ed90b4e05e012ea21b1687c74efa1c9ab2479535109fd2"
+        },
+        {
+          "id": "memory:784ebf96-6d95-47f0-b704-2bfa3ed1c3e0",
+          "contentSha256": "37d21972ff07922e5a2a63131e3e4403c4872376c97391ba3459a7c231c2517a"
+        },
+        {
+          "id": "memory:afbfe623-9194-4250-95dc-1b24a6d4a221",
+          "contentSha256": "04270b517f0d3fea6822ae454db9a8c7b7650b25a6b862dc9a7467d5c65c5fdd"
+        },
+        {
+          "id": "memory:8deb35c0-80b7-4db2-bdc8-2e69a6b6bcd7",
+          "contentSha256": "79c42450238fdfef23f3787b95a59e67bb3bde219d88a5b6a02f4d7eafd0a67a"
+        },
+        {
+          "id": "memory:5e69d8c2-2a4a-4479-b0c7-ba8cf5fbe5dd",
+          "contentSha256": "04270b517f0d3fea6822ae454db9a8c7b7650b25a6b862dc9a7467d5c65c5fdd"
+        },
+        {
+          "id": "memory:8ed9e8e0-1b75-4049-9b94-81b013b718ab",
+          "contentSha256": "c7e4bee21b51773f125edba6e16b6b8204adcbff3204faff40c297a2dfeac736"
+        },
+        {
+          "id": "memory:f2a823eb-915a-4d3a-b356-edb784eac2b8",
+          "contentSha256": "b29dc0294071b9de99000db910b3832c59264a3a19b9b10ba7c1ca26fe766186"
+        },
+        {
+          "id": "memory:576f0654-ced8-45c1-ba4c-15da923f4289",
+          "contentSha256": "40737e160ed607802812ae143d0fca32750a5cfa5041a6d869804fe0a4c8fe6e"
+        },
+        {
+          "id": "memory:0dbb09d8-141e-42d5-a4db-860f981258bb",
+          "contentSha256": "7d8bafb175cb3c9c41c5c9d5f3073c78adfe4e6222c78efa647a7fced45c9b1b"
+        },
+        {
+          "id": "memory:8c491888-e22b-4305-8d78-1c1da63e441f",
+          "contentSha256": "ef4acb2be205ffd1a197dc2bbd20aa92ad34d735337bf485db51b2e8d36a839f"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": false,
+        "PARRY": false,
+        "A.L.I.C.E.": false,
+        "Cleverbot": false
+      },
+      "supplementDecision": {
+        "askedGaps": [
+          "What does an individual model consist of?"
+        ],
+        "attempted": true,
+        "attempts": [
+          {
+            "kind": "local-literal",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 0,
+            "queries": [
+              "What does an individual model consist of?"
+            ],
+            "retrievalRound": 1,
+            "witnesses": []
+          }
+        ],
+        "gaps": [
+          {
+            "gap": "What does an individual model consist of?",
+            "scope": "explicitly-asked"
+          }
+        ],
+        "mode": "local-first",
+        "newFactCount": 0,
+        "queries": [
+          "What does an individual model consist of?"
+        ],
+        "stopReason": "no-new-current-fact",
+        "witnessGapIndexBase": 0,
+        "witnesses": []
+      },
+      "qaUsage": {
+        "requests": 2,
+        "tokens": 6157
+      }
+    },
+    {
+      "questionId": "50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed",
+      "entry": "connector",
+      "question": "What does an individual model consist of?",
+      "memoryGrade": "yes",
+      "currentGrade": {
+        "answerCorrect": "yes",
+        "reason": "Correctly identifies the Bayesian model of garg2012unsupervised as the base monolingual model."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "yes",
+        "reason": "Correctly identifies the Bayesian model of garg2012unsupervised as the base monolingual model."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "yes",
+        "reason": "Reference 337337b7 contains the gold sentence identifying the base monolingual model as garg2012unsupervised's Bayesian model, sufficient to answer what an individual model consists of."
+      },
+      "finalStatus": "answered",
+      "claims": [
+        "The base monolingual model used is the Bayesian model of garg2012unsupervised."
+      ],
+      "unknowns": [],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "7ca0f398-f02e-4ac7-8c60-3dc34c7a0d78",
+          "contentSha256": "129daa3d1ea371e0017f96d741dc03b028d415968e47a11eb96a02826fe662c6"
+        },
+        {
+          "id": "7179de5e-f33b-4a8b-a80e-b49122078b51",
+          "contentSha256": "1104b56ace9be285626cafbda6efd8242911eb02a80b6df78ee3e8af9fc722a3"
+        },
+        {
+          "id": "0a2ab941-0512-4399-b21e-10de94c1947a",
+          "contentSha256": "524aea3fa3d433dad64061fad8b9ab220ed441c0b4a5c4cdd5c50e79c545449e"
+        },
+        {
+          "id": "b80ce275-df1c-4b24-b589-e2a98d515136",
+          "contentSha256": "5ce00cae20d4159edee9ffe00db83fd394ee79d5ca85a8d9ad2366c17ecc0dae"
+        },
+        {
+          "id": "941783b1-651b-4151-9951-e9874bcad91c",
+          "contentSha256": "2dd90e6cc1964f582f4c663fb41608097852eee7164e0a8a437d72009423a972"
+        },
+        {
+          "id": "32b22280-92f8-4bac-814c-f5bb1f16d021",
+          "contentSha256": "6f819339339f9c383a9b0b8da4763b82a7c8141e4c102c41d644cd60184bbfda"
+        },
+        {
+          "id": "4c5422c3-dcfd-41a8-85ea-d68ceb146e92",
+          "contentSha256": "b69f3aeac193bd7ca263c6874585ce2d0536d0f86701c0d05209a4f3f62699a6"
+        },
+        {
+          "id": "30c67768-57d4-4686-a004-57f8bed8277c",
+          "contentSha256": "7bb41e4e3f594c356e541ef094abef902ae080294a407a703b26a18f008acf58"
+        },
+        {
+          "id": "6a5eebd6-90bf-4847-9065-14242be7347c",
+          "contentSha256": "7cf2c6e904656822c67f5a8e3d5457d2dc38b4dca92ca097c4175d8d5521b2a4"
+        },
+        {
+          "id": "7ea2c0a9-6c5c-4eb2-bed2-5196983b3979",
+          "contentSha256": "89a1b500043b82d7e06a8ddf7c7dedc265fe182bd046ce7d9bf2fd8a3aacdd7a"
+        },
+        {
+          "id": "07a2be38-f318-4e49-9542-97e02bbd8784",
+          "contentSha256": "3c5062d61abe3964addcce04558ed604a97f3ee879719fd5c259dcf8975d3d99"
+        },
+        {
+          "id": "337337b7-f93b-45cf-9ddb-2cca047008f8",
+          "contentSha256": "afc498482d655cae0c7f8cbd729d9fa46b453bcd9853988dc867b13b3c05f8a5"
+        },
+        {
+          "id": "3d33ff2c-f42e-40f3-a93f-bed563e4a319",
+          "contentSha256": "975c3d0a45e0ffeee78a4441d966132c5de0e28953dd28f359fc14577246cbb3"
+        },
+        {
+          "id": "a66c1c07-89d4-43aa-96cc-54650536c0a0",
+          "contentSha256": "f6e6921784bee0fb65eb69e8e6f85900aba8373eaa22be040ddc0ba9ca33971b"
+        },
+        {
+          "id": "398f615f-3d32-46cc-8f5b-c66295722e33",
+          "contentSha256": "1c899fd3f61bc9fb82ed90b4e05e012ea21b1687c74efa1c9ab2479535109fd2"
+        },
+        {
+          "id": "784ebf96-6d95-47f0-b704-2bfa3ed1c3e0",
+          "contentSha256": "37d21972ff07922e5a2a63131e3e4403c4872376c97391ba3459a7c231c2517a"
+        },
+        {
+          "id": "afbfe623-9194-4250-95dc-1b24a6d4a221",
+          "contentSha256": "04270b517f0d3fea6822ae454db9a8c7b7650b25a6b862dc9a7467d5c65c5fdd"
+        },
+        {
+          "id": "8deb35c0-80b7-4db2-bdc8-2e69a6b6bcd7",
+          "contentSha256": "79c42450238fdfef23f3787b95a59e67bb3bde219d88a5b6a02f4d7eafd0a67a"
+        },
+        {
+          "id": "5e69d8c2-2a4a-4479-b0c7-ba8cf5fbe5dd",
+          "contentSha256": "04270b517f0d3fea6822ae454db9a8c7b7650b25a6b862dc9a7467d5c65c5fdd"
+        },
+        {
+          "id": "8ed9e8e0-1b75-4049-9b94-81b013b718ab",
+          "contentSha256": "c7e4bee21b51773f125edba6e16b6b8204adcbff3204faff40c297a2dfeac736"
+        },
+        {
+          "id": "f2a823eb-915a-4d3a-b356-edb784eac2b8",
+          "contentSha256": "b29dc0294071b9de99000db910b3832c59264a3a19b9b10ba7c1ca26fe766186"
+        },
+        {
+          "id": "576f0654-ced8-45c1-ba4c-15da923f4289",
+          "contentSha256": "40737e160ed607802812ae143d0fca32750a5cfa5041a6d869804fe0a4c8fe6e"
+        },
+        {
+          "id": "0dbb09d8-141e-42d5-a4db-860f981258bb",
+          "contentSha256": "7d8bafb175cb3c9c41c5c9d5f3073c78adfe4e6222c78efa647a7fced45c9b1b"
+        },
+        {
+          "id": "8c491888-e22b-4305-8d78-1c1da63e441f",
+          "contentSha256": "ef4acb2be205ffd1a197dc2bbd20aa92ad34d735337bf485db51b2e8d36a839f"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": false,
+        "PARRY": false,
+        "A.L.I.C.E.": false,
+        "Cleverbot": false
+      },
+      "supplementDecision": {
+        "attempted": false,
+        "mode": "local-first",
+        "stopReason": "not-needed"
+      },
+      "qaUsage": {
+        "requests": 2,
+        "tokens": 6616
+      }
+    },
+    {
+      "questionId": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "entry": "desktop",
+      "question": "How does the neural network architecture accomodate an unknown amount of senses per word?",
+      "memoryGrade": "partial",
+      "currentGrade": {
+        "answerCorrect": "partial",
+        "reason": "Covers context-gloss pairs and per-sense classification but does not explicitly explain accommodation of unknown/variable sense counts."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "partial",
+        "reason": "Describes context-gloss pairing and per-sense classification, which addresses variable sense counts, but explicitly flags uncertainty about handling unknown N."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "no",
+        "reason": "Selected references describe gloss-based WSD models and context-gloss pairs but do not explain how the architecture handles a variable/unknown number of senses per word."
+      },
+      "finalStatus": "answered",
+      "claims": [
+        "The recorded approach constructs context-gloss pairs from the glosses of all possible senses (in WordNet) of the target word, treating WSD as a sentence-pair classification problem.",
+        "For each target word, the glosses of all N possible senses are extracted from WordNet to form the gloss sentence; the record gives N=4 as an example.",
+        "GlossBERT将WSD视为句对分类问题：对目标词，从WordNet中提取全部N个可能词义的释义，与上下文构成上下文-释义对。",
+        "每个目标词有N个上下文-释义对训练实例，标签为yes或no。",
+        "测试时，模型输出每个上下文-释义对label=yes的概率，并选择概率最高的词义作为目标词的预测标签。"
+      ],
+      "unknowns": [],
+      "selectedProducerIndices": [
+        0,
+        1
+      ],
+      "selectedReferences": [
+        {
+          "id": "memory:4bc2bf9b-e73e-40e7-a219-a159dcd9eaba",
+          "contentSha256": "543682d30949f629201e0db211166a1a3bc2c199d697535fc58a437a780d054e"
+        },
+        {
+          "id": "memory:9e0ecb43-248f-4382-8961-c8db458d60fd",
+          "contentSha256": "7bb80fcc781d7916d875435acc763a45f4de5a89a3abd1de4c6bd6680f19a0b3"
+        },
+        {
+          "id": "memory:e9d9218d-b876-4c99-97b6-bb7f57a72ac0",
+          "contentSha256": "13365a788a335102e571cc14e9d81f31a0bd78c957a7f63a98526e256bea053a"
+        },
+        {
+          "id": "memory:c1c3172e-ef89-4a87-bc6a-73199ddd3b38",
+          "contentSha256": "7fba9254dfc4a7904c3cc81f9635dc41eac1b95f11240ad62ec69e341340efa9"
+        },
+        {
+          "id": "memory:72149988-9758-4fec-a029-2517049dba61",
+          "contentSha256": "09cd84cc52cff974ff0d4662c882c3154fd4c7095bdd7293b665a8d6a2df927b"
+        },
+        {
+          "id": "memory:c0be303c-5aac-464d-aefc-c68e7c65cf0d",
+          "contentSha256": "3c057643d79ee8a2a5548e642a2ff34737385eff6491d54bf62068bbd90eeb5c"
+        },
+        {
+          "id": "memory:63501e3f-e640-4bb1-be44-75e0a0d79868",
+          "contentSha256": "41996f4653a6e702573364704a2189d3f8cafe2812e5c7cf0bf7e57e86da08b3"
+        },
+        {
+          "id": "memory:1f262c8c-2fa9-49d7-b02f-a787da8a3653",
+          "contentSha256": "dce1e3ddabd45666914614f028fcd84aef4748da8eca01643ba51e78f422a2d8"
+        },
+        {
+          "id": "memory:e591a186-c6b9-47c4-8acb-b9c83d953442",
+          "contentSha256": "dae213d1f5cdb2540883f18c499d82c0e6a59aadfc8c843c3e35231fcf02e714"
+        },
+        {
+          "id": "memory:c360ad32-0e00-4a40-a436-3d0c88fbb3ce",
+          "contentSha256": "c1529fb8d336c93b0444413e1b58a7a575caef33733c81103d2471913bd219c3"
+        },
+        {
+          "id": "memory:9ec8f68c-e726-4a6a-a5ed-07ba94dc62aa",
+          "contentSha256": "001bdff1701f33faeb0b1d55993cc26731b99ffb1374d63e58d211f1fad3370d"
+        },
+        {
+          "id": "memory:558e56bc-4520-4d08-bd0f-d962cf0fe479",
+          "contentSha256": "d1682d8cca284eb50bc0243558d359fea3ce2460c826f49234529ef2e4cd50bc"
+        },
+        {
+          "id": "memory:6c69fdad-721b-468b-af48-cc107f51c8b1",
+          "contentSha256": "be5e20002aba5a487412c0cc99bac6a1fdf911be51fdac1323bb661af868864e"
+        },
+        {
+          "id": "memory:8cc7185d-96a7-4fc3-98dd-201eed8366bf",
+          "contentSha256": "6663d651b933f8297864273f86e19522d581cfd25eda3f14de1886b57b428f8a"
+        },
+        {
+          "id": "memory:66ab8d86-082a-4757-a050-a019d2c18907",
+          "contentSha256": "89d2f89c995991957f6fde972c4e7a21dfa8f0cfdad4111f95377d56e4d9aea3"
+        },
+        {
+          "id": "memory:abe2e02b-8462-40d9-bae2-bd731aca1741",
+          "contentSha256": "678c518e8629cd58823c2c16773781fb4ca4b9d1db58c58ae29fe156dca5e432"
+        },
+        {
+          "id": "memory:63948cbb-3012-4873-8bf3-5d3c64b7ea35",
+          "contentSha256": "f61791d52a1a25806a2738e323691e37f1200f1e9ab4948dbcb11c9faa33878c"
+        },
+        {
+          "id": "memory:191f80e9-ce1c-4e69-a3ba-cf286940c3e2",
+          "contentSha256": "678c518e8629cd58823c2c16773781fb4ca4b9d1db58c58ae29fe156dca5e432"
+        },
+        {
+          "id": "memory:e899d0cc-116e-4466-bfab-09ddeb15edc8",
+          "contentSha256": "074605d026a2db7af82255983d49b465433cf447d1ed26b903100da3e9d3d814"
+        },
+        {
+          "id": "memory:4639c351-2360-40f1-97e4-1a3f8131ed43",
+          "contentSha256": "3703c3dc9fc1846f1bbf4e07310e55cc0451b5e4d536395ff419fdccfacd83c7"
+        },
+        {
+          "id": "memory:e1cbf796-0bab-4b80-9c56-4b70eae7014b",
+          "contentSha256": "b29111ecd1a6ef80252865dfacd5a3d865ac130a880f4b61c4251e6c8c0d4d9c"
+        },
+        {
+          "id": "memory:0d7eb0a7-91b3-4deb-b0ec-d2843a9d4b7f",
+          "contentSha256": "c04eed2b88eecdeee1db9eb4ce3a2e3fe6eac2342977e468cc85f3d8edc4fa0e"
+        },
+        {
+          "id": "memory:b3497198-ab9f-4a2c-bd05-cfc14ebc61f0",
+          "contentSha256": "68edbbd4a9dd88e4fa12b9f58577915fb8b9c7578da2c576289577a573417fa5"
+        },
+        {
+          "id": "memory:f3ed93e2-2b5f-4f06-87d4-a398fbac1ed6",
+          "contentSha256": "4e7d45d14cdf4164bcf0d5a673b7dbf27f8560477476b6a9f9d25d096cdd6195"
+        },
+        {
+          "id": "memory:9ec8f68c-e726-4a6a-a5ed-07ba94dc62aa",
+          "contentSha256": "001bdff1701f33faeb0b1d55993cc26731b99ffb1374d63e58d211f1fad3370d"
+        },
+        {
+          "id": "memory:e9d9218d-b876-4c99-97b6-bb7f57a72ac0",
+          "contentSha256": "13365a788a335102e571cc14e9d81f31a0bd78c957a7f63a98526e256bea053a"
+        },
+        {
+          "id": "memory:c1c3172e-ef89-4a87-bc6a-73199ddd3b38",
+          "contentSha256": "7fba9254dfc4a7904c3cc81f9635dc41eac1b95f11240ad62ec69e341340efa9"
+        },
+        {
+          "id": "memory:63948cbb-3012-4873-8bf3-5d3c64b7ea35",
+          "contentSha256": "f61791d52a1a25806a2738e323691e37f1200f1e9ab4948dbcb11c9faa33878c"
+        },
+        {
+          "id": "memory:63501e3f-e640-4bb1-be44-75e0a0d79868",
+          "contentSha256": "41996f4653a6e702573364704a2189d3f8cafe2812e5c7cf0bf7e57e86da08b3"
+        },
+        {
+          "id": "memory:023d0a25-2adf-4c93-9fb7-f0472b6cfe58",
+          "contentSha256": "9cb9237bbde3036bd689f0ea436297844581ed0e2fc662f25d8ee7066a6dddbd"
+        },
+        {
+          "id": "memory:cc09c188-9b26-4b0c-aa39-e75bf0305674",
+          "contentSha256": "49a5e525a5f71ab6581a874bb00550af8616111f96afaebddc006a66580587a9"
+        },
+        {
+          "id": "memory:72149988-9758-4fec-a029-2517049dba61",
+          "contentSha256": "09cd84cc52cff974ff0d4662c882c3154fd4c7095bdd7293b665a8d6a2df927b"
+        },
+        {
+          "id": "memory:34d97a47-680e-48b8-8369-1e1292b73662",
+          "contentSha256": "fc6cada032dc5dfbbce1990441f0513ea6f7ef29810476e0d0c9554f59eb890f"
+        },
+        {
+          "id": "memory:abe2e02b-8462-40d9-bae2-bd731aca1741",
+          "contentSha256": "678c518e8629cd58823c2c16773781fb4ca4b9d1db58c58ae29fe156dca5e432"
+        },
+        {
+          "id": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2",
+          "contentSha256": "1203c6c35cc0635a2750abdedad15745a90d68b83950504424415513594ff1df"
+        },
+        {
+          "id": "memory:caaf5520-052a-4d7b-b12d-a200ef22288e",
+          "contentSha256": "818e08973f896ecc1f3b8a9c8f50b56aa327e1b798ea344e724198689e5e2842"
+        },
+        {
+          "id": "memory:1254221a-7992-4b53-adc2-e0c67cf1f2f2",
+          "contentSha256": "c2210c400c351ca59ff5ef7cde16b6e1d4adb12c13f1c8d783c1b04de8269d77"
+        },
+        {
+          "id": "memory:191f80e9-ce1c-4e69-a3ba-cf286940c3e2",
+          "contentSha256": "678c518e8629cd58823c2c16773781fb4ca4b9d1db58c58ae29fe156dca5e432"
+        },
+        {
+          "id": "memory:753c19fe-ecb8-441f-a303-54182798da19",
+          "contentSha256": "6c5ad61ad2f268379e60524ab5d66869d3cefc7e6860eb5abc1838e0bef22f13"
+        },
+        {
+          "id": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5",
+          "contentSha256": "d2150f47139313271d9ca834008101f8af70cbf155b89df834b5e4844f56375f"
+        },
+        {
+          "id": "memory:610acac5-bb6c-4992-ae4c-9bd0d89d1a11",
+          "contentSha256": "a04230adc64c0ba58705e17634e3a211c41ecdfb4920442c986576ef089905c5"
+        },
+        {
+          "id": "memory:c360ad32-0e00-4a40-a436-3d0c88fbb3ce",
+          "contentSha256": "c1529fb8d336c93b0444413e1b58a7a575caef33733c81103d2471913bd219c3"
+        },
+        {
+          "id": "memory:78db3daa-d4b8-47d6-b5ed-a02f09515e66",
+          "contentSha256": "442216f97c3f9395d737224aeb1bfc5ab434cd2575daa23b328db7344b4c718e"
+        },
+        {
+          "id": "memory:56f3c4ac-72a2-4cda-96c3-ed2c3cd06fd0",
+          "contentSha256": "ad612de2755664a4d9f36376052ec0a31e134215955b6621a87230e2afc155c8"
+        },
+        {
+          "id": "memory:700bb137-0a93-4e9c-8508-ee16451d94f5",
+          "contentSha256": "31b6d08ceb8084b422a7d9edd5a0a430ae226aa47242fc8012a96e9fea34550e"
+        },
+        {
+          "id": "memory:4bc2bf9b-e73e-40e7-a219-a159dcd9eaba",
+          "contentSha256": "543682d30949f629201e0db211166a1a3bc2c199d697535fc58a437a780d054e"
+        },
+        {
+          "id": "memory:c0be303c-5aac-464d-aefc-c68e7c65cf0d",
+          "contentSha256": "3c057643d79ee8a2a5548e642a2ff34737385eff6491d54bf62068bbd90eeb5c"
+        },
+        {
+          "id": "memory:1f262c8c-2fa9-49d7-b02f-a787da8a3653",
+          "contentSha256": "dce1e3ddabd45666914614f028fcd84aef4748da8eca01643ba51e78f422a2d8"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": false,
+        "PARRY": false,
+        "A.L.I.C.E.": false,
+        "Cleverbot": false
+      },
+      "supplementDecision": {
+        "askedGaps": [
+          "未说明在提取全部N个可能词义的释义并构造上下文-释义对之后，架构如何具体处理每个词可变或未知数量的词义（如逐词义分类、聚合或选择机制）。",
+          "How does the neural network architecture accomodate an unknown amount of senses per word?",
+          "The records do not describe how the architecture handles a variable or unknown number of senses per word beyond extracting all N possible senses and forming context-gloss pairs; no explicit mechanism for variable sense cardinality is recorded."
+        ],
+        "attempted": true,
+        "attempts": [
+          {
+            "kind": "local-literal",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 10,
+            "queries": [
+              "未说明在提取全部N个可能词义的释义并构造上下文-释义对之后，架构如何具体处理每个词可变或未知数量的词义",
+              "How does the neural network architecture accomodate an unknown amount of senses per word?",
+              "The records do not describe how the architecture handles a variable or unknown number of senses per word beyond extracting all N possible senses and forming con"
+            ],
+            "retrievalRound": 1,
+            "witnesses": []
+          },
+          {
+            "kind": "necessary-gap-navigation",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 12,
+            "queries": [
+              "context-gloss pairs all possible senses target word",
+              "GlossBERT architecture variable number of senses",
+              "sense cardinality classification aggregation mechanism"
+            ],
+            "retrievalRound": 2,
+            "witnesses": [
+              {
+                "anchors": [
+                  {
+                    "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                    "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+                  }
+                ],
+                "gapIndex": 0,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "We take the final hidden state of the first token [CLS] as the representation of the whole sequence and add a classification layer ($label\\in \\lbrace yes, no\\rbrace $), which does not highlight the target word.",
+                    "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+                  }
+                ],
+                "gapIndex": 0,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "We take the final hidden state of the first token [CLS] and add a classification layer ($label\\in \\lbrace yes, no\\rbrace $), which weekly highlight the target word by the weak supervision.",
+                    "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+                  }
+                ],
+                "gapIndex": 0,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                    "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+                  }
+                ],
+                "gapIndex": 1,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "We take the final hidden state of the first token [CLS] as the representation of the whole sequence and add a classification layer ($label\\in \\lbrace yes, no\\rbrace $), which does not highlight the target word.",
+                    "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+                  }
+                ],
+                "gapIndex": 1,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "We take the final hidden state of the first token [CLS] and add a classification layer ($label\\in \\lbrace yes, no\\rbrace $), which weekly highlight the target word by the weak supervision.",
+                    "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+                  }
+                ],
+                "gapIndex": 1,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                    "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+                  }
+                ],
+                "gapIndex": 2,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "We use context-gloss pairs as input.",
+                    "referenceId": "memory:1254221a-7992-4b53-adc2-e0c67cf1f2f2"
+                  }
+                ],
+                "gapIndex": 2,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "memory:1254221a-7992-4b53-adc2-e0c67cf1f2f2"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "We use context-gloss pairs as input.",
+                    "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+                  }
+                ],
+                "gapIndex": 2,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "We use context-gloss pairs with weak supervision as input.",
+                    "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+                  }
+                ],
+                "gapIndex": 2,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+              }
+            ]
+          }
+        ],
+        "gaps": [
+          {
+            "gap": "未说明在提取全部N个可能词义的释义并构造上下文-释义对之后，架构如何具体处理每个词可变或未知数量的词义（如逐词义分类、聚合或选择机制）。",
+            "scope": "explicitly-asked"
+          },
+          {
+            "gap": "How does the neural network architecture accomodate an unknown amount of senses per word?",
+            "scope": "explicitly-asked"
+          },
+          {
+            "gap": "The records do not describe how the architecture handles a variable or unknown number of senses per word beyond extracting all N possible senses and forming context-gloss pairs; no explicit mechanism for variable sense cardinality is recorded.",
+            "scope": "explicitly-asked"
+          }
+        ],
+        "mode": "local-first",
+        "navigationFallbackReason": "reviewed-necessary-gap-with-no-local-witness",
+        "newFactCount": 12,
+        "queries": [
+          "context-gloss pairs all possible senses target word",
+          "GlossBERT architecture variable number of senses",
+          "sense cardinality classification aggregation mechanism"
+        ],
+        "stopReason": "new-current-asked-gap-witness",
+        "witnessGapIndexBase": 0,
+        "witnesses": [
+          {
+            "anchors": [
+              {
+                "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              }
+            ],
+            "gapIndex": 0,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "We take the final hidden state of the first token [CLS] as the representation of the whole sequence and add a classification layer ($label\\in \\lbrace yes, no\\rbrace $), which does not highlight the target word.",
+                "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+              }
+            ],
+            "gapIndex": 0,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "We take the final hidden state of the first token [CLS] and add a classification layer ($label\\in \\lbrace yes, no\\rbrace $), which weekly highlight the target word by the weak supervision.",
+                "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+              }
+            ],
+            "gapIndex": 0,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              }
+            ],
+            "gapIndex": 1,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "We take the final hidden state of the first token [CLS] as the representation of the whole sequence and add a classification layer ($label\\in \\lbrace yes, no\\rbrace $), which does not highlight the target word.",
+                "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+              }
+            ],
+            "gapIndex": 1,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "We take the final hidden state of the first token [CLS] and add a classification layer ($label\\in \\lbrace yes, no\\rbrace $), which weekly highlight the target word by the weak supervision.",
+                "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+              }
+            ],
+            "gapIndex": 1,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              }
+            ],
+            "gapIndex": 2,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "memory:bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "We use context-gloss pairs as input.",
+                "referenceId": "memory:1254221a-7992-4b53-adc2-e0c67cf1f2f2"
+              }
+            ],
+            "gapIndex": 2,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "memory:1254221a-7992-4b53-adc2-e0c67cf1f2f2"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "We use context-gloss pairs as input.",
+                "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+              }
+            ],
+            "gapIndex": 2,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "memory:753c19fe-ecb8-441f-a303-54182798da19"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "We use context-gloss pairs with weak supervision as input.",
+                "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+              }
+            ],
+            "gapIndex": 2,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "memory:04fd4d5b-9d89-4229-be33-1c29bd7061b5"
+          }
+        ]
+      },
+      "qaUsage": {
+        "requests": 5,
+        "tokens": 16251
+      }
+    },
+    {
+      "questionId": "10fb7dc031075946153baf0a0599e126de29e3a4",
+      "entry": "connector",
+      "question": "How does the neural network architecture accomodate an unknown amount of senses per word?",
+      "memoryGrade": "partial",
+      "currentGrade": {
+        "answerCorrect": "partial",
+        "reason": "Describes per-sense pairing and [CLS]/[SEP] input but explicitly says dynamic handling of variable sense count is unrecorded."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "partial",
+        "reason": "Explains per-sense context-gloss pairs and argmax over senses, but states it is unrecorded how non-fixed N is handled."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "no",
+        "reason": "Connector references are the same gloss/WSD descriptions and do not address accommodating an unknown number of senses per word."
+      },
+      "finalStatus": "partial",
+      "claims": [
+        "对每个目标词，方法从WordNet中提取该词所有N个可能词义的释义（gloss），以得到释义句；文中示例N=4。",
+        "方法由目标词所有可能词义（WordNet中）的释义构造上下文-释义对，从而把WSD任务视为句对分类问题。",
+        "上下文-释义对会加入[CLS]和[SEP]标记，以适配BERT模型的输入。"
+      ],
+      "unknowns": [
+        "记录未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量（如是否逐词义分别构造句对并逐一分类）。",
+        "未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量（如是否逐词义分别构造句对并逐一分类）",
+        "How does the neural network architecture accomodate an unknown amount of senses per word?"
+      ],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "4bc2bf9b-e73e-40e7-a219-a159dcd9eaba",
+          "contentSha256": "543682d30949f629201e0db211166a1a3bc2c199d697535fc58a437a780d054e"
+        },
+        {
+          "id": "9e0ecb43-248f-4382-8961-c8db458d60fd",
+          "contentSha256": "7bb80fcc781d7916d875435acc763a45f4de5a89a3abd1de4c6bd6680f19a0b3"
+        },
+        {
+          "id": "e9d9218d-b876-4c99-97b6-bb7f57a72ac0",
+          "contentSha256": "13365a788a335102e571cc14e9d81f31a0bd78c957a7f63a98526e256bea053a"
+        },
+        {
+          "id": "c1c3172e-ef89-4a87-bc6a-73199ddd3b38",
+          "contentSha256": "7fba9254dfc4a7904c3cc81f9635dc41eac1b95f11240ad62ec69e341340efa9"
+        },
+        {
+          "id": "72149988-9758-4fec-a029-2517049dba61",
+          "contentSha256": "09cd84cc52cff974ff0d4662c882c3154fd4c7095bdd7293b665a8d6a2df927b"
+        },
+        {
+          "id": "c0be303c-5aac-464d-aefc-c68e7c65cf0d",
+          "contentSha256": "3c057643d79ee8a2a5548e642a2ff34737385eff6491d54bf62068bbd90eeb5c"
+        },
+        {
+          "id": "63501e3f-e640-4bb1-be44-75e0a0d79868",
+          "contentSha256": "41996f4653a6e702573364704a2189d3f8cafe2812e5c7cf0bf7e57e86da08b3"
+        },
+        {
+          "id": "1f262c8c-2fa9-49d7-b02f-a787da8a3653",
+          "contentSha256": "dce1e3ddabd45666914614f028fcd84aef4748da8eca01643ba51e78f422a2d8"
+        },
+        {
+          "id": "e591a186-c6b9-47c4-8acb-b9c83d953442",
+          "contentSha256": "dae213d1f5cdb2540883f18c499d82c0e6a59aadfc8c843c3e35231fcf02e714"
+        },
+        {
+          "id": "c360ad32-0e00-4a40-a436-3d0c88fbb3ce",
+          "contentSha256": "c1529fb8d336c93b0444413e1b58a7a575caef33733c81103d2471913bd219c3"
+        },
+        {
+          "id": "9ec8f68c-e726-4a6a-a5ed-07ba94dc62aa",
+          "contentSha256": "001bdff1701f33faeb0b1d55993cc26731b99ffb1374d63e58d211f1fad3370d"
+        },
+        {
+          "id": "558e56bc-4520-4d08-bd0f-d962cf0fe479",
+          "contentSha256": "d1682d8cca284eb50bc0243558d359fea3ce2460c826f49234529ef2e4cd50bc"
+        },
+        {
+          "id": "6c69fdad-721b-468b-af48-cc107f51c8b1",
+          "contentSha256": "be5e20002aba5a487412c0cc99bac6a1fdf911be51fdac1323bb661af868864e"
+        },
+        {
+          "id": "8cc7185d-96a7-4fc3-98dd-201eed8366bf",
+          "contentSha256": "6663d651b933f8297864273f86e19522d581cfd25eda3f14de1886b57b428f8a"
+        },
+        {
+          "id": "66ab8d86-082a-4757-a050-a019d2c18907",
+          "contentSha256": "89d2f89c995991957f6fde972c4e7a21dfa8f0cfdad4111f95377d56e4d9aea3"
+        },
+        {
+          "id": "abe2e02b-8462-40d9-bae2-bd731aca1741",
+          "contentSha256": "678c518e8629cd58823c2c16773781fb4ca4b9d1db58c58ae29fe156dca5e432"
+        },
+        {
+          "id": "63948cbb-3012-4873-8bf3-5d3c64b7ea35",
+          "contentSha256": "f61791d52a1a25806a2738e323691e37f1200f1e9ab4948dbcb11c9faa33878c"
+        },
+        {
+          "id": "191f80e9-ce1c-4e69-a3ba-cf286940c3e2",
+          "contentSha256": "678c518e8629cd58823c2c16773781fb4ca4b9d1db58c58ae29fe156dca5e432"
+        },
+        {
+          "id": "e899d0cc-116e-4466-bfab-09ddeb15edc8",
+          "contentSha256": "074605d026a2db7af82255983d49b465433cf447d1ed26b903100da3e9d3d814"
+        },
+        {
+          "id": "4639c351-2360-40f1-97e4-1a3f8131ed43",
+          "contentSha256": "3703c3dc9fc1846f1bbf4e07310e55cc0451b5e4d536395ff419fdccfacd83c7"
+        },
+        {
+          "id": "e1cbf796-0bab-4b80-9c56-4b70eae7014b",
+          "contentSha256": "b29111ecd1a6ef80252865dfacd5a3d865ac130a880f4b61c4251e6c8c0d4d9c"
+        },
+        {
+          "id": "0d7eb0a7-91b3-4deb-b0ec-d2843a9d4b7f",
+          "contentSha256": "c04eed2b88eecdeee1db9eb4ce3a2e3fe6eac2342977e468cc85f3d8edc4fa0e"
+        },
+        {
+          "id": "b3497198-ab9f-4a2c-bd05-cfc14ebc61f0",
+          "contentSha256": "68edbbd4a9dd88e4fa12b9f58577915fb8b9c7578da2c576289577a573417fa5"
+        },
+        {
+          "id": "f3ed93e2-2b5f-4f06-87d4-a398fbac1ed6",
+          "contentSha256": "4e7d45d14cdf4164bcf0d5a673b7dbf27f8560477476b6a9f9d25d096cdd6195"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": false,
+        "PARRY": false,
+        "A.L.I.C.E.": false,
+        "Cleverbot": false
+      },
+      "supplementDecision": {
+        "askedGaps": [
+          "未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量（如是否逐词义分别构造句对并逐一分类）",
+          "How does the neural network architecture accomodate an unknown amount of senses per word?",
+          "记录未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量（如是否逐词义分别构造句对并逐一分类）。"
+        ],
+        "attempted": true,
+        "attempts": [
+          {
+            "kind": "local-literal",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 0,
+            "queries": [
+              "未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量",
+              "How does the neural network architecture accomodate an unknown amount of senses per word?",
+              "记录未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量"
+            ],
+            "retrievalRound": 1,
+            "witnesses": []
+          },
+          {
+            "kind": "necessary-gap-navigation",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 15,
+            "queries": [
+              "context-gloss pairs all possible senses target word",
+              "glosses all N possible senses target word",
+              "GlossBERT construct context-gloss pairs"
+            ],
+            "retrievalRound": 2,
+            "witnesses": [
+              {
+                "anchors": [
+                  {
+                    "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                    "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+                  }
+                ],
+                "gapIndex": 0,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                    "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+                  }
+                ],
+                "gapIndex": 1,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              },
+              {
+                "anchors": [
+                  {
+                    "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                    "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+                  }
+                ],
+                "gapIndex": 2,
+                "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+                "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              }
+            ]
+          }
+        ],
+        "gaps": [
+          {
+            "gap": "未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量（如是否逐词义分别构造句对并逐一分类）",
+            "scope": "explicitly-asked"
+          },
+          {
+            "gap": "How does the neural network architecture accomodate an unknown amount of senses per word?",
+            "scope": "explicitly-asked"
+          },
+          {
+            "gap": "记录未说明当每个词的词义数量不固定或未知时，架构如何动态处理该可变数量（如是否逐词义分别构造句对并逐一分类）。",
+            "scope": "explicitly-asked"
+          }
+        ],
+        "mode": "local-first",
+        "navigationFallbackReason": "reviewed-necessary-gap-with-no-local-witness",
+        "newFactCount": 15,
+        "queries": [
+          "context-gloss pairs all possible senses target word",
+          "glosses all N possible senses target word",
+          "GlossBERT construct context-gloss pairs"
+        ],
+        "stopReason": "new-current-asked-gap-witness",
+        "witnessGapIndexBase": 0,
+        "witnesses": [
+          {
+            "anchors": [
+              {
+                "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              }
+            ],
+            "gapIndex": 0,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              }
+            ],
+            "gapIndex": 1,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+          },
+          {
+            "anchors": [
+              {
+                "literal": "When testing, we output the probability of $label=yes$ of each context-gloss pair and choose the sense corresponding to the highest probability as the prediction label of the target word.",
+                "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+              }
+            ],
+            "gapIndex": 2,
+            "reason": "current-literal-Mechanism-relation-unresolved-role-navigation",
+            "referenceId": "bec058b0-d466-46e6-ac80-ac4a3f7179f2"
+          }
+        ]
+      },
+      "qaUsage": {
+        "requests": 5,
+        "tokens": 16770
+      }
+    },
+    {
+      "questionId": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "entry": "desktop",
+      "question": "What is the ROUGE score of the highest performing model?",
+      "memoryGrade": "yes",
+      "currentGrade": {
+        "answerCorrect": "yes",
+        "reason": "Gives the 33.33 average ROUGE score, matching the gold answer."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "yes",
+        "reason": "States the 33.33 average of ROUGE-1/2/L on CNN/Daily Mail, matching the gold answer."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "yes",
+        "reason": "Reference fff4492a states the model achieves a 33.33 average ROUGE score, matching the gold answer."
+      },
+      "finalStatus": "partial",
+      "claims": [
+        "The full model achieves a 33.33 average of ROUGE-1, ROUGE-2 and ROUGE-L on CNN/Daily Mail, described as state-of-the-art.",
+        "The ROUGE-1 and ROUGE-2 scores of the full model are comparable with DCA, and it outperforms on ROUGE-L."
+      ],
+      "unknowns": [
+        "The individual ROUGE-1, ROUGE-2 and ROUGE-L values for the highest-performing model are not recorded; only the 33.33 average across the three metrics is given.",
+        "The record does not explicitly state that the full model is the highest-performing model among all compared systems.",
+        "最高性能模型的单独 ROUGE-1、ROUGE-2、ROUGE-L 分数未给出，仅有 33.33 的三项平均分。",
+        "What is the ROUGE score of the highest performing model?"
+      ],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "memory:8cd02dbb-45c4-4c2f-af00-5973835faf9a",
+          "contentSha256": "ef07fa225e86bcf27445e20d9245dec7e97fb2698f24fa373c8202b4b4d080a6"
+        },
+        {
+          "id": "memory:4dd0d21c-7f90-493a-b48b-5a6014a17212",
+          "contentSha256": "9f232672a370d54db47d233ddb0a23ed005f741b1ca3172fa389fde6255b9d8f"
+        },
+        {
+          "id": "memory:b6dacce0-7795-44f7-8173-fbffba9baab2",
+          "contentSha256": "37cb83b60eb68c54b1fba41f89f26e71df33f151ae5da6c6fa1cc5fcb4d191f3"
+        },
+        {
+          "id": "memory:a46c52bb-bd41-4cf1-952b-ca7e9d3fd511",
+          "contentSha256": "ce0e742048996cb4e1afb6da9d0a4cfa74358c2e1b5256321939b1d79d37836d"
+        },
+        {
+          "id": "memory:1d9444b3-bf4f-4002-a4c0-85f51d31391a",
+          "contentSha256": "203b3166c028f106310d099335f4d85006d0dca978e32605c37000938f16693a"
+        },
+        {
+          "id": "memory:d5371b11-f200-452a-9ecb-7f0129b1f726",
+          "contentSha256": "2638e4de70febe34c6515f202af021be3b36349878f6e8967b00fd0c204df02c"
+        },
+        {
+          "id": "memory:c339aaaa-b19b-40b8-bd36-17c470cda19b",
+          "contentSha256": "461a8de928b0f8294f5d49daf5740c53c2623b4ddf8c5b9e7d37f1fe837c6210"
+        },
+        {
+          "id": "memory:47daefae-5e66-489b-b05f-13356358ba61",
+          "contentSha256": "ff14f09ea9823953338cd92e654c075830cbc29fa9b38ca855193fa977758200"
+        },
+        {
+          "id": "memory:a816638f-c20e-40f3-b0ed-e776d07bfb33",
+          "contentSha256": "3e3a6fd595992b6365f18466844ac78d5cdee4184acc77dd7ed1abf689ba9369"
+        },
+        {
+          "id": "memory:801be7b5-8894-4daf-9a26-2f3b654a3263",
+          "contentSha256": "575eec89f8440793822da511eda6fd030d3918d71e9f69e3fcc73f3010133a2e"
+        },
+        {
+          "id": "memory:bc379fbf-9f95-4c3c-a6fe-984a169b361c",
+          "contentSha256": "2cbefc80b94ee09f4ab0b168da886074b9866fd03fdbbe66568d1c0e6c3d37c8"
+        },
+        {
+          "id": "memory:6a61a593-f87a-4e81-96cb-21430f2f1180",
+          "contentSha256": "9b552639b1890155e509bd9ee601b7ad320124a217a0eb66c6963e407d968e66"
+        },
+        {
+          "id": "memory:daf97dec-2aef-483b-956f-cd6d5b2ac934",
+          "contentSha256": "a14bdf9796182171f94419c20fa308fffa36718da4ca2c95470994686c2cce16"
+        },
+        {
+          "id": "memory:a14c0bb7-f45e-48e4-99b6-53872ef7f50b",
+          "contentSha256": "75fbb4d5ee5f088a86b968b2746151cbedd2748976da64d9e6645b510a65e897"
+        },
+        {
+          "id": "memory:6459a094-a2d5-436b-8c13-cea61cef5863",
+          "contentSha256": "0c2ed9c9edb47c5dc736af0e005203a339ee642c284420c8889c603427e1a885"
+        },
+        {
+          "id": "memory:ec4db567-dee3-4548-8efd-ec6db5d5761e",
+          "contentSha256": "e524b4599eb7512fede72825ad330a62cad749a5d5e578cbccaaba768595d1cf"
+        },
+        {
+          "id": "memory:5a7e2ec7-4411-4992-ba7f-ad746d30f72b",
+          "contentSha256": "72fda11dcaf9434d91cb9e978d8c0f5a77cc3437d11c1a64362debe24de29ec0"
+        },
+        {
+          "id": "memory:7da4513d-715b-4c67-95d3-0c1a1bad82e6",
+          "contentSha256": "b9745b2aff8a075d3421836ba422665510747c6cb838a4bd4c6759caf540c19f"
+        },
+        {
+          "id": "memory:fff4492a-9f56-46bb-bb58-f9ee1d1c63cc",
+          "contentSha256": "8e331fd51522c9bd01f42982e9fd81020a0d2bbc061750db53d46ca1e0e0bd08"
+        },
+        {
+          "id": "memory:bd948421-2237-4bbb-b22e-a33320e80a41",
+          "contentSha256": "67acdc4799ab4f314d97a5dbcd64cac3085eb2326f59922c00aec78369df94c4"
+        },
+        {
+          "id": "memory:049c052f-6365-4c97-bf78-25cb1ee7253f",
+          "contentSha256": "2b68bb5f69d6f9d460032b276cece96c7bf7dafceac06af032a080434913b374"
+        },
+        {
+          "id": "memory:30e6e228-2323-45cf-b94e-415181507092",
+          "contentSha256": "8f55d469bdac7840d3a34a08cb8ad1cba45bf1a216dbb8cf5158f8caef1a4f5c"
+        },
+        {
+          "id": "memory:e010155a-8502-4ac6-a4bc-8d42c3adeaa9",
+          "contentSha256": "9752cfefe5133aa8d9a2a0aad12f121842363ded399dbca878ef967aafd6ad7d"
+        },
+        {
+          "id": "memory:dd5ab06e-247c-498d-bc00-71007d9a5ee0",
+          "contentSha256": "580fae31fb9057170bacd59e936d66dfc29c66d5b205057f6a8cb9ca9c19b18f"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": false,
+        "PARRY": false,
+        "A.L.I.C.E.": false,
+        "Cleverbot": false
+      },
+      "supplementDecision": {
+        "askedGaps": [
+          "最高性能模型的单独 ROUGE-1、ROUGE-2、ROUGE-L 分数未给出，仅有 33.33 的三项平均分。",
+          "What is the ROUGE score of the highest performing model?"
+        ],
+        "attempted": true,
+        "attempts": [
+          {
+            "kind": "local-literal",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 0,
+            "queries": [
+              "最高性能模型的单独 ROUGE-1、ROUGE-2、ROUGE-L 分数未给出，仅有 33.33 的三项平均分。",
+              "What is the ROUGE score of the highest performing model?"
+            ],
+            "retrievalRound": 1,
+            "witnesses": []
+          },
+          {
+            "kind": "necessary-gap-navigation",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 6,
+            "queries": [
+              "ROUGE-1 ROUGE-2 ROUGE-L full model",
+              "highest performing model ROUGE score",
+              "full-length F-1 ROUGE CNN/Daily Mail"
+            ],
+            "retrievalRound": 2,
+            "witnesses": [
+              {
+                "anchors": [
+                  {
+                    "literal": "In this work, we propose a two-stage model based on sequence-to-sequence paradigm.",
+                    "referenceId": "memory:dc2d2c46-00bb-41e2-8dec-1a32667f3b20"
+                  }
+                ],
+                "gapIndex": 1,
+                "reason": "current-literal-Identity-relation-unresolved-role-navigation",
+                "referenceId": "memory:dc2d2c46-00bb-41e2-8dec-1a32667f3b20"
+              }
+            ]
+          }
+        ],
+        "gaps": [
+          {
+            "gap": "最高性能模型的单独 ROUGE-1、ROUGE-2、ROUGE-L 分数未给出，仅有 33.33 的三项平均分。",
+            "scope": "explicitly-asked"
+          },
+          {
+            "gap": "What is the ROUGE score of the highest performing model?",
+            "scope": "explicitly-asked"
+          },
+          {
+            "gap": "The individual ROUGE-1, ROUGE-2 and ROUGE-L values for the highest-performing model are not recorded; only the 33.33 average across the three metrics is given.",
+            "scope": "unresolved"
+          },
+          {
+            "gap": "The record does not explicitly state that the full model is the highest-performing model among all compared systems.",
+            "scope": "unresolved"
+          }
+        ],
+        "mode": "local-first",
+        "navigationFallbackReason": "reviewed-necessary-gap-with-no-local-witness",
+        "newFactCount": 6,
+        "queries": [
+          "ROUGE-1 ROUGE-2 ROUGE-L full model",
+          "highest performing model ROUGE score",
+          "full-length F-1 ROUGE CNN/Daily Mail"
+        ],
+        "stopReason": "new-current-asked-gap-witness",
+        "witnessGapIndexBase": 0,
+        "witnesses": [
+          {
+            "anchors": [
+              {
+                "literal": "In this work, we propose a two-stage model based on sequence-to-sequence paradigm.",
+                "referenceId": "memory:dc2d2c46-00bb-41e2-8dec-1a32667f3b20"
+              }
+            ],
+            "gapIndex": 1,
+            "reason": "current-literal-Identity-relation-unresolved-role-navigation",
+            "referenceId": "memory:dc2d2c46-00bb-41e2-8dec-1a32667f3b20"
+          }
+        ]
+      },
+      "qaUsage": {
+        "requests": 5,
+        "tokens": 16275
+      }
+    },
+    {
+      "questionId": "d28d86524292506d4b24ae2d486725a6d57a3db3",
+      "entry": "connector",
+      "question": "What is the ROUGE score of the highest performing model?",
+      "memoryGrade": "yes",
+      "currentGrade": {
+        "answerCorrect": "yes",
+        "reason": "States the 33.33 average of ROUGE-1/2/L, matching the gold answer."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "yes",
+        "reason": "Reports the 33.33 average ROUGE score, matching the human answer."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "yes",
+        "reason": "Reference fff4492a states the model achieves a 33.33 average ROUGE score, matching the gold answer."
+      },
+      "finalStatus": "partial",
+      "claims": [
+        "在 CNN/Daily Mail 上，我们的模型取得 ROUGE-1、ROUGE-2 和 ROUGE-L 的平均值 33.33，并称其为 state-of-the-art。"
+      ],
+      "unknowns": [
+        "未记录“最高性能模型”的明确身份，也未给出其 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数；33.33 是 CNN/Daily Mail 上三项 ROUGE 的平均值。",
+        "未给出“最高性能模型”的明确身份及其 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数；仅有 CNN/Daily Mail 上三项 ROUGE 的平均值 33.33。",
+        "最高性能模型的明确身份",
+        "该模型 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数",
+        "What is the ROUGE score of the highest performing model?"
+      ],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "8cd02dbb-45c4-4c2f-af00-5973835faf9a",
+          "contentSha256": "ef07fa225e86bcf27445e20d9245dec7e97fb2698f24fa373c8202b4b4d080a6"
+        },
+        {
+          "id": "4dd0d21c-7f90-493a-b48b-5a6014a17212",
+          "contentSha256": "9f232672a370d54db47d233ddb0a23ed005f741b1ca3172fa389fde6255b9d8f"
+        },
+        {
+          "id": "b6dacce0-7795-44f7-8173-fbffba9baab2",
+          "contentSha256": "37cb83b60eb68c54b1fba41f89f26e71df33f151ae5da6c6fa1cc5fcb4d191f3"
+        },
+        {
+          "id": "a46c52bb-bd41-4cf1-952b-ca7e9d3fd511",
+          "contentSha256": "ce0e742048996cb4e1afb6da9d0a4cfa74358c2e1b5256321939b1d79d37836d"
+        },
+        {
+          "id": "1d9444b3-bf4f-4002-a4c0-85f51d31391a",
+          "contentSha256": "203b3166c028f106310d099335f4d85006d0dca978e32605c37000938f16693a"
+        },
+        {
+          "id": "d5371b11-f200-452a-9ecb-7f0129b1f726",
+          "contentSha256": "2638e4de70febe34c6515f202af021be3b36349878f6e8967b00fd0c204df02c"
+        },
+        {
+          "id": "c339aaaa-b19b-40b8-bd36-17c470cda19b",
+          "contentSha256": "461a8de928b0f8294f5d49daf5740c53c2623b4ddf8c5b9e7d37f1fe837c6210"
+        },
+        {
+          "id": "47daefae-5e66-489b-b05f-13356358ba61",
+          "contentSha256": "ff14f09ea9823953338cd92e654c075830cbc29fa9b38ca855193fa977758200"
+        },
+        {
+          "id": "a816638f-c20e-40f3-b0ed-e776d07bfb33",
+          "contentSha256": "3e3a6fd595992b6365f18466844ac78d5cdee4184acc77dd7ed1abf689ba9369"
+        },
+        {
+          "id": "801be7b5-8894-4daf-9a26-2f3b654a3263",
+          "contentSha256": "575eec89f8440793822da511eda6fd030d3918d71e9f69e3fcc73f3010133a2e"
+        },
+        {
+          "id": "bc379fbf-9f95-4c3c-a6fe-984a169b361c",
+          "contentSha256": "2cbefc80b94ee09f4ab0b168da886074b9866fd03fdbbe66568d1c0e6c3d37c8"
+        },
+        {
+          "id": "6a61a593-f87a-4e81-96cb-21430f2f1180",
+          "contentSha256": "9b552639b1890155e509bd9ee601b7ad320124a217a0eb66c6963e407d968e66"
+        },
+        {
+          "id": "daf97dec-2aef-483b-956f-cd6d5b2ac934",
+          "contentSha256": "a14bdf9796182171f94419c20fa308fffa36718da4ca2c95470994686c2cce16"
+        },
+        {
+          "id": "a14c0bb7-f45e-48e4-99b6-53872ef7f50b",
+          "contentSha256": "75fbb4d5ee5f088a86b968b2746151cbedd2748976da64d9e6645b510a65e897"
+        },
+        {
+          "id": "6459a094-a2d5-436b-8c13-cea61cef5863",
+          "contentSha256": "0c2ed9c9edb47c5dc736af0e005203a339ee642c284420c8889c603427e1a885"
+        },
+        {
+          "id": "ec4db567-dee3-4548-8efd-ec6db5d5761e",
+          "contentSha256": "e524b4599eb7512fede72825ad330a62cad749a5d5e578cbccaaba768595d1cf"
+        },
+        {
+          "id": "5a7e2ec7-4411-4992-ba7f-ad746d30f72b",
+          "contentSha256": "72fda11dcaf9434d91cb9e978d8c0f5a77cc3437d11c1a64362debe24de29ec0"
+        },
+        {
+          "id": "7da4513d-715b-4c67-95d3-0c1a1bad82e6",
+          "contentSha256": "b9745b2aff8a075d3421836ba422665510747c6cb838a4bd4c6759caf540c19f"
+        },
+        {
+          "id": "fff4492a-9f56-46bb-bb58-f9ee1d1c63cc",
+          "contentSha256": "8e331fd51522c9bd01f42982e9fd81020a0d2bbc061750db53d46ca1e0e0bd08"
+        },
+        {
+          "id": "bd948421-2237-4bbb-b22e-a33320e80a41",
+          "contentSha256": "67acdc4799ab4f314d97a5dbcd64cac3085eb2326f59922c00aec78369df94c4"
+        },
+        {
+          "id": "049c052f-6365-4c97-bf78-25cb1ee7253f",
+          "contentSha256": "2b68bb5f69d6f9d460032b276cece96c7bf7dafceac06af032a080434913b374"
+        },
+        {
+          "id": "30e6e228-2323-45cf-b94e-415181507092",
+          "contentSha256": "8f55d469bdac7840d3a34a08cb8ad1cba45bf1a216dbb8cf5158f8caef1a4f5c"
+        },
+        {
+          "id": "e010155a-8502-4ac6-a4bc-8d42c3adeaa9",
+          "contentSha256": "9752cfefe5133aa8d9a2a0aad12f121842363ded399dbca878ef967aafd6ad7d"
+        },
+        {
+          "id": "dd5ab06e-247c-498d-bc00-71007d9a5ee0",
+          "contentSha256": "580fae31fb9057170bacd59e936d66dfc29c66d5b205057f6a8cb9ca9c19b18f"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": false,
+        "PARRY": false,
+        "A.L.I.C.E.": false,
+        "Cleverbot": false
+      },
+      "supplementDecision": {
+        "askedGaps": [
+          "未给出“最高性能模型”的明确身份及其 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数；仅有 CNN/Daily Mail 上三项 ROUGE 的平均值 33.33。",
+          "What is the ROUGE score of the highest performing model?",
+          "未记录“最高性能模型”的明确身份，也未给出其 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数；33.33 是 CNN/Daily Mail 上三项 ROUGE 的平均值。"
+        ],
+        "attempted": true,
+        "attempts": [
+          {
+            "kind": "local-literal",
+            "navigationOnlyCandidate": false,
+            "newFactCount": 6,
+            "queries": [
+              "未给出“最高性能模型”的明确身份及其 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数；仅有 CNN/Daily Mail 上三项 ROUGE 的平均值 33.33。",
+              "What is the ROUGE score of the highest performing model?",
+              "未记录“最高性能模型”的明确身份，也未给出其 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数；33.33 是 CNN/Daily Mail 上三项 ROUGE 的平均值。"
+            ],
+            "retrievalRound": 1,
+            "witnesses": [
+              {
+                "anchors": [
+                  {
+                    "literal": "In this work, we propose a two-stage model based on sequence-to-sequence paradigm.",
+                    "referenceId": "dc2d2c46-00bb-41e2-8dec-1a32667f3b20"
+                  }
+                ],
+                "gapIndex": 1,
+                "reason": "current-literal-Identity-relation-unresolved-role-navigation",
+                "referenceId": "dc2d2c46-00bb-41e2-8dec-1a32667f3b20"
+              }
+            ]
+          }
+        ],
+        "gaps": [
+          {
+            "gap": "未给出“最高性能模型”的明确身份及其 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数；仅有 CNN/Daily Mail 上三项 ROUGE 的平均值 33.33。",
+            "scope": "explicitly-asked"
+          },
+          {
+            "gap": "What is the ROUGE score of the highest performing model?",
+            "scope": "explicitly-asked"
+          },
+          {
+            "gap": "未记录“最高性能模型”的明确身份，也未给出其 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数；33.33 是 CNN/Daily Mail 上三项 ROUGE 的平均值。",
+            "scope": "explicitly-asked"
+          }
+        ],
+        "mode": "local-first",
+        "newFactCount": 6,
+        "queries": [
+          "未给出“最高性能模型”的明确身份及其 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数；仅有 CNN/Daily Mail 上三项 ROUGE 的平均值 33.33。",
+          "What is the ROUGE score of the highest performing model?",
+          "未记录“最高性能模型”的明确身份，也未给出其 ROUGE-1、ROUGE-2、ROUGE-L 各自的具体分数；33.33 是 CNN/Daily Mail 上三项 ROUGE 的平均值。"
+        ],
+        "stopReason": "new-current-asked-gap-witness",
+        "witnessGapIndexBase": 0,
+        "witnesses": [
+          {
+            "anchors": [
+              {
+                "literal": "In this work, we propose a two-stage model based on sequence-to-sequence paradigm.",
+                "referenceId": "dc2d2c46-00bb-41e2-8dec-1a32667f3b20"
+              }
+            ],
+            "gapIndex": 1,
+            "reason": "current-literal-Identity-relation-unresolved-role-navigation",
+            "referenceId": "dc2d2c46-00bb-41e2-8dec-1a32667f3b20"
+          }
+        ]
+      },
+      "qaUsage": {
+        "requests": 4,
+        "tokens": 15488
+      }
+    },
+    {
+      "questionId": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "entry": "desktop",
+      "question": "What is the state of the art described in the paper?",
+      "memoryGrade": "yes",
+      "currentGrade": {
+        "answerCorrect": "no",
+        "reason": "Does not name the state-of-the-art systems (ELIZA, PARRY, A.L.I.C.E., Cleverbot) that the human answer requires."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "no",
+        "reason": "Human answer lists the state-of-the-art conversational systems (ELIZA, PARRY, A.L.I.C.E., Cleverbot); system1 gives unrelated general statements and no such systems."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "partial",
+        "reason": "References mention ELIZA, PARRY, A.L.I.C.E., and Cleverbot, matching the gold systems, but only partial descriptions (e.g., PARRY lacks Turing test detail, Cleverbot lacks Turing test result). The framing sentence about state of the art perspectives is missing."
+      },
+      "finalStatus": "answered",
+      "claims": [
+        "The paper states that most proposed approaches for context reasoning in the state of the art rely on rules using logics and knowledge bases.",
+        "The most recent state of the art for developing such systems has employed Recurrent Neural Networks (RNN), Dynamic Context-Sensitive Generation, and Memory Networks, among others.",
+        "Sukhbaatar's work presents the state of the art of recent efforts to capture dialogue context as long-term structure within sequences using RNNs or LSTM-based models.",
+        "The paper notes a lack of research directed at building coordination laws integrated with natural language for chatbot engines.",
+        "The paper claims its proposed architecture is, to the best of the authors' knowledge, the first in the state of the art designed to support coordinated aware chatbots in multiparty conversation.",
+        "The paper states it is not meant to advance the state of the art on norms for MPCS."
+      ],
+      "unknowns": [],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "memory:94fe386f-22e3-4838-9cc0-e0c9313654d5",
+          "contentSha256": "c41013e7216ce9c8e58e79b5988fe7fcc5f4c013eea5476837e4c131fdeadf29"
+        },
+        {
+          "id": "memory:14457e58-ba14-4c05-a384-9696cc8baefe",
+          "contentSha256": "316fa07ef0e8b854456e276f0c8202d5b8b5b4c954a298370853701d74054d05"
+        },
+        {
+          "id": "memory:98fedbd5-9424-47b1-ab50-d90d074387bd",
+          "contentSha256": "2c1bb077b31b5f27c1a25ee4caf47f6dcebcdb219e16464d6250758b27702ba6"
+        },
+        {
+          "id": "memory:25196734-92ed-474c-9c63-4343d2ecdfa4",
+          "contentSha256": "db4abf9916cda4b47ce1cf464a329833751a2bd85ff621542123b6a9e245b439"
+        },
+        {
+          "id": "memory:e982b4cc-1e24-403e-8e22-df086d172805",
+          "contentSha256": "ed13afa95e8e189f5c145bad3586e7daa71ec764f03e693bb18cfa23da77b93d"
+        },
+        {
+          "id": "memory:c5e3eb67-b89f-4ef2-887b-dbe905a97f9d",
+          "contentSha256": "bf1acd1747b12be0b20cece0d653f75750f6d1da7cc819cd9da1c210cc1ba458"
+        },
+        {
+          "id": "memory:d443b3e4-2fc5-40e3-ad89-dc10aa089a22",
+          "contentSha256": "bfa11d557ed510f10b1a2318c5c9f7a277b94c63039d9f866611bd11e5dffddc"
+        },
+        {
+          "id": "memory:a83501f8-8f27-4255-ad12-f9006fd2eeff",
+          "contentSha256": "085ff1d09e582028da82e2a25baed0e5adf1dbd9858a60b9c38fdf673e551bab"
+        },
+        {
+          "id": "memory:17fd1ebb-f4d3-4220-afc5-14b16663814b",
+          "contentSha256": "4ccc30bec571837798199a638179fa5a1ee22f5d7502c41643b9b988b057d7dd"
+        },
+        {
+          "id": "memory:b079b121-dc0f-4fd4-a786-d07ae6a2fc40",
+          "contentSha256": "6cc7f9cdf7f560ba53459024abd36b1ce6f00f826a7d5ed15145ecb57512cc13"
+        },
+        {
+          "id": "memory:f7c45c3e-0158-41f2-8c8a-1fbf2e5d4661",
+          "contentSha256": "f7f3e98a82f8b8ae31645c304723a0ced5fd2d56fed71d3232b26446a8be47a9"
+        },
+        {
+          "id": "memory:4250508b-3f9c-4e91-b8fd-83f70103923b",
+          "contentSha256": "ac89e0fe0fdd3e10795d93c1abf6e9076c91daa108b38a652a0f31f6bb92e812"
+        },
+        {
+          "id": "memory:23e21f6d-beb7-4c33-9830-97b19f848f20",
+          "contentSha256": "b719d492bb99e80e9819c103936b1e4856ee777bfe9a897a9c9a4a7c15e7ce27"
+        },
+        {
+          "id": "memory:4a18134e-b0f7-48b2-8cef-5d36e3ba8e30",
+          "contentSha256": "76856902f40f8f6afd0eacbee711c493583749270d1c7dfd53c816a8fa715639"
+        },
+        {
+          "id": "memory:4d7c2cbe-853b-4f29-bcf3-a34b7ad25144",
+          "contentSha256": "de1ff95acef40f87c589a2e5d983066e82d3b2f5de5291b2c06316e67de022b7"
+        },
+        {
+          "id": "memory:a6057324-b1a6-4a4a-be4d-5880a6333c2b",
+          "contentSha256": "3835727dc5ccb6d4549df6a94c0b36666c3d463499887dfad81df20a45f6f1cc"
+        },
+        {
+          "id": "memory:97905d6e-7278-40f4-8523-629f139bca34",
+          "contentSha256": "c57cd920dcd56d14f719dd1918465f9b6cbfc8a21123066588adbcaa2a38dc96"
+        },
+        {
+          "id": "memory:5a987585-0e80-4e6e-aca2-5b696df21742",
+          "contentSha256": "3e4a27b18a23486b442cc94b32bd741dc3638af411f530a314e3ad3c32c9dfc3"
+        },
+        {
+          "id": "memory:0dd9556f-94f4-42f3-bbd5-dd286ea310c9",
+          "contentSha256": "c36e65fae33fe7189ae89f512eed0181f7f09a637a7fb8d3259f0147171c83a2"
+        },
+        {
+          "id": "memory:b9fdb36b-68a4-49b9-9080-a7ed48a91732",
+          "contentSha256": "08644bf9e7a97996517f9dd0d9b2c4b7bc8cecdfbd8cb75d8c703ffa54cc6030"
+        },
+        {
+          "id": "memory:0a743587-c2d3-4925-b6d6-9e550cc33fe2",
+          "contentSha256": "69a9fb2953cf97d1e0afe7a3f80495cdf633c7118d4b70ae85b20e3db6565454"
+        },
+        {
+          "id": "memory:fcf65444-bc4e-44f5-a4ae-36231b0da7b6",
+          "contentSha256": "9bcda025fece64fd26326d9453f147d6fb670547405322c40338ca919d1b7cd0"
+        },
+        {
+          "id": "memory:28c3497b-1572-49d5-a2e6-ad3075334b0f",
+          "contentSha256": "41f2eff977c9fc3db17424cdb92bbf37d2c86e952a9f47c124dbb7857f848827"
+        },
+        {
+          "id": "memory:09f04ca4-074d-436d-814e-28d6920dccfd",
+          "contentSha256": "036bc7dde556ec69ce03140f5ac8de02372e59b50456dd43f51faa1602d12817"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": true,
+        "PARRY": true,
+        "A.L.I.C.E.": true,
+        "Cleverbot": true
+      },
+      "supplementDecision": {
+        "attempted": false,
+        "mode": "local-first",
+        "stopReason": "not-needed"
+      },
+      "qaUsage": {
+        "requests": 2,
+        "tokens": 7157
+      }
+    },
+    {
+      "questionId": "dd76130ec5fac477123fe8880472d03fbafddef6",
+      "entry": "connector",
+      "question": "What is the state of the art described in the paper?",
+      "memoryGrade": "yes",
+      "currentGrade": {
+        "answerCorrect": "no",
+        "reason": "Gives general architecture/context statements but omits the specific systems (ELIZA, PARRY, A.L.I.C.E., Cleverbot) the human answer lists."
+      },
+      "baselinePairedGrade": {
+        "answerCorrect": "no",
+        "reason": "Connector refused/unknown instead of answering; not a correct abstention for an answerable question."
+      },
+      "retrievalGrade": {
+        "retrievalSufficiency": "partial",
+        "reason": "Same references as desktop; they name the key systems (ELIZA, PARRY, A.L.I.C.E., Cleverbot) but omit full descriptions and the section's framing of state-of-the-art perspectives."
+      },
+      "finalStatus": "answered",
+      "claims": [
+        "论文指出，在上下文推理方面，现有大多数方法依赖使用逻辑和知识库的规则（规则导向架构）。",
+        "论文指出，构建对话系统主要有三类架构：完全规则导向、完全数据导向，以及规则与数据导向的混合。",
+        "论文指出，大多数现有聊天机器人（从最早的ELIZA到现代最先进的系统）都属于同一类别。",
+        "论文指出，近期开发此类系统的最先进工作采用了循环神经网络（RNN）、动态上下文敏感生成和记忆网络等。",
+        "论文提到，Sukhbaatar的工作综述了近期利用RNN或基于LSTM的模型将对话上下文作为序列内长期结构来捕捉的努力。",
+        "论文指出，就聊天机器人引擎而言，缺乏将协调规则与自然语言相结合的研究。",
+        "论文指出，研究文献大多聚焦于两人对话，而现实生活中有大量多用户对话。",
+        "论文称，据其所知，本文提出的架构是现有技术中首个旨在支持多方对话中协调感知聊天机器人设计与开发的架构。"
+      ],
+      "unknowns": [],
+      "selectedProducerIndices": [
+        0
+      ],
+      "selectedReferences": [
+        {
+          "id": "94fe386f-22e3-4838-9cc0-e0c9313654d5",
+          "contentSha256": "c41013e7216ce9c8e58e79b5988fe7fcc5f4c013eea5476837e4c131fdeadf29"
+        },
+        {
+          "id": "14457e58-ba14-4c05-a384-9696cc8baefe",
+          "contentSha256": "316fa07ef0e8b854456e276f0c8202d5b8b5b4c954a298370853701d74054d05"
+        },
+        {
+          "id": "98fedbd5-9424-47b1-ab50-d90d074387bd",
+          "contentSha256": "2c1bb077b31b5f27c1a25ee4caf47f6dcebcdb219e16464d6250758b27702ba6"
+        },
+        {
+          "id": "25196734-92ed-474c-9c63-4343d2ecdfa4",
+          "contentSha256": "db4abf9916cda4b47ce1cf464a329833751a2bd85ff621542123b6a9e245b439"
+        },
+        {
+          "id": "e982b4cc-1e24-403e-8e22-df086d172805",
+          "contentSha256": "ed13afa95e8e189f5c145bad3586e7daa71ec764f03e693bb18cfa23da77b93d"
+        },
+        {
+          "id": "c5e3eb67-b89f-4ef2-887b-dbe905a97f9d",
+          "contentSha256": "bf1acd1747b12be0b20cece0d653f75750f6d1da7cc819cd9da1c210cc1ba458"
+        },
+        {
+          "id": "d443b3e4-2fc5-40e3-ad89-dc10aa089a22",
+          "contentSha256": "bfa11d557ed510f10b1a2318c5c9f7a277b94c63039d9f866611bd11e5dffddc"
+        },
+        {
+          "id": "a83501f8-8f27-4255-ad12-f9006fd2eeff",
+          "contentSha256": "085ff1d09e582028da82e2a25baed0e5adf1dbd9858a60b9c38fdf673e551bab"
+        },
+        {
+          "id": "17fd1ebb-f4d3-4220-afc5-14b16663814b",
+          "contentSha256": "4ccc30bec571837798199a638179fa5a1ee22f5d7502c41643b9b988b057d7dd"
+        },
+        {
+          "id": "b079b121-dc0f-4fd4-a786-d07ae6a2fc40",
+          "contentSha256": "6cc7f9cdf7f560ba53459024abd36b1ce6f00f826a7d5ed15145ecb57512cc13"
+        },
+        {
+          "id": "f7c45c3e-0158-41f2-8c8a-1fbf2e5d4661",
+          "contentSha256": "f7f3e98a82f8b8ae31645c304723a0ced5fd2d56fed71d3232b26446a8be47a9"
+        },
+        {
+          "id": "4250508b-3f9c-4e91-b8fd-83f70103923b",
+          "contentSha256": "ac89e0fe0fdd3e10795d93c1abf6e9076c91daa108b38a652a0f31f6bb92e812"
+        },
+        {
+          "id": "23e21f6d-beb7-4c33-9830-97b19f848f20",
+          "contentSha256": "b719d492bb99e80e9819c103936b1e4856ee777bfe9a897a9c9a4a7c15e7ce27"
+        },
+        {
+          "id": "4a18134e-b0f7-48b2-8cef-5d36e3ba8e30",
+          "contentSha256": "76856902f40f8f6afd0eacbee711c493583749270d1c7dfd53c816a8fa715639"
+        },
+        {
+          "id": "4d7c2cbe-853b-4f29-bcf3-a34b7ad25144",
+          "contentSha256": "de1ff95acef40f87c589a2e5d983066e82d3b2f5de5291b2c06316e67de022b7"
+        },
+        {
+          "id": "a6057324-b1a6-4a4a-be4d-5880a6333c2b",
+          "contentSha256": "3835727dc5ccb6d4549df6a94c0b36666c3d463499887dfad81df20a45f6f1cc"
+        },
+        {
+          "id": "97905d6e-7278-40f4-8523-629f139bca34",
+          "contentSha256": "c57cd920dcd56d14f719dd1918465f9b6cbfc8a21123066588adbcaa2a38dc96"
+        },
+        {
+          "id": "5a987585-0e80-4e6e-aca2-5b696df21742",
+          "contentSha256": "3e4a27b18a23486b442cc94b32bd741dc3638af411f530a314e3ad3c32c9dfc3"
+        },
+        {
+          "id": "0dd9556f-94f4-42f3-bbd5-dd286ea310c9",
+          "contentSha256": "c36e65fae33fe7189ae89f512eed0181f7f09a637a7fb8d3259f0147171c83a2"
+        },
+        {
+          "id": "b9fdb36b-68a4-49b9-9080-a7ed48a91732",
+          "contentSha256": "08644bf9e7a97996517f9dd0d9b2c4b7bc8cecdfbd8cb75d8c703ffa54cc6030"
+        },
+        {
+          "id": "0a743587-c2d3-4925-b6d6-9e550cc33fe2",
+          "contentSha256": "69a9fb2953cf97d1e0afe7a3f80495cdf633c7118d4b70ae85b20e3db6565454"
+        },
+        {
+          "id": "fcf65444-bc4e-44f5-a4ae-36231b0da7b6",
+          "contentSha256": "9bcda025fece64fd26326d9453f147d6fb670547405322c40338ca919d1b7cd0"
+        },
+        {
+          "id": "28c3497b-1572-49d5-a2e6-ad3075334b0f",
+          "contentSha256": "41f2eff977c9fc3db17424cdb92bbf37d2c86e952a9f47c124dbb7857f848827"
+        },
+        {
+          "id": "09f04ca4-074d-436d-814e-28d6920dccfd",
+          "contentSha256": "036bc7dde556ec69ce03140f5ac8de02372e59b50456dd43f51faa1602d12817"
+        }
+      ],
+      "namedEntitiesInActualSelectedUnion": {
+        "ELIZA": true,
+        "PARRY": true,
+        "A.L.I.C.E.": true,
+        "Cleverbot": true
+      },
+      "supplementDecision": {
+        "attempted": false,
+        "mode": "local-first",
+        "stopReason": "not-needed"
+      },
+      "qaUsage": {
+        "requests": 2,
+        "tokens": 8232
+      }
+    }
+  ],
+  "findings": [
+    "No producer provenance or project-scope failure observed. Both review schema failures are real contradictions in answered unknown vs partial obligation, not an omission-repair opportunity.",
+    "Connector50cc answers the correct base model. Desktop still refuses despite a sufficient actual reference; target correction and question granularity remain asymmetric.",
+    "Desktop10fb now returns mechanism claims with no extra unknowns, but the existing automatic judge still marks partial. Connector10fb supplement is safely rejected on its contradictory review and returns the base partial.",
+    "SOTA selected contexts now include all four named systems unlike the older diagnostic. Generation still omits them and the judge still marks partial reference coverage/no final answer; solving candidate name recall did not by itself solve answer coverage.",
+    "QA cost is within the unchanged hard limit by only1287 tokens and remains24932 above the262191 recovery reference. The formal quality floors14/16, refs17 each and protocol0 are still unsatisfied.",
+    "Retain both baseline original13/15 and this same-call baseline12/11 labels; paired net improvement is+1/+3, while grade drift prevents presenting original and paired numbers as interchangeable."
+  ]
+}

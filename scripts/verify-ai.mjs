@@ -55,9 +55,9 @@ async function poll(predicate, label) {
   }
   throw new Error(`Timed out: ${label}`);
 }
-async function extracted(sourceId, status = 'succeeded') {
+async function extracted(sourceId, status = 'succeeded', jobId = null) {
   return poll((state) => {
-    const jobs = state.jobs.filter((j) => j.sourceId === sourceId && j.kind === 'extract');
+    const jobs = state.jobs.filter((j) => j.sourceId === sourceId && j.kind === 'extract' && (!jobId || j.id === jobId));
     const job = jobs.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
     if (job?.status === 'failed' && status !== 'failed') throw new Error(`Extraction failed: ${job.errorCode} ${job.error}`);
     return job?.status === status ? job : false;
@@ -114,8 +114,8 @@ try {
   assert.match(failed.errorCode, /GROUND|EVIDENCE/);
   assert.equal((await host.call('get_state')).proposals.filter((p) => p.sourceId === bad.sourceId).length, 0);
   fixture.state.mode = 'normal';
-  await host.call('retry_extraction', { jobId: failed.id });
-  await extracted(bad.sourceId);
+  const retried = await host.call('retry_extraction', { jobId: failed.id });
+  await extracted(bad.sourceId, 'succeeded', retried.id);
   checks.push('unknown evidence fails with no candidates; explicit retry succeeds');
   fixture.state.mode = 'empty';
   const empty = await host.call('import_text', { projectId: project.id, title: '无可提取事实', text: '今天闲聊，没有项目事实。' });
@@ -153,7 +153,7 @@ try {
   assert.equal((await host.call('inspect_backup', payload)).compatible, true);
   const restore = await host.call('restore_backup', { ...payload, confirmation: 'RESTORE' });
   state = await host.call('get_state');
-  assert.equal(state.workspace.schemaVersion, 8);
+  assert.equal(state.workspace.schemaVersion, 13);
   assert(state.backups.some((b) => b.id === restore.safetyBackupId));
   assert(state.proposals.every((p) => p.origin === 'manual'));
   assert.equal((await host.call('get_ai_settings')).hasApiKey, true);

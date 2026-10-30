@@ -1,0 +1,47 @@
+{
+  "version": "memory-qa-efficient-preregistration-v1",
+  "registeredAt": "2026-10-20T14:18:33.793Z",
+  "datasetSha256": "803537c32e89dce765c8e6cef6484f332d6ef5a9c91b726a4ea957e68b461d87",
+  "baselineDevelopment": {
+    "file": "docs/memory-public-live-retrieval-dev-v2-results.json",
+    "sha256": "d27065eff53d3c43bad2aa9c9536ff804eaf2f1fe70e400792a183c89f625fe6"
+  },
+  "baselineFull": {
+    "file": "docs/memory-public-live-retrieval-full-results.json",
+    "sha256": "644ddb956958b52ede5b54a9ac3e657bd7e138fada20df9b15ab688b4b7a097d"
+  },
+  "thresholds": {
+    "retainedYesOrPartial": 15,
+    "desktopComplete": 11,
+    "connectorComplete": 13,
+    "desktopReferencesSufficient": 15,
+    "connectorReferencesSufficient": 15,
+    "desktopCorrectAbstention": 1,
+    "connectorCorrectAbstention": 1,
+    "desktopPairedNetImprovement": 1,
+    "connectorPairedNetImprovement": 0,
+    "combinedPairedNetImprovement": 2,
+    "maxQaProtocolErrors": 0,
+    "maxSupplementProtocolFailures": 1,
+    "minQaTokenReductionFraction": 0.15,
+    "maxCombinedQaTokens": 439346
+  },
+  "qaCostBaseline": {
+    "desktop": 315694,
+    "connector": 201184,
+    "combined": 516878,
+    "qaRequests": 103,
+    "usageComplete": true
+  },
+  "limits": {
+    "development": {
+      "maxRequests": 600,
+      "maxTokens": 3000000
+    },
+    "full": {
+      "maxRequests": 2000,
+      "maxTokens": 12000000
+    }
+  },
+  "methodology": "Fresh question-independent production extraction and organization; both real QA entries; unedited ready proposals confirmed only in isolated workspaces. Same separated answer/memory/retrieval judges and grading criteria; current and registered previous answers anonymously paired. Historical original and paired previous scores reported separately. QA savings use actual all QA provider-reported token usage with complete usage, against same 20-question previous development baseline. Gold never enters production. All questions already examined: fixed regression, not unseen blind testing. Failed pilots count within round budgets and total costs."
+}

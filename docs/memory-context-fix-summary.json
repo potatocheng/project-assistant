@@ -1,0 +1,395 @@
+{
+  "version": "memory-context-fix-report-v1",
+  "rawReportSha256": "5052ab54fb083d480b126ca730c8a1c499dfe5d77b8ebbeadc6c2515c7c03506",
+  "registration": {
+    "version": "memory-context-live-v1",
+    "model": "deepseek-flash",
+    "datasetSha256": "62360ec9d9803324f20ac0ea9d39cde18e08b9daa0f7f5e1e06b33dec7b92e7d",
+    "binarySha256": {
+      "baseline": "ec4a01b8a601eb9beb6b31b13189298fc8d1a11a78cde1001457bbb12cca10f2",
+      "candidate": "ca80d73e3e289fe2fad99688e213ae0b7a35dec4d17b37d44f6cea539b9e6aa6"
+    },
+    "repeats": 2,
+    "limits": {
+      "requests": 160,
+      "accountedTokens": 800000,
+      "workers": 2
+    },
+    "method": "Production Engine extraction only; no QA; selected cases from the registered synthetic fixture. Same sources/model, two fresh repetitions per arm. All final drafts and confirmable proposals reported separately; no automatic approval of review drafts. Frozen before calls. Same-model anonymized judging, not independent human validation.",
+    "harnessSha256": {
+      "evaluate-memory-context-live.mjs": "17122c23faf20fa20446b179267b5d62cbb549b457a3a855b3a4a059d5e84d5a",
+      "memory-context-eval-fixture.mjs": "c7db84f69712f6a7e4faadac8d59bc531f1daf5c02f7def6411def6cb5bf0665"
+    }
+  },
+  "finishedAt": "2026-10-28T08:59:15.642Z",
+  "scope": "Targeted diagnostic regression, four synthetic cases, two repetitions; not blind or independently human labelled. Body checks below are post-run assistant-authored assertions, kept separate from raw same-model judgments.",
+  "integrity": {
+    "passed": true,
+    "sourceAndBinaryHashes": true,
+    "wireHashes": true,
+    "providerUsageAndJobBudgets": true,
+    "quotesValid": true,
+    "formalMemoriesWritten": 0
+  },
+  "arms": {
+    "baseline": {
+      "usage": {
+        "requests": 18,
+        "inputTokens": 60343,
+        "outputTokens": 8790,
+        "tokens": 69133,
+        "cacheHitTokens": 16128
+      },
+      "full": 32,
+      "partial": 2,
+      "missing": 12,
+      "readyFull": 4,
+      "ready": 10,
+      "needsReview": 32,
+      "cases": [
+        {
+          "caseId": "post_boundary_condition",
+          "usage": {
+            "requests": 6,
+            "inputTokens": 21152,
+            "outputTokens": 1114,
+            "tokens": 22266,
+            "cacheHitTokens": 5376
+          }
+        },
+        {
+          "caseId": "list_scope",
+          "usage": {
+            "requests": 6,
+            "inputTokens": 22649,
+            "outputTokens": 2068,
+            "tokens": 24717,
+            "cacheHitTokens": 5376
+          }
+        },
+        {
+          "caseId": "dense_facts",
+          "usage": {
+            "requests": 4,
+            "inputTokens": 12224,
+            "outputTokens": 5084,
+            "tokens": 17308,
+            "cacheHitTokens": 3584
+          }
+        },
+        {
+          "caseId": "unrelated_neighbor",
+          "usage": {
+            "requests": 2,
+            "inputTokens": 4318,
+            "outputTokens": 524,
+            "tokens": 4842,
+            "cacheHitTokens": 1792
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "usage": {
+        "requests": 24,
+        "inputTokens": 86397,
+        "outputTokens": 11358,
+        "tokens": 97755,
+        "cacheHitTokens": 21760
+      },
+      "full": 46,
+      "partial": 0,
+      "missing": 0,
+      "readyFull": 46,
+      "ready": 48,
+      "needsReview": 7,
+      "cases": [
+        {
+          "caseId": "post_boundary_condition",
+          "usage": {
+            "requests": 8,
+            "inputTokens": 31058,
+            "outputTokens": 1656,
+            "tokens": 32714,
+            "cacheHitTokens": 7424
+          }
+        },
+        {
+          "caseId": "list_scope",
+          "usage": {
+            "requests": 8,
+            "inputTokens": 37619,
+            "outputTokens": 2766,
+            "tokens": 40385,
+            "cacheHitTokens": 7168
+          }
+        },
+        {
+          "caseId": "dense_facts",
+          "usage": {
+            "requests": 6,
+            "inputTokens": 13426,
+            "outputTokens": 6421,
+            "tokens": 19847,
+            "cacheHitTokens": 5376
+          }
+        },
+        {
+          "caseId": "unrelated_neighbor",
+          "usage": {
+            "requests": 2,
+            "inputTokens": 4294,
+            "outputTokens": 515,
+            "tokens": 4809,
+            "cacheHitTokens": 1792
+          }
+        }
+      ]
+    }
+  },
+  "bodyChecks": [
+    {
+      "runId": "post_boundary_condition-1-baseline",
+      "caseId": "post_boundary_condition",
+      "arm": "baseline",
+      "incomplete": [
+        {
+          "content": "Atlas计划于2026-11-05灰度上线。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ]
+        },
+        {
+          "content": "上述计划以安全评审通过为前提，且本次灰度仅面向内部员工。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ]
+        }
+      ],
+      "incompleteReady": 2
+    },
+    {
+      "runId": "post_boundary_condition-2-baseline",
+      "caseId": "post_boundary_condition",
+      "arm": "baseline",
+      "incomplete": [
+        {
+          "content": "Atlas计划于2026-11-05灰度上线。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ]
+        },
+        {
+          "content": "上述计划以安全评审通过为前提，且本次灰度仅面向内部员工。",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ]
+        }
+      ],
+      "incompleteReady": 2
+    },
+    {
+      "runId": "list_scope-1-baseline",
+      "caseId": "list_scope",
+      "arm": "baseline",
+      "incomplete": [
+        {
+          "content": "以下两项仅适用于测试环境，生产环境均未批准：",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ]
+        },
+        {
+          "content": "Nimbus允许开启自动扩容。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        },
+        {
+          "content": "- Nimbus允许开启自动扩容。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        },
+        {
+          "content": "- Cirrus允许开启离线编辑。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        }
+      ],
+      "incompleteReady": 1
+    },
+    {
+      "runId": "list_scope-2-baseline",
+      "caseId": "list_scope",
+      "arm": "baseline",
+      "incomplete": [
+        {
+          "content": "以下两项仅适用于测试环境，生产环境均未批准：",
+          "ready": true,
+          "statuses": [
+            "ready"
+          ]
+        },
+        {
+          "content": "Nimbus允许开启自动扩容。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        }
+      ],
+      "incompleteReady": 1
+    },
+    {
+      "runId": "dense_facts-1-baseline",
+      "caseId": "dense_facts",
+      "arm": "baseline",
+      "retained": 12,
+      "total": 18,
+      "partitioned": 0
+    },
+    {
+      "runId": "dense_facts-2-baseline",
+      "caseId": "dense_facts",
+      "arm": "baseline",
+      "retained": 12,
+      "total": 18,
+      "partitioned": 0
+    },
+    {
+      "runId": "post_boundary_condition-1-candidate",
+      "caseId": "post_boundary_condition",
+      "arm": "candidate",
+      "incomplete": [
+        {
+          "content": "Atlas计划于2026-11-05灰度上线。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        },
+        {
+          "content": "上述计划以安全评审通过为前提，且本次灰度仅面向内部员工。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "post_boundary_condition-2-candidate",
+      "caseId": "post_boundary_condition",
+      "arm": "candidate",
+      "incomplete": [
+        {
+          "content": "Atlas计划于2026-11-05灰度上线。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        },
+        {
+          "content": "上述计划以安全评审通过为前提，且本次灰度仅面向内部员工。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "list_scope-1-candidate",
+      "caseId": "list_scope",
+      "arm": "candidate",
+      "incomplete": [
+        {
+          "content": "以下两项仅适用于测试环境，生产环境均未批准：",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "list_scope-2-candidate",
+      "caseId": "list_scope",
+      "arm": "candidate",
+      "incomplete": [
+        {
+          "content": "以下两项仅适用于测试环境，生产环境均未批准：",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        },
+        {
+          "content": "Nimbus允许开启自动扩容。",
+          "ready": false,
+          "statuses": [
+            "needs_review"
+          ]
+        }
+      ],
+      "incompleteReady": 0
+    },
+    {
+      "runId": "dense_facts-1-candidate",
+      "caseId": "dense_facts",
+      "arm": "candidate",
+      "retained": 18,
+      "total": 18,
+      "partitioned": 1
+    },
+    {
+      "runId": "dense_facts-2-candidate",
+      "caseId": "dense_facts",
+      "arm": "candidate",
+      "retained": 18,
+      "total": 18,
+      "partitioned": 1
+    }
+  ],
+  "judgeUsage": {
+    "requests": 8,
+    "inputTokens": 11925,
+    "outputTokens": 4224,
+    "tokens": 16149,
+    "cacheHitTokens": 9984
+  },
+  "finalUsage": {
+    "requests": 50,
+    "inputTokens": 158665,
+    "outputTokens": 24372,
+    "tokens": 183037,
+    "cacheHitTokens": 47872
+  },
+  "developmentUsage": {
+    "requests": 49,
+    "inputTokens": 153145,
+    "outputTokens": 23801,
+    "tokens": 176946,
+    "cacheHitTokens": 46592
+  },
+  "totalFixExperimentUsage": {
+    "requests": 99,
+    "inputTokens": 311810,
+    "outputTokens": 48173,
+    "tokens": 359983,
+    "cacheHitTokens": 94464
+  }
+}

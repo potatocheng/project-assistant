@@ -1,0 +1,24 @@
+{
+  "version": "qa-targeted-third-initial-integration-v1",
+  "recordedAt": "2026-10-21T03:10:26.390Z",
+  "actualApiCalls": 0,
+  "command": "cargo test -p project-assistant-core --locked --test nonvector_qa_engine --test qa_engine --test assistant_qa_engine",
+  "assistantPassed": 7,
+  "nonvectorPassed": 19,
+  "nonvectorFailed": 2,
+  "qaNotRun": true,
+  "failures": [
+    {
+      "name": "a_joint_model_cannot_answer_an_individual_model_question_even_when_review_agrees",
+      "cause": "Fixture no longer includes a compatible base; the identity question has no matching navigation witness, so targetPlan may be null. Removed only the navigation-object assertion; wrong-answer and raw-review rejection assertions retained."
+    },
+    {
+      "name": "a_known_individual_target_omits_exclusively_joint_facts_from_the_first_model_pack",
+      "cause": "Composition projection intentionally only removes opposite references matching the asked relation; changed this new fixture to ask composition, matching the actual regression. Complete snapshot and two-call assertions retained."
+    }
+  ],
+  "midEditCompileProbe": {
+    "error": "Missing new rewrite fifth argument during controller editing; not final code/test evidence.",
+    "countedAsPassing": false
+  }
+}

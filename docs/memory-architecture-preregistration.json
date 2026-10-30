@@ -1,0 +1,28 @@
+{
+  "version": "memory-architecture-preregistration-v1",
+  "registeredAt": "2026-10-26T07:00:10.988Z",
+  "authorization": "User 2026-10-26: improve accuracy; all memory architecture and code may be changed. Continuation includes bounded real-model validation.",
+  "model": "deepseek-flash",
+  "datasetSha256": "803537c32e89dce765c8e6cef6484f332d6ef5a9c91b726a4ea957e68b461d87",
+  "baselineDevelopment": {
+    "file": "docs/memory-public-live-qa-reliability-dev-results.json",
+    "sha256": "bb1f6b3b25950b1d933a0d3038115c4e6137e32044b0d55dd1340ed9d70fee3c"
+  },
+  "frozenMemory": {
+    "file": "docs/memory-public-live-qa-reliability-dev-results.json",
+    "sha256": "bb1f6b3b25950b1d933a0d3038115c4e6137e32044b0d55dd1340ed9d70fee3c",
+    "memoryCount": 929
+  },
+  "limits": {
+    "development": {
+      "maxRequests": 600,
+      "maxTokens": 3200000,
+      "maxFreshAttempts": 2,
+      "perAttemptRequests": 300,
+      "perAttemptTokens": 1600000
+    }
+  },
+  "methodology": "Fixed prior confirmed memory and imported source snapshots; candidate QA and separated anonymous comparison to saved historical answers. Original-memory retention remains separately measured. Source passages are a new evidence channel, not additional formal memories. No gold or prior answers in production prompts.",
+  "repairPolicy": "Second attempt only after a recorded concrete failure and production code correction; preserve all failures/costs; never rerun solely to select a higher score.",
+  "full100Authorized": false
+}

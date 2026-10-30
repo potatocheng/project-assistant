@@ -1,0 +1,55 @@
+{
+  "version": "memory-architecture-final-summary-v1",
+  "checkedAt": "2026-10-26T08:14:27.804Z",
+  "complete": true,
+  "model": "deepseek-flash",
+  "questions": 20,
+  "answerable": 19,
+  "formalMemoryCount": 929,
+  "baselineOriginal": {
+    "desktop": 12,
+    "connector": 15
+  },
+  "baselineRegraded": {
+    "desktop": 12,
+    "connector": 14
+  },
+  "current": {
+    "desktop": 17,
+    "connector": 14
+  },
+  "memory": {
+    "before": 17,
+    "after": 17,
+    "denominator": 19,
+    "unchangedFormalContent": true
+  },
+  "qaTokens": {
+    "before": 312132,
+    "after": 835565,
+    "relativeChange": 1.6769603885535607
+  },
+  "developmentTotal": {
+    "requests": 307,
+    "totalTokens": 2671249,
+    "qaTokens": 1588649,
+    "judgeTokens": 1082600
+  },
+  "tests": {
+    "rustPassed": 472,
+    "rustIgnored": 5,
+    "existingNodePassed": 242,
+    "amendmentPassed": 10,
+    "continuationPassed": 8
+  },
+  "binarySha256": "acad184b90d41b47f110558155335646a4dd6e78670c1dfcfa84e744531d18cd",
+  "report": "docs/memory-architecture-dev-v2-report.md",
+  "integrity": "docs/memory-architecture-dev-v2-audited-integrity.json",
+  "technicalAmendment": "docs/memory-architecture-dev-v2-technical-amendment.json",
+  "limitations": [
+    "Known development20, same-model automatic judgment; no full100 or held-out80 evaluation in this round.",
+    "Connector does not improve in paired evaluation.",
+    "Frozen memory means no extraction-retention improvement claim.",
+    "Original v2 results preserve the project-type validator false positive; the audited derivative changes only three derived validation fields."
+  ]
+}

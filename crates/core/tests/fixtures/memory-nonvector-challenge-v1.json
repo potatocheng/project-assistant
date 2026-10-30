@@ -1,0 +1,26 @@
+{
+  "version": "memory-nonvector-challenge-v1",
+  "description": "新增合成挑战集，由编码助理设计，用于观察改写、条件与错误前提；不是独立人工盲测。",
+  "memories": [
+    {"id":"challenge_reward","kind":"requirement","content":"权益兑换采用实名核验，同一身份证号码只能领取一份。"},
+    {"id":"challenge_mfa","kind":"requirement","content":"泽川后台的第二因子仅接受硬件安全密钥，短信验证码不能用作第二因子。"},
+    {"id":"challenge_archive","kind":"requirement","content":"北辰合同扫描件保存七年，到期后仍须经法务复核批准，才能销毁。"},
+    {"id":"challenge_progress","kind":"fact","content":"海桥迁移开发工作已结束，验收尚未启动；测试覆盖率为92%，未记录任务完成百分比。"},
+    {"id":"challenge_release","kind":"risk","content":"天衡发布前必须通过压力测试；当前压测因测试环境未就绪而未启动，未记录发布实际日期变化。"}
+  ],
+  "queries": [
+    {"id":"challenge_reward_search","category":"new_challenge","question":"怎样防止一个人反复薅羊毛领赠品？","gold":["challenge_reward"]},
+    {"id":"challenge_mfa_scope","category":"new_challenge","question":"泽川后台二次验证能靠手机短信完成吗？","gold":["challenge_mfa"]},
+    {"id":"challenge_archive_condition","category":"new_challenge","question":"北辰合同资料年限到了就能直接删掉吗？","gold":["challenge_archive"]},
+    {"id":"challenge_progress_premise","category":"new_challenge","question":"海桥是否已完成验收，92%是不是项目完成率？","gold":["challenge_progress"]},
+    {"id":"challenge_release_premise","category":"new_challenge","question":"天衡发布为什么已经推迟？","gold":["challenge_release"]},
+    {"id":"challenge_unknown_owner","category":"new_challenge","question":"泽川硬件安全密钥采购负责人是谁？","gold":[]}
+  ],
+  "claims": {
+    "challenge_reward_search":["实名|身份证","一份|一次|1份|1次"],
+    "challenge_mfa_scope":["不能|不支持|不接受|不可以|无法","硬件安全密钥"],
+    "challenge_archive_condition":["法务","复核|批准"],
+    "challenge_progress_premise":["验收.*(尚未|未启动|未开始)|尚未.*验收","覆盖率","未记录|不能|不代表|不是|无法"],
+    "challenge_release_premise":["未记录|无法确认|不能确认|无法确定|没有.*(延期|推迟|日期)|未.*(说明|提供)","压力测试|压测"]
+  }
+}

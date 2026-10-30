@@ -1,0 +1,866 @@
+# 记忆架构：固定记忆上的20题真实问答比较
+
+本轮 qa-architecture-dev-v2，20题：19题可答、1题无答案。冻结正式记忆 929 条，新增 0 条；提取请求 0 次。100题未执行。
+
+与 reliability 的历史答案做本次匿名配对重评；同时保留 reliability 原评。v3 只列历史原评参考，本轮没有重评 v3。下面是同模型自动评分，开发集已用于回归，并非新增盲测。
+
+## 正确率与参考充分性
+
+| 入口 | 指标 | v3 历史参考 | reliability 原评 | 本次 reliability 配对 | 本轮 |
+| --- | --- | --- | --- | --- | --- |
+| 桌面 | 可答题完整正确 | 16/19 | 12/19 | 12/19 | 17/19 |
+| 桌面 | 无答案题正确拒答 | 1/1 | 1/1 | 1/1 | 1/1 |
+| 桌面 | 检索参考充分 yes | 17/19 | 16/19 | 旧参考包未重评 | 17/19 |
+| 桌面 | 相对本次旧答案配对的新增成功 / 退化 | — | — | — | 5 / 0 |
+| 飞书 | 可答题完整正确 | 16/19 | 15/19 | 14/19 | 14/19 |
+| 飞书 | 无答案题正确拒答 | 1/1 | 1/1 | 1/1 | 1/1 |
+| 飞书 | 检索参考充分 yes | 17/19 | 16/19 | 旧参考包未重评 | 17/19 |
+| 飞书 | 相对本次旧答案配对的新增成功 / 退化 | — | — | — | 1 / 1 |
+
+partial 不计入完整正确；所有可答题保留在分母。历史原评与本次配对评分分开，不将评分漂移归为代码收益。
+
+## 冻结记忆与独立原文通道
+
+正式记忆内容、条件、修订、证据和原始段落均与 reliability 一致。下面的记忆标签是同一内容再次接受 judge 评分；任何变化都不表示新增留存。原文通道不进入记忆留存评分。
+
+| 评分 | yes | partial | no | uncertain | 缺失 | 严格 yes |
+| --- | --- | --- | --- | --- | --- | --- |
+| reliability 原评 | 17 | 1 | 1 | 0 | 0 | 17/19 |
+| 冻结内容本次重评 | 17 | 1 | 1 | 0 | 0 | 17/19 |
+
+| 入口 | 含原文的生成次数 | 最终生产参考含原文的题数 | 最终生产原文参考数 | 引用原文的题数 | 原文引用数 | 单次生成最多原文 / 总参考 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 桌面 | 22/22 | 20/20 | 167 | 19/20 | 48 | 8 / 32 |
+| 飞书 | 23/23 | 20/20 | 172 | 18/20 | 41 | 8 / 32 |
+
+原文参考数量按最终答案实际生产上下文的并集统计；并集跨两次生成时不等同于单个参考包。来源字段与整段内容通过完整性校验。引用或可见原文不单独证明其导致答案正确。
+
+## 分阶段请求与 tokens
+
+成本只作同阶段比较：QA 对 QA、judge 对 judge。本轮复用已完成的提取，不将本轮 QA-only 总量与旧含提取总量相比来宣称节省。未提供货币账单或单价，因此不估算货币费用。
+
+| 阶段 | reliability 请求 / tokens | 本轮请求 / tokens | 同阶段 tokens 变化 |
+| --- | --- | --- | --- |
+| qa | 95 / 312132 | 96 / 835565 | +523433 (167.70%) |
+| judge | 60 / 449849 | 60 / 547176 | +97327 (21.64%) |
+| extraction | 100 / 435450 | 0 / 0 | 本轮未执行 |
+| all | 255 / 1197431 | 156 / 1382741 | 范围不同，不计算节省 |
+
+| 本轮阶段 | input | output | cache input | 失败请求 | 缺失(total/input/output/cache) |
+| --- | --- | --- | --- | --- | --- |
+| qa | 812859 | 22706 | 99328 | 0 | 0/0/0/0 |
+| judge | 539437 | 7739 | 362752 | 0 | 0/0/0/0 |
+| extraction | 0 | 0 | 0 | 0 | 0/0/0/0 |
+| all | 1352296 | 30445 | 462080 | 0 | 0/0/0/0 |
+
+所有成功、失败和重试请求均纳入实际收据；cache 属于 input，不重复加入 total。
+
+## 逐题变化
+
+理由来自对应 stages.answer.systems，按 anonymousOrder 映射；不使用检索阶段覆盖后的扁平 reason。
+
+### 1be54c5b3ea67d837ffba2290a40c1e720d9587f · 桌面 · 可答
+
+Is the position in the sequence part of the input?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| no | no | yes | new_success | new_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | No. The recorded input to each decoder is the corresponding image embedding e(I_i), not the position in the sequence; the position determines which decoder handles which image. [1][2][3] |
+| 本轮答案 | 是。模型为图像序列的每个位置设置一个独立解码器，每个解码器以对应图像的嵌入 e(I_i) 作为第一项输入，因此序列中的位置对应各自的输入图像。 [1][2][3]<br>每个解码器针对序列中对应位置学习特定的语言模型，例如第一个解码器学习故事开头句、最后一个解码器学习结尾句。 [4][5] |
+| reliability 原评理由 | Answers 'No' to a yes/no question whose human answer is yes; contradicts the per-position decoder design. |
+| reliability 本次配对理由 | Says position is not part of input, contradicting the gold answer that each decoder corresponds to a sequence position. |
+| 本轮理由 | Correctly answers yes, explaining each position has its own decoder with corresponding image input. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | References state the network takes an image from the sequence as input at each timestep, and decoders take corresponding image embedding as first input, confirming position in sequence is part of input. |
+| 最终生产原文参考 ID | source:0056b867-8122-4004-bc43-25fd67204dda:21f3eabb-4486-4b12-a466-7200557be9ea, source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29, source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da, source:0056b867-8122-4004-bc43-25fd67204dda:00011657-a46d-4d6f-92d6-d081f5d2027f, source:0056b867-8122-4004-bc43-25fd67204dda:2c617d30-268e-45da-96a6-0cc91661bf2a, source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1, source:0056b867-8122-4004-bc43-25fd67204dda:e9cf78d6-9302-48a1-a4a4-c7d08882ab7c, source:0056b867-8122-4004-bc43-25fd67204dda:a1876bf5-068c-4e23-a1d3-e4fbb91d36ee |
+| 最终原文引用 ID | source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29 |
+
+### 1be54c5b3ea67d837ffba2290a40c1e720d9587f · 飞书 · 可答
+
+Is the position in the sequence part of the input?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| partial | partial | yes | new_success | new_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 记录未明确说明序列位置本身是否作为输入；已记录的是每个解码器以对应图像嵌入 e(I_i) 作为首个输入，并以编码器最后隐藏状态（上下文）初始化隐藏状态。 [1][2]<br>模型为序列中每张图像设置一个独立解码器，每个解码器针对序列中对应位置学习特定的语言模型。 [3][4]<br>尚待确认：序列位置是否作为显式输入（如位置编码或位置向量）未被记录。；Is the position in the sequence part of the input?<br><br>依据：<br>[1] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 10 行）<br>[2] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行）<br>[3] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行）<br>[4] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行） |
+| 本轮答案 | 是。模型为图像序列的每个位置设置一个独立解码器，使每个解码器能针对序列中的每个位置学习特定的语言模型；第一个解码器为第一张图像生成词序列，第二个解码器为第二张图像生成词序列，依此类推。 [1][2]<br>各解码器以编码器最后隐藏状态（上下文向量）作为初始隐藏状态，并以对应图像的嵌入 e(I_i) 作为第一输入；最终故事由5个解码器的输出拼接而成。 [3][4]<br><br>依据：<br>[1] Contextualize, Show and Tell: A Neural Visual Storyteller · 导入原文（非正式记忆）（第 9 行）（第 9 行）<br>[2] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行）<br>[3] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行）<br>[4] Contextualize, Show and Tell: A Neural Visual Storyteller · 导入原文（非正式记忆）（第 10 行）（第 10 行） |
+| reliability 原评理由 | Notes per-position decoders but hedges that position input is unrecorded, failing to give the expected yes. |
+| reliability 本次配对理由 | Notes per-position decoders but treats position-as-input as unknown rather than answering yes. |
+| 本轮理由 | Correctly answers yes with per-position decoders and corresponding image embeddings as input. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Same evidence: encoder takes images from the sequence as input per timestep and decoders use corresponding image embedding, answering that sequence position is part of input. |
+| 最终生产原文参考 ID | source:0056b867-8122-4004-bc43-25fd67204dda:21f3eabb-4486-4b12-a466-7200557be9ea, source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29, source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da, source:0056b867-8122-4004-bc43-25fd67204dda:00011657-a46d-4d6f-92d6-d081f5d2027f, source:0056b867-8122-4004-bc43-25fd67204dda:2c617d30-268e-45da-96a6-0cc91661bf2a, source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1, source:0056b867-8122-4004-bc43-25fd67204dda:e9cf78d6-9302-48a1-a4a4-c7d08882ab7c, source:0056b867-8122-4004-bc43-25fd67204dda:a1876bf5-068c-4e23-a1d3-e4fbb91d36ee |
+| 最终原文引用 ID | source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29, source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1 |
+
+### 584af673429c7f8621c6bf83362a37048daa0e5d · 桌面 · 可答
+
+How is the sequential nature of the story captured?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | The encoder processes the images in order, taking one image at every timestep t; at t=5 the context vector is obtained through h_e^(t). [1]<br>The model's first component is an LSTM that summarizes the sequence of images; at t=5 it has encoded the 5 images and provides the sequence's context via its last hidden state h_e^(t). [2][3]<br>The model contains five independent decoders, one for each image in the sequence, and each decoder generates a sequence of words for its image; the final story is the concatenation of the five decoders' outputs. [4][5]<br>The first decoder generates words for the first image, the second decoder for the second image, and so on, allowing each decoder to learn a specific language model for each position of the sequence. [6][7]<br>All five decoders use the encoder's last hidden state as their first hidden state and take the corresponding image embedding as their first input. [8] |
+| 本轮答案 | The model captures the story's sequential nature through an encoder that processes the images in order, one at every timestep t; at t=5 it produces the context vector from the encoder's hidden state. [1][2]<br>Each image in the sequence is first represented using Inception v3, giving embeddings e(I_1) through e(I_5). [3][4]<br>The model has five independent decoders, one for each image in the sequence. [5][6]<br>The encoder's context vector initializes each decoder's hidden state, and each decoder's first input is its corresponding image embedding. [7][6]<br>The first decoder generates the words for the first image, the second decoder for the second image, and so on, so each decoder learns a position-specific language model (e.g., the first learns opening sentences, the last closing sentences). [8][9][6]<br>Each decoder generates a word sequence for its image, and the final story is the concatenation of the outputs of the 5 decoders. [10][4] |
+| reliability 原评理由 | Explains encoder processes images in order per timestep, context vector at t=5, five decoders each generating words per image, concatenated story—matches gold. |
+| reliability 本次配对理由 | Covers ordered encoder timesteps, context vector at t=5, five position-specific decoders, and concatenated story output. |
+| 本轮理由 | Explains encoder processes images in order per timestep, context vector at t=5, per-image decoders initialized by context, and concatenated outputs—matching gold. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | References include the encoder taking images in order per timestep, the context vector, per-image decoders generating word sequences, and concatenation into the final story, matching the gold explanation of sequential capture. |
+| 最终生产原文参考 ID | source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1, source:0056b867-8122-4004-bc43-25fd67204dda:00011657-a46d-4d6f-92d6-d081f5d2027f, source:0056b867-8122-4004-bc43-25fd67204dda:9caa7a86-ad9c-4941-8b88-018d54bb01b8, source:0056b867-8122-4004-bc43-25fd67204dda:6bd5f5fd-84de-4e82-bba2-4763471d0c92, source:0056b867-8122-4004-bc43-25fd67204dda:2c617d30-268e-45da-96a6-0cc91661bf2a, source:0056b867-8122-4004-bc43-25fd67204dda:e9cf78d6-9302-48a1-a4a4-c7d08882ab7c, source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29, source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da |
+| 最终原文引用 ID | source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da, source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1, source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29 |
+
+### 584af673429c7f8621c6bf83362a37048daa0e5d · 飞书 · 可答
+
+How is the sequential nature of the story captured?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 编码器按顺序逐个时间步接收图像，在 t=5 时通过最后隐藏状态 h_e^(t)（记为 Z）得到上下文向量。 [1][2]<br>模型包含五个独立解码器，每个图像对应一个解码器；第一个解码器为第一张图像生成词序列，第二个为第二张，依此类推。 [3][4]<br>每个解码器为序列中对应图像生成一段词序列，最终故事是五个解码器输出的拼接。 [5]<br>编码器最后隐藏状态（上下文）用于初始化每个解码器的隐藏状态，每个解码器的首个输入是其对应的图像嵌入 e(I_i)。 [6][7]<br>这种设计使每个解码器学习针对序列各位置特定的语言模型。 [8]<br><br>依据：<br>[1] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 10 行）<br>[2] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 7 行）<br>[3] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行）<br>[4] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行）<br>[5] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 10 行）<br>[6] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 10 行）<br>[7] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行）<br>[8] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行） |
+| 本轮答案 | 模型首先用 Inception v3 为序列中每张图像取得表示 {e(I1),…,e(I5)}。 [1][2]<br>编码器按顺序在每个时间步 t 输入一张图像，在 t=5 时通过最后隐藏状态 h_e^(t)（记为 Z）得到整个序列的上下文向量。 [3][4]<br>该上下文向量用于初始化每个解码器的隐藏状态，而每个解码器的第一个输入是其对应图像的嵌入 e(I_i)。 [5][6]<br>模型包含五个独立解码器，每个图像位置一个；第一个解码器为第一张图像生成词序列，第二个为第二张，依此类推。 [7][8]<br>每个解码器为序列中对应图像生成一段词序列 {p1,…,pn}，最终故事是 5 个解码器输出的拼接。 [9][2]<br>这种按位置独立的解码器使每个解码器能为序列的每个位置学习特定的语言模型，例如第一个解码器学习故事开头句、最后一个学习结尾句。 [10][6]<br><br>依据：<br>[1] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 10 行）<br>[2] Contextualize, Show and Tell: A Neural Visual Storyteller · 导入原文（非正式记忆）（第 10 行）（第 10 行）<br>[3] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 10 行）<br>[4] Contextualize, Show and Tell: A Neural Visual Storyteller · 导入原文（非正式记忆）（第 7 行）（第 7 行）<br>[5] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 10 行）<br>[6] Contextualize, Show and Tell: A Neural Visual Storyteller · 导入原文（非正式记忆）（第 9 行）（第 9 行）<br>[7] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行）<br>[8] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行）<br>[9] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 10 行）<br>[10] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 9 行） |
+| reliability 原评理由 | Covers ordered encoder timesteps, context vector at t=5, five decoders per image, concatenation, and initialization—semantically equivalent to gold. |
+| reliability 本次配对理由 | Chinese answer accurately restates the ordered encoder, context initialization, per-position decoders, and concatenation. |
+| 本轮理由 | Chinese version conveys the same sequential encoder/decoder mechanism and concatenation, semantically equivalent to gold. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Connector references contain the same key passages: ordered encoder timesteps, context vector, per-image decoder word sequences, and final concatenation, sufficient to explain how sequentiality is captured. |
+| 最终生产原文参考 ID | source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1, source:0056b867-8122-4004-bc43-25fd67204dda:00011657-a46d-4d6f-92d6-d081f5d2027f, source:0056b867-8122-4004-bc43-25fd67204dda:9caa7a86-ad9c-4941-8b88-018d54bb01b8, source:0056b867-8122-4004-bc43-25fd67204dda:6bd5f5fd-84de-4e82-bba2-4763471d0c92, source:0056b867-8122-4004-bc43-25fd67204dda:2c617d30-268e-45da-96a6-0cc91661bf2a, source:0056b867-8122-4004-bc43-25fd67204dda:e9cf78d6-9302-48a1-a4a4-c7d08882ab7c, source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29, source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da |
+| 最终原文引用 ID | source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1, source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da, source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29 |
+
+### c37f65c9f0d543a35c784263b79236ccf1c44fac · 桌面 · 可答
+
+What model is used to encode the images?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | The image representations were obtained using Inception V3. [1][2]<br>The encoder is a Convolutional Neural Network (CNN). [3] |
+| 本轮答案 | The image representations are obtained using Inception V3. [1][2]<br>The encoder itself is described as a Convolutional Neural Network (CNN). [3][4] |
+| reliability 原评理由 | States Inception V3 and CNN encoder, matching the human answers. |
+| reliability 本次配对理由 | States Inception V3 for image representations and CNN as encoder, matching both human answers. |
+| 本轮理由 | States Inception V3 and CNN encoder, matching both human answers. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | References include 'The encoder is a Convolutional Neural Network (CNN)' and 'The representation of the images was obtained through Inception V3,' covering both gold answers (CNN and Inception V3). |
+| 最终生产原文参考 ID | source:0056b867-8122-4004-bc43-25fd67204dda:b7aa9590-9e5c-4ed8-9719-835845b5dc4f, source:0056b867-8122-4004-bc43-25fd67204dda:00011657-a46d-4d6f-92d6-d081f5d2027f, source:0056b867-8122-4004-bc43-25fd67204dda:2c617d30-268e-45da-96a6-0cc91661bf2a, source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1, source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29, source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da, source:0056b867-8122-4004-bc43-25fd67204dda:21f3eabb-4486-4b12-a466-7200557be9ea, source:0056b867-8122-4004-bc43-25fd67204dda:9caa7a86-ad9c-4941-8b88-018d54bb01b8 |
+| 最终原文引用 ID | source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da, source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1, source:0056b867-8122-4004-bc43-25fd67204dda:b7aa9590-9e5c-4ed8-9719-835845b5dc4f |
+
+### c37f65c9f0d543a35c784263b79236ccf1c44fac · 飞书 · 可答
+
+What model is used to encode the images?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 图像表示通过 Inception V3 获得。 [1]<br>对序列中的每张图像，使用 Inception v3 获得其表示。 [2]<br><br>依据：<br>[1] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 7 行）<br>[2] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 10 行） |
+| 本轮答案 | 图像表示使用 Inception V3 获得。 [1][2][3]<br>编码器是卷积神经网络（CNN）。 [4][5]<br>在故事生成模型中，编码器是用于汇总图像序列的 LSTM（循环神经网络）。 [6][7]<br><br>依据：<br>[1] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 7 行）<br>[2] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 10 行）<br>[3] Contextualize, Show and Tell: A Neural Visual Storyteller · 导入原文（非正式记忆）（第 7 行）（第 7 行）<br>[4] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 6 行）<br>[5] Contextualize, Show and Tell: A Neural Visual Storyteller · 导入原文（非正式记忆）（第 6 行）（第 6 行）<br>[6] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 7 行）<br>[7] Contextualize, Show and Tell: A Neural Visual Storyteller · 记忆 v1 · 当前版本原文依据（第 7 行） |
+| reliability 原评理由 | States Inception V3 for image representations, matching the human answer. |
+| reliability 本次配对理由 | States Inception V3 for image representations, matching a human answer. |
+| 本轮理由 | States Inception V3, CNN encoder, and LSTM encoder, covering both human answers. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Same references present, including CNN encoder statement and Inception V3 image representation, matching both human gold spans. |
+| 最终生产原文参考 ID | source:0056b867-8122-4004-bc43-25fd67204dda:b7aa9590-9e5c-4ed8-9719-835845b5dc4f, source:0056b867-8122-4004-bc43-25fd67204dda:00011657-a46d-4d6f-92d6-d081f5d2027f, source:0056b867-8122-4004-bc43-25fd67204dda:2c617d30-268e-45da-96a6-0cc91661bf2a, source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1, source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29, source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da, source:0056b867-8122-4004-bc43-25fd67204dda:21f3eabb-4486-4b12-a466-7200557be9ea, source:0056b867-8122-4004-bc43-25fd67204dda:9caa7a86-ad9c-4941-8b88-018d54bb01b8 |
+| 最终原文引用 ID | source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da, source:0056b867-8122-4004-bc43-25fd67204dda:b7aa9590-9e5c-4ed8-9719-835845b5dc4f |
+
+### b08f88d1facefceb87e134ba2c1fa90035018e83 · 桌面 · 可答
+
+Do the decoder LSTMs all have the same weights?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| no | no | yes | new_success | new_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 现有记录不足以支持完整结论或问题前提，请核对原文或补充记录。 |
+| 本轮答案 | No. The model contains five independent decoders, one for each image in the sequence, and each decoder learns a specific language model for its position. [1]<br>The decoders are described as independent and position-specific rather than as sharing weights; the record does not state that they share weights. [1][2] |
+| reliability 原评理由 | Refuses/claims insufficient records instead of answering; question is answerable. |
+| reliability 本次配对理由 | Abstains with 'insufficient records' instead of answering the answerable question. |
+| 本轮理由 | Correctly answers No, citing five independent decoders each learning a position-specific language model, matching the gold passage. |
+| 旧 / 本轮参考充分性 | no / no |
+| 本轮参考理由 | Selected references mention five independent decoders but never state whether they share weights; the gold paragraph says each decoder learns a specific language model, implying different weights, but this is not shown. |
+| 最终生产原文参考 ID | source:0056b867-8122-4004-bc43-25fd67204dda:7c8a0b73-3b6a-46e9-9734-e49eb4e942e9, source:0056b867-8122-4004-bc43-25fd67204dda:2c617d30-268e-45da-96a6-0cc91661bf2a, source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29, source:0056b867-8122-4004-bc43-25fd67204dda:00011657-a46d-4d6f-92d6-d081f5d2027f, source:0056b867-8122-4004-bc43-25fd67204dda:21f3eabb-4486-4b12-a466-7200557be9ea, source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da, source:0056b867-8122-4004-bc43-25fd67204dda:b7aa9590-9e5c-4ed8-9719-835845b5dc4f, source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1 |
+| 最终原文引用 ID | source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29, source:0056b867-8122-4004-bc43-25fd67204dda:21f3eabb-4486-4b12-a466-7200557be9ea |
+
+### b08f88d1facefceb87e134ba2c1fa90035018e83 · 飞书 · 可答
+
+Do the decoder LSTMs all have the same weights?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| no | no | no | still_unsuccessful | still_unsuccessful |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 项目记忆中没有足够依据，暂不自动回复。 |
+| 本轮答案 | 项目记忆中没有足够依据，暂不自动回复。 |
+| reliability 原评理由 | Refuses/claims insufficient records instead of answering; question is answerable. |
+| reliability 本次配对理由 | Refuses/abstains despite the question being answerable; not a correct answer. |
+| 本轮理由 | Refuses/abstains despite the question being answerable; not a correct answer. |
+| 旧 / 本轮参考充分性 | no / no |
+| 本轮参考理由 | Connector references include the gold paragraph about five independent decoders learning specific language models, but none explicitly state whether decoder LSTM weights are shared or distinct. |
+| 最终生产原文参考 ID | source:0056b867-8122-4004-bc43-25fd67204dda:7c8a0b73-3b6a-46e9-9734-e49eb4e942e9, source:0056b867-8122-4004-bc43-25fd67204dda:2c617d30-268e-45da-96a6-0cc91661bf2a, source:0056b867-8122-4004-bc43-25fd67204dda:99a5dba5-48ff-48dd-9e38-78acdc8b7b29, source:0056b867-8122-4004-bc43-25fd67204dda:00011657-a46d-4d6f-92d6-d081f5d2027f, source:0056b867-8122-4004-bc43-25fd67204dda:21f3eabb-4486-4b12-a466-7200557be9ea, source:0056b867-8122-4004-bc43-25fd67204dda:4ed951a9-15c4-432b-b827-f49c4081c7da, source:0056b867-8122-4004-bc43-25fd67204dda:b7aa9590-9e5c-4ed8-9719-835845b5dc4f, source:0056b867-8122-4004-bc43-25fd67204dda:683e67ac-3e5a-4524-bd86-eb1b8c732cd1 |
+| 最终原文引用 ID | 无 |
+
+### 747b847d687f703cc20a87877c5b138f26ff137d · 桌面 · 可答
+
+Which parallel corpora are used?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| no | no | yes | new_success | new_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 记录提到使用未标注的 Europarl 数据来采样源语言角色。 [1]<br>尚待确认：除 Europarl 外，所使用平行语料库的完整名称与范围未明确记录。；Which parallel corpora are used? |
+| 本轮答案 | 实验使用 CoNLL 2009 语料的英语（EN）和德语（DE）部分，以及 Europarl 语料的 EN-DE 部分。 [1][2]<br>其中平行语料是 Europarl 的 EN-DE 部分，约 150 万句平行英德句子。 [1][3] |
+| reliability 原评理由 | Only mentions unlabeled Europarl and fails to name CoNLL 2009 or the EN-DE pair. |
+| reliability 本次配对理由 | Only mentions Europarl and says other corpora are unconfirmed; omits CoNLL 2009 EN/DE, so incomplete and wrongly flags unknown. |
+| 本轮理由 | Correctly names CoNLL 2009 EN/DE sections and Europarl EN-DE section. |
+| 旧 / 本轮参考充分性 | no / yes |
+| 本轮参考理由 | Reference memory:2de559bb states experiments use EN/DE sections of CoNLL 2009 and EN-DE section of Europarl, matching the gold answer. |
+| 最终生产原文参考 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:18180ceb-c3b0-4f24-8b85-ad4ca5bb9d99, source:f77eab74-a2c6-488c-8db3-e82073df8b78:193b50ad-f652-4003-956f-c8933ac94ef9, source:f77eab74-a2c6-488c-8db3-e82073df8b78:b6a6a03c-aa65-40a9-8a01-2bdec2adc38b, source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b, source:f77eab74-a2c6-488c-8db3-e82073df8b78:dafc584b-7b1d-4f35-bbd9-5a2d53537b1f, source:f77eab74-a2c6-488c-8db3-e82073df8b78:5cc40b40-a8bc-45e2-aa42-f863104ea031, source:f77eab74-a2c6-488c-8db3-e82073df8b78:45611eba-990c-4a19-81f7-302188e2b5e6, source:f77eab74-a2c6-488c-8db3-e82073df8b78:df2aae18-f16b-44d0-8cac-30bd9f032a23 |
+| 最终原文引用 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b |
+
+### 747b847d687f703cc20a87877c5b138f26ff137d · 飞书 · 可答
+
+Which parallel corpora are used?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| no | no | partial | still_unsuccessful | still_unsuccessful |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 该模型使用平行语料库中句子之间的词对齐来利用跨语言的语义角色对应关系。 [1]<br>源语言角色是在未标注的 Europarl 数据上采样的。 [2]<br>尚待确认：除 Europarl 外，记录未明确列出所使用的平行语料库名称或具体语种对。；除 Europarl 外，未明确列出所使用的平行语料库名称或具体语种对。；Which parallel corpora are used?<br><br>依据：<br>[1] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 15 行）<br>[2] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 41 行） |
+| 本轮答案 | 实验使用 Europarl 语料的 EN-DE 部分作为平行语料。 [1][2]<br>从 Europarl 获取约 150 万条 EN-DE 平行句。 [3][2]<br>EN-DE 平行 Europarl 语料的词对齐用 GIZA++ 计算，并只保留双向交集对齐以提高精度。 [4][2]<br><br>依据：<br>[1] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 34 行）<br>[2] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 导入原文（非正式记忆）（第 34 行）（第 34 行）<br>[3] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 34 行）<br>[4] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 34 行） |
+| reliability 原评理由 | Does not identify the parallel corpora; only mentions Europarl and general alignment use. |
+| reliability 本次配对理由 | Mentions Europarl only and claims corpus names unconfirmed; omits CoNLL 2009 EN/DE. |
+| 本轮理由 | Correctly identifies Europarl EN-DE but omits CoNLL 2009 EN/DE corpus. |
+| 旧 / 本轮参考充分性 | no / yes |
+| 本轮参考理由 | Connector includes the same CoNLL 2009 EN/DE and Europarl EN-DE corpus statement, fully covering the gold answer. |
+| 最终生产原文参考 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:18180ceb-c3b0-4f24-8b85-ad4ca5bb9d99, source:f77eab74-a2c6-488c-8db3-e82073df8b78:193b50ad-f652-4003-956f-c8933ac94ef9, source:f77eab74-a2c6-488c-8db3-e82073df8b78:b6a6a03c-aa65-40a9-8a01-2bdec2adc38b, source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b, source:f77eab74-a2c6-488c-8db3-e82073df8b78:dafc584b-7b1d-4f35-bbd9-5a2d53537b1f, source:f77eab74-a2c6-488c-8db3-e82073df8b78:5cc40b40-a8bc-45e2-aa42-f863104ea031, source:f77eab74-a2c6-488c-8db3-e82073df8b78:45611eba-990c-4a19-81f7-302188e2b5e6, source:f77eab74-a2c6-488c-8db3-e82073df8b78:df2aae18-f16b-44d0-8cac-30bd9f032a23 |
+| 最终原文引用 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:b7753349-dc33-4de6-8d42-0f8cda9a463b |
+
+### 111afb77cfbf4c98e0458606378fa63a0e965e36 · 桌面 · 可答
+
+Overall, does having parallel data improve semantic role induction across multiple languages?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 总体而言，加入平行句中的词对齐只带来小幅且不显著的提升，即使源语言已有部分标注数据也是如此。 [1]<br>结果表明，从该平行数据设置中能学到的语义角色信息很少。 [2]<br>作者认为，改进对齐模型是有效利用平行数据于多语言语义角色归纳的必要步骤。 [3]<br>标注少量数据带来的性能提升，很容易超过加入大规模无标注数据集以及加入平行语料库所带来的提升。 [4] |
+| 本轮答案 | 总体而言，没有证据表明平行数据能显著提升多语言语义角色归纳：在平行句中加入词对齐只带来小幅、不显著的改进，即使源语言已有部分标注数据也是如此。 [1][2]<br>作者指出，这一结果可能源于当前关于角色对齐的假设，即只有很小比例的角色被对齐。 [1]<br>具体而言，按对齐论元的定义，只有8%的英语论元和17%的德语论元是对齐的。 [3]<br>作者据此认为，从该平行数据设置中几乎学不到关于语义角色的信息，改进对齐模型是有效利用平行数据进行多语言SRI的必要步骤。 [3]<br>在标注迁移场景中，目标语言只获得小幅改进，作者认为对齐角色比例小可能限制了跨语言信息的影响。 [4] |
+| reliability 原评理由 | Correctly reports small non-significant gains and little learnable role information, consistent with gold. |
+| reliability 本次配对理由 | States parallel data yields only small, non-significant improvements and little learnable role information, matching the gold conclusion. |
+| 本轮理由 | Correctly answers no significant improvement, citing small non-significant gains and limited aligned roles. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Includes the conclusion paragraph stating parallel data yields only small, non-significant improvements, directly answering whether parallel data improves SRI across languages. |
+| 最终生产原文参考 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:d66d2555-85d3-4a50-992e-5f85d31d5b76, source:f77eab74-a2c6-488c-8db3-e82073df8b78:193b50ad-f652-4003-956f-c8933ac94ef9, source:f77eab74-a2c6-488c-8db3-e82073df8b78:18180ceb-c3b0-4f24-8b85-ad4ca5bb9d99, source:f77eab74-a2c6-488c-8db3-e82073df8b78:df2aae18-f16b-44d0-8cac-30bd9f032a23, source:f77eab74-a2c6-488c-8db3-e82073df8b78:f093dd01-be9b-4652-92a3-82934a9f828b, source:f77eab74-a2c6-488c-8db3-e82073df8b78:19b66cf7-92a6-4ded-8496-2b84931fddb6, source:f77eab74-a2c6-488c-8db3-e82073df8b78:45611eba-990c-4a19-81f7-302188e2b5e6, source:f77eab74-a2c6-488c-8db3-e82073df8b78:dfda6549-fdc9-4966-8497-c310ed454b8d |
+| 最终原文引用 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:18180ceb-c3b0-4f24-8b85-ad4ca5bb9d99, source:f77eab74-a2c6-488c-8db3-e82073df8b78:df2aae18-f16b-44d0-8cac-30bd9f032a23, source:f77eab74-a2c6-488c-8db3-e82073df8b78:45611eba-990c-4a19-81f7-302188e2b5e6 |
+
+### 111afb77cfbf4c98e0458606378fa63a0e965e36 · 飞书 · 可答
+
+Overall, does having parallel data improve semantic role induction across multiple languages?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 总体而言，没有显著改善：在平行句中加入词对齐只带来小幅、非显著的提升，即使源语言已有部分标注数据也是如此。 [1]<br>作者指出，从这一平行数据设置中能学到的语义角色信息很少。 [2]<br>作者认为，改进对齐模型是让平行数据在多语言语义角色归纳中发挥有效作用的必要步骤，并将该探索留作未来工作。 [3][4]<br><br>依据：<br>[1] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 51 行）<br>[2] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 40 行）<br>[3] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 40 行）<br>[4] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 40 行） |
+| 本轮答案 | 总体而言，没有证据表明平行数据能显著改善多语言语义角色归纳：在平行句中加入词对齐只带来小幅、非显著的提升，即使源语言已有部分标注数据也是如此。 [1][2]<br>作者指出，这些结果表明从该平行数据设置中几乎学不到关于语义角色的信息。 [3][4]<br>一个可能的原因是，按对齐论元的定义，只有8%的英语论元和17%的德语论元是对齐的，因此跨语言信息的影响有限。 [5][4][6]<br>作者认为，改进对齐模型是使平行数据在多语言SRI中有效发挥作用的必要步骤，并将这一探索留待未来工作。 [7][8]<br>在标注迁移场景中，目标语言只获得小幅改进。 [6]<br><br>依据：<br>[1] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 51 行）<br>[2] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 导入原文（非正式记忆）（第 51 行）（第 51 行）<br>[3] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 40 行）<br>[4] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 导入原文（非正式记忆）（第 40 行）（第 40 行）<br>[5] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 40 行）<br>[6] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 导入原文（非正式记忆）（第 41 行）（第 41 行）<br>[7] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 40 行）<br>[8] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 40 行） |
+| reliability 原评理由 | Correctly states no significant improvement and adds accurate supporting context from the paper. |
+| reliability 本次配对理由 | Correctly says no significant improvement, only small non-significant gains, with little role information learned. |
+| 本轮理由 | Correctly states no significant improvement and explains small non-significant gains and low alignment rates. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Contains the gold conclusion paragraph plus supporting results (small non-significant improvements, little info learned from parallel data), sufficient to answer the question. |
+| 最终生产原文参考 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:d66d2555-85d3-4a50-992e-5f85d31d5b76, source:f77eab74-a2c6-488c-8db3-e82073df8b78:193b50ad-f652-4003-956f-c8933ac94ef9, source:f77eab74-a2c6-488c-8db3-e82073df8b78:18180ceb-c3b0-4f24-8b85-ad4ca5bb9d99, source:f77eab74-a2c6-488c-8db3-e82073df8b78:df2aae18-f16b-44d0-8cac-30bd9f032a23, source:f77eab74-a2c6-488c-8db3-e82073df8b78:f093dd01-be9b-4652-92a3-82934a9f828b, source:f77eab74-a2c6-488c-8db3-e82073df8b78:19b66cf7-92a6-4ded-8496-2b84931fddb6, source:f77eab74-a2c6-488c-8db3-e82073df8b78:45611eba-990c-4a19-81f7-302188e2b5e6, source:f77eab74-a2c6-488c-8db3-e82073df8b78:dfda6549-fdc9-4966-8497-c310ed454b8d |
+| 最终原文引用 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:18180ceb-c3b0-4f24-8b85-ad4ca5bb9d99, source:f77eab74-a2c6-488c-8db3-e82073df8b78:df2aae18-f16b-44d0-8cac-30bd9f032a23, source:f77eab74-a2c6-488c-8db3-e82073df8b78:45611eba-990c-4a19-81f7-302188e2b5e6 |
+
+### 50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed · 桌面 · 可答
+
+What does an individual model consist of?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| no | no | yes | new_success | new_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 现有记录不足以支持完整结论或问题前提，请核对原文或补充记录。 |
+| 本轮答案 | The individual (monolingual) model used for each language is the Bayesian model of garg2012unsupervised, which serves as the base monolingual model. [1][2]<br>In that monolingual model, semantic roles are predicate-specific, and the role inventory for each predicate is divided into Primary and Secondary roles to model role ordering and repetition preferences. [2] |
+| reliability 原评理由 | Refuses/claims insufficient records instead of giving the gold answer. |
+| reliability 本次配对理由 | Refuses/claims insufficient records instead of stating the Bayesian base monolingual model. |
+| 本轮理由 | Correctly identifies the Bayesian garg2012unsupervised base monolingual model, with accurate supporting detail. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference memory:0ed34457 states the model consists of individual Bayesian models for each language plus crosslingual latent variables, directly answering what an individual model consists of. |
+| 最终生产原文参考 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:d66d2555-85d3-4a50-992e-5f85d31d5b76, source:f77eab74-a2c6-488c-8db3-e82073df8b78:b6a6a03c-aa65-40a9-8a01-2bdec2adc38b, source:f77eab74-a2c6-488c-8db3-e82073df8b78:c045e998-ca2a-4169-9538-b9676faad8cc, source:f77eab74-a2c6-488c-8db3-e82073df8b78:a93a46de-d7ab-496e-aa73-0f5ef38fa8e1, source:f77eab74-a2c6-488c-8db3-e82073df8b78:5a6cf43e-6f31-4486-96de-f97f8883e8dc, source:f77eab74-a2c6-488c-8db3-e82073df8b78:19b66cf7-92a6-4ded-8496-2b84931fddb6, source:f77eab74-a2c6-488c-8db3-e82073df8b78:a8783593-c127-4e00-bb03-1d9d633c068d, source:f77eab74-a2c6-488c-8db3-e82073df8b78:193b50ad-f652-4003-956f-c8933ac94ef9 |
+| 最终原文引用 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:5a6cf43e-6f31-4486-96de-f97f8883e8dc |
+
+### 50cc6c5f2dcf5fb87b56007f6a825fa7c90b64ed · 飞书 · 可答
+
+What does an individual model consist of?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 每个语言的个体模型以 garg2012unsupervised 的贝叶斯模型作为基础单语模型。 [1]<br>尚待确认：What does an individual model consist of?<br><br>依据：<br>[1] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 11 行） |
+| 本轮答案 | 每个单语（individual）模型以 garg2012unsupervised 的贝叶斯模型为基础单语模型。 [1][2]<br>在该单语模型中，语义角色是谓词特定的（predicate-specific）。 [1][2]<br>为建模角色排序与重复偏好，每个谓词的角色清单被划分为 Primary 和 Secondary 角色。 [3][2]<br>尚待确认：individual 模型内部的具体组成（如角色变量、生成过程等）未说明；What does an individual model consist of?<br><br>依据：<br>[1] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 11 行）<br>[2] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 导入原文（非正式记忆）（第 11 行）（第 11 行）<br>[3] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 11 行） |
+| reliability 原评理由 | Gives the correct base monolingual model answer despite an extra unknown note. |
+| reliability 本次配对理由 | States the individual model uses the garg2012unsupervised Bayesian model as base monolingual model, matching the gold answer. |
+| 本轮理由 | Correctly identifies the Bayesian base monolingual model and adds accurate supporting details from the passage. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Source s0:p6 states the model consists of individual Bayesian models for each language and crosslingual latent variables, matching the gold answer. |
+| 最终生产原文参考 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:d66d2555-85d3-4a50-992e-5f85d31d5b76, source:f77eab74-a2c6-488c-8db3-e82073df8b78:b6a6a03c-aa65-40a9-8a01-2bdec2adc38b, source:f77eab74-a2c6-488c-8db3-e82073df8b78:c045e998-ca2a-4169-9538-b9676faad8cc, source:f77eab74-a2c6-488c-8db3-e82073df8b78:a93a46de-d7ab-496e-aa73-0f5ef38fa8e1, source:f77eab74-a2c6-488c-8db3-e82073df8b78:5a6cf43e-6f31-4486-96de-f97f8883e8dc, source:f77eab74-a2c6-488c-8db3-e82073df8b78:19b66cf7-92a6-4ded-8496-2b84931fddb6, source:f77eab74-a2c6-488c-8db3-e82073df8b78:a8783593-c127-4e00-bb03-1d9d633c068d, source:f77eab74-a2c6-488c-8db3-e82073df8b78:193b50ad-f652-4003-956f-c8933ac94ef9 |
+| 最终原文引用 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:5a6cf43e-6f31-4486-96de-f97f8883e8dc |
+
+### 6bf5620f295b5243230bc97b340fae6e92304595 · 桌面 · 可答
+
+What baseline model is used?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | The baseline used is the same baseline as in lang2011unsupervised, which assigns a semantic role to a constituent based on its syntactic function (the dependency relation to its head). [1] |
+| 本轮答案 | The baseline model used is the same baseline as used by lang2011unsupervised, which has been shown to be difficult to outperform. [1][2]<br>This baseline assigns a semantic role to a constituent based on its syntactic function, i.e., the dependency relation to its head. [1][2]<br>In addition, a separate "supervised baseline" was constructed: for predicates seen in the supervised sentences, a MAP estimate of the parameters was calculated using the predefined mapping, while for unseen predicates the standard baseline was used. [3][4] |
+| reliability 原评理由 | Correctly identifies the lang2011unsupervised baseline and its syntactic-function assignment. |
+| reliability 本次配对理由 | Correctly identifies the lang2011unsupervised baseline and its syntactic-function assignment. |
+| 本轮理由 | Correctly identifies the lang2011unsupervised baseline and its syntactic-function assignment; extra supervised-baseline detail is accurate and does not contradict. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference memory:2828defa states the baseline is the same as lang2011unsupervised, matching the gold answer. |
+| 最终生产原文参考 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:0ceb87db-e8aa-4f91-a536-aefd6cd3f9e1, source:f77eab74-a2c6-488c-8db3-e82073df8b78:767f583d-d005-43a2-8c07-4ba108942b5d, source:f77eab74-a2c6-488c-8db3-e82073df8b78:26324fc6-c046-4abc-a1db-2327858857ff, source:f77eab74-a2c6-488c-8db3-e82073df8b78:2c632bf7-5f59-42bc-a3f8-b637597da839, source:f77eab74-a2c6-488c-8db3-e82073df8b78:bf12efc2-e227-4730-a13e-555ff3e89cd3, source:f77eab74-a2c6-488c-8db3-e82073df8b78:dc3b65e4-2677-4ffe-9fd2-1f6868be2752, source:f77eab74-a2c6-488c-8db3-e82073df8b78:a93a46de-d7ab-496e-aa73-0f5ef38fa8e1, source:f77eab74-a2c6-488c-8db3-e82073df8b78:b6a6a03c-aa65-40a9-8a01-2bdec2adc38b |
+| 最终原文引用 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:0ceb87db-e8aa-4f91-a536-aefd6cd3f9e1, source:f77eab74-a2c6-488c-8db3-e82073df8b78:767f583d-d005-43a2-8c07-4ba108942b5d |
+
+### 6bf5620f295b5243230bc97b340fae6e92304595 · 飞书 · 可答
+
+What baseline model is used?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 所用基线是 lang2011unsupervised 使用的同一基线；该基线根据成分的句法功能（即与其中心词的依存关系）为其指派语义角色。 [1]<br><br>依据：<br>[1] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 31 行） |
+| 本轮答案 | 所用基线是 lang2011unsupervised 使用的基线，文中称其已被证明难以超越。 [1][2]<br>该基线根据成分的句法功能（即与其中心词的依存关系）为其指派语义角色。 [1][2]<br><br>依据：<br>[1] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 记忆 v1 · 当前版本原文依据（第 31 行）<br>[2] A Bayesian Model of Multilingual Unsupervised Semantic Role Induction · 导入原文（非正式记忆）（第 31 行）（第 31 行） |
+| reliability 原评理由 | Same correct content in Chinese, matching the gold baseline description. |
+| reliability 本次配对理由 | Correctly states the lang2011unsupervised baseline and its syntactic-function/dependency-relation assignment. |
+| 本轮理由 | Correctly states the lang2011unsupervised baseline and its syntactic-function/dependency-relation assignment. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference 2828defa and source s6:p0 both state the baseline is the same as lang2011unsupervised, matching gold. |
+| 最终生产原文参考 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:0ceb87db-e8aa-4f91-a536-aefd6cd3f9e1, source:f77eab74-a2c6-488c-8db3-e82073df8b78:767f583d-d005-43a2-8c07-4ba108942b5d, source:f77eab74-a2c6-488c-8db3-e82073df8b78:26324fc6-c046-4abc-a1db-2327858857ff, source:f77eab74-a2c6-488c-8db3-e82073df8b78:2c632bf7-5f59-42bc-a3f8-b637597da839, source:f77eab74-a2c6-488c-8db3-e82073df8b78:bf12efc2-e227-4730-a13e-555ff3e89cd3, source:f77eab74-a2c6-488c-8db3-e82073df8b78:dc3b65e4-2677-4ffe-9fd2-1f6868be2752, source:f77eab74-a2c6-488c-8db3-e82073df8b78:a93a46de-d7ab-496e-aa73-0f5ef38fa8e1, source:f77eab74-a2c6-488c-8db3-e82073df8b78:b6a6a03c-aa65-40a9-8a01-2bdec2adc38b |
+| 最终原文引用 ID | source:f77eab74-a2c6-488c-8db3-e82073df8b78:0ceb87db-e8aa-4f91-a536-aefd6cd3f9e1 |
+
+### 55bd59076a49b19d3283af41c5e3ccb875f3eb0c · 桌面 · 可答
+
+What is the best performing model?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | A CNN-based sentence classifier achieved the best results in all three sub-tasks. [1]<br>The CNN outperformed the RNN model, achieving a macro-F1 score of 0.80. [2]<br>In a separate experiment, the CNN system achieved higher performance than the BiLSTM, with a macro-F1 score of 0.69. [3] |
+| 本轮答案 | A CNN-based sentence classifier achieved the best results in all three sub-tasks. [1]<br>In the offensive (OFF) vs non-offensive (NOT) experiment, the CNN outperformed the RNN model, achieving a macro-F1 score of 0.80. [2]<br>In the target-identification experiment, the CNN system achieved higher performance than the BiLSTM, with a macro-F1 score of 0.69. [3] |
+| reliability 原评理由 | Identifies CNN as best-performing model, matching the gold answer, with supporting F1 details. |
+| reliability 本次配对理由 | Identifies CNN as best-performing model, matching the human answer. |
+| 本轮理由 | Identifies CNN as best-performing model, matching the human answer. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | References include 'The CNN outperforms the RNN model, achieving a macro-F1 score of 0.80' and 'A CNN-based sentence classifier achieved the best results in all three sub-tasks,' which directly identify CNN as the best performing model, matching the gold answer. |
+| 最终生产原文参考 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:8345e4cb-0e83-4ed5-a109-cc11c64bea26, source:8409a569-0324-46d0-bffd-9d47b7137952:51890b9f-f2fa-49b2-be5d-9a103a75b638, source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a, source:8409a569-0324-46d0-bffd-9d47b7137952:f0ee3311-5536-47db-b578-048006607cdd, source:8409a569-0324-46d0-bffd-9d47b7137952:605e6455-1bbf-4f27-8815-776c95ecb4eb, source:8409a569-0324-46d0-bffd-9d47b7137952:5fdb9af7-a0d2-456f-835c-d1356dc36452, source:8409a569-0324-46d0-bffd-9d47b7137952:dbac5e1a-ee48-4c1d-9995-af9441242a0e, source:8409a569-0324-46d0-bffd-9d47b7137952:48f17d29-1512-44ea-8a73-382fb8871e1b |
+| 最终原文引用 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:f0ee3311-5536-47db-b578-048006607cdd, source:8409a569-0324-46d0-bffd-9d47b7137952:8345e4cb-0e83-4ed5-a109-cc11c64bea26, source:8409a569-0324-46d0-bffd-9d47b7137952:51890b9f-f2fa-49b2-be5d-9a103a75b638 |
+
+### 55bd59076a49b19d3283af41c5e3ccb875f3eb0c · 飞书 · 可答
+
+What is the best performing model?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | A CNN-based sentence classifier achieved the best results in all three sub-tasks. [1]<br>The CNN outperforms the RNN model, achieving a macro-F1 score of 0.80. [2]<br>The CNN system achieved higher performance than the BiLSTM in that experiment, with a macro-F1 score of 0.69. [3]<br><br>依据：<br>[1] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 31 行）<br>[2] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 26 行）<br>[3] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 28 行） |
+| 本轮答案 | A CNN-based sentence classifier achieved the best results in all three sub-tasks. [1][2]<br>The CNN outperforms the RNN model, achieving a macro-F1 score of 0.80. [3][4]<br>The CNN system achieved higher performance in this experiment compared to the BiLSTM, with a macro-F1 score of 0.69. [5][6]<br><br>依据：<br>[1] Predicting the Type and Target of Offensive Posts in Social Media · 导入原文（非正式记忆）（第 31 行）（第 31 行）<br>[2] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 31 行）<br>[3] Predicting the Type and Target of Offensive Posts in Social Media · 导入原文（非正式记忆）（第 26 行）（第 26 行）<br>[4] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 26 行）<br>[5] Predicting the Type and Target of Offensive Posts in Social Media · 导入原文（非正式记忆）（第 28 行）（第 28 行）<br>[6] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 28 行） |
+| reliability 原评理由 | States CNN achieved best results, matching the gold answer. |
+| reliability 本次配对理由 | Identifies CNN as best-performing model, matching the human answer. |
+| 本轮理由 | Identifies CNN as best-performing model, matching the human answer. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Connector references contain the same CNN-best statements ('CNN outperforms the RNN...0.80' and 'CNN-based sentence classifier achieved the best results in all three sub-tasks'), sufficient to answer that CNN is the best model. |
+| 最终生产原文参考 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:8345e4cb-0e83-4ed5-a109-cc11c64bea26, source:8409a569-0324-46d0-bffd-9d47b7137952:51890b9f-f2fa-49b2-be5d-9a103a75b638, source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a, source:8409a569-0324-46d0-bffd-9d47b7137952:f0ee3311-5536-47db-b578-048006607cdd, source:8409a569-0324-46d0-bffd-9d47b7137952:605e6455-1bbf-4f27-8815-776c95ecb4eb, source:8409a569-0324-46d0-bffd-9d47b7137952:5fdb9af7-a0d2-456f-835c-d1356dc36452, source:8409a569-0324-46d0-bffd-9d47b7137952:dbac5e1a-ee48-4c1d-9995-af9441242a0e, source:8409a569-0324-46d0-bffd-9d47b7137952:48f17d29-1512-44ea-8a73-382fb8871e1b |
+| 最终原文引用 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:f0ee3311-5536-47db-b578-048006607cdd, source:8409a569-0324-46d0-bffd-9d47b7137952:8345e4cb-0e83-4ed5-a109-cc11c64bea26, source:8409a569-0324-46d0-bffd-9d47b7137952:51890b9f-f2fa-49b2-be5d-9a103a75b638 |
+
+### 5daeb8d4d6f3b8543ec6309a7a35523e160437eb · 桌面 · 可答
+
+In what language are the tweets?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 当前资源所创建的数据集为英语推文（English tweets）。 [1] |
+| 本轮答案 | The new large publicly available dataset created using this annotation model consists of English tweets. [1][2] |
+| reliability 原评理由 | States the tweets are English, matching the gold answer. |
+| reliability 本次配对理由 | States the dataset is English tweets, matching the gold answer. |
+| 本轮理由 | States the dataset consists of English tweets, matching the gold answer English. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference memory:0ced79d8 states the dataset is of 'English tweets,' directly answering the language question. |
+| 最终生产原文参考 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:5fdb9af7-a0d2-456f-835c-d1356dc36452, source:8409a569-0324-46d0-bffd-9d47b7137952:d7b3b540-50b0-4672-8239-a033c38e2d49, source:8409a569-0324-46d0-bffd-9d47b7137952:4c5f116f-d5bd-44f2-aa2a-4f13a9af6628, source:8409a569-0324-46d0-bffd-9d47b7137952:84d37cb1-0425-49db-9f6b-dae303df29fc, source:8409a569-0324-46d0-bffd-9d47b7137952:df63d6c3-d66c-425a-b08c-4362337e913b, source:8409a569-0324-46d0-bffd-9d47b7137952:6175c6e9-4cb8-42de-87da-255961cfed2f, source:8409a569-0324-46d0-bffd-9d47b7137952:9a7333a6-8e0d-490b-82a1-ebeaabb871c5, source:8409a569-0324-46d0-bffd-9d47b7137952:f0ee3311-5536-47db-b578-048006607cdd |
+| 最终原文引用 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:5fdb9af7-a0d2-456f-835c-d1356dc36452 |
+
+### 5daeb8d4d6f3b8543ec6309a7a35523e160437eb · 飞书 · 可答
+
+In what language are the tweets?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 本项目创建的推文数据集为英文推文（English tweets）。 [1]<br><br>依据：<br>[1] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 4 行） |
+| 本轮答案 | 本文新建的数据集为英语推文（English tweets）。 [1][2]<br><br>依据：<br>[1] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 4 行）<br>[2] Predicting the Type and Target of Offensive Posts in Social Media · 导入原文（非正式记忆）（第 4 行）（第 4 行） |
+| reliability 原评理由 | States the tweets are English, matching the gold answer. |
+| reliability 本次配对理由 | States the tweet dataset is English tweets, matching the gold answer. |
+| 本轮理由 | States the dataset is English tweets, matching the gold answer. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference 0ced79d8 and source paragraph s0:p5 both state 'English tweets,' directly answering the question. |
+| 最终生产原文参考 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:5fdb9af7-a0d2-456f-835c-d1356dc36452, source:8409a569-0324-46d0-bffd-9d47b7137952:d7b3b540-50b0-4672-8239-a033c38e2d49, source:8409a569-0324-46d0-bffd-9d47b7137952:4c5f116f-d5bd-44f2-aa2a-4f13a9af6628, source:8409a569-0324-46d0-bffd-9d47b7137952:84d37cb1-0425-49db-9f6b-dae303df29fc, source:8409a569-0324-46d0-bffd-9d47b7137952:df63d6c3-d66c-425a-b08c-4362337e913b, source:8409a569-0324-46d0-bffd-9d47b7137952:6175c6e9-4cb8-42de-87da-255961cfed2f, source:8409a569-0324-46d0-bffd-9d47b7137952:9a7333a6-8e0d-490b-82a1-ebeaabb871c5, source:8409a569-0324-46d0-bffd-9d47b7137952:f0ee3311-5536-47db-b578-048006607cdd |
+| 最终原文引用 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:5fdb9af7-a0d2-456f-835c-d1356dc36452 |
+
+### 521280a87c43fcdf9f577da235e7072a23f0673e · 桌面 · 可答
+
+How many annotators participated?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| partial | partial | partial | still_unsuccessful | still_unsuccessful |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | The trial set involved five annotators on 21 of the tweets. [1]<br>Each dataset instance was annotated by multiple annotators, and inter-annotator agreement was calculated. [2]<br>Initially two annotations were acquired per instance; in case of disagreement, more annotations were requested until agreement exceeded 66%. [3]<br>尚待确认：The total number of annotators who participated in the overall dataset annotation is not recorded; only the five annotators on the trial set and the per-instance annotation procedure are documented.；整体数据集标注中参与标注者的总人数未记录，仅有试验集五名标注者及每实例标注流程。；How many annotators participated? |
+| 本轮答案 | 在试验集上，对21条推文计算Fleiss' kappa时涉及五名标注者。 [1][2]<br>试验标注阶段由六名专家对300条实例进行了第一轮标注。 [2]<br>正式数据集通过众包（Figure Eight平台）标注，每个实例先获得两条标注；若不一致则继续请求更多标注，直到一致率高于66%。 [2]<br>尚待确认：众包标注阶段实际参与标注者的总人数未记录。；How many annotators participated? |
+| reliability 原评理由 | Mentions five annotators on the trial set but frames the total as unrecorded, so the direct answer 'five annotators' is not clearly given. |
+| reliability 本次配对理由 | States five annotators on the trial set but adds extra annotation-procedure details; incomplete relative to the simple gold answer. |
+| 本轮理由 | Mentions five annotators but adds six experts and crowdsourcing details; the gold answer is simply five annotators. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | References include the sentence 'We computed Fliess' ... for the five annotators,' which directly states five annotators, matching the gold answer. |
+| 最终生产原文参考 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a, source:8409a569-0324-46d0-bffd-9d47b7137952:9a7333a6-8e0d-490b-82a1-ebeaabb871c5, source:8409a569-0324-46d0-bffd-9d47b7137952:33561ead-7ea9-43c9-9170-9ac680eb14ca, source:8409a569-0324-46d0-bffd-9d47b7137952:26a7feb8-d843-44e7-ab56-9a2d38cd0959, source:8409a569-0324-46d0-bffd-9d47b7137952:4c5f116f-d5bd-44f2-aa2a-4f13a9af6628, source:8409a569-0324-46d0-bffd-9d47b7137952:dbac5e1a-ee48-4c1d-9995-af9441242a0e, source:8409a569-0324-46d0-bffd-9d47b7137952:48f17d29-1512-44ea-8a73-382fb8871e1b |
+| 最终原文引用 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a |
+
+### 521280a87c43fcdf9f577da235e7072a23f0673e · 飞书 · 可答
+
+How many annotators participated?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | partial | regression | regression |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 在21条推文的试验集上，计算了五名标注者之间的Fliess' kappa。 [1][2]<br><br>依据：<br>[1] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 23 行）<br>[2] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 23 行） |
+| 本轮答案 | 数据收集阶段进行了第一轮试验标注，由六名专家标注300条实例。 [1]<br>尚待确认：正式众包标注阶段参与标注者的总人数未记录。；How many annotators participated?<br><br>依据：<br>[1] Predicting the Type and Target of Offensive Posts in Social Media · 导入原文（非正式记忆）（第 23 行）（第 23 行） |
+| reliability 原评理由 | States five annotators on the 21-tweet trial set, matching the gold answer 'five annotators'. |
+| reliability 本次配对理由 | Correctly states five annotators on the trial set, matching the gold answer. |
+| 本轮理由 | Gives six experts for trial annotation instead of the gold five annotators, so the key number is wrong/incomplete. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Connector references contain the same 'five annotators' sentence, supplying the needed count. |
+| 最终生产原文参考 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a, source:8409a569-0324-46d0-bffd-9d47b7137952:9a7333a6-8e0d-490b-82a1-ebeaabb871c5, source:8409a569-0324-46d0-bffd-9d47b7137952:33561ead-7ea9-43c9-9170-9ac680eb14ca, source:8409a569-0324-46d0-bffd-9d47b7137952:26a7feb8-d843-44e7-ab56-9a2d38cd0959, source:8409a569-0324-46d0-bffd-9d47b7137952:4c5f116f-d5bd-44f2-aa2a-4f13a9af6628, source:8409a569-0324-46d0-bffd-9d47b7137952:dbac5e1a-ee48-4c1d-9995-af9441242a0e, source:8409a569-0324-46d0-bffd-9d47b7137952:48f17d29-1512-44ea-8a73-382fb8871e1b |
+| 最终原文引用 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:825727d6-ee14-43bf-a9c7-a03cfc481d1a |
+
+### 5a8cc8f80509ea77d8213ed28c5ead501c68c725 · 桌面 · 可答
+
+What is the definition of offensive language?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | no | no | regression | still_unsuccessful |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | In the OLID annotation, a post is labeled offensive (OFF) if it contains any form of non-acceptable language (profanity) or a targeted offense, which can be veiled or direct; this category includes insults, threats, and posts containing profane language or swear words. [1]<br>By contrast, Not Offensive (NOT) covers posts that do not contain offense or profanity. [2]<br>Level A of the hierarchical annotation model discriminates between offensive (OFF) and non-offensive (NOT) tweets. [3] |
+| 本轮答案 | 在 OLID 数据集中，一条帖子若包含任何形式的不可接受语言（脏话）或带有针对性的冒犯（可以是隐晦或直接的），就被标注为冒犯性（OFF）。 [1]<br>该冒犯性类别包括侮辱、威胁以及含有脏话或粗口的帖子。 [1] |
+| reliability 原评理由 | Provides the same correct OLID definition; extra contrast with NOT and Level A does not introduce error. |
+| reliability 本次配对理由 | Gives OLID annotation definition from a different section, not the paper's usage of offensive language as a broad category; human answer cites the introduction's list of aspects. |
+| 本轮理由 | Provides OLID labeling definition rather than the paper's introduction-level description of offensive language; does not match human evidence. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Includes the explicit definition: a post is offensive if it contains non-acceptable language (profanity) or a targeted offense, including insults, threats, and profane/swear words. |
+| 最终生产原文参考 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:df63d6c3-d66c-425a-b08c-4362337e913b, source:8409a569-0324-46d0-bffd-9d47b7137952:4c5f116f-d5bd-44f2-aa2a-4f13a9af6628, source:8409a569-0324-46d0-bffd-9d47b7137952:d7b3b540-50b0-4672-8239-a033c38e2d49, source:8409a569-0324-46d0-bffd-9d47b7137952:a3748c4f-c0b7-4a3b-ad52-18847690cd9a, source:8409a569-0324-46d0-bffd-9d47b7137952:f0ee3311-5536-47db-b578-048006607cdd, source:8409a569-0324-46d0-bffd-9d47b7137952:bfcb4271-e131-4566-829a-aae00871c19e, source:8409a569-0324-46d0-bffd-9d47b7137952:6175c6e9-4cb8-42de-87da-255961cfed2f, source:8409a569-0324-46d0-bffd-9d47b7137952:9a7333a6-8e0d-490b-82a1-ebeaabb871c5 |
+| 最终原文引用 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:bfcb4271-e131-4566-829a-aae00871c19e |
+
+### 5a8cc8f80509ea77d8213ed28c5ead501c68c725 · 飞书 · 可答
+
+What is the definition of offensive language?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | no | no | regression | still_unsuccessful |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | Offensive (OFF) 的定义：帖子若包含任何形式的不可接受语言（脏话）或针对性冒犯（可为隐晦或直接），即标记为冒犯性；该类别包括侮辱、威胁以及含脏话或粗口的帖子。 [1]<br>Not Offensive (NOT) 指不含冒犯或脏话的帖子。 [2]<br><br>依据：<br>[1] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 15 行）<br>[2] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 14 行） |
+| 本轮答案 | 在OLID的标注中，Offensive（OFF）指帖子含有任何形式的不可接受语言（脏话）或带有针对性的冒犯（可为隐晦或直接）；该类别包括侮辱、威胁以及含脏话或粗口的帖子。 [1][2]<br>与之相对，Not Offensive（NOT）指不含冒犯或脏话的帖子。 [3]<br><br>依据：<br>[1] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 15 行）<br>[2] Predicting the Type and Target of Offensive Posts in Social Media · 导入原文（非正式记忆）（第 15 行）（第 15 行）<br>[3] Predicting the Type and Target of Offensive Posts in Social Media · 记忆 v1 · 当前版本原文依据（第 14 行） |
+| reliability 原评理由 | Chinese answer gives the correct offensive definition plus a correct NOT contrast. |
+| reliability 本次配对理由 | Same OLID definition, not the introduction's characterization of offensive language as encompassing abusive language, aggression, bullying, toxic comments, hate speech, etc. |
+| 本轮理由 | Same OLID definition plus NOT contrast; still not the introduction's broad characterization of offensive language. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Contains the same explicit OFF definition covering non-acceptable language/profanity or targeted offense, with insults, threats, and swear words. |
+| 最终生产原文参考 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:df63d6c3-d66c-425a-b08c-4362337e913b, source:8409a569-0324-46d0-bffd-9d47b7137952:4c5f116f-d5bd-44f2-aa2a-4f13a9af6628, source:8409a569-0324-46d0-bffd-9d47b7137952:d7b3b540-50b0-4672-8239-a033c38e2d49, source:8409a569-0324-46d0-bffd-9d47b7137952:a3748c4f-c0b7-4a3b-ad52-18847690cd9a, source:8409a569-0324-46d0-bffd-9d47b7137952:f0ee3311-5536-47db-b578-048006607cdd, source:8409a569-0324-46d0-bffd-9d47b7137952:bfcb4271-e131-4566-829a-aae00871c19e, source:8409a569-0324-46d0-bffd-9d47b7137952:6175c6e9-4cb8-42de-87da-255961cfed2f, source:8409a569-0324-46d0-bffd-9d47b7137952:9a7333a6-8e0d-490b-82a1-ebeaabb871c5 |
+| 最终原文引用 ID | source:8409a569-0324-46d0-bffd-9d47b7137952:bfcb4271-e131-4566-829a-aae00871c19e |
+
+### 10fb7dc031075946153baf0a0599e126de29e3a4 · 桌面 · 可答
+
+How does the neural network architecture accomodate an unknown amount of senses per word?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| partial | partial | yes | new_success | new_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | The paper constructs context-gloss pairs from glosses of all possible senses (in WordNet) of the target word, treating WSD as a sentence-pair classification problem. [1]<br>For each target word, glosses of all N possible senses are extracted to form the gloss sentence; the example given uses N=4. [2]<br>GlossBERT将WSD建模为句对分类：为每个目标词构造上下文-释义对，释义取自该词在WordNet中所有可能义项的释义。 [3][1]<br>对每个目标词，抽取其全部N个可能义项的释义来构成释义句，示例中N=4。 [2]<br>因此每个目标词有N个上下文-释义对训练实例，标签为yes或no。 [4]<br>测试时输出每个上下文-释义对label=yes的概率，取概率最高的义项作为该目标词的预测标签。 [5]<br>上下文-释义对中加入[CLS]和[SEP]标记，以适配BERT模型的输入。 [6]<br>尚待确认：The records do not explicitly state how the architecture handles a variable or unknown number of senses per word beyond forming one context-gloss pair per sense; no padding, batching, or aggregation mechanism is documented.；未说明在形成每个义项一个上下文-释义对之后，架构如何通过填充、批处理或聚合机制处理每词可变或未知数量的义项。；记录未说明在形成每个义项一个上下文-释义对之后，架构如何通过填充、批处理或聚合机制处理每词可变或未知数量的义项。；How does the neural network architecture accomodate an unknown amount of senses per word? |
+| 本轮答案 | GlossBERT 将 WSD 视为句对分类问题：它从目标词在 WordNet 中的所有可能义项的释义（gloss）出发，构造 context-gloss 对。 [1][2]<br>对每个目标词，系统提取其全部 N 个可能义项的释义（文中示例 N=4）以得到 gloss 句子。 [3][4]<br>在 context-gloss 对中加入 [CLS] 和 [SEP] 标记，使其适合作为 BERT 模型的输入。 [3][5]<br>所用 BERT 架构是多层双向 Transformer 编码器，并在 WSD 任务上对预训练 BERT 进行微调。 [6]<br>由于每个义项分别与上下文组成一个句对，义项数量可变时输入的是逐义项构造的句对集合，而非固定数量的义项槽位。 [1][3]<br>GlossBERT 将 WSD 视为句对分类问题：它从目标词在 WordNet 中的所有可能义项的释义（gloss）出发，构造 context-gloss 对。 [2][7]<br>对每个目标词，系统提取其全部 N 个可能义项的释义（文中示例 N=4）以得到 gloss 句子。 [4][3]<br>在 context-gloss 对中加入 [CLS] 和 [SEP] 标记，使其适合作为 BERT 模型的输入。 [5][3]<br>所用 BERT 架构是多层双向 Transformer 编码器，并在 WSD 任务上对预训练 BERT 进行微调。 [8][9]<br>由于每个义项分别与上下文组成一个句对，义项数量可变时输入的是逐义项构造的句对集合，而非固定数量的义项槽位。 [2][10]<br>测试时，系统输出每个 context-gloss 对 label=yes 的概率，并选择概率最高的义项作为目标词的预测标签。 [11] |
+| reliability 原评理由 | Adds the N-senses gloss sentence and [CLS]/[SEP] input details, but still does not explain how the architecture handles a variable/unknown number of senses; flagged as unknown. |
+| reliability 本次配对理由 | Explains constructing one context-gloss pair per sense, which addresses variable sense counts, but adds unverified unknowns and lacks the per-sense pair-set framing. |
+| 本轮理由 | Correctly explains that each sense forms its own context-gloss pair, so variable sense counts become a set of pairs rather than fixed slots. |
+| 旧 / 本轮参考充分性 | no / partial |
+| 本轮参考理由 | Selected references include the gold paragraph and gloss-pair construction (all N senses, sentence-pair classification), but do not clearly explain how the architecture handles a variable/unknown number of senses per word. |
+| 最终生产原文参考 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417, source:55a90925-b81f-4148-9d51-243dbb5273e4:752f7893-0764-47df-ae8d-20a356a0ea70, source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba, source:55a90925-b81f-4148-9d51-243dbb5273e4:1290a492-68e9-4695-9f15-c1baea8728c8, source:55a90925-b81f-4148-9d51-243dbb5273e4:0d0308f3-9c8a-4886-96da-fb34353f13fb, source:55a90925-b81f-4148-9d51-243dbb5273e4:92e750b5-26c3-4477-a9cd-e057cb62e7cb, source:55a90925-b81f-4148-9d51-243dbb5273e4:ff2aeb65-abca-4ba3-838f-7849f4c810d8, source:55a90925-b81f-4148-9d51-243dbb5273e4:70462d99-ea16-425f-8dab-4588588ca354, source:55a90925-b81f-4148-9d51-243dbb5273e4:fe97a3b1-c81b-4e43-8609-03aa287d2457, source:55a90925-b81f-4148-9d51-243dbb5273e4:665bc8ee-76ff-4a93-88e2-0d78f496c111, source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba, source:55a90925-b81f-4148-9d51-243dbb5273e4:70462d99-ea16-425f-8dab-4588588ca354, source:55a90925-b81f-4148-9d51-243dbb5273e4:3af22022-37cf-4754-a189-0dd3181b6fc7, source:55a90925-b81f-4148-9d51-243dbb5273e4:d5697473-b601-4526-a5f0-93970bb30f4f, source:55a90925-b81f-4148-9d51-243dbb5273e4:41ca9fc1-4a0e-44b3-942b-313efe547cb5, source:55a90925-b81f-4148-9d51-243dbb5273e4:92e750b5-26c3-4477-a9cd-e057cb62e7cb |
+| 最终原文引用 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:70462d99-ea16-425f-8dab-4588588ca354, source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba, source:55a90925-b81f-4148-9d51-243dbb5273e4:752f7893-0764-47df-ae8d-20a356a0ea70, source:55a90925-b81f-4148-9d51-243dbb5273e4:d5697473-b601-4526-a5f0-93970bb30f4f |
+
+### 10fb7dc031075946153baf0a0599e126de29e3a4 · 飞书 · 可答
+
+How does the neural network architecture accomodate an unknown amount of senses per word?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| partial | partial | partial | still_unsuccessful | still_unsuccessful |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 对每个目标词，从WordNet中抽取该词全部N个可能词义的释义（gloss），文中示例N=4，以得到释义句。 [1]<br>系统从目标词所有可能词义（WordNet中）的释义构造上下文-释义对，从而把WSD任务视为句对分类问题。 [2]<br>在上下文-释义对中加入[CLS]和[SEP]标记，使其适合作为BERT模型的输入。 [3]<br>对每个目标词，系统从WordNet中抽取该词全部N个可能词义的释义（gloss）以得到释义句，文中示例N=4。 [1]<br>GlossBERT从目标词所有可能词义（WordNet中）的释义构造上下文-释义对，从而把WSD任务视为句对分类问题。 [4][2]<br>在上下文-释义对中加入[CLS]和[SEP]标记，使其适合作为BERT模型的输入。 [3][5]<br>尚待确认：记录未说明当每个词的词义数量未知或可变时，架构如何动态处理该数量（如逐对独立处理、填充或批处理等具体机制）。；未说明当每个词的词义数量未知或可变时，架构如何动态处理该数量（如逐对独立处理、填充或批处理等具体机制）。；How does the neural network architecture accomodate an unknown amount of senses per word?<br><br>依据：<br>[1] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 15 行）<br>[2] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 6 行）<br>[3] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 15 行）<br>[4] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 13 行）<br>[5] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 15 行） |
+| 本轮答案 | GlossBERT 将 WSD 任务转化为句对分类问题：从目标词在 WordNet 中所有可能词义的释义（gloss）构造 context-gloss 对。 [1][2]<br>对每个目标词，抽取其在 WordNet 中全部 N 个可能词义的释义（文中示例 N=4）以得到 gloss 句子。 [3][4]<br>在 context-gloss 对中加入 [CLS] 和 [SEP] 标记，使其适合作为 BERT 模型的输入。 [5][4]<br>方法对预训练 BERT 模型在 WSD 任务上进行微调。 [6][2]<br>GlossBERT 将 WSD 转化为句对分类问题：从目标词在 WordNet 中所有可能词义的释义构造 context-gloss 对。 [7][1]<br>对每个目标词，抽取其在 WordNet 中全部 N 个可能词义的释义（示例中 N=4）得到 gloss 句子，因此每个目标词有 N 个 context-gloss 对训练实例（标签为 yes/no）。 [3][8]<br>在 context-gloss 对中加入 [CLS] 和 [SEP] 标记，使其适合作为 BERT 模型的输入。 [5]<br>模型取首个 token [CLS] 的最终隐状态并加分类层（标签为 yes/no）进行句对分类。 [9]<br>测试时，对每个 context-gloss 对输出 label=yes 的概率，并选择概率最高的词义作为该目标词的预测标签。 [10]<br><br>依据：<br>[1] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 6 行）<br>[2] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 导入原文（非正式记忆）（第 6 行）（第 6 行）<br>[3] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 15 行）<br>[4] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 导入原文（非正式记忆）（第 15 行）（第 15 行）<br>[5] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 15 行）<br>[6] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 11 行）<br>[7] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 13 行）<br>[8] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 17 行）<br>[9] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 20 行）<br>[10] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 17 行） |
+| reliability 原评理由 | Covers gloss extraction for all N senses and BERT input formatting, but does not describe the mechanism for variable sense counts; explicitly marked unknown. |
+| reliability 本次配对理由 | Describes extracting all N senses and building context-gloss pairs, but does not explicitly explain how variable sense counts are accommodated. |
+| 本轮理由 | Covers per-sense context-gloss pairs and N instances but does not explicitly state how variable sense counts are accommodated. |
+| 旧 / 本轮参考充分性 | no / partial |
+| 本轮参考理由 | Connector references include context-gloss pairs from all possible senses and N training instances, but lack a clear statement of how the architecture accommodates a variable number of senses per word. |
+| 最终生产原文参考 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417, source:55a90925-b81f-4148-9d51-243dbb5273e4:752f7893-0764-47df-ae8d-20a356a0ea70, source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba, source:55a90925-b81f-4148-9d51-243dbb5273e4:1290a492-68e9-4695-9f15-c1baea8728c8, source:55a90925-b81f-4148-9d51-243dbb5273e4:0d0308f3-9c8a-4886-96da-fb34353f13fb, source:55a90925-b81f-4148-9d51-243dbb5273e4:92e750b5-26c3-4477-a9cd-e057cb62e7cb, source:55a90925-b81f-4148-9d51-243dbb5273e4:ff2aeb65-abca-4ba3-838f-7849f4c810d8, source:55a90925-b81f-4148-9d51-243dbb5273e4:70462d99-ea16-425f-8dab-4588588ca354, source:55a90925-b81f-4148-9d51-243dbb5273e4:70462d99-ea16-425f-8dab-4588588ca354, source:55a90925-b81f-4148-9d51-243dbb5273e4:d5697473-b601-4526-a5f0-93970bb30f4f, source:55a90925-b81f-4148-9d51-243dbb5273e4:41ca9fc1-4a0e-44b3-942b-313efe547cb5, source:55a90925-b81f-4148-9d51-243dbb5273e4:d59306f7-3e04-49d5-8e3a-5b6044cf66a0, source:55a90925-b81f-4148-9d51-243dbb5273e4:d28436f7-a2ad-4fff-8c64-1e4fe0d4b417, source:55a90925-b81f-4148-9d51-243dbb5273e4:92e750b5-26c3-4477-a9cd-e057cb62e7cb, source:55a90925-b81f-4148-9d51-243dbb5273e4:ff2aeb65-abca-4ba3-838f-7849f4c810d8 |
+| 最终原文引用 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:70462d99-ea16-425f-8dab-4588588ca354, source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba |
+
+### c5b0ed5db65051eebd858beaf303809aa815e8e5 · 桌面 · 可答
+
+Do they use large or small BERT?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | They use the pre-trained uncased BERT_BASE model for fine-tuning, not BERT_LARGE, because they find BERT_LARGE performs slightly worse than BERT_BASE on this task. [1] |
+| 本轮答案 | They use the pre-trained uncased BERT_BASE model for fine-tuning, not BERT_LARGE, because they found BERT_LARGE performs slightly worse than BERT_BASE on this task. [1][2] |
+| reliability 原评理由 | States they use BERT_BASE (small BERT), matching the human answer. |
+| reliability 本次配对理由 | States they use BERT_BASE (small), matching 'small BERT'. |
+| 本轮理由 | States they use BERT_BASE (small), matching 'small BERT'. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference explicitly states they use pre-trained uncased BERT_BASE (small) rather than BERT_LARGE, matching gold 'small BERT'. |
+| 最终生产原文参考 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:ad85d452-6e86-457e-81fa-257f9e5f9fd2, source:55a90925-b81f-4148-9d51-243dbb5273e4:752f7893-0764-47df-ae8d-20a356a0ea70, source:55a90925-b81f-4148-9d51-243dbb5273e4:eb18922d-1dad-4d6e-8ecf-07339c68ca45, source:55a90925-b81f-4148-9d51-243dbb5273e4:f6047421-1286-4763-bade-55a700e4e38e, source:55a90925-b81f-4148-9d51-243dbb5273e4:ff2aeb65-abca-4ba3-838f-7849f4c810d8, source:55a90925-b81f-4148-9d51-243dbb5273e4:97d6ab87-5524-49d1-b7bb-9f58e441dde0, source:55a90925-b81f-4148-9d51-243dbb5273e4:665bc8ee-76ff-4a93-88e2-0d78f496c111, source:55a90925-b81f-4148-9d51-243dbb5273e4:fe97a3b1-c81b-4e43-8609-03aa287d2457 |
+| 最终原文引用 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:ad85d452-6e86-457e-81fa-257f9e5f9fd2 |
+
+### c5b0ed5db65051eebd858beaf303809aa815e8e5 · 飞书 · 可答
+
+Do they use large or small BERT?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 他们使用预训练的 uncased BERT_BASE 模型进行微调，因为发现 BERT_LARGE 在该任务上表现略差于 BERT_BASE。 [1]<br><br>依据：<br>[1] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 25 行） |
+| 本轮答案 | 他们使用的是预训练的 uncased BERT_BASE 模型进行微调，而不是 BERT_LARGE；原因是他们发现 BERT_LARGE 在该任务上表现略差于 BERT_BASE。 [1][2]<br><br>依据：<br>[1] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 25 行）<br>[2] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 导入原文（非正式记忆）（第 25 行）（第 25 行） |
+| reliability 原评理由 | States they use BERT_BASE (small BERT), matching the human answer. |
+| reliability 本次配对理由 | Chinese answer correctly states BERT_BASE is used, matching 'small BERT'. |
+| 本轮理由 | Chinese answer correctly states BERT_BASE is used, matching 'small BERT'. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference explicitly states use of BERT_BASE (small) instead of BERT_LARGE, sufficient to answer 'small BERT'. |
+| 最终生产原文参考 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:ad85d452-6e86-457e-81fa-257f9e5f9fd2, source:55a90925-b81f-4148-9d51-243dbb5273e4:752f7893-0764-47df-ae8d-20a356a0ea70, source:55a90925-b81f-4148-9d51-243dbb5273e4:eb18922d-1dad-4d6e-8ecf-07339c68ca45, source:55a90925-b81f-4148-9d51-243dbb5273e4:f6047421-1286-4763-bade-55a700e4e38e, source:55a90925-b81f-4148-9d51-243dbb5273e4:ff2aeb65-abca-4ba3-838f-7849f4c810d8, source:55a90925-b81f-4148-9d51-243dbb5273e4:97d6ab87-5524-49d1-b7bb-9f58e441dde0, source:55a90925-b81f-4148-9d51-243dbb5273e4:665bc8ee-76ff-4a93-88e2-0d78f496c111, source:55a90925-b81f-4148-9d51-243dbb5273e4:fe97a3b1-c81b-4e43-8609-03aa287d2457 |
+| 最终原文引用 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:ad85d452-6e86-457e-81fa-257f9e5f9fd2 |
+
+### 7ab9c0b4ceca1c142ff068f85015a249b14282d0 · 桌面 · 可答
+
+Do they incoprorate WordNet into the model?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | Yes. The paper constructs context-gloss pairs from glosses of all possible senses (in WordNet) of the target word, treating WSD as a sentence-pair classification problem. [1]<br>For each target word, the authors extract glosses of all N possible senses (N=4) from WordNet to obtain the gloss sentence. [2]<br>The authors extract word sense glosses from WordNet 3.0, since BIBREF17 maps all sense annotations in these datasets to WordNet 3.0. [3]<br>The extracted context-gloss pairs are fed to the pre-trained BERT model, which the authors fine-tune on the WSD task. [4][5] |
+| 本轮答案 | Yes. The paper's GlossBERT constructs context-gloss pairs from glosses of all possible senses of the target word in WordNet, treating WSD as a sentence-pair classification problem. [1][2]<br>For each target word, the authors extract glosses of all N possible senses (N=4) in WordNet to form the gloss sentence, then add [CLS] and [SEP] marks for input to BERT. [3]<br>They extract word sense glosses from WordNet 3.0, since BIBREF17 maps the datasets' sense annotations to WordNet 3.0. [4] |
+| reliability 原评理由 | Affirms WordNet use with the context-gloss pair construction, matching human answers. |
+| reliability 本次配对理由 | States WordNet glosses are used to build context-gloss pairs, matching the human answers. |
+| 本轮理由 | Affirms WordNet use and describes constructing context-gloss pairs from WordNet senses. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | References explicitly state they construct context-gloss pairs from all possible senses of the target word in WordNet, directly answering that WordNet is incorporated. |
+| 最终生产原文参考 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:08496d7d-30df-4ef1-9408-3bcefd1b629f, source:55a90925-b81f-4148-9d51-243dbb5273e4:92e750b5-26c3-4477-a9cd-e057cb62e7cb, source:55a90925-b81f-4148-9d51-243dbb5273e4:2456bfd6-b9a6-4afe-a678-8e34a801b6b2, source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba, source:55a90925-b81f-4148-9d51-243dbb5273e4:41ca9fc1-4a0e-44b3-942b-313efe547cb5, source:55a90925-b81f-4148-9d51-243dbb5273e4:70462d99-ea16-425f-8dab-4588588ca354, source:55a90925-b81f-4148-9d51-243dbb5273e4:d5697473-b601-4526-a5f0-93970bb30f4f, source:55a90925-b81f-4148-9d51-243dbb5273e4:b616368e-bc16-46d1-a374-f2075a2cd61a |
+| 最终原文引用 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:d5697473-b601-4526-a5f0-93970bb30f4f, source:55a90925-b81f-4148-9d51-243dbb5273e4:70462d99-ea16-425f-8dab-4588588ca354, source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba, source:55a90925-b81f-4148-9d51-243dbb5273e4:92e750b5-26c3-4477-a9cd-e057cb62e7cb |
+
+### 7ab9c0b4ceca1c142ff068f85015a249b14282d0 · 飞书 · 可答
+
+Do they incoprorate WordNet into the model?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 是。该工作从WordNet 3.0提取词义释义（gloss），并据此为目标词所有可能词义构建上下文-释义对。 [1][2]<br>具体做法是为每个目标词从WordNet中提取其全部N个可能词义的释义（示例中N=4）。 [3]<br>候选词义来自目标词lemma在预定义词义清单（通常为WordNet）中的条目。 [4]<br><br>依据：<br>[1] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 24 行）<br>[2] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 6 行）<br>[3] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 15 行）<br>[4] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 10 行） |
+| 本轮答案 | 是。GlossBERT 从 WordNet 中目标词的所有可能义项释义构建上下文—释义对，从而把 WSD 视为句对分类问题。 [1][2][3]<br>候选义项来自目标词 lemma 在预定义义项库（通常是 WordNet）中的条目。 [4][5]<br>对每个目标词，从 WordNet 中抽取其全部 N 个可能义项（此处 N=4）的释义以得到释义句。 [6][7]<br>由于相关数据集的所有义项标注已被映射到 WordNet 3.0，他们从 WordNet 3.0 抽取词义释义。 [8][9]<br><br>依据：<br>[1] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 13 行）<br>[2] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 6 行）<br>[3] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 导入原文（非正式记忆）（第 13 行）（第 13 行）<br>[4] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 10 行）<br>[5] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 导入原文（非正式记忆）（第 10 行）（第 10 行）<br>[6] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 15 行）<br>[7] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 导入原文（非正式记忆）（第 15 行）（第 15 行）<br>[8] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 记忆 v1 · 当前版本原文依据（第 24 行）<br>[9] GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge · 导入原文（非正式记忆）（第 24 行）（第 24 行） |
+| reliability 原评理由 | States glosses extracted from WordNet 3.0 and context-gloss pairs built, matching gold. |
+| reliability 本次配对理由 | Correctly says WordNet 3.0 glosses are used to construct context-gloss pairs. |
+| 本轮理由 | Correctly states GlossBERT builds context-gloss pairs from WordNet senses. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | References include the same statement about constructing context-gloss pairs from WordNet senses, sufficient to answer yes. |
+| 最终生产原文参考 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:08496d7d-30df-4ef1-9408-3bcefd1b629f, source:55a90925-b81f-4148-9d51-243dbb5273e4:92e750b5-26c3-4477-a9cd-e057cb62e7cb, source:55a90925-b81f-4148-9d51-243dbb5273e4:2456bfd6-b9a6-4afe-a678-8e34a801b6b2, source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba, source:55a90925-b81f-4148-9d51-243dbb5273e4:41ca9fc1-4a0e-44b3-942b-313efe547cb5, source:55a90925-b81f-4148-9d51-243dbb5273e4:70462d99-ea16-425f-8dab-4588588ca354, source:55a90925-b81f-4148-9d51-243dbb5273e4:d5697473-b601-4526-a5f0-93970bb30f4f, source:55a90925-b81f-4148-9d51-243dbb5273e4:b616368e-bc16-46d1-a374-f2075a2cd61a |
+| 最终原文引用 ID | source:55a90925-b81f-4148-9d51-243dbb5273e4:d5697473-b601-4526-a5f0-93970bb30f4f, source:55a90925-b81f-4148-9d51-243dbb5273e4:41ca9fc1-4a0e-44b3-942b-313efe547cb5, source:55a90925-b81f-4148-9d51-243dbb5273e4:dfadc7f4-ecb8-468b-be1a-f0349812e1ba, source:55a90925-b81f-4148-9d51-243dbb5273e4:92e750b5-26c3-4477-a9cd-e057cb62e7cb |
+
+### d28d86524292506d4b24ae2d486725a6d57a3db3 · 桌面 · 可答
+
+What is the ROUGE score of the highest performing model?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | The highest-performing model is not explicitly named; the paper's own model is reported as achieving a 33.33 average of ROUGE-1, ROUGE-2 and ROUGE-L on CNN/Daily Mail, described as state-of-the-art. [1][2]<br>The 33.33 figure is an average across ROUGE-1, ROUGE-2 and ROUGE-L, not a single ROUGE metric value. [1]<br>论文未明确点名“最高性能模型”；其自身模型在 CNN/Daily Mail 上报告的 ROUGE-1、ROUGE-2 和 ROUGE-L 平均值为 33.33，并称达到 state-of-the-art。 [1][2]<br>33.33 是 ROUGE-1、ROUGE-2 和 ROUGE-L 三项的平均值，并非单一 ROUGE 指标分数。 [1]<br>尚待确认：未明确点名“最高性能模型”的具体身份，也未给出其单一 ROUGE 指标分数；仅有作者模型在 CNN/Daily Mail 上三项 ROUGE 的平均值 33.33。；What is the ROUGE score of the highest performing model? |
+| 本轮答案 | 记录中未给出“最高性能模型”的明确身份，也未给出其单独的 ROUGE 分数。 [1]<br>可核实的相关数值是：该模型在 CNN/Daily Mail 上取得 ROUGE-1、ROUGE-2 和 ROUGE-L 的平均值为 33.33。 [1][2]<br>在 CNN/Daily Mail 上，其完整模型的 ROUGE-1 和 ROUGE-2 与 DCA 相当，并在 ROUGE-L 上优于 DCA。 [3][4]<br>尚待确认：“最高性能模型”具体指哪个模型未明确记录。；该最高性能模型单独的 ROUGE-1、ROUGE-2、ROUGE-L 分数未记录；仅有三项平均值为 33.33。；“最高性能模型”的具体身份未明确记录。；What is the ROUGE score of the highest performing model? |
+| reliability 原评理由 | Gives 33.33 average of ROUGE-1/2/L, matching the gold answer. |
+| reliability 本次配对理由 | States the model achieves a 33.33 average of ROUGE-1, ROUGE-2, and ROUGE-L, matching the gold answer. |
+| 本轮理由 | Gives the 33.33 average of ROUGE-1, ROUGE-2, and ROUGE-L, matching the gold answer. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference b77628c1/f00cd9ef states the model achieves a 33.33 average of ROUGE-1, ROUGE-2 and ROUGE-L, matching the gold answer. |
+| 最终生产原文参考 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a4c0a79c-6847-4caf-a229-37ec0ae28aa3, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:71d240a3-78bd-4321-af65-e6e5992e0f11, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:164347ea-a560-4767-b2b4-49ca4260ef99, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:eaaa6dbc-9f71-4bf3-a66d-d6c08efa151a, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:b80902c4-dcc7-49f4-98db-145cc38bea08, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:09dc8eda-ae4a-4665-8cb6-d08c77cb047a, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:f27858f2-0ec4-4488-bb8c-67562f1145b8, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:c82105da-a420-470f-bae2-7c4a632bc92a |
+| 最终原文引用 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a4c0a79c-6847-4caf-a229-37ec0ae28aa3 |
+
+### d28d86524292506d4b24ae2d486725a6d57a3db3 · 飞书 · 可答
+
+What is the ROUGE score of the highest performing model?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 在 CNN/Daily Mail 上，我们的模型在 ROUGE-1、ROUGE-2 和 ROUGE-L 上的平均值为 33.33，并称其为 state-of-the-art。 [1][2]<br>在 CNN/Daily Mail 上，我们的模型在 ROUGE-1、ROUGE-2 和 ROUGE-L 上的平均值为 33.33，并称其为 state-of-the-art。 [2][1]<br>尚待确认：未明确记录“最高性能模型”的具体身份，也未给出其单独的 ROUGE-1、ROUGE-2、ROUGE-L 各项分数；仅记录了上述平均值与相对提升。；最高性能模型的具体身份未明确；最高性能模型单独的 ROUGE-1、ROUGE-2、ROUGE-L 各项分数未给出；未明确记录“最高性能模型”的具体身份。；未给出该模型单独的 ROUGE-1、ROUGE-2、ROUGE-L 各项分数，仅记录了上述平均值。；该模型单独的 ROUGE-1、ROUGE-2、ROUGE-L 各项分数未给出<br><br>依据：<br>[1] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 8 行）<br>[2] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 8 行） |
+| 本轮答案 | 在 CNN/Daily Mail 上，该模型（“our model”）取得 ROUGE-1、ROUGE-2 和 ROUGE-L 的平均分 33.33，文中称其为 state-of-the-art。 [1][2][3]<br>在 CNN/Daily Mail 上，该模型（“our model”）取得 ROUGE-1、ROUGE-2 和 ROUGE-L 的平均分 33.33，文中称其为 state-of-the-art。 [2][1]<br>在 New York Times 数据集上，该模型相对 ROUGE-1 取得约 5.6% 的相对提升。 [4][3]<br>尚待确认：除 CNN/Daily Mail 的 33.33 平均分和 NYT 的约 5.6% 相对提升外，未记录各数据集上 ROUGE-1、ROUGE-2、ROUGE-L 的具体数值。；问题未指明数据集；除 CNN/Daily Mail 的 33.33 平均分外，未给出各数据集上 ROUGE-1、ROUGE-2、ROUGE-L 的具体数值。；What is the ROUGE score of the highest performing model?；问题未指明数据集，也未指明“highest performing model”具体指哪个模型；除 CNN/Daily Mail 的 33.33 平均分和 NYT 上约 5.6% 的 ROUGE-1 相对提升外，未记录各数据集上 ROUGE-1、ROUGE-2、ROUGE-L 的具体数值。<br><br>依据：<br>[1] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 8 行）<br>[2] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 8 行）<br>[3] Pretraining-Based Natural Language Generation for Text Summarization · 导入原文（非正式记忆）（第 8 行）（第 8 行）<br>[4] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 8 行） |
+| reliability 原评理由 | States the 33.33 average ROUGE score, matching the human answer. |
+| reliability 本次配对理由 | Reports the 33.33 average of ROUGE-1, ROUGE-2, and ROUGE-L, matching the gold answer. |
+| 本轮理由 | Reports the 33.33 average of ROUGE-1, ROUGE-2, and ROUGE-L, matching the gold answer. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference b77628c1/f00cd9ef states the model achieves a 33.33 average of ROUGE-1, ROUGE-2 and ROUGE-L, matching the gold answer. |
+| 最终生产原文参考 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a4c0a79c-6847-4caf-a229-37ec0ae28aa3, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:71d240a3-78bd-4321-af65-e6e5992e0f11, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:164347ea-a560-4767-b2b4-49ca4260ef99, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:eaaa6dbc-9f71-4bf3-a66d-d6c08efa151a, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:b80902c4-dcc7-49f4-98db-145cc38bea08, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:09dc8eda-ae4a-4665-8cb6-d08c77cb047a, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:f27858f2-0ec4-4488-bb8c-67562f1145b8, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:c82105da-a420-470f-bae2-7c4a632bc92a, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:b80902c4-dcc7-49f4-98db-145cc38bea08, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:164347ea-a560-4767-b2b4-49ca4260ef99, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a4c0a79c-6847-4caf-a229-37ec0ae28aa3, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:71d240a3-78bd-4321-af65-e6e5992e0f11, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:82b903ca-1f2d-4705-b441-7a0a9d63b772, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:3d9780d1-da90-43c8-9e11-ff0d10a290eb |
+| 最终原文引用 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:b80902c4-dcc7-49f4-98db-145cc38bea08 |
+
+### 63488da6c7aff9e374561a24ba224e9ce7f65e40 · 桌面 · 无答案
+
+When is this paper published?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 现有记录不足以支持完整结论或问题前提，请核对原文或补充记录。 |
+| 本轮答案 | 现有记录不足以支持完整结论或问题前提，请核对原文或补充记录。 |
+| reliability 原评理由 | Explicitly states records are insufficient, refusing without inventing facts. |
+| reliability 本次配对理由 | Explicitly states records are insufficient, refusing without inventing facts. |
+| 本轮理由 | Explicitly states records are insufficient, refusing without inventing facts. |
+| 旧 / 本轮参考充分性 | no / no |
+| 本轮参考理由 | No reference states the paper's publication date; the only date mentioned (January 1, 2007) refers to dataset test-set filtering, not the paper. |
+| 最终生产原文参考 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:60e33ac2-d815-47f3-8b5f-e8f1f36bb968, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:e9cb2509-d7d8-4dff-8bb9-458dcd10274b, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a93e50f4-2b45-4f39-bf60-f8765adda722, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:e651ee13-e0f0-4c18-94f7-fd07c93da085, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:0d8669c9-8a98-4484-855b-a1ba47677bad, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:97e4b04d-7e3d-4912-a64e-fe82757b39c2, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:986e88cc-403b-47e5-8582-6c9e17a75b4f, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:d04a48ed-b75d-448e-86a5-630d2bd5ca50 |
+| 最终原文引用 ID | 无 |
+
+### 63488da6c7aff9e374561a24ba224e9ce7f65e40 · 飞书 · 无答案
+
+When is this paper published?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 项目记忆中没有足够依据，暂不自动回复。 |
+| 本轮答案 | 项目记忆中没有足够依据，暂不自动回复。 |
+| reliability 原评理由 | States insufficient basis and declines to answer, a valid refusal. |
+| reliability 本次配对理由 | Explicitly says insufficient basis, refusing without invented facts. |
+| 本轮理由 | Explicitly says insufficient basis, refusing without invented facts. |
+| 旧 / 本轮参考充分性 | no / no |
+| 本轮参考理由 | No reference gives the paper's publication date; the January 1, 2007 date concerns NYT dataset selection, not the paper itself. |
+| 最终生产原文参考 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:60e33ac2-d815-47f3-8b5f-e8f1f36bb968, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:e9cb2509-d7d8-4dff-8bb9-458dcd10274b, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a93e50f4-2b45-4f39-bf60-f8765adda722, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:e651ee13-e0f0-4c18-94f7-fd07c93da085, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:0d8669c9-8a98-4484-855b-a1ba47677bad, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:97e4b04d-7e3d-4912-a64e-fe82757b39c2, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:986e88cc-403b-47e5-8582-6c9e17a75b4f, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:d04a48ed-b75d-448e-86a5-630d2bd5ca50 |
+| 最终原文引用 ID | 无 |
+
+### c1c44fd96c3fa6e16949ae8fa453e511c6435c68 · 桌面 · 可答
+
+Why masking words in the decoder is helpful?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 掩码解码器逐词掩码摘要草稿中的每个词，再由精炼解码器基于源文档和其他词一次预测一个精炼词，使每个词的预测能利用两侧上下文信息。 [1][2][3]<br>该掩码精炼过程类似BERT的完形填空预训练任务，可借助上下文语言模型能力生成更流畅自然的序列。 [4]<br>从BERT等上下文化嵌入的角度看，精炼解码提供了更完整的输入序列，与其预训练过程一致。 [5]<br>引入精炼过程的主要目的是利用BERT的上下文化表示增强解码器。 [6] |
+| 本轮答案 | 在细化解码阶段，模型逐个遮盖摘要草稿中的每个词，再把草稿送入BERT生成上下文向量，最后由Transformer解码器预测细化后的词。 [1][2]<br>在第t个时间步遮盖输入摘要的第n个词，解码器根据摘要中的其他词预测第n个细化词。 [3][2]<br>这样做的原因是该过程类似BERT预训练中的完形填空任务，因此解码器能借助上下文语言模型的能力生成更流畅、更自然的序列。 [4][5]<br>从BERT等上下文化嵌入的角度看，细化解码过程提供了更完整的输入序列，与其预训练过程一致。 [6][7]<br>细化解码器一次只关注一个词，依据源文档以及其他词进行编辑。 [8][7]<br>该两阶段解码架构使模型在生成摘要的每个词时能同时考虑两侧的上下文信息。 [9][10]<br>此前抽象式方法使用仅左上下文的解码器，预测每个词时没有完整上下文，且解码器端未利用预训练的上下文化语言模型。 [11][12] |
+| reliability 原评理由 | States masking is similar to BERT's cloze task and lets the contextual LM generate more fluent/natural sequences, matching the gold answer. |
+| reliability 本次配对理由 | Includes the key reason that masking mirrors BERT's cloze task, allowing more fluent and natural generation via the contextual language model. |
+| 本轮理由 | States the masking makes the process similar to BERT's cloze task, enabling the contextual language model to generate more fluent and natural sequences, matching the gold answer. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference e5b4cdb9 directly states masking is similar to BERT's cloze pre-training task, enabling the contextual language model to generate more fluent/natural sequences, matching the gold answer. |
+| 最终生产原文参考 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:27a600b7-1369-4595-9e89-d197b126d8c0, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:e651ee13-e0f0-4c18-94f7-fd07c93da085, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:df5002d6-0135-4112-abb7-868dec01e9d3, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:c19d5d54-3ab2-4c05-b0ef-9567276f84a5, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:7045767c-55b2-44ab-9ce2-f3b846de1140, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a497bf4e-6855-4d3c-b8fd-421469b78016, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:2ebdf0ea-0934-44bc-8801-46fc1e317979, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:adc15522-4123-4050-aef1-d6c6549a8029 |
+| 最终原文引用 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:27a600b7-1369-4595-9e89-d197b126d8c0, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:7045767c-55b2-44ab-9ce2-f3b846de1140, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:df5002d6-0135-4112-abb7-868dec01e9d3, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a497bf4e-6855-4d3c-b8fd-421469b78016, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:adc15522-4123-4050-aef1-d6c6549a8029 |
+
+### c1c44fd96c3fa6e16949ae8fa453e511c6435c68 · 飞书 · 可答
+
+Why masking words in the decoder is helpful?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 掩码词级精炼解码与BERT预训练中的完形填空任务相似，因此可利用上下文语言模型的能力生成更流畅、自然的序列。 [1]<br>精炼解码过程为BERT等上下文化嵌入提供更完整的输入序列，与其预训练过程一致。 [2]<br>精炼解码器接收生成的摘要草稿作为输入，逐词掩码并基于源文档及其他词预测精炼词，从而输出精炼摘要。 [3][4]<br>该设计旨在解决以往抽象式方法仅使用左上下文解码器、预测每个词时缺乏完整上下文的问题。 [5][6]<br><br>依据：<br>[1] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 46 行）<br>[2] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 45 行）<br>[3] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 42 行）<br>[4] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 45 行）<br>[5] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 3 行）<br>[6] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 7 行） |
+| 本轮答案 | 掩码使精炼解码过程类似BERT预训练中的完形填空（cloze）任务，从而利用上下文语言模型的能力生成更流畅、自然的序列。 [1][2]<br>精炼解码器逐词掩码摘要草稿，再将其送入BERT生成上下文向量，最后由与草稿解码器相同的N层Transformer解码器预测精炼词。 [3][4]<br>在第t步，输入摘要的第n个词被掩码，解码器根据摘要的其他词预测第n个精炼词。 [5][4]<br>从BERT等上下文化嵌入的角度看，精炼解码过程提供了更完整的输入序列，与其预训练过程一致。 [6][7]<br>精炼解码器一次聚焦一个词，依据源文档及其他词进行编辑。 [8][7]<br>该设计针对此前摘要方法的两个问题：仅用左上下文解码器导致预测每个词时上下文不完整，以及解码器端未利用预训练上下文化语言模型。 [9][10]<br><br>依据：<br>[1] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 46 行）<br>[2] Pretraining-Based Natural Language Generation for Text Summarization · 导入原文（非正式记忆）（第 46 行）（第 46 行）<br>[3] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 42 行）<br>[4] Pretraining-Based Natural Language Generation for Text Summarization · 导入原文（非正式记忆）（第 42 行）（第 42 行）<br>[5] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 42 行）<br>[6] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 45 行）<br>[7] Pretraining-Based Natural Language Generation for Text Summarization · 导入原文（非正式记忆）（第 45 行）（第 45 行）<br>[8] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 45 行）<br>[9] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 3 行）<br>[10] Pretraining-Based Natural Language Generation for Text Summarization · 导入原文（非正式记忆）（第 3 行）（第 3 行） |
+| reliability 原评理由 | Includes the core reason: cloze-task similarity and using contextual LM ability to produce more fluent, natural sequences. |
+| reliability 本次配对理由 | Directly states masking is similar to BERT's cloze pretraining, enabling more fluent and natural sequences, matching the gold answer. |
+| 本轮理由 | Clearly gives the core reason: masking resembles BERT's cloze pretraining, so the contextual LM produces more fluent, natural sequences. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Reference 7045767c contains the exact gold sentence explaining masking resembles BERT's cloze task and yields more fluent, natural sequences. |
+| 最终生产原文参考 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:27a600b7-1369-4595-9e89-d197b126d8c0, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:e651ee13-e0f0-4c18-94f7-fd07c93da085, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:df5002d6-0135-4112-abb7-868dec01e9d3, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:c19d5d54-3ab2-4c05-b0ef-9567276f84a5, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:7045767c-55b2-44ab-9ce2-f3b846de1140, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a497bf4e-6855-4d3c-b8fd-421469b78016, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:2ebdf0ea-0934-44bc-8801-46fc1e317979, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:adc15522-4123-4050-aef1-d6c6549a8029 |
+| 最终原文引用 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:7045767c-55b2-44ab-9ce2-f3b846de1140, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:27a600b7-1369-4595-9e89-d197b126d8c0, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:df5002d6-0135-4112-abb7-868dec01e9d3, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:adc15522-4123-4050-aef1-d6c6549a8029 |
+
+### feafcc1c4026d7f55a2c8ce7850d7e12030b5c22 · 桌面 · 可答
+
+How are the different components of the model trained? Is it trained end-to-end?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | The proposed BERT-based natural language generation model can be trained end-to-end without handcrafted features. [1]<br>The model uses a two-stage decoder process, in which each summary word is generated considering both sides' context information. [2]<br>During model training, the objective is the sum of the two processes, jointly trained using the "teacher-forcing" algorithm, feeding the ground-truth summary to each decoder and minimizing the objective. [3]<br>The model loss is defined as the sum of the decoder loss and the refine loss (L_model = L_dec + L_refine). [4]<br>Training uses an Adam optimizer with learning rate 3e-4, β1=0.9, β2=0.999, ε=1e-9, and a dynamic learning rate. [5]<br>Due to GPU memory limits, gradient accumulation is used with an accumulate step of 12 and 3 samples fed at each step. [6]<br>Training uses batch size 36 for 4 epochs (8 epochs for NYT50), with the best model selected from the last 10 models based on development set performance. [7] |
+| 本轮答案 | 该模型被描述为基于BERT的自然语言生成模型，在编码器和解码器过程中都利用了预训练语言模型，并且可以在无需手工特征的情况下进行端到端训练。 [1][2]<br>模型采用两阶段解码器流程；在该架构中，模型生成摘要的每个词时会同时考虑两侧的上下文信息。 [3][4]<br>训练时，模型的目标是两个过程目标之和，并使用“teacher-forcing”算法联合训练；训练中把真实摘要输入每个解码器并最小化该目标。 [5][6]<br>模型目标函数记为 L_model = L̂_dec + L̂_refine（式23），即解码与精炼两部分目标相加。 [7]<br>训练设置包括：batch size 为36，训练4个epoch（NYT50因训练样本少得多而训练8个epoch），训练后根据开发集表现从最后10个模型中选出最佳模型。 [8][9]<br>由于GPU显存限制，训练使用梯度累积，累积步数为12，每步输入3个样本。 [10][9]<br>优化器为Adam，学习率3e-4，β1=0.9、β2=0.999、ε=1e-9，并在训练过程中使用动态学习率。 [11]<br>消融实验中的模型变体为：One-Stage（基于BERT、带copy机制的序列到序列模型）、Two-Stage（在One-Stage上加入word-refine解码器）、Two-Stage + RL（带精炼过程并结合RL目标的完整模型）。 [12] |
+| reliability 原评理由 | States end-to-end training and joint teacher-forcing training with summed objective, matching the human answers. |
+| reliability 本次配对理由 | States end-to-end training and joint training via teacher-forcing with summed objective, matching gold answers. |
+| 本轮理由 | States end-to-end training and joint teacher-forcing training with summed objective, matching gold. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | References include the training objective (sum of two processes, jointly trained with teacher-forcing, ground-truth summary fed to each decoder) and the statement that the model can be trained end-to-end, covering both parts of the question. |
+| 最终生产原文参考 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:5ced2a89-cc66-43ad-a164-9741ed1c6d28, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:69e754d8-fa92-4c16-814c-464311c3ab64, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:09dc8eda-ae4a-4665-8cb6-d08c77cb047a, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a497bf4e-6855-4d3c-b8fd-421469b78016, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:3d9780d1-da90-43c8-9e11-ff0d10a290eb, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:19964b0c-3dd0-4d05-9c52-54775a99729f, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:4cbb716e-93d4-477c-9259-cd9cb2fae1a7, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:f27858f2-0ec4-4488-bb8c-67562f1145b8 |
+| 最终原文引用 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:5ced2a89-cc66-43ad-a164-9741ed1c6d28, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a497bf4e-6855-4d3c-b8fd-421469b78016, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:19964b0c-3dd0-4d05-9c52-54775a99729f, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:3d9780d1-da90-43c8-9e11-ff0d10a290eb, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:4cbb716e-93d4-477c-9259-cd9cb2fae1a7 |
+
+### feafcc1c4026d7f55a2c8ce7850d7e12030b5c22 · 飞书 · 可答
+
+How are the different components of the model trained? Is it trained end-to-end?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 该模型可端到端训练，无需手工特征。 [1]<br>训练时模型目标为两个过程之和，使用“teacher-forcing”算法联合训练；训练中向每个解码器输入真实摘要并最小化目标。 [2]<br>模型采用两阶段解码器流程，生成摘要每个词时考虑两侧上下文信息。 [3]<br>训练使用Adam优化器，学习率3e-4，β1=0.9、β2=0.999、ε=10^-9，并在训练过程中使用动态学习率。 [4]<br>训练时batch size设为36，训练4个epoch（NYT50因训练样本少得多而训练8个epoch），训练后依据开发集表现从最后10个模型中选出最佳模型。 [5]<br>因GPU内存限制，使用梯度累积，累积步数设为12，每步输入3个样本。 [6]<br>正则化使用dropout和label smoothing，dropout率0.15、label smoothing值0.1，RL目标因子γ设为0.99。 [7]<br><br>依据：<br>[1] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 6 行）<br>[2] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 50 行）<br>[3] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 7 行）<br>[4] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 53 行）<br>[5] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 54 行）<br>[6] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 54 行）<br>[7] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 53 行） |
+| 本轮答案 | 模型采用两阶段解码器流程，生成摘要中每个词时同时考虑两侧上下文信息。 [1][2]<br>训练时模型目标是两个过程之和，使用“teacher-forcing”算法联合训练；训练中把真实摘要（ground-truth summary）喂给每个解码器并最小化目标。 [3][4]<br>模型基于BERT，在编码器和解码器过程中利用预训练语言模型，且无需手工特征即可端到端训练。 [5][6]<br>训练设置：batch size为36，训练4个epoch（NYT50因训练样本少得多而用8个epoch），训练后依据开发集表现从最后10个模型中选最佳模型。 [7][8]<br>由于GPU显存限制，使用梯度累积，累积步数设为12、每步喂3个样本；生成逻辑形式序列时beam size为4、长度惩罚为1.0。 [9][8]<br>优化器为Adam，学习率3e-4，β1=0.9、β2=0.999、ε=10^-9，训练中使用动态学习率。 [10]<br>本工作中所有模型都基于BERT_BASE构建。 [11]<br>正则化方面使用dropout和label smoothing，dropout率0.15、label smoothing值0.1，RL目标因子γ设为0.99。 [12]<br>模型总目标为L_model = L̂_dec + L̂_refine。 [13]<br><br>依据：<br>[1] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 7 行）<br>[2] Pretraining-Based Natural Language Generation for Text Summarization · 导入原文（非正式记忆）（第 7 行）（第 7 行）<br>[3] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 50 行）<br>[4] Pretraining-Based Natural Language Generation for Text Summarization · 导入原文（非正式记忆）（第 50 行）（第 50 行）<br>[5] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 6 行）<br>[6] Pretraining-Based Natural Language Generation for Text Summarization · 导入原文（非正式记忆）（第 6 行）（第 6 行）<br>[7] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 54 行）<br>[8] Pretraining-Based Natural Language Generation for Text Summarization · 导入原文（非正式记忆）（第 54 行）（第 54 行）<br>[9] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 54 行）<br>[10] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 53 行）<br>[11] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 53 行）<br>[12] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 53 行）<br>[13] Pretraining-Based Natural Language Generation for Text Summarization · 记忆 v1 · 当前版本原文依据（第 51 行） |
+| reliability 原评理由 | Covers end-to-end training and joint teacher-forcing training with summed objective, matching the gold answers. |
+| reliability 本次配对理由 | Covers end-to-end training and joint teacher-forcing training with summed objective, matching gold. |
+| 本轮理由 | Covers end-to-end training and joint teacher-forcing training with summed objective, matching gold. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Connector references contain the same key evidence: joint teacher-forcing training of the two processes and the explicit statement that the model can be trained end-to-end. |
+| 最终生产原文参考 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:5ced2a89-cc66-43ad-a164-9741ed1c6d28, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:69e754d8-fa92-4c16-814c-464311c3ab64, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:09dc8eda-ae4a-4665-8cb6-d08c77cb047a, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a497bf4e-6855-4d3c-b8fd-421469b78016, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:3d9780d1-da90-43c8-9e11-ff0d10a290eb, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:19964b0c-3dd0-4d05-9c52-54775a99729f, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:4cbb716e-93d4-477c-9259-cd9cb2fae1a7, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:f27858f2-0ec4-4488-bb8c-67562f1145b8 |
+| 最终原文引用 ID | source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:a497bf4e-6855-4d3c-b8fd-421469b78016, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:19964b0c-3dd0-4d05-9c52-54775a99729f, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:5ced2a89-cc66-43ad-a164-9741ed1c6d28, source:3bf48129-2ab8-4bef-91c8-d4f6b1cf999e:3d9780d1-da90-43c8-9e11-ff0d10a290eb |
+
+### dd76130ec5fac477123fe8880472d03fbafddef6 · 桌面 · 可答
+
+What is the state of the art described in the paper?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| partial | yes | yes | new_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | The paper reviews the state of the art on conversational systems from three perspectives: types of interactions, types of architecture, and types of context reasoning, and consolidates them in a comparison table. [1]<br>For context reasoning, most proposed approaches in the state of the art rely on rules using logics and knowledge bases (the rule-oriented architecture). [2]<br>Three main types of architectures are identified for building conversational systems: totally rule-oriented, totally data-oriented, and a mix of rules and data-oriented. [3]<br>Most existing chatbots, from ELIZA to modern state-of-the-art ones, fall into the dyadic category. [4]<br>A dyadic chatbot does not know how to coordinate with many members in a chat group and lacks the social ability to know when it is more suitable to answer or not. [5]<br>The paper states there is a lack of methods and tools to design and engineer coordination and mediation among chatbots and humans. [6]<br>With regard to chatbot engines, there is a lack of research directed to building coordination laws integrated with natural language. [7]<br>The paper states its proposed architecture is, to the best of the authors' knowledge, the first in the state of the art designed to support coordinated aware chatbots in a multiparty conversation. [8]<br>The paper states it is not meant to advance the state of the art on the norms for MPCS. [9]<br>尚待确认：The record does not provide the full list of specific systems or approaches reviewed in the state-of-the-art section beyond the named examples (ELIZA, PARRY, A.L.I.C.E., Cleverbot).；What is the state of the art described in the paper? |
+| 本轮答案 | 该论文从三个视角讨论对话系统的研究现状：交互类型、架构类型和上下文推理类型，并用一张表进行汇总比较。 [1][2]<br>ELIZA 是早期理解自然语言处理的软件之一，由 Joseph Weizenbaum 于 1966 年在 MIT 创建，以扮演心理治疗师著称，只需把病人的陈述反射回去。 [3][4]<br>ELIZA 旨在解决五个“基本技术问题”：识别关键词、发现最小上下文、选择适当变换、生成适当回应（有或没有关键词时），以及为 ELIZA 脚本提供结束能力。 [5][4]<br>PARRY 紧随 ELIZA 之后，由斯坦福大学的精神病学家 Kenneth Colby 在 1970 年代初开发。 [6][7]<br>PARRY 用 MLISP 语言编写，运行于 DEC PDP-10 上的 WAITS 操作系统，代码不可移植，部分用 PDP-10 汇编、部分用 MLISP。 [8][7]<br>PARRY 是第一个通过图灵测试的系统：精神病学家仅能正确识别 48% 的时间，与随机猜测相同。 [7]<br>A.L.I.C.E. 出现于 1995 年，当前版本使用 AIML——一种为创建刺激-反应聊天机器人设计的 XML 语言。 [9][10]<br>A.L.I.C.E. 目前有超过 40,000 个知识类别，而最初的 ELIZA 只有约 200 个；但该程序无法通过图灵测试，普通用户在简短对话中就能暴露其机械性。 [11][10]<br>Cleverbot（1997-2014）是由英国 AI 科学家 Rollo Carpenter 开发的聊天机器人，在 2011 年印度理工学院古瓦哈提分校举办的技术管理节上通过了图灵测试。 [12][13][14]<br>在 Cleverbot 的测试中，志愿者进行四分钟打字对话，Cleverbot 被投票为 59.3% 像人，而人类自身仅被评为 63.3% 像人。 [14]<br>在上下文推理方面，现有大多数方法依赖使用逻辑和知识库的规则。 [15]<br>创建能参与多方对话的聊天机器人的现状，是聊天机器人创建研究与多智能体系统协调/治理研究的结合；现有聊天机器人引擎缺乏将协调规则与自然语言结合的研究。 [16][17][18] |
+| reliability 原评理由 | Describes the three perspectives and architectures but omits the named systems ELIZA, PARRY, A.L.I.C.E., Cleverbot that the human answer lists. |
+| reliability 本次配对理由 | Names the four systems (ELIZA, PARRY, A.L.I.C.E., Cleverbot) and the three-perspective framing, matching the human answer. |
+| 本轮理由 | Includes all four named systems plus the three-perspective framing, matching the human answer. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | References include the state-of-the-art section intro plus ELIZA, PARRY, A.L.I.C.E., and Cleverbot paragraphs, matching the gold answer spans. |
+| 最终生产原文参考 ID | source:842c4bc3-23cf-45fb-8e11-a789a82589bf:a6e078c6-d708-4a2b-93a4-44068cee503f, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:b92a8e80-37d6-4215-83a3-3d3d3a0010c1, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:00cf45da-bee7-4e66-ab95-8f1891d34777, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:0e814b21-b938-445f-b609-326554fa4139, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:d457c605-1606-4802-849e-be3a55755d0f, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:5524dd5f-ea49-4cda-9a54-2e968ed1cb6e, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:e91b2c81-c674-432a-8b12-b1587005a07e, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:9e518c71-efcd-4ae0-a7e1-bb9c64497e2d |
+| 最终原文引用 ID | source:842c4bc3-23cf-45fb-8e11-a789a82589bf:b92a8e80-37d6-4215-83a3-3d3d3a0010c1, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:00cf45da-bee7-4e66-ab95-8f1891d34777, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:0e814b21-b938-445f-b609-326554fa4139, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:d457c605-1606-4802-849e-be3a55755d0f, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:5524dd5f-ea49-4cda-9a54-2e968ed1cb6e, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:e91b2c81-c674-432a-8b12-b1587005a07e |
+
+### dd76130ec5fac477123fe8880472d03fbafddef6 · 飞书 · 可答
+
+What is the state of the art described in the paper?
+
+| reliability 原评 | 本次 reliability 配对 | 本轮 | 相对原评 | 相对配对 |
+| --- | --- | --- | --- | --- |
+| yes | yes | yes | retained_success | retained_success |
+
+| 内容 | 原始记录 |
+| --- | --- |
+| reliability 答案 | 论文综述对话系统的最新技术时，从三个视角展开：交互类型、架构类型和上下文推理类型，并用一张表汇总比较。 [1]<br>ELIZA 是早期理解自然语言处理的软件之一，由 Joseph Weizenbaum 于 1966 年在 MIT 创建，以扮演心理治疗师著称，只需反射病人的陈述。 [2]<br>ELIZA 旨在解决五个“基本技术问题”：识别关键词、发现最小上下文、选择适当变换、生成适当回应（有或无关键词时），以及为 ELIZA 脚本提供结束能力。 [3]<br>PARRY 紧随 ELIZA 之后，由斯坦福大学的精神病学家 Kenneth Colby 在 1970 年代初开发。 [4]<br>该程序用 MLISP 语言在 DEC PDP-10 的 WAITS 操作系统上编写，代码不可移植，部分用 PDP-10 汇编代码、部分用 MLISP 编写。 [5]<br>A.L.I.C.E. 于 1995 年出现，当前版本使用 AIML——一种为创建刺激-反应聊天机器人而设计的 XML 语言。 [6]<br>该程序无法通过图灵测试，因为即使是普通用户也常能在简短对话中暴露其机械性。 [7]<br>Cleverbot（1997-2014）是由英国 AI 科学家 Rollo Carpenter 开发的聊天机器人。 [8]<br>它通过了 2011 年图灵测试，该测试在印度理工学院古瓦哈提分校举办的 Technique Techno-Management Festival 上举行。 [9]<br>在最新技术中，大多数上下文推理方法依赖使用逻辑和知识库的规则，如规则导向架构小节所述。 [10]<br>构建对话系统主要有三类架构：完全规则导向、完全数据导向，以及规则与数据导向的混合。 [11]<br>大多数现有聊天机器人，从最早的 ELIZA 到现代最先进的系统，都属于这一类。 [12]<br>尚待确认：论文对最新技术的综述中，除 ELIZA、PARRY、A.L.I.C.E.、Cleverbot 及三类架构外，其他具体系统或方法的名称与角色未在已确认记忆中记录。；论文综述中除 ELIZA、PARRY、A.L.I.C.E.、Cleverbot 及三类架构外，其他具体系统或方法的名称与角色未记录。；What is the state of the art described in the paper?<br><br>依据：<br>[1] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 16 行）<br>[2] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 17 行）<br>[3] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 17 行）<br>[4] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 18 行）<br>[5] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 18 行）<br>[6] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 19 行）<br>[7] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 19 行）<br>[8] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 20 行）<br>[9] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 20 行）<br>[10] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 78 行）<br>[11] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 42 行）<br>[12] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 24 行） |
+| 本轮答案 | 论文从三个视角综述对话系统的最新技术：交互类型、架构类型和上下文推理类型，并用一张表汇总比较。 [1][2]<br>ELIZA 是早期理解自然语言处理的软件之一，由 Joseph Weizenbaum 于 1966 年在 MIT 创建，以扮演心理治疗师著称，只需反射病人的陈述；它旨在解决五个“基本技术问题”：识别关键词、发现最小上下文、选择适当变换、生成适当回应以及为 ELIZA 脚本提供结束能力。 [3][4][5]<br>PARRY 紧随 ELIZA 出现，由斯坦福大学精神病学家 Kenneth Colby 在 1970 年代初开发；程序用 MLISP 语言写在 DEC PDP-10 的 WAITS 操作系统上，代码不可移植，部分为 PDP-10 汇编代码；PARRY 是首个通过图灵测试的系统，精神病学家正确识别率仅 48%，与随机猜测相同。 [6][7][8]<br>A.L.I.C.E. 于 1995 年出现，当前版本使用为创建刺激-响应聊天机器人而设计的 XML 语言 AIML；它目前有超过 40,000 个知识类别，而原版 ELIZA 仅约 200 个；该程序无法通过图灵测试，普通用户在简短对话中就能暴露其机械性。 [9][10][11]<br>Cleverbot（1997-2014）由英国 AI 科学家 Rollo Carpenter 开发，在印度理工学院古瓦哈提分校举办的 Technique Techno-Management Festival 上通过了 2011 年图灵测试；志愿者与 Cleverbot 或人类进行四分钟打字对话，Cleverbot 被评 59.3% 像人，人类被评 63.3% 像人。 [12][13][14]<br>在上下文推理方面，现有大多数方法依赖使用逻辑和知识库的规则，属于规则导向架构。 [15]<br>近期捕捉对话上下文（视为序列中的长期结构）的努力使用 RNN 或基于 LSTM 的模型；开发此类系统的最新技术采用了循环神经网络、动态上下文敏感生成和记忆网络等。 [16][17]<br>SyntaxNet 模型是运行在任务特定转换系统上的前馈神经网络，在词性标注、依存句法分析和句子压缩上取得最先进结果。 [18]<br>创建能参与多方对话的聊天机器人的最新技术，目前是聊天机器人创建研究与多智能体系统协调或治理研究的结合。 [19]<br>现有大多数聊天机器人，从最早的 ELIZA 到现代最先进的系统，都属于同一类别。 [20]<br>在聊天机器人引擎方面，缺乏将协调法则与自然语言结合构建的研究；作者称其提出的架构是据其所知首个支持多方对话中协调感知聊天机器人设计与开发的最先进架构。 [21][22][23]<br><br>依据：<br>[1] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 16 行）<br>[2] A Hybrid Architecture for Multi-Party Conversational Systems · 导入原文（非正式记忆）（第 16 行）（第 16 行）<br>[3] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 17 行）<br>[4] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 17 行）<br>[5] A Hybrid Architecture for Multi-Party Conversational Systems · 导入原文（非正式记忆）（第 17 行）（第 17 行）<br>[6] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 18 行）<br>[7] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 18 行）<br>[8] A Hybrid Architecture for Multi-Party Conversational Systems · 导入原文（非正式记忆）（第 18 行）（第 18 行）<br>[9] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 19 行）<br>[10] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 19 行）<br>[11] A Hybrid Architecture for Multi-Party Conversational Systems · 导入原文（非正式记忆）（第 19 行）（第 19 行）<br>[12] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 20 行）<br>[13] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 20 行）<br>[14] A Hybrid Architecture for Multi-Party Conversational Systems · 导入原文（非正式记忆）（第 20 行）（第 20 行）<br>[15] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 78 行）<br>[16] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 100 行）<br>[17] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 70 行）<br>[18] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 195 行）<br>[19] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 28 行）<br>[20] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 24 行）<br>[21] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 41 行）<br>[22] A Hybrid Architecture for Multi-Party Conversational Systems · 记忆 v1 · 当前版本原文依据（第 41 行）<br>[23] A Hybrid Architecture for Multi-Party Conversational Systems · 导入原文（非正式记忆）（第 41 行）（第 41 行） |
+| reliability 原评理由 | Includes ELIZA, PARRY, A.L.I.C.E., and Cleverbot, matching the human answer's systems. |
+| reliability 本次配对理由 | Covers ELIZA, PARRY, A.L.I.C.E., Cleverbot and the three-perspective state-of-the-art framing, matching the human answer. |
+| 本轮理由 | Includes ELIZA, PARRY, A.L.I.C.E., Cleverbot and the three-perspective framing, matching the human answer. |
+| 旧 / 本轮参考充分性 | yes / yes |
+| 本轮参考理由 | Connector references contain the same s2 paragraphs covering ELIZA, PARRY, A.L.I.C.E., and Cleverbot, sufficient for the gold answer. |
+| 最终生产原文参考 ID | source:842c4bc3-23cf-45fb-8e11-a789a82589bf:a6e078c6-d708-4a2b-93a4-44068cee503f, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:b92a8e80-37d6-4215-83a3-3d3d3a0010c1, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:00cf45da-bee7-4e66-ab95-8f1891d34777, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:0e814b21-b938-445f-b609-326554fa4139, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:d457c605-1606-4802-849e-be3a55755d0f, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:5524dd5f-ea49-4cda-9a54-2e968ed1cb6e, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:e91b2c81-c674-432a-8b12-b1587005a07e, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:9e518c71-efcd-4ae0-a7e1-bb9c64497e2d |
+| 最终原文引用 ID | source:842c4bc3-23cf-45fb-8e11-a789a82589bf:b92a8e80-37d6-4215-83a3-3d3d3a0010c1, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:00cf45da-bee7-4e66-ab95-8f1891d34777, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:0e814b21-b938-445f-b609-326554fa4139, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:d457c605-1606-4802-849e-be3a55755d0f, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:5524dd5f-ea49-4cda-9a54-2e968ed1cb6e, source:842c4bc3-23cf-45fb-8e11-a789a82589bf:e91b2c81-c674-432a-8b12-b1587005a07e |
+
+## 审计
+
+当前报告：docs\memory-architecture-dev-v2-audited-results.json；直接比较基线：docs\memory-public-live-qa-reliability-dev-results.json；v3 历史参考：docs\memory-public-live-qa-structured-dev-v3-results.json。
+完整性：docs\memory-architecture-dev-v2-audited-integrity.json，通过=true；报告 SHA 与完整性记录绑定。
+当前 binary：acad184b90d41b47f110558155335646a4dd6e78670c1dfcfa84e744531d18cd；注册、源码、评测快照、逐题原文计数与完整成本字段见同名 metrics。

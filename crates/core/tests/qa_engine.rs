@@ -156,7 +156,7 @@ struct PausedModel {
 }
 
 impl PausedModel {
-    fn new() -> Self {
+    fn new(review_expected: bool) -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let url = format!("http://{}", listener.local_addr().unwrap());
@@ -178,10 +178,10 @@ impl PausedModel {
             let envelope: Value =
                 serde_json::from_str(captured.body["messages"][1]["content"].as_str().unwrap())
                     .unwrap();
-            let memory = &envelope["context"]["memories"][0];
-            let output = json!({
-                "grounded":true,"answer":memory["content"],"citationIds":[memory["memoryId"]]
-            });
+            let memory = &envelope["references"][0];
+            let span = &memory["content"][0];
+            let output = json!({"grounded":true,"status":"answered","unknowns":[],"claims":[{
+                "text":span["text"],"supportSpans":[{"referenceIndex":memory["referenceIndex"],"spanIndex":span["spanIndex"]}]}]});
             captured_sender.send(captured).unwrap();
             release_receiver
                 .recv_timeout(Duration::from_secs(10))
@@ -191,6 +191,41 @@ impl PausedModel {
             }]})
             .to_string();
             write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",response.len(),response).unwrap();
+            drop(stream);
+            // Valid grounded generation is now reviewed. Stale-answer cases
+            // cancel before review, so waiting for another request is bounded.
+            if !review_expected {
+                return;
+            }
+            let review_deadline = Instant::now() + Duration::from_secs(10);
+            loop {
+                match listener.accept() {
+                    Ok((mut stream, _)) => {
+                        let request = read_request(&mut stream);
+                        let input: Value = serde_json::from_str(
+                            request.body["messages"][1]["content"].as_str().unwrap(),
+                        )
+                        .unwrap();
+                        assert!(input.get("claims").is_some(), "expected evidence review");
+                        let review = json!({"supported":true,"answersQuestion":true,"completeAnswer":true,
+                            "obligations":[{"target":input["question"],"status":"answered","claimIndices":[1]}],
+                            "unknownDecisions":[],"unsupportedClaims":[],"missingAspects":[],"reason":"Current quoted statement directly answers the fixture question."});
+                        let response = json!({"choices":[{"message":{"content":review.to_string()},"finish_reason":"stop"}]}).to_string();
+                        write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",response.len(),response).unwrap();
+                        break;
+                    }
+                    Err(error)
+                        if error.kind() == std::io::ErrorKind::WouldBlock
+                            && Instant::now() < review_deadline =>
+                    {
+                        thread::sleep(Duration::from_millis(2))
+                    }
+                    Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                        panic!("expected evidence review: {error}")
+                    }
+                    Err(error) => panic!("mock review accept failed: {error}"),
+                }
+            }
         });
         Self {
             url,
@@ -221,7 +256,7 @@ impl Drop for PausedModel {
 
 #[test]
 fn confirmed_memory_is_answered_with_current_revision_evidence_through_public_engine() {
-    let mut model = PausedModel::new();
+    let mut model = PausedModel::new(true);
     let fixture = Fixture::new(&model.url);
     let other = call(
         &fixture.engine,
@@ -242,6 +277,26 @@ fn confirmed_memory_is_answered_with_current_revision_evidence_through_public_en
         .to_lowercase()
         .contains("authorization: bearer fixture-private-model-key"));
     assert_eq!(captured.body["model"], "selected-model");
+    let envelope: Value =
+        serde_json::from_str(captured.body["messages"][1]["content"].as_str().unwrap()).unwrap();
+    assert!(envelope.get("schema").is_none());
+    let schema = &captured.body["response_format"]["json_schema"]["schema"];
+    assert_eq!(
+        schema["required"],
+        json!(["grounded", "status", "claims", "unknowns"])
+    );
+    assert_eq!(
+        schema["properties"]["claims"]["items"]["properties"]["supportSpans"]["items"]
+            ["properties"]["referenceIndex"]["maximum"],
+        envelope["references"].as_array().unwrap().len()
+    );
+    assert_eq!(envelope["references"][0]["referenceIndex"], 1);
+    assert_eq!(envelope["references"][0]["content"][0]["spanIndex"], 1);
+    assert_eq!(
+        envelope["references"][0]["content"][0]["text"],
+        "登录审计在 10 月 23 日交付。"
+    );
+
     assert!(!captured.body.to_string().contains("12 月 31"));
     assert!(!captured
         .body
@@ -271,7 +326,7 @@ fn confirmed_memory_is_answered_with_current_revision_evidence_through_public_en
 
 #[test]
 fn actor_remains_responsive_and_a_concurrent_memory_revision_cancels_late_answer() {
-    let mut model = PausedModel::new();
+    let mut model = PausedModel::new(false);
     let fixture = Fixture::new(&model.url);
     let question = fixture.ask();
     model.request();
@@ -318,7 +373,7 @@ fn actor_remains_responsive_and_a_concurrent_memory_revision_cancels_late_answer
 
 #[test]
 fn changing_model_configuration_while_answer_is_pending_cancels_late_answer() {
-    let mut model = PausedModel::new();
+    let mut model = PausedModel::new(false);
     let fixture = Fixture::new(&model.url);
     let question = fixture.ask();
     let captured = model.request();

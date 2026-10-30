@@ -268,11 +268,12 @@ fn relations(conn: &Connection) -> Result<Vec<Value>> {
 pub(crate) fn overview(conn: &Connection, p: &Value) -> Result<Value> {
     let date = date(p)?;
     let project = scope(conn, p)?;
-    let all = tasks::state(conn)?;
+    let mut all = tasks::state(conn)?;
+    crate::daily_use::filter_context(conn, &mut all)?;
     let all = all["tasks"].as_array().unwrap();
     let by_id: HashMap<&str, &Value> = all.iter().map(|t| (t["id"].as_str().unwrap(), t)).collect();
     let relations = relations(conn)?;
-    let projects = read_json(conn,"SELECT json_object('projectId',id,'name',name,'description',description) FROM projects WHERE (?1 IS NULL OR id=?1) ORDER BY created_at DESC,id",&[&project])?;
+    let projects = read_json(conn,"SELECT json_object('projectId',id,'name',name,'description',description) FROM projects WHERE (?1 IS NULL OR id=?1) AND NOT EXISTS(SELECT 1 FROM workspace_lifecycle l WHERE l.kind='project' AND l.entity_id=projects.id AND l.archived=1) ORDER BY created_at DESC,id",&[&project])?;
     let mut output = Vec::new();
     let mut totals = json!({"projects":projects.len(),"activeTasks":0,"blockedTasks":0,"overdueTasks":0,"atRiskMilestones":0});
     for mut item in projects {
@@ -452,6 +453,27 @@ fn record_follow_up(conn: &Connection, p: &Value) -> Result<Value> {
     if next.as_deref().is_some_and(|d| d < work) {
         return Err(invalid("下次跟进日期不能早于本次跟进日期"));
     }
+    // The user explicitly chooses an outcome; free-text promises never change
+    // status or deadlines. Both histories are committed in the same transaction.
+    let updated_task = if let Some(outcome) = p.get("taskOutcome").filter(|v| !v.is_null()) {
+        let status = required(outcome, "status")?;
+        if !matches!(status, "in_progress" | "blocked" | "done") {
+            return Err(invalid("跟进结果只能更新为进行中、阻塞或完成"));
+        }
+        if status == "done" && next.is_some() {
+            return Err(invalid("确认完成后无需安排后续跟进"));
+        }
+        let mut fields = task.clone();
+        fields["baseVersion"] = json!(integer(outcome, "baseVersion")?);
+        fields["workDate"] = json!(work);
+        fields["status"] = json!(status);
+        if status == "done" {
+            fields["progress"] = json!(100);
+        }
+        Some(tasks::write_task(conn, &task, &fields, "user", &[], &note)?)
+    } else {
+        None
+    };
     let first: String = conn.query_row(
         "SELECT min(work_date) FROM task_events WHERE task_id=?",
         [task["id"].as_str()],
@@ -485,7 +507,7 @@ fn record_follow_up(conn: &Connection, p: &Value) -> Result<Value> {
     let updated = save_follow_state(conn, &task, next.as_deref(), None, base)?;
     let record = conn.query_row(&format!("{FOLLOW_SELECT} WHERE id=?"), [key], follow_row)?;
     Ok(
-        json!({"record":record,"followUpVersion":updated["followUpVersion"],"nextFollowUpDate":updated["nextFollowUpDate"],"snoozedUntil":updated["snoozedUntil"]}),
+        json!({"record":record,"followUpVersion":updated["followUpVersion"],"nextFollowUpDate":updated["nextFollowUpDate"],"snoozedUntil":updated["snoozedUntil"],"task":updated_task}),
     )
 }
 fn snooze_follow_up(conn: &Connection, p: &Value) -> Result<Value> {
@@ -514,7 +536,8 @@ fn snooze_follow_up(conn: &Connection, p: &Value) -> Result<Value> {
 pub(crate) fn follow_up_center(conn: &Connection, p: &Value) -> Result<Value> {
     let date = date(p)?;
     let project = scope(conn, p)?;
-    let all = tasks::state(conn)?;
+    let mut all = tasks::state(conn)?;
+    crate::daily_use::filter_context(conn, &mut all)?;
     let names = read_json(
         conn,
         "SELECT json_object('id',id,'name',name) FROM projects",

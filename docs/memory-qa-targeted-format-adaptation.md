@@ -1,0 +1,27 @@
+# qa-targeted 格式与事后捕获
+
+本轮是用户再次授权的独立开发轮次；原三轮失败的结果、门槛、注册、快照与829次调用/3,652,548 tokens均保留。新注册先于真实调用冻结；新开发最多4次fresh20共同使用1200次调用/6M tokens，无自动预算扩展。完整100题预算另为2000次/12M，仅在固定开发门槛通过后启动。
+
+## 评分不变
+
+沿用原有分离的answer、memory、retrieval评判提示、QASPER gold和yes/partial/no/uncertain标签。同次匿名系统配对仅按固定顺序映射实际新旧最终答案。开发质量基线为qa-calibrated-dev-v3；成本恢复参考为qa-efficient-dev-v2；全量基线为qa-efficient-full，因为calibrated-full未运行。
+
+## 捕获与producer
+
+完整provider请求、响应、usage和顺序收据保持不变。generation捕获仍按真实generation请求记录完整参考正文和输出，不复制、重排或补造模型调用。最终实际返回generation通过有界answerGenerationIndex选择，保留首个经过审查的partial时保留fallback标记。
+
+新controller常规补查先在本地按所问目标寻找新证据，不再先发LLM query_rewrite；空初始参考的导航仍可按生产规则选择rewrite。新轮事后诊断不得用rewrite调用数量推算review轮次。trace.reviewRounds逐条保存reviewIndex、generationIndex、retrievalRound和validated/unavailable状态，三种索引均从0开始；trace.reviews只包含实际generation产生的qualityReview，不再用首轮local的null占位。首轮local没有generation则reviews为空；samefacts跳过不会产生review；预算等本地拒绝可以有unavailable审查对象但没有provider review收据，不能补造调用。
+
+实际合同版本为bounded-question-flow-v7-local-targeted-supplement / claim-support-v9-targeted-obligations。新provider review保留supported、obligations、unknownDecisions、unsupportedClaims、missingAspects、reason，删去重复summary布尔；controller从逐项义务和unknown裁决派生answersQuestion/completeAnswer以兼容外部接口。rawProviderReview保留原provider对象，derivedState另列；本地目标守卫可能保守保留必要缺项或降级，事后诊断分别记录原始对象和最终有效裁决，不将派生布尔解释成模型独立自评。
+
+generationRounds另记录每个检索轮的retrievalRound、generationIndex（无模型为null）与modelCalled；最多3个检索轮，最多1个追加生成轮，两者不混为同一调用数。inputUnknowns保留实际review输入unknown列表，unknownDecisions的unknownIndex严格指向其1-based位置；最终unknowns、raw generation数组和本地目标守卫处理后结果分别保留。
+
+兼容legacy格式时，两summary布尔仍须成对并接受严格一致性验证，不作为新provider必填字段；格式失败保留原始对象与错误码，不能因为返回安全unknown/partial而当作零协议问题。
+
+评测capture/scorer/judge继续使用原始generation参考正文与实际返回producer。所有review协议失败仍可见；补查失败按reviewRounds.retrievalRound判定，不因没有rewrite、首个真实generation索引为0或安全fallback而漏计。不得把事后gold、评分结果或历史相关memoryID输入生产。
+
+## 预算与旧工件
+
+新prior-run只允许qa-targeted开发链，逐层检查compact/detail/transcript SHA、唯一workspace、请求指纹与原始provider usage，防止遗漏、篡改、循环或重复计费。历史calibrated三轮单独绑定为只读历史账本，新注册预算不从其费用扣减；报告跨两轮总费时各工作区只相加一次。
+
+共享执行器仅增加新tag的manifest/注册预算分支；旧round使用其原始源文件及评分快照解释。原有显式一次parser/schema失败judge修复政策不变，语法性无损修复不重评分、不改标签；所有额外调用均计入相应累计预算。
