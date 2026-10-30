@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Check, ChevronDown, GitBranch, ListChecks, RefreshCw } from 'lucide-react';
 import { asError, execute } from '../../api';
 import { TASK_STATUS, type Task, type TaskStatus } from '../../types';
@@ -23,7 +24,7 @@ export interface PlanningOverview {
 const labels: Record<string, string> = { merge: '归并重复任务', proposal: '核对原文任务', memory_task: '从记忆建立跟进', dependency: '确认前置依赖', blocker: '确认阻塞', estimate: '确认预计用时' };
 const mins = (n: number) => `${n} 分钟`;
 
-export function DailyPlanning({ day, projectId, tasks, onChanged, onOverview }: { day: string; projectId: string; tasks: Task[]; onChanged: () => Promise<unknown>; onOverview: (data: PlanningOverview) => void }) {
+export function DailyPlanning({ day, projectId, tasks, onChanged, onOverview, children }: { day: string; projectId: string; tasks: Task[]; onChanged: () => Promise<unknown>; onOverview: (data: PlanningOverview) => void; children?: ReactNode }) {
   const [data, setData] = useState<PlanningOverview | null>(null);
   const [minutes, setMinutes] = useState(''); const [buffer, setBuffer] = useState('0');
   const [capacityBase, setCapacityBase] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export function DailyPlanning({ day, projectId, tasks, onChanged, onOverview }: 
     const run = ++sequence.current;
     const next = await execute<PlanningOverview>('get_daily_planning', { date: day, ...(projectId ? { projectId } : {}) });
     if (!alive.current || run !== sequence.current) return;
-    setData(next); onOverviewRef.current(next);
+    setData(next); setError(''); onOverviewRef.current(next);
     if (!initial.current) { initial.current = true; setMinutes(next.capacity ? String(next.capacity.minutes) : ''); setBuffer(String(next.capacity?.bufferMinutes ?? 0)); setCapacityBase(next.capacity?.revision ?? null); setUseModel(next.modelAvailable); }
   }, [day, projectId]);
   useEffect(() => {
@@ -69,8 +70,8 @@ export function DailyPlanning({ day, projectId, tasks, onChanged, onOverview }: 
     const next = await execute<PlanningDraft>(command, payload); if (alive.current) setDraft(next);
   };
   const approved = async () => { setDraft(null); setNotice('已应用所选变更。'); await refresh(); await onChanged(); };
-  return <section className={`daily-planning ${expanded ? 'daily-planning-expanded' : ''}`} aria-label="时间与排期">
-    <div className="planning-heading"><div><h3><ListChecks size={17} />时间与排期</h3><p>{data?.capacity ? `可用 ${mins(data.capacity.minutes)} · 预留 ${mins(data.capacity.bufferMinutes)}${data.confirmedPlan ? ` · 已安排 ${mins(data.confirmedPlan.result.scheduledMinutes)}` : ''}` : historical ? '查看这一天保存的时间与排期。' : '设置可用时间，生成排期草案。'}{pendingDrafts.length > 0 && ` · ${pendingDrafts.length} 份待确认草案`}</p></div><div className="planning-heading-actions">{data?.confirmedPlan && <span className="planning-confirmed"><Check size={13} />已确认</span>}<button className="button secondary compact" aria-expanded={expanded} aria-controls="daily-planning-controls" onClick={() => setExpanded(!expanded)}>{expanded ? '收起' : historical ? '查看排期' : data?.capacity ? '调整排期' : '设置排期'}<ChevronDown size={13} /></button></div></div>
+  return <section className={`daily-planning ${expanded ? 'daily-planning-expanded' : ''} ${data?.capacity || !children || historical || pendingDrafts.length ? 'has-planning-summary' : ''}`} aria-label="时间与排期">
+    <div className="planning-heading"><div><h3><ListChecks size={17} />安排任务</h3><p>{data?.capacity ? `可用 ${mins(data.capacity.minutes)} · 预留 ${mins(data.capacity.bufferMinutes)}${data.confirmedPlan ? ` · 已安排 ${mins(data.confirmedPlan.result.scheduledMinutes)}` : ''}` : historical ? '查看这一天保存的安排。' : children ? '选择任务安排日期，或按可用时间自动排期。' : '先新建任务，再安排日期或生成排期草案。'}{pendingDrafts.length > 0 && ` · ${pendingDrafts.length} 份待确认草案`}</p></div><div className="planning-heading-actions">{children}{data?.confirmedPlan && <span className="planning-confirmed"><Check size={13} />已确认</span>}<button className="button secondary compact" aria-expanded={expanded} aria-controls="daily-planning-controls" onClick={() => setExpanded(!expanded)}>{expanded ? '收起' : historical ? '查看自动排期' : '可用时间与自动排期'}<ChevronDown size={13} /></button></div></div>
     {error && <p className="form-error" role="alert">{error}</p>}{notice && <p className="planning-notice" role="status">{notice}</p>}
     {expanded && <div id="daily-planning-controls" className="planning-controls">
     <div className="planning-capacity"><label>可用总时长（分钟）<input aria-label="每日可用分钟" type="number" min={0} max={960} placeholder="例如 480" value={minutes} onChange={(e) => setMinutes(e.target.value)} disabled={!!busy || historical} /></label><label>会议与临时事项（分钟）<input aria-label="预留分钟" type="number" min={0} max={Number(minutes) || 960} value={buffer} onChange={(e) => setBuffer(e.target.value)} disabled={!!busy || historical} /></label><div><span>可排任务：<strong>{capacityValid ? mins(Number(minutes) - Number(buffer)) : '待填写'}</strong></span><button className="button secondary compact" disabled={!!busy || historical || !capacityValid || !capacityDirty} onClick={() => void action('capacity', async () => { const next = await execute<NonNullable<PlanningOverview['capacity']>>('save_daily_capacity', { date: day, minutes: Number(minutes), bufferMinutes: Number(buffer), baseRevision: capacityBase }); setCapacityBase(next.revision); setMinutes(String(next.minutes)); setBuffer(String(next.bufferMinutes)); setNotice('可用时间已保存。'); })}>{busy === 'capacity' && <Spinner />}保存时间</button></div></div>

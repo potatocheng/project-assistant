@@ -74,6 +74,7 @@ export interface AppState {
   memories: Memory[]; jobs: Job[]; backups: Backup[];
   aiSettings: AiSettings; memoryReviewCount: number;
   managementRevision?: string;
+  assistanceRevision?: string;
   assistantPreferenceVersion?: number;
   tasks: Task[]; taskProposals: TaskProposal[]; reports: ReportSummary[];
 }

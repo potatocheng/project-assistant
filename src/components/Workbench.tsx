@@ -11,13 +11,17 @@ import type { GovernanceWorkspaceData } from './governance/gov-types';
 import type { ChangeData } from './governance/change-types';
 import { collectAttention, collectTodayWork, nextMilestone, projectOrder, type AttentionItem } from './workbench-model';
 import './assistant-home.css';
+import { pendingContent, projectHealth } from './workspace-model';
+import { TodayBrief } from './assistance/TodayBrief';
 
 interface WorkbenchProps {
+  pendingCount: number; onCreateTask: () => void;
   state: AppState; date: string; projectId: string; onProjectChange: (id: string) => void;
   onNavigate: (page: Page) => void; onProjectOpen: (id: string) => void;
   onTaskOpen: (id: string, projectId: string) => void;
   onManagementOpen: (kind: ManagementKind, id: string, projectId: string) => void;
   onAsk: (question: string) => void; onChanged: () => Promise<unknown>;
+  onModelSettings: () => void;
   onConnect: () => void; onReview: () => void; onSourceOpen: (id: string) => void; onMemoryOpen: (id: string, projectId: string) => void;
 }
 interface SyncStatus {
@@ -29,7 +33,6 @@ interface Maintenance {
   settings: { enabled: boolean; autoNew: boolean }; blockedReason?: string | null;
   reviews: Array<{ id: string; projectId: string; sourceId: string; proposalId: string; content: string }>;
 }
-const HEALTH = { on_track: '暂无延期记录', at_risk: '交付有风险', blocked: '存在阻塞', completed: '已完成' };
 const INTENT = { action: '我的执行', followup: '需要跟进', decision: '等待你拍板', risk: '需要协调' };
 const INITIAL_WORK = 3;
 function dayLabel(value: string | null, today: string) {
@@ -67,12 +70,9 @@ export function Workbench(props: WorkbenchProps) {
     || (!todayIds.has(item.id) && (item.task.status === 'blocked' || !!item.followUp)));
   const projects = [...(delivery.data?.projects ?? [])].filter(project => inScope(project.projectId))
     .sort((a, b) => projectOrder(a) - projectOrder(b) || a.name.localeCompare(b.name, 'zh-CN'));
-  const pendingTasks = state.taskProposals.filter(item => inScope(item.projectId) && item.status === 'pending');
-  const pendingMemories = state.proposals.filter(item => inScope(item.projectId) && item.status === 'pending');
+  const { tasks: pendingTasks, memories: pendingMemories, drafts } = pendingContent(state, projectId);
   const reviews = (maintenance.data?.reviews ?? []).filter(item => inScope(item.projectId));
-  const drafts = (state.extractionDrafts ?? []).filter(item => inScope(item.projectId) && item.status === 'needs_review');
-  const pendingCount = pendingTasks.length + pendingMemories.length + drafts.length
-    + reviews.filter(item => !pendingMemories.some(proposal => proposal.id === item.proposalId)).length;
+  const pendingCount = props.pendingCount;
   const sources = state.sources.filter(item => inScope(item.projectId));
   const memories = state.memories.filter(item => inScope(item.projectId));
   // An imported source is never presented as an extracted or confirmed project fact.
@@ -91,9 +91,10 @@ export function Workbench(props: WorkbenchProps) {
   const syncError = sync.data?.lastError || syncRecords.find(status => status.error)?.error;
   const running = state.jobs.filter(job => (job.status === 'queued' || job.status === 'running') && sources.some(source => source.id === job.sourceId));
   const queries = [delivery, followUps, governance, changes, sync, maintenance];
-  const problems = queries.flatMap((query, index) => query.error ? [{ label: ['项目进度', '跟进', '风险决策', '变更验收', '资料同步', '自动整理'][index], query }] : []);
+  const problems = queries.flatMap((query, index) => query.error || query.refreshError ? [{ label: ['项目进度', '跟进', '风险决策', '变更验收', '资料同步', '自动整理'][index], query, message: query.error || `更新失败，仍显示上次读取的内容。${query.refreshError}` }] : []);
   const loading = queries.some(query => query.loading);
-  const attentionIncomplete = followUps.loading || governance.loading || changes.loading || !!followUps.error || !!governance.error || !!changes.error;
+  const attentionIncomplete = followUps.loading || governance.loading || changes.loading || !!followUps.error || !!governance.error || !!changes.error || !!followUps.refreshError || !!governance.refreshError || !!changes.refreshError;
+  const gettingStarted = !tasks.length && !sources.length && !subscriptions.length && !pendingCount && !attention.length && !attentionIncomplete && !sync.loading && !problems.length;
   const riskProjects = projects.filter(project => projectOrder(project) < 2);
   const projectName = (id: string) => state.projects.find(project => project.id === id)?.name || '项目';
   const focused = today[0];
@@ -108,20 +109,22 @@ export function Workbench(props: WorkbenchProps) {
   return <div className="assistant-home">
     <div className="ah-document">
       <header className="ah-heading"><div><p className="ah-date">{new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' }).format(new Date(`${date}T12:00:00`))}</p><h1>今天，先关注这些</h1></div><label className="ah-scope"><span className="visually-hidden">工作台项目范围</span><select value={projectId} onChange={event => props.onProjectChange(event.target.value)}><option value="">全部项目</option>{state.projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select><ChevronDown size={14}/></label></header>
-      <section className="ah-brief" aria-label="今日工作摘要"><WaterMark size={28}/><div><p>{today.length ? <>你有 <strong>{today.length} 项</strong>工作需要推进。{focused?.urgent ? '先处理阻塞和逾期事项。' : '已按截止时间和优先级整理。'}</> : '当前没有已安排的个人工作。'}{!delivery.loading && !delivery.error && riskProjects.length > 0 && <>另有 <strong>{riskProjects.length} 个项目</strong>出现交付风险。</>}</p><span>{focused ? `建议先看：${focused.task.title}` : '从聊天和资料中提取的待办，确认后会进入工作安排。'}</span></div></section>
+      {gettingStarted ? <section className="ah-onboarding"><h2>从一项工作开始</h2><p>新建任务，或导入项目资料，让助理整理待办和变化。</p><div className="ah-onboarding-actions"><button className="button primary" onClick={props.onCreateTask}>新建任务</button><button className="button secondary" onClick={() => props.onNavigate('sources')}>导入资料</button><button className="ah-link" onClick={props.onConnect}>连接聊天与文档<ArrowRight size={13}/></button></div><button className="ah-link" onClick={() => props.onNavigate('overview')}>设置项目目标与里程碑<ArrowRight size={13}/></button></section> : <>
+      <section className="ah-brief" aria-label="今日工作摘要"><WaterMark size={28}/><div><p>{today.length ? <>你有 <strong>{today.length} 项</strong>工作需要推进。{focused?.urgent ? '先处理阻塞和逾期事项。' : '已按截止时间和优先级整理。'}</> : pendingCount ? `有 ${pendingCount} 条内容待处理，核对后继续安排工作。` : '今天还没有安排任务。'}{!delivery.loading && !delivery.error && riskProjects.length > 0 && <>另有 <strong>{riskProjects.length} 个项目</strong>出现交付风险。</>}</p><span>{focused ? `建议先看：${focused.task.title}` : <button className="ah-link" onClick={pendingCount ? () => props.onNavigate('inbox') : props.onCreateTask}>{pendingCount ? '查看待处理内容' : '新建任务'}<ArrowRight size={13}/></button>}</span></div></section>
       {!sources.length && !subscriptions.length && !sync.loading && <div className="ah-start"><div><strong>先接入项目信息</strong><p>连接项目群聊与文档，或导入现有资料，让助理开始整理待办和变化。</p></div><button className="button primary compact" onClick={props.onConnect}>连接聊天与文档</button><button className="ah-link" onClick={() => props.onNavigate('sources')}>导入资料<ArrowRight size={13}/></button></div>}
-      {problems.length > 0 && <details className="ah-problems"><summary><CircleAlert size={14}/>部分信息读取失败，当前内容可能不完整</summary>{problems.map(({ label, query }) => <div key={label}><span>{label}：{query.error}</span><button className="text-button" onClick={query.refresh}>重试<RefreshCw size={12}/></button></div>)}</details>}
+      {problems.length > 0 && <details className="ah-problems"><summary><CircleAlert size={14}/>部分信息读取失败，当前内容可能不完整</summary>{problems.map(({ label, query, message }) => <div key={label}><span>{label}：{message}</span><button className="text-button" onClick={query.refresh} disabled={query.loading || query.refreshing} aria-busy={query.refreshing}>{query.refreshing ? '更新中…' : '重试'}<RefreshCw size={12}/></button></div>)}</details>}
 
-      <div className="ah-work-grid">
-        <section className="ah-today" aria-labelledby="ah-today-heading"><div className="ah-section-heading"><h2 id="ah-today-heading">我的今日工作 <small>{today.length}</small></h2><button className="ah-link" onClick={() => props.onNavigate('daily')}>工作安排<ArrowRight size={13}/></button></div><p className="ah-section-note">我的执行 · 包含之前安排但尚未完成的工作</p>
+      <TodayBrief state={state} date={date} projectId={projectId} onTaskOpen={props.onTaskOpen} onModelSettings={props.onModelSettings} />
+      <div className={`ah-work-grid ${!today.length || !attention.length ? 'single-column' : ''}`} hidden={!today.length && !attention.length && !attentionIncomplete}>
+        {today.length > 0 && <section className="ah-today" aria-labelledby="ah-today-heading"><div className="ah-section-heading"><h2 id="ah-today-heading">我的今日工作 <small>{today.length}</small></h2><button className="ah-link" onClick={() => props.onNavigate('daily')}>工作安排<ArrowRight size={13}/></button></div><p className="ah-section-note">我的执行 · 包含之前安排但尚未完成的工作</p>
           {today.length ? <ol className="ah-task-list">{today.slice(0, allWork ? undefined : INITIAL_WORK).map(({ task, reason, urgent }, index) => <li key={task.id}><div className="coach-home-task"><button className="ah-task" onClick={() => props.onTaskOpen(task.id, task.projectId)}><span className={`ah-task-number ${urgent ? 'urgent' : ''}`}>{String(index + 1).padStart(2, '0')}</span><span className="ah-task-copy"><strong>{task.title}</strong><span className={urgent ? 'ah-urgent' : ''}>{reason}</span><small>{projectName(task.projectId)}<i>·</i>{TASK_STATUS[task.status]}{task.progress > 0 && ` ${task.progress}%`}</small></span><ChevronRight size={15}/></button><button className="text-button tiny" onClick={() => setRecord(task)}>帮我推进</button></div></li>)}</ol> : <div className="ah-empty"><Check size={21}/><p>今天的安排还是空的</p><span>把已有任务排到今天，或连接聊天和资料整理待办。</span></div>}
           {today.length > INITIAL_WORK && <button className="ah-link ah-more" onClick={() => setAllWork(!allWork)}>{allWork ? '收起' : `还有 ${today.length - INITIAL_WORK} 项工作`}<ChevronDown size={13}/></button>}
-        </section>
-        <section className="ah-attention" aria-labelledby="ah-attention-heading"><div className="ah-section-heading"><h2 id="ah-attention-heading">需要我介入 <small>{attention.length}{attentionIncomplete ? '+' : ''}</small></h2></div><p className="ah-section-note">等你拍板、跨人协调和到期跟进</p>
+        </section>}
+        {(attention.length > 0 || attentionIncomplete) && <section className="ah-attention" aria-labelledby="ah-attention-heading"><div className="ah-section-heading"><h2 id="ah-attention-heading">需要我介入 <small>{attention.length}{attentionIncomplete ? '+' : ''}</small></h2></div><p className="ah-section-note">等你拍板、跨人协调和到期跟进</p>
           {attention.slice(0, allAttention ? undefined : 3).map(item => <button className="ah-attention-item" key={item.key} onClick={() => openAttention(item)}><span className={`ah-intent ${item.intent}`}>{INTENT[item.intent]}{item.date && item.date < date ? ' · 已逾期' : ''}</span><strong>{item.title}</strong><span className="ah-attention-reason">{item.note || '需要核对下一步和负责人。'}</span><small>{projectName(item.projectId)} · {item.owner || '负责人待明确'}<ChevronRight size={13}/></small></button>)}
           {!attention.length && <p className="ah-quiet">{attentionIncomplete ? '关注事项尚未完整读取，暂不判断是否有遗漏。' : '当前记录中没有需要你介入的事项。'}</p>}
           {attention.length > 3 && <button className="ah-link ah-more" onClick={() => setAllAttention(!allAttention)}>{allAttention ? '收起' : `还有 ${attention.length - 3} 项需要关注`}<ChevronDown size={13}/></button>}
-        </section>
+        </section>}
       </div>
 
       <section className="ah-projects" aria-labelledby="ah-project-heading"><div className="ah-section-heading"><h2 id="ah-project-heading">项目进展</h2><button className="ah-link" onClick={() => props.onNavigate('overview')}>查看项目<ArrowRight size={13}/></button></div>
@@ -129,15 +132,16 @@ export function Workbench(props: WorkbenchProps) {
           const next = nextMilestone(project.milestones);
           const total = project.taskCounts.total - project.taskCounts.cancelled;
           const progress = total > 0 ? Math.round(project.taskCounts.done / total * 100) : 0;
-          const inactive = project.profile.status === 'on_hold' || project.profile.status === 'cancelled';
+          const health = projectHealth(project);
           const basis = project.basis.find(item => item.kind !== 'project')?.label;
-          return <button className="ah-project-row" key={project.projectId} onClick={() => props.onProjectOpen(project.projectId)}><span className="ah-project-main"><strong>{project.name}</strong><span className={`ah-health ${inactive ? 'inactive' : project.health}`}><i/>{project.profile.status === 'on_hold' ? '已暂缓' : project.profile.status === 'cancelled' ? '已取消' : HEALTH[project.health]}</span><small>{basis || project.profile.goal || '尚未记录项目目标'}</small></span><span className="ah-project-progress"><span>{total ? <><b>{project.taskCounts.done}</b> / {total} 项任务完成</> : '尚无已确认任务'}</span><span className="ah-progress-track"><i style={{ width: `${progress}%` }}/></span></span><span className="ah-project-next"><span>{next ? `下一步 · ${next.title}` : '下一里程碑待明确'}</span><small>{next ? dayLabel(next.forecastDate || next.baselineDate, date) : project.profile.targetDate ? `项目目标 ${dayLabel(project.profile.targetDate, date)}` : '目标日期待明确'}{next?.slipDays && next.slipDays > 0 ? ` · 预计延后 ${next.slipDays} 天` : ''}</small></span><ChevronRight size={15}/></button>;
+          return <button className="ah-project-row" key={project.projectId} onClick={() => props.onProjectOpen(project.projectId)}><span className="ah-project-main"><strong>{project.name}</strong><span className={`ah-health ${health.state}`}><i/>{health.label}</span><small>{basis || project.profile.goal || '尚未记录项目目标'}</small></span><span className="ah-project-progress"><span>{total ? <><b>{project.taskCounts.done}</b> / {total} 项任务完成</> : '尚无已确认任务'}</span>{total > 0 && <span className="ah-progress-track"><i style={{ width: `${progress}%` }}/></span>}</span><span className="ah-project-next"><span>{next ? `下一步 · ${next.title}` : '下一里程碑待明确'}</span><small>{next ? dayLabel(next.forecastDate || next.baselineDate, date) : project.profile.targetDate ? `项目目标 ${dayLabel(project.profile.targetDate, date)}` : '目标日期待明确'}{next?.slipDays && next.slipDays > 0 ? ` · 预计延后 ${next.slipDays} 天` : ''}</small></span><ChevronRight size={15}/></button>;
         })}</div> : <p className="ah-quiet">这个范围内还没有项目进展记录。</p>}
         {projects.length > 4 && <p className="ah-section-note">优先展示需要关注的项目，另有 {projects.length - 4} 个项目可在「项目」查看。</p>}
       </section>
 
       <section className="ah-updates" aria-labelledby="ah-updates-heading"><div className="ah-section-heading"><h2 id="ah-updates-heading">聊天与资料的新变化</h2><button className="ah-link" onClick={props.onConnect}>管理来源<ArrowRight size={13}/></button></div>
-        {pendingCount > 0 && <details className="ah-review"><summary><CircleAlert size={17}/><span><strong>{pendingCount} 条新内容需要确认</strong><small>尚未计入今日工作和项目进展</small></span><ChevronDown size={15}/></summary><div>
+        {pendingCount > 0 && <details className="ah-review"><summary><CircleAlert size={17}/><span><strong>{pendingCount} 条内容待处理</strong><small>核对任务、记忆、澄清内容与到期复核</small></span><ChevronDown size={15}/></summary><div>
+          <button className="ah-link" onClick={() => props.onNavigate('inbox')}>查看全部待处理内容<ArrowRight size={13}/></button>
           {reviews.length > 0 && <button className="ah-link" onClick={props.onReview}>核对 {reviews.length} 条记忆变化<ArrowRight size={13}/></button>}
           {pendingTasks.length > 0 && <button className="ah-link" onClick={() => props.onSourceOpen(pendingTasks[0].sourceId)}>核对资料待办 · {pendingTasks[0].title}<ArrowRight size={13}/></button>}
           {pendingMemories.length > 0 && <button className="ah-link" onClick={() => props.onSourceOpen(pendingMemories[0].sourceId)}>核对新事实 · {pendingMemories[0].content}<ArrowRight size={13}/></button>}
@@ -150,9 +154,10 @@ export function Workbench(props: WorkbenchProps) {
           <p>已确认的任务、记忆和进度变化会自动刷新到这里。{readAt && `项目状态读取于 ${readAt}。`}{loading && '部分信息仍在读取。'}</p><button className="ah-link" onClick={props.onConnect}><Link2 size={13}/>连接聊天与文档</button>
         </div></details>
       </section>
+      </>}
     </div>
     <AssistantComposer onAsk={props.onAsk}/>
-    {record && <Dialog title={record.title} subtitle="先处理眼前这一步" close={() => setRecord(null)} wide><div className="dialog-body"><TaskCoach key={record.id} task={state.tasks.find(t => t.id === record.id) ?? record} date={date} autoStart onChanged={async () => { await props.onChanged(); followUps.refresh(); }} /></div></Dialog>}
+    {record && <Dialog title={record.title} subtitle="先处理眼前这一步" close={() => setRecord(null)} wide><div className="dialog-body"><TaskCoach state={state} onModelSettings={props.onModelSettings} key={record.id} task={state.tasks.find(t => t.id === record.id) ?? record} date={date} autoStart onChanged={async () => { await props.onChanged(); followUps.refresh(); }} /></div></Dialog>}
   </div>;
 }
 

@@ -1,0 +1,206 @@
+/* Motion follows an action: choose a destination, open a workspace, confirm a result. */
+:root {
+  --motion-quick: 130ms;
+  --motion-state: 220ms;
+  --motion-ease: cubic-bezier(.16, 1, .3, 1);
+}
+
+.workspace-view { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+.workspace-nav { position: relative; display: flex; flex-shrink: 0; gap: 8px; min-height: 49px; min-width: 0; padding-inline: 32px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); background: #fff; overscroll-behavior-x: contain; }
+.workspace-nav::-webkit-scrollbar { display: none; }
+.is-workbench .workspace-nav { padding-inline: max(32px, calc((100% - 1080px) / 2)); }
+.workspace-nav > button { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; gap: 7px; border: 0; background: none; padding: 0 13px; min-height: 48px; color: var(--secondary); font-size: 12px; white-space: nowrap; }
+.workspace-nav > button:hover { background: #f7faff; color: var(--accent); }
+.workspace-nav > button[aria-current] { color: var(--accent); font-weight: 600; }
+.workspace-nav > button:focus-visible { outline-offset: -5px; border-radius: 7px; }
+.workspace-nav > button small { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding-inline: 4px; border-radius: 5px; background: var(--accent-soft); color: var(--accent); font-size: 10px; font-weight: 600; }
+.workspace-nav-indicator { position: absolute; bottom: 0; left: 0; width: 1px; height: 2px; background: var(--accent); transform-origin: left; transform: translateX(var(--nav-x, 0px)) scaleX(var(--nav-width, 0)); transition: transform var(--motion-state) var(--motion-ease); pointer-events: none; }
+/* The contextual strip carries these routes, so the workspace needs no second set of tabs. */
+.management-shell > .management-tabs { display: none; }
+
+.water-shell .button { transition: background-color var(--motion-quick), border-color var(--motion-quick), color var(--motion-quick), transform var(--motion-quick) var(--motion-ease), box-shadow var(--motion-state); }
+.water-shell .button.primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 10px #0873df20; }
+.water-shell .button:active:not(:disabled) { transform: translateY(0) scale(.98); }
+.water-shell .icon-button:active:not(:disabled) { transform: scale(.93); }
+.water-shell :is(.task-row, .follow-up-row, .record-item, .project-item) { transition: background-color var(--motion-quick), color var(--motion-quick), border-color var(--motion-quick); }
+.water-shell .task-row-selected { background: var(--accent-soft); box-shadow: inset 0 0 0 1px #cfe4fb; }
+.water-shell .task-row:hover { background: #f2f7fd; }
+.water-shell .task-row-selected::before { display: none; }
+.water-shell .task-status-in_progress i { background: var(--accent); }
+.water-shell .segment-selected { background: var(--accent-soft); border-color: #cfe4fb; }
+.water-shell .task-inspector { background: #f8fafd; scroll-margin-block: 12px; }
+.task-inspector-back { display: none; }
+.water-shell :is(input, textarea, select):disabled { cursor: not-allowed; }
+.water-shell :is(input, textarea, select):focus-visible { outline-offset: 2px; }
+
+.water-shell > .sidebar.sidebar-open { animation: workspace-drawer-in 260ms var(--motion-ease); }
+.water-shell > .sidebar.sidebar-open.is-leaving { animation: workspace-drawer-out 160ms ease-in forwards; }
+.water-shell .nav-scrim.is-leaving { animation: workspace-fade-out 160ms ease-in forwards; }
+.water-shell .dialog-overlay { animation: workspace-fade-in 160ms ease-out; backdrop-filter: blur(3px); }
+.water-shell .dialog { border-radius: 16px; animation: workspace-dialog-in 240ms var(--motion-ease); }
+.water-shell .dialog-overlay.is-leaving { animation: workspace-fade-out 150ms ease-in forwards; }
+.water-shell .dialog-overlay.is-leaving > .dialog { animation: workspace-dialog-out 150ms ease-in forwards; }
+.water-shell .dialog-header { position: sticky; top: 0; z-index: 3; background: var(--surface); }
+.water-shell .dialog-footer { position: sticky; bottom: 0; z-index: 3; background: #fafbfd; }
+.dialog-busy { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; color: var(--accent); font-size: 12px; }
+.water-shell .dialog input:not([type=checkbox]):not([type=file]), .water-shell .dialog textarea { background: #fff; }
+
+.water-shell .feedback-toast { left: 50%; bottom: 24px; align-items: flex-start; gap: 12px; width: max-content; max-width: min(520px, calc(100vw - 32px)); padding: 16px 14px 16px 16px; border: 0; border-radius: 14px; background: #fff; box-shadow: 0 10px 40px #1c314724, 0 2px 6px #1c314710; animation: workspace-toast-in 260ms var(--motion-ease); }
+.feedback-toast > div { min-width: 0; }
+.feedback-toast strong { display: block; font-size: 13px; line-height: 1.6; font-weight: 600; }
+.water-shell .feedback-toast p { margin-top: 3px; font-size: 12px; color: var(--secondary); line-height: 1.8; }
+.feedback-toast-icon { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; background: var(--accent-soft); color: var(--accent); border-radius: 50%; }
+.feedback-toast-icon > svg { animation: workspace-confirm 300ms var(--motion-ease); }
+.water-shell .feedback-toast.toast-error { background: #fff9f7; color: #9c352d; }
+.toast-error .feedback-toast-icon { background: #fbe8e3; color: #b34438; }
+.water-shell .feedback-toast .icon-button { flex-shrink: 0; width: 28px; height: 28px; margin-left: 10px; }
+.water-shell .feedback-toast.is-leaving { animation: workspace-toast-out 140ms ease-in forwards; }
+
+.page-skeleton { padding: 36px; width: min(100%, 1160px); margin-inline: auto; }
+.page-skeleton > span, .page-skeleton-row b, .page-skeleton-row > i { display: block; background: #edf2f8; border-radius: 5px; }
+.page-skeleton-title { width: min(260px, 65%); height: 27px; margin-bottom: 24px; }
+.page-skeleton-summary { height: 72px; margin-bottom: 30px; }
+.page-skeleton-row { display: flex; align-items: center; gap: 18px; padding-block: 23px; border-bottom: 1px solid var(--line); }
+.page-skeleton-row > i { width: 24px; height: 24px; }
+.page-skeleton-row > span { flex: 1; }
+.page-skeleton-row b { width: 65%; height: 12px; }
+.page-skeleton-row b + b { width: 45%; height: 9px; margin-top: 12px; }
+.page-skeleton-row > svg { color: #c0ccdc; }
+.page-skeleton-summary, .page-skeleton-row > span { animation: workspace-loading 1.4s ease-in-out infinite alternate; }
+
+/* Attention is concentrated in the first actionable row; quiet rows remain easy to scan. */
+.water-shell .ah-task-list > li:first-child .coach-home-task { background: #f1f7ff; border-radius: 10px; padding-left: 10px; }
+.water-shell .ah-task-list > li:first-child .ah-task-copy strong { font-size: 15px; color: #173c66; font-weight: 600; }
+.water-shell .ah-task-list > li:first-child .coach-home-task > .text-button { color: #fff; background: var(--accent); padding: 6px 10px; border-radius: 6px; margin-right: 10px; }
+.water-shell .ah-task-list > li:first-child .coach-home-task > .text-button:hover { background: var(--accent-hover); }
+.water-shell :is(.ah-brief, .ah-work-grid, .ah-projects) { animation: none; }
+
+@keyframes workspace-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes workspace-fade-out { to { opacity: 0; } }
+@keyframes workspace-drawer-in { from { transform: translateX(calc(-100% - 24px)); } to { transform: translateX(0); } }
+@keyframes workspace-drawer-out { to { transform: translateX(calc(-100% - 24px)); } }
+@keyframes workspace-dialog-in { from { opacity: .4; transform: translateY(12px) scale(.975); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes workspace-dialog-out { to { opacity: 0; transform: translateY(6px) scale(.985); } }
+@keyframes workspace-toast-in { from { opacity: 0; transform: translate(-50%, 12px) scale(.98); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+@keyframes workspace-toast-out { to { opacity: 0; transform: translate(-50%, 6px); } }
+@keyframes workspace-confirm { from { transform: scale(.65); } to { transform: scale(1); } }
+@keyframes workspace-loading { from { opacity: .55; } to { opacity: 1; } }
+
+@media (max-width: 700px) {
+  .workspace-nav, .is-workbench .workspace-nav { padding-inline: 12px; gap: 2px; }
+  .workspace-nav > button { min-height: 46px; padding-inline: 12px; }
+  .workspace-nav > button > svg { display: none; }
+  .water-shell .dialog-overlay { padding: 12px; }
+  .water-shell .dialog { max-height: calc(100dvh - 24px); }
+  .water-shell .dialog-header { padding: 20px; }
+  .water-shell .dialog-footer { flex-wrap: wrap; padding: 16px 20px; }
+  .water-shell .feedback-toast { bottom: max(16px, env(safe-area-inset-bottom)); }
+  .page-skeleton { padding: 26px 20px; }
+  .water-shell .coach-home-task > .ah-task { flex-basis: 100%; }
+  .water-shell .coach-home-task > .text-button { margin-left: 40px; margin-bottom: 14px; }
+}
+@media (max-width: 980px) {
+  .water-shell .task-workspace { overflow-y: auto; }
+  .water-shell .task-workspace > .work-layout { flex: none; overflow: visible; }
+  .water-shell .task-workspace .task-list-panel { overflow: visible; }
+  .task-inspector-back { display: inline-flex; align-items: center; gap: 5px; margin: 14px 24px 0; border: 0; background: none; padding: 8px 0; color: var(--accent); font-size: 12px; min-height: 40px; }
+  .water-shell .task-inspector:focus { outline: 2px solid #b9d8f7; outline-offset: -2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .water-shell :is(.sidebar, .dialog, .dialog-overlay, .nav-scrim, .feedback-toast, .feedback-toast-icon > svg, .page-skeleton-summary, .page-skeleton-row > span) { animation: none !important; }
+  .water-shell .button:hover:not(:disabled), .water-shell .button:active:not(:disabled), .water-shell .icon-button:active:not(:disabled) { transform: none; }
+  .workspace-nav-indicator { transition: none; }
+}
+
+/* Keep navigation compact so the workspace, rather than its chrome, owns the viewport. */
+.water-shell { grid-template-rows: 60px minmax(0, 1fr); }
+.water-topbar { padding-inline: 28px; gap: 16px; }
+.water-brand { font-size: 17px; gap: 9px; }
+.water-brand > svg { width: 29px; height: 29px; }
+.water-navigation { width: 246px; padding: 3px; border-radius: 9px; }
+.water-navigation-current { inset-block: 3px; left: 3px; width: calc((100% - 6px) / 3); border-radius: 6px; }
+.water-navigation > button { padding: 5px 12px; font-size: 13px; }
+.workspace-nav, .is-workbench .workspace-nav { min-height: 40px; padding-inline: 28px; gap: 4px; }
+.workspace-nav > button { min-height: 40px; padding-inline: 12px; }
+.water-shell .topbar { height: 46px; flex-basis: 46px; padding-inline: 28px; }
+.water-shell .work-page-heading { padding: 18px 28px 12px; gap: 16px; }
+.water-shell .work-page-heading .eyebrow { display: none; }
+.water-shell .work-page-heading h2 { font-size: 23px; line-height: 1.4; margin-top: 0; letter-spacing: -.3px; }
+.water-shell .work-page-heading p { margin-top: 4px; }
+.water-shell .work-heading-actions > .button { min-height: 36px; }
+.water-shell .work-filters, .water-shell .delivery-shell > .work-filters { padding: 0 28px 12px; gap: 10px; }
+.water-shell .delivery-shell > .work-filters { padding-top: 14px; }
+.water-shell .work-date-controls { min-height: 36px; padding: 0 5px; }
+.water-shell .work-date-controls .icon-button { width: 30px; height: 32px; }
+.water-shell .work-date-field input { min-height: 32px; padding-block: 4px; }
+.water-shell .work-filters > select { min-height: 36px; }
+.water-shell .work-page-daily .daily-planning { margin: 10px 28px 0; padding: 10px 14px; border-radius: 8px; background: #fff; }
+.water-shell .planning-heading { align-items: center; gap: 12px; }
+.water-shell .planning-heading p { margin-top: 3px; font-size: 12px; }
+.water-shell .planning-heading-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.water-shell .task-list-panel { padding: 16px 28px 22px; }
+.water-shell .task-list-toolbar { padding: 8px 0 12px; }
+.water-shell .work-scope-note { padding-bottom: 10px; }
+.water-shell .task-page-toolbar { padding-block: 16px; flex-wrap: nowrap; }
+.water-shell .task-page-toolbar > div:first-child { flex-shrink: 0; }
+.water-shell .task-page-toolbar > .work-filters { flex: 1; flex-wrap: nowrap; justify-content: flex-end; padding: 0; border: 0; min-width: 0; }
+.water-shell .task-page-toolbar .work-date-controls { flex-shrink: 0; }
+.water-shell .task-page-toolbar .work-date-field input { width: 142px; }
+.water-shell .task-page-toolbar .work-filters > select { min-width: 115px; max-width: 150px; width: 140px; }
+.water-shell .task-page-toolbar .work-heading-actions { flex-shrink: 0; }
+.water-shell .daily-planning:not(.has-planning-summary) .planning-heading p { display: none; }
+.water-shell .task-table-head { padding-block: 8px; }
+.record-directory-trigger { display: none; }
+.water-shell .work-layout.list-only { grid-template-columns: minmax(0, 1fr); }
+.water-shell .work-empty { min-height: 210px; padding: 28px 20px; }
+.water-shell .daily-report-link { margin-top: 16px; padding-top: 14px; }
+.water-shell .delivery-health-unknown, .water-shell .delivery-health-inactive { color: var(--muted); }
+.assistant-model-help { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 12px; color: var(--secondary); font-size: 13px; }
+.assistant-model-help .text-button { color: var(--accent); }
+.water-shell .inbox-tabs { overflow-x: auto; flex-shrink: 0; }
+.water-shell .inbox-tabs button { white-space: nowrap; }
+
+/* Settings opens next to its trigger, with the actual settings visible immediately. */
+.water-shell > .sidebar.settings-panel.sidebar-open { left: auto; right: 16px; top: 68px; bottom: auto; height: auto; width: 348px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 84px); border-radius: 12px; background: #fff; transform: none; transition: none; border: 0; box-shadow: 0 12px 48px #18324d30; animation: workspace-tools-in 180ms var(--motion-ease); }
+.water-shell > .sidebar.settings-panel.sidebar-open.is-leaving { animation: workspace-tools-out 160ms ease-in forwards; }
+.water-shell .settings-panel .brand { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.water-shell .settings-panel .brand-copy strong { font-size: 16px; }
+.water-shell .settings-panel .sidebar-bottom { margin-top: 0; padding: 6px; background: #fff; border: 0; }
+.water-shell .settings-panel .sidebar-tools > summary { display: none; }
+.water-shell .settings-panel .sidebar-tools-menu { position: static; max-height: none; padding: 0; border: 0; border-radius: 0; box-shadow: none; animation: none; }
+.water-shell .settings-panel .model-settings-link, .water-shell .settings-panel .workspace-link { min-height: 40px; font-size: 13px; border-radius: 6px; }
+.water-shell .settings-panel .field-hint { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 12px; }
+.water-shell .nav-scrim { background: #182b431a; backdrop-filter: none; }
+@keyframes workspace-tools-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes workspace-tools-out { to { opacity: 0; transform: translateY(-4px); } }
+@media (max-width: 700px) {
+  .water-shell { grid-template-rows: 54px minmax(0, 1fr); }
+  .water-topbar { padding-inline: 14px; gap: 8px; }
+  .water-brand { font-size: 15px; }
+  .water-brand > svg { width: 25px; height: 25px; }
+  .water-navigation { width: 192px; }
+  .workspace-nav, .is-workbench .workspace-nav { padding-inline: 12px; }
+  .water-shell .work-page-heading { padding: 16px 18px 10px; flex-direction: row; align-items: center; flex-wrap: wrap; }
+  .water-shell .work-page-heading h2 { font-size: 21px; }
+  .water-shell .task-page-toolbar { flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+  .water-shell .task-page-toolbar > .work-filters { order: 3; flex-basis: 100%; justify-content: flex-start; flex-wrap: wrap; }
+  .water-shell .task-page-toolbar .work-filters > select { flex: 1; max-width: none; }
+  .water-shell .work-filters, .water-shell .delivery-shell > .work-filters { padding-inline: 18px; }
+  .water-shell .work-page-daily .daily-planning { margin-inline: 18px; }
+  .water-shell .planning-heading { align-items: flex-start; }
+  .water-shell .planning-heading-actions { justify-content: flex-start; }
+  .water-shell .task-list-panel { padding-inline: 18px; }
+  .water-shell > .sidebar.settings-panel.sidebar-open { top: 60px; right: 8px; max-width: calc(100vw - 16px); max-height: calc(100dvh - 68px); }
+}
+@media (max-width: 480px) {
+  .water-brand > span { display: none; }
+  .water-navigation { width: 174px; }
+  .water-shell .water-menu-trigger { width: 36px; padding: 0; }
+  .water-menu-trigger > span { display: none; }
+}
+@media (max-width: 600px) {
+  .water-shell .record-directory-trigger { display: inline-flex; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .water-shell > .sidebar.settings-panel.sidebar-open { animation: none; }
+}

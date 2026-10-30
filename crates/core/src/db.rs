@@ -163,6 +163,25 @@ impl Database {
             | "get_follow_up_center"
             | "record_follow_up"
             | "snooze_follow_up" => crate::delivery::dispatch(&mut self.conn, &request.command, &p),
+            "_assistance_context" => {
+                let mut snapshot = crate::assistance::capture(&self.conn, &p)?;
+                snapshot["workspaceEpoch"] = json!(self.epoch);
+                snapshot["modelRevision"] = json!(settings::load(&self.root)?.revision);
+                Ok(snapshot)
+            }
+            "_validate_assistance_context" => {
+                let current = crate::assistance::capture(&self.conn, &p["request"])?;
+                if current["fingerprint"] != p["fingerprint"]
+                    || p["workspaceEpoch"].as_u64() != Some(self.epoch)
+                    || p["modelRevision"] != settings::load(&self.root)?.revision
+                {
+                    return Err(AppError::new(
+                        "ASSISTANCE_STALE",
+                        "项目资料或模型已变化，请重新分析",
+                    ));
+                }
+                Ok(json!({"valid":true}))
+            }
             "_assistant_context" => {
                 let mut context = crate::assistant_qa::retrieve(&self.conn, &p)?;
                 context["workspaceEpoch"] = json!(self.epoch);
@@ -277,6 +296,7 @@ impl Database {
             "workspace": { "dataDir": self.root, "schemaVersion": SCHEMA_VERSION, "recoveredJobs": self.recovered_jobs, "revision":format!("{}:{}",self.epoch,self.conn.total_changes()) },
             "lifecycle":crate::daily_use::lifecycle_map(&self.conn)?,
             "managementRevision":crate::management::revision(&self.conn)?,
+            "assistanceRevision":crate::assistance::revision(&self.conn)?,
             "assistantPreferenceVersion":crate::memory_workbench::preferences(&self.conn)?["version"],
             "aiSettings": settings::load(&self.root)?.public(),
             "memoryReviewCount":self.conn.query_row("SELECT count(*) FROM memory_reviews r JOIN proposals p ON p.id=r.proposal_id WHERE r.status='pending' AND p.status='pending'",[],|r|r.get::<_,i64>(0))?,

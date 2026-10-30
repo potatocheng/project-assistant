@@ -90,6 +90,8 @@ async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Val
             | "ask_project"
             | "ask_project_question"
             | "ask_assistant"
+            | "generate_today_brief"
+            | "generate_task_coaching"
             | "get_assistant_preferences"
             | "save_assistant_preferences"
             | "clear_assistant_preferences"

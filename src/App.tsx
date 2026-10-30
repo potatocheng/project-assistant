@@ -16,7 +16,8 @@ import {
 import { ListPager } from './components/ListPager';
 import { WaterMark } from './components/WaterMark';
 const Workbench = lazy(() => import('./components/Workbench').then(m => ({ default: m.Workbench })));
-import { Dialog, Spinner } from './components/ui';
+import { Dialog, Spinner, useModalLayer } from './components/ui';
+import { FeedbackToast, PageLoading, usePageMotion, usePresence, WorkspaceNav } from './components/interaction';
 import { ModelSettingsDialog, endpointInfo } from './components/ModelSettings';
 const MemoryCenter=lazy(()=>import('./components/MemoryCenter').then(m=>({default:m.MemoryCenter})));
 import { FeishuSettingsDialog } from './components/FeishuSettings';
@@ -35,6 +36,7 @@ const ChangeAcceptanceWorkspace=lazy(()=>import('./components/governance/ChangeA
 const CoordinationWorkspace=lazy(()=>import('./components/governance/CoordinationWorkspace').then(m=>({default:m.CoordinationWorkspace})));
 import { useManagementAttention } from './components/governance/useManagementAttention';
 import { localDay, WorkFilters } from './components/work/shared';
+import { pendingContent } from './components/workspace-model';
 import { asError, execute, exportBackup, readFile } from './api';
 import { KIND_LABELS } from './types';
 import type {
@@ -69,7 +71,6 @@ function Kind({ kind }: { kind: MemoryKind }) { return <span className="kind-lab
 function Welcome({ onCreate, onRestore }: { onCreate: () => void; onRestore: () => void }) {
   return <section className="welcome-state">
     <div className="welcome-symbol"><Layers3 size={34} strokeWidth={1.5} /></div>
-    <div className="eyebrow">开始使用</div>
     <h2>从一个项目开始</h2>
     <p>连接项目聊天和资料，让助理帮你关注每天的工作与交付。</p>
     <button className="button primary" onClick={onCreate}><Plus size={17} />创建第一个项目<ArrowRight size={16} /></button>
@@ -100,6 +101,7 @@ export default function App() {
   const [assistantQuestion, setAssistantQuestion] = useState<{ id: number; text: string } | null>(null);
   const sidebarRef = useRef<HTMLElement>(null);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const catalogTriggerRef = useRef<HTMLButtonElement>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
   const [sourceId, setSourceId] = useState<string | null>(null);
   const [memoryId, setMemoryId] = useState<string | null>(null);
@@ -119,6 +121,11 @@ export default function App() {
   const [dialog, setDialog] = useState<DialogName>(null);
   const [importSample, setImportSample] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<'settings' | 'catalog'>('settings');
+  const navPresence = usePresence(mobileNav);
+  useModalLayer(sidebarRef, navPresence.mounted);
+  const pageRef = useRef<HTMLDivElement>(null);
+  usePageMotion(pageRef, page);
   const [lastSafetyBackup, setLastSafetyBackup] = useState<string | null>(null);
   const [recoveryDismissed, setRecoveryDismissed] = useState(false);
   const [reloadTick, setReloadTick] = useState(0);
@@ -127,14 +134,32 @@ export default function App() {
   const [editingProposalId, setEditingProposalId] = useState<string | null>(null);
   const [workDay, setWorkDay] = useState(localDay());
   const [workProjectId, setWorkProjectId] = useState('');
+  const [dueReviews, setDueReviews] = useState<{ projectId: string; total: number } | null>(null);
   const [managementFocusId, setManagementFocusId] = useState<string | undefined>();
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
+  const [createTaskRequest, setCreateTaskRequest] = useState(0);
   const toolsMenu = useRef<HTMLDetailsElement>(null);
   const deliveryPage = page === 'overview' || page === 'followups' || page === 'assistant';
   const managementPage = page === 'governance' || page === 'changes' || page === 'coordination';
-  const workPage = managementPage || deliveryPage || page === 'workbench' || page === 'daily' || page === 'tasks' || page === 'reports';
-  const reminders = useFollowUpAlerts(!!state, reminderRevision);
-  const managementAttention = useManagementAttention(!!state, state?.managementRevision, reminderRevision);
+  const workPage = managementPage || deliveryPage || page === 'workbench' || page === 'daily' || page === 'tasks' || page === 'reports' || page === 'inbox';
+  const reminders = useFollowUpAlerts(!!state, reminderRevision, workProjectId);
+  const managementAttention = useManagementAttention(!!state, state?.managementRevision, reminderRevision, workProjectId);
+
+  const reviewDay = localDay();
+  const contentPending = state ? pendingContent(state, workProjectId).total : 0;
+  const pendingCount = contentPending + (dueReviews?.projectId === workProjectId ? dueReviews.total : 0);
+  useEffect(() => {
+    if (!state) return;
+    let active = true;
+    void execute<{ total: number }>('get_retention_reviews', { date: reviewDay, projectId: workProjectId })
+      .then(result => { if (active) setDueReviews({ projectId: workProjectId, total: result.total }); })
+      .catch(() => { if (active) setDueReviews(null); });
+    return () => { active = false; };
+  }, [state?.workspace.revision, workProjectId, reviewDay]);
+  useEffect(() => {
+    if (state && workProjectId && !state.projects.some(project => project.id === workProjectId)) setWorkProjectId('');
+    if (state && !state.projects.some(project => project.id === projectId)) setProjectId(state.projects[0]?.id ?? null);
+  }, [state?.projects, workProjectId, projectId]);
 
   useEffect(() => {
     if (page !== 'workbench') return;
@@ -143,11 +168,12 @@ export default function App() {
   }, [page]);
 
   useEffect(() => {
-    if (!mobileNav) return;
+    if (!navPresence.mounted) return;
     const node = sidebarRef.current;
     const focusable = () => Array.from(node?.querySelectorAll<HTMLElement>('button, input, summary, select, [tabindex="0"]') ?? []).filter(element => !element.matches(':disabled') && element.tabIndex >= 0 && element.getClientRects().length > 0 && getComputedStyle(element).visibility === 'visible');
     const initialFocus = window.setTimeout(() => focusable()[0]?.focus({ preventScroll: true }), 0);
     const handle = (event: KeyboardEvent) => {
+      if (Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"]')).at(-1) !== node) return;
       if (event.key === 'Escape') { event.preventDefault(); setMobileNav(false); }
       if (event.key === 'Tab') {
         const elements = focusable(), first = elements[0], last = elements[elements.length - 1];
@@ -157,8 +183,8 @@ export default function App() {
       }
     };
     document.addEventListener('keydown', handle);
-    return () => { window.clearTimeout(initialFocus); document.removeEventListener('keydown', handle); menuTriggerRef.current?.focus(); };
-  }, [mobileNav]);
+    return () => { window.clearTimeout(initialFocus); document.removeEventListener('keydown', handle); (drawerMode === 'catalog' ? catalogTriggerRef : menuTriggerRef).current?.focus(); };
+  }, [navPresence.mounted, drawerMode]);
 
   useEffect(() => {
     const dismiss = (event: PointerEvent) => {
@@ -280,18 +306,12 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [focusedSegment, sourceDetail]);
 
-  useEffect(() => {
-    if (!notice || notice.error) return;
-    const timer = window.setTimeout(() => setNotice(null), 4500);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
-
   useEffect(() => { const shortcut=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();setDialog('search');}};window.addEventListener('keydown',shortcut);return()=>window.removeEventListener('keydown',shortcut);},[]);
   const openSearchHit = (hit:SearchHit) => {
     setDialog(null); setShowArchived(true);
     if(hit.kind==='task'){openTask(hit.id,hit.projectId||'');return;}
     if(hit.kind==='memory'){openMemory(hit.id,hit.projectId||'');return;}
-    if(hit.kind==='source'){setProjectId(hit.projectId);setSourceId(hit.id);setPage('sources');return;}
+    if(hit.kind==='source'){setWorkProjectId(hit.projectId || '');setProjectId(hit.projectId);setSourceId(hit.id);setPage('sources');return;}
     if(['meeting','governance','change','deliverable','weekly_report'].includes(hit.kind)){openManagement(hit.kind as import('./types').ManagementKind,hit.id,hit.projectId||'');return;}
     setWorkProjectId(hit.projectId||'');setProjectId(hit.projectId);if(hit.kind==='report'){setWorkDay(hit.title.slice(0,10));setPage('reports');}else setPage('overview');
   };
@@ -310,11 +330,19 @@ export default function App() {
   };
 
   const changeProject = (id: string) => {
-    if (workPage) { setWorkProjectId(id); setProjectId(id || state?.projects[0]?.id || null); setMobileNav(false); return; }
-    setProjectId(id); setFilter(''); setSourceId(null); setMemoryId(null);
+    setWorkProjectId(id); setProjectId(id || state?.projects[0]?.id || null); setFocusTaskId(null);
+    setFilter(''); setSourceId(null); setMemoryId(null);
     setSelected(new Set()); setContent(''); setFocusedSegment(null); setMobileNav(false);
   };
-  const changePage = (next: Page) => { setManagementFocusId(undefined); if (next === 'workbench') setWorkDay(localDay()); setPage(next); setFilter(''); setMobileNav(false); };
+  const changePage = (next: Page) => {
+    setManagementFocusId(undefined); setFocusTaskId(null);
+    if (next === 'workbench' || next === 'tasks') setWorkDay(localDay());
+    if (next === 'sources' || next === 'memories') {
+      const nextProject = workProjectId || projectId || state?.projects[0]?.id || null;
+      setProjectId(nextProject); setWorkProjectId(nextProject || '');
+    }
+    setPage(next); setFilter(''); setMobileNav(false);
+  };
   const openImport = (sample = false) => { setImportSample(sample); setDialog('import'); };
   const toggleSegment = (id: string) => {
     setPreviewSegments(new Set());
@@ -329,12 +357,12 @@ export default function App() {
   const openEvidence = (evidence: Evidence) => {
     const source = rawState?.sources.find((item) => item.id === evidence.sourceId);
     if(source&&!state?.sources.some(s=>s.id===source.id))setShowArchived(true);
-    if (source) setProjectId(source.projectId);
+    if (source) { setProjectId(source.projectId); setWorkProjectId(source.projectId); }
     setPage('sources'); setSourceId(evidence.sourceId); setFocusedSegment(evidence.segmentId); setMobileNav(false);
   };
-  const openTask = (taskId: string, taskProjectId: string) => { setWorkProjectId(taskProjectId); setFocusTaskId(taskId); setPage('tasks'); };
-  const openManagement = (kind: import('./types').ManagementKind, id: string, itemProjectId: string) => { setWorkProjectId(itemProjectId || ''); setManagementFocusId(id); setPage(kind === 'governance' ? 'governance' : kind === 'change' || kind === 'deliverable' ? 'changes' : 'coordination'); };
-  const openMemory = (id: string, memoryProjectId?: string) => { if (memoryProjectId) setProjectId(memoryProjectId); setFilter(''); setMemoryId(id); setPage('memories'); };
+  const openTask = (taskId: string, taskProjectId: string) => { setWorkProjectId(taskProjectId); setProjectId(taskProjectId); setWorkDay(localDay()); setFocusTaskId(taskId); setPage('tasks'); };
+  const openManagement = (kind: import('./types').ManagementKind, id: string, itemProjectId: string) => { setWorkProjectId(itemProjectId || ''); if (itemProjectId) setProjectId(itemProjectId); setManagementFocusId(id); setPage(kind === 'governance' ? 'governance' : kind === 'change' || kind === 'deliverable' ? 'changes' : 'coordination'); };
+  const openMemory = (id: string, memoryProjectId?: string) => { if (memoryProjectId) { setProjectId(memoryProjectId); setWorkProjectId(memoryProjectId); } setFilter(''); setMemoryId(id); setPage('memories'); };
   const makeBackup = () => run<Backup>('backup', () => execute('create_backup'), '备份已创建，可导出保存。');
   const download = async (backup: Backup) => {
     if (busy) return;
@@ -356,14 +384,15 @@ export default function App() {
   const recordIndex=Math.min(recordPage,Math.max(0,Math.ceil(recordTotal/50)-1));
   const sectionIndex = knowledgePage ? 2 : page === 'overview' || managementPage ? 1 : 0;
   return <WorkspaceDraftContext.Provider value={state?.workspace.dataDir ?? ''}><div className={`app-shell water-shell ${knowledgePage ? 'has-records' : ''} ${page === 'workbench' ? 'is-workbench' : ''}`}>
-    <header className="water-topbar" inert={mobileNav}>
+    <header className="water-topbar">
       <button className="water-brand" onClick={() => changePage('workbench')} aria-label="项目助理工作台"><WaterMark size={37}/><span>项目助理</span></button>
       <nav className={`water-navigation selected-${sectionIndex}`} aria-label="主导航"><span className="water-navigation-current" aria-hidden="true"/>{([{ label: '今天', page: 'workbench' }, { label: '项目', page: 'overview' }, { label: '资料', page: 'sources' }] as const).map((entry, index) => <button key={entry.page} aria-current={sectionIndex === index ? 'page' : undefined} onClick={() => changePage(entry.page)}>{entry.label}</button>)}</nav>
-      <div className="water-toolbar">{runningJobs.length > 0 && <span className="water-processing" role="status"><Spinner/><span>{runningJobs.length} 项处理中</span></span>}<button className="icon-button" aria-label="搜索工作区" title="搜索 · Ctrl K" onClick={() => openTool('search')}><Search size={20}/></button><button className="icon-button water-menu-trigger" ref={menuTriggerRef} aria-label={knowledgePage ? '项目与资料目录' : '全部功能与设置'} title={knowledgePage ? '项目与资料目录' : '全部功能与设置'} aria-expanded={mobileNav} aria-controls="workspace-navigation" onClick={() => setMobileNav(true)}><Menu size={21}/></button></div>
+      <div className="water-toolbar">{runningJobs.length > 0 && <span className="water-processing" role="status"><Spinner/><span>{runningJobs.length} 项处理中</span></span>}<button className="icon-button" aria-label="搜索工作区" title="搜索 · Ctrl K" onClick={() => openTool('search')}><Search size={20}/></button><button className="icon-button water-menu-trigger" ref={menuTriggerRef} aria-label="工具与设置" title="工具与设置" aria-expanded={mobileNav && drawerMode === 'settings'} aria-controls="workspace-navigation" onClick={() => { setDrawerMode('settings'); setMobileNav(true); }}><Menu size={19}/><span>工具与设置</span></button></div>
     </header>
-    {mobileNav && <button className="nav-scrim" aria-label="收起导航" onClick={() => setMobileNav(false)} />}
-    {(mobileNav || knowledgePage) && <aside id="workspace-navigation" ref={sidebarRef} className={`sidebar ${mobileNav ? 'sidebar-open' : ''}`} inert={!mobileNav && !knowledgePage} role={mobileNav ? 'dialog' : undefined} aria-modal={mobileNav || undefined} aria-label={knowledgePage ? '项目与资料目录' : '全部功能与设置'} onTransitionEnd={event => { if (mobileNav && event.target === event.currentTarget && !event.currentTarget.contains(document.activeElement)) event.currentTarget.querySelector<HTMLButtonElement>('.water-drawer-close')?.focus({ preventScroll: true }); }}>
-      <div className="brand"><WaterMark size={31}/><div className="brand-copy"><strong>项目助理</strong><span>工作空间</span></div><button className="icon-button water-drawer-close" aria-label="收起导航" onClick={() => setMobileNav(false)}><X size={18}/></button></div>
+    {navPresence.mounted && <button className={`nav-scrim ${navPresence.exiting ? 'is-leaving' : ''}`} aria-label="收起导航" onClick={() => setMobileNav(false)} />}
+    {(navPresence.mounted || knowledgePage) && <aside id="workspace-navigation" ref={sidebarRef} className={`sidebar ${navPresence.mounted ? `sidebar-open ${drawerMode === 'settings' ? 'settings-panel' : 'catalog-panel'}` : ''} ${navPresence.exiting ? 'is-leaving' : ''}`} role={navPresence.mounted ? 'dialog' : undefined} aria-modal={navPresence.mounted || undefined} aria-label={navPresence.mounted && drawerMode === 'settings' ? '工具与设置' : '项目与资料目录'}>
+      <div className="brand"><div className="brand-copy"><strong>{drawerMode === 'settings' ? '工具与设置' : '项目与资料目录'}</strong></div><button className="icon-button water-drawer-close" aria-label={drawerMode === 'settings' ? '关闭工具与设置' : '关闭项目与资料目录'} onClick={() => setMobileNav(false)}><X size={18}/></button></div>
+      {(!navPresence.mounted || drawerMode === 'catalog') && <>
       <nav className="main-nav" aria-label="工作区导航">
         <button aria-current={page === 'workbench' ? 'page' : undefined} className={page === 'workbench' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('workbench')}><WaterMark size={19}/><span>今天</span></button>
         <button className="nav-item" onClick={()=>openTool('search')}><Search size={18}/><span>搜索</span><small>Ctrl K</small></button><details className="assistant-nav-more"><summary>更多工作工具<ChevronDown size={13}/></summary><button className={page === 'inbox' ? 'nav-item active' : 'nav-item'} onClick={() => changePage('inbox')}><CheckCheck size={18} /><span>待处理</span></button>
@@ -399,8 +428,9 @@ export default function App() {
           {activeProject && !(page === 'sources' ? sourceList : memoryList).length && <p className="sidebar-hint">{filter ? '没有匹配的记录' : page === 'sources' ? '导入资料后会显示在这里' : '确认后的记忆会显示在这里'}</p>}
         </div>
       </>}
-      <div className="sidebar-bottom"><details className="sidebar-tools" ref={toolsMenu}>
-        <summary><Settings2 size={17} /><span>设置与工具</span>{!!state?.memoryReviewCount && <small title="待确认记忆">{state.memoryReviewCount}</small>}<ChevronDown size={14} /></summary>
+      </>}
+      <div className="sidebar-bottom"><details className="sidebar-tools" ref={toolsMenu} open={navPresence.mounted && drawerMode === 'settings' || undefined}>
+        <summary onClick={event => { if (!navPresence.mounted || drawerMode === 'catalog') { event.preventDefault(); setDrawerMode('settings'); setMobileNav(true); } }}><Settings2 size={17} /><span>设置与工具</span>{!!state?.memoryReviewCount && <small title="待确认记忆">{state.memoryReviewCount}</small>}<ChevronDown size={14} /></summary>
         <div className="sidebar-tools-menu">
           <button className="model-settings-link" onClick={()=>openTool('quality')}><ShieldCheck size={16}/><span>质量与费用评估</span></button><button className="model-settings-link" onClick={() => openTool('runtime')}><Settings2 size={16}/><span>桌面运行与数据保护</span></button><label className="field-hint"><input type="checkbox" checked={showArchived} onChange={e=>setShowArchived(e.target.checked)}/>显示归档记录</label><button className="model-settings-link" onClick={() => openTool('lifecycle')}><Archive size={16}/><span>项目归档与资料版本</span></button><button className="model-settings-link" onClick={() => openTool('memory-center')} disabled={!state || !!busy}><Layers3 size={16} /><span>记忆中心</span>{!!state?.memoryReviewCount && <small>{state.memoryReviewCount} 待确认</small>}<ChevronRight size={13} /></button>
           <button className="model-settings-link" onClick={() => openTool('feishu')} disabled={!state || !!busy}><MessageCircle size={16} /><span>飞书助理</span><ChevronRight size={13} /></button>
@@ -411,15 +441,17 @@ export default function App() {
       </details></div>
     </aside>}
 
-    <main className="app-main" inert={mobileNav}>
-      {page !== 'workbench' && <header className="topbar"><div className="topbar-leading"><span className="breadcrumb">{breadcrumb}</span><ChevronRight size={13} /><h1>{title}</h1></div><div className="topbar-actions">{knowledgePage && <div className="water-record-tabs"><button aria-pressed={page === 'sources'} onClick={() => changePage('sources')}>资料</button><button aria-pressed={page === 'memories'} onClick={() => changePage('memories')}>记忆</button></div>}{page === 'sources' && activeProject && <button className="button primary compact" onClick={() => openImport()} disabled={!!busy}><Plus size={15} />导入资料</button>}</div></header>}
+    <main className="app-main">
+      <WorkspaceNav page={page} onNavigate={changePage} pendingCount={pendingCount} />
+      {!workPage && <header className="topbar"><div className="topbar-leading">{knowledgePage && <button ref={catalogTriggerRef} className="icon-button record-directory-trigger" aria-label="项目与资料目录" aria-expanded={mobileNav && drawerMode === 'catalog'} aria-controls="workspace-navigation" onClick={() => { setDrawerMode('catalog'); setMobileNav(true); }}><Menu size={18}/></button>}<span className="breadcrumb">{breadcrumb}</span><ChevronRight size={13} /><h1>{title}</h1></div><div className="topbar-actions">{knowledgePage && <div className="water-record-tabs"><button aria-pressed={page === 'sources'} onClick={() => changePage('sources')}>资料</button><button aria-pressed={page === 'memories'} onClick={() => changePage('memories')}>记忆</button></div>}{page === 'sources' && activeProject && <button className="button primary compact" onClick={() => openImport()} disabled={!!busy}><Plus size={15} />导入资料</button>}</div></header>}
 
       {state && state.workspace.recoveredJobs > 0 && !recoveryDismissed && <div className="recovery-banner"><RefreshCw size={15} /><span>已恢复 {state.workspace.recoveredJobs} 项中断的处理任务，资料仍保存在本机。</span><button className="icon-button small" aria-label="关闭恢复提示" onClick={() => setRecoveryDismissed(true)}><X size={15} /></button></div>}
 
 
-      {page !== 'workbench' && ((reminders.showBanner && page !== 'followups') || (managementAttention.showBanner && !managementPage)) && <div className="water-attention-strip" role="status" aria-label="事项提醒"><Bell size={14}/>{reminders.showBanner && page !== 'followups' && <button onClick={() => { setWorkDay(localDay()); setWorkProjectId(''); changePage('followups'); }}>{reminders.count} 项待跟进<ChevronRight size={12}/></button>}{managementAttention.showBanner && !managementPage && <button onClick={() => { setWorkDay(localDay()); setWorkProjectId(''); changePage(managementAttention.items[0]?.kind === 'governance' ? 'governance' : 'changes'); }}>{managementAttention.count} 项管理关注<ChevronRight size={12}/></button>}<button className="icon-button" aria-label="收起本次事项提醒" onClick={() => { reminders.dismiss(); managementAttention.dismiss(); }}><X size={13}/></button></div>}
-      <Suspense fallback={<div className="loading-view" role="status"><Spinner/>正在加载页面…</div>}>
-      {loading ? <div className="loading-view"><Spinner /><span>正在打开本地工作区…</span></div> : loadError ? <Empty icon={<CircleAlert size={30} />} title="无法打开工作区" action={<button className="button primary" onClick={retry}><RefreshCw size={16} />重新连接</button>}>{loadError}</Empty> : state && !state.projects.length && page !== 'backups' ? <Welcome onCreate={() => setDialog('project')} onRestore={() => changePage('backups')} /> : page === 'workbench' && state ? <Workbench state={state} date={workDay} projectId={workProjectId} onProjectChange={setWorkProjectId} onNavigate={changePage} onProjectOpen={id => { setWorkProjectId(id); setProjectId(id); changePage('overview'); }} onTaskOpen={openTask} onManagementOpen={openManagement} onAsk={text => { setAssistantQuestion({ id: Date.now(), text }); changePage('assistant'); }} onChanged={refresh} onConnect={() => openTool('memory-center')} onReview={() => openTool('memory-review')} onMemoryOpen={openMemory} onSourceOpen={id => { const source = state.sources.find(item => item.id === id); if (source) { setProjectId(source.projectId); setSourceId(id); changePage('sources'); } }} /> : page === 'inbox' && state ? <Inbox state={state} onChanged={refresh} onMemory={(id, project) => openMemory(id, project)} onSource={id => { const source = state.sources.find(s => s.id === id); if (source) { setProjectId(source.projectId); setSourceId(id); setPage('sources'); } }} onConflicts={() => openTool('memory-center')} /> : managementPage && state ? <div className="delivery-shell management-shell"><nav className="management-tabs" aria-label="项目管理模块">{(['governance', 'changes', 'coordination'] as const).map((entry) => <button key={entry} aria-current={page === entry ? 'page' : undefined} className={page === entry ? 'active' : ''} onClick={() => changePage(entry)}>{entry === 'governance' ? '风险、问题与决策' : entry === 'changes' ? '需求变更与验收' : '周报与会议准备'}</button>)}</nav><WorkFilters day={workDay} onDayChange={setWorkDay} projects={state.projects} projectId={workProjectId} onProjectChange={setWorkProjectId} />{page === 'governance' ? <GovernanceWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} /> : page === 'changes' ? <ChangeAcceptanceWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} /> : <CoordinationWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} />}</div> : deliveryPage && state ? <div className="delivery-shell"><WorkFilters day={workDay} onDayChange={setWorkDay} projects={state.projects} projectId={workProjectId} onProjectChange={setWorkProjectId} />{page === 'overview' ? <DeliveryOverview onMemoryOpen={openMemory} onEvidence={openEvidence} onManagementOpen={openManagement} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} notify={(message, error) => setNotice({ message, error })} /> : page === 'followups' ? <FollowUpCenter state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} notify={(message, error) => setNotice({ message, error })} /> : <AssistantWorkspace initialQuestion={assistantQuestion} onInitialQuestionConsumed={() => setAssistantQuestion(null)} onMemoryOpen={openMemory} onManagementOpen={openManagement} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} />}</div> : workPage && state ? page === 'reports' ? <ReportWorkspace key="reports" state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={setWorkProjectId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onTaskOpen={openTask} onEvidence={openEvidence} /> : <TaskWorkspace key={page} mode={page === 'daily' ? 'daily' : 'tasks'} state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={setWorkProjectId} focusTaskId={focusTaskId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onEvidence={openEvidence} onReport={() => setPage('reports')} /> : page === 'backups' ? <div className="backup-page">
+      {page !== 'workbench' && ((reminders.showBanner && page !== 'followups') || (managementAttention.showBanner && !managementPage)) && <div className="water-attention-strip" role="status" aria-label="事项提醒"><Bell size={14}/>{reminders.showBanner && page !== 'followups' && <button onClick={() => { setWorkDay(localDay()); changePage('followups'); }}>{reminders.count} 项待跟进<ChevronRight size={12}/></button>}{managementAttention.showBanner && !managementPage && <button onClick={() => { setWorkDay(localDay()); changePage(managementAttention.items[0]?.kind === 'governance' ? 'governance' : 'changes'); }}>{managementAttention.count} 项管理关注<ChevronRight size={12}/></button>}<button className="icon-button" aria-label="收起本次事项提醒" onClick={() => { reminders.dismiss(); managementAttention.dismiss(); }}><X size={13}/></button></div>}
+      <div className="workspace-view" ref={pageRef}>
+      <Suspense fallback={<PageLoading label="正在加载页面" />}>
+      {loading ? <PageLoading label="正在打开本地工作区" /> : loadError ? <Empty icon={<CircleAlert size={30} />} title="无法打开工作区" action={<button className="button primary" onClick={retry}><RefreshCw size={16} />重新连接</button>}>{loadError}</Empty> : state && !state.projects.length && page !== 'backups' ? <Welcome onCreate={() => setDialog('project')} onRestore={() => changePage('backups')} /> : page === 'workbench' && state ? <Workbench onModelSettings={() => openTool('settings')} pendingCount={pendingCount} onCreateTask={() => { changePage('daily'); setCreateTaskRequest(value => value + 1); }} state={state} date={workDay} projectId={workProjectId} onProjectChange={changeProject} onNavigate={changePage} onProjectOpen={id => { setWorkProjectId(id); setProjectId(id); changePage('overview'); }} onTaskOpen={openTask} onManagementOpen={openManagement} onAsk={text => { setAssistantQuestion({ id: Date.now(), text }); changePage('assistant'); }} onChanged={refresh} onConnect={() => openTool('memory-center')} onReview={() => openTool('memory-review')} onMemoryOpen={openMemory} onSourceOpen={id => { const source = state.sources.find(item => item.id === id); if (source) { setWorkProjectId(source.projectId); setProjectId(source.projectId); setSourceId(id); changePage('sources'); } }} /> : page === 'inbox' && state ? <Inbox projectId={workProjectId} onProjectChange={changeProject} state={state} onChanged={refresh} onMemory={(id, project) => openMemory(id, project)} onSource={id => { const source = state.sources.find(s => s.id === id); if (source) { setWorkProjectId(source.projectId); setProjectId(source.projectId); setSourceId(id); setPage('sources'); } }} onConflicts={() => openTool('memory-center')} /> : managementPage && state ? <div className="delivery-shell management-shell"><nav className="management-tabs" aria-label="项目管理模块">{(['governance', 'changes', 'coordination'] as const).map((entry) => <button key={entry} aria-current={page === entry ? 'page' : undefined} className={page === entry ? 'active' : ''} onClick={() => changePage(entry)}>{entry === 'governance' ? '风险、问题与决策' : entry === 'changes' ? '需求变更与验收' : '周报与会议准备'}</button>)}</nav><WorkFilters day={workDay} onDayChange={setWorkDay} projects={state.projects} projectId={workProjectId} onProjectChange={changeProject} />{page === 'governance' ? <GovernanceWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} /> : page === 'changes' ? <ChangeAcceptanceWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} /> : <CoordinationWorkspace focusId={managementFocusId} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} />}</div> : deliveryPage && state ? <div className="delivery-shell"><WorkFilters day={workDay} onDayChange={setWorkDay} projects={state.projects} projectId={workProjectId} onProjectChange={changeProject} />{page === 'overview' ? <DeliveryOverview onMemoryOpen={openMemory} onEvidence={openEvidence} onManagementOpen={openManagement} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} notify={(message, error) => setNotice({ message, error })} /> : page === 'followups' ? <FollowUpCenter state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} notify={(message, error) => setNotice({ message, error })} /> : <AssistantWorkspace onModelSettings={() => openTool('settings')} initialQuestion={assistantQuestion} onInitialQuestionConsumed={() => setAssistantQuestion(null)} onMemoryOpen={openMemory} onManagementOpen={openManagement} state={state} projectId={workProjectId} date={workDay} onChanged={refresh} onTaskOpen={openTask} onEvidence={openEvidence} notify={(message, error) => setNotice({ message, error })} />}</div> : workPage && state ? page === 'reports' ? <ReportWorkspace key="reports" state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={changeProject} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onTaskOpen={openTask} onEvidence={openEvidence} /> : <TaskWorkspace key={page} mode={page === 'daily' ? 'daily' : 'tasks'} state={state} day={workDay} setDay={setWorkDay} projectId={workProjectId} setProjectId={changeProject} createTaskRequest={createTaskRequest} onCreateTaskConsumed={() => setCreateTaskRequest(0)} focusTaskId={focusTaskId} onChanged={refresh} notify={(message, error) => setNotice({ message, error })} onEvidence={openEvidence} onReport={() => setPage('reports')} /> : page === 'backups' ? <div className="backup-page">
         <div className="page-heading"><div><div className="eyebrow">本地数据保护</div><h2>备份与恢复</h2><p>备份包含项目、资料、记忆、任务事件和日报版本。模型设置与密钥不包含在备份中。</p></div><button className="button primary" onClick={makeBackup} disabled={!!busy}>{busy === 'backup' ? <Spinner /> : <Plus size={16} />}创建备份</button></div>
         <div className="backup-summary"><div><span className="summary-number">{state?.backups.length ?? 0}</span><span>份本机备份</span></div><p>创建后可导出 ZIP 文件，保存到其他位置。</p></div>
         <div className="section-title-row"><h3>已有备份</h3><span>{state?.backups.length ?? 0} 份记录</span></div>
@@ -481,9 +513,10 @@ export default function App() {
         <aside className={`inspector timeline-inspector ${!memoryDetail ? 'inspector-empty' : ''}`}><div className="inspector-heading"><span className="eyebrow">版本记录</span><h2>修订历史</h2><p>选择版本，查看当时的内容与依据。</p></div>{memoryDetail ? <div className="timeline">{[...memoryDetail.revisions].sort((a, b) => b.number - a.number).map((revision) => <button className={`timeline-item ${selectedRevision?.number === revision.number ? 'timeline-active' : ''}`} key={revision.id} onClick={() => setViewedRevision(revision.number)}><span className="timeline-dot" /><div className="timeline-top"><strong>v{revision.number}</strong><span>{date(revision.createdAt, true)}</span></div><h3>{revision.origin === 'automatic' ? '自动整理' : revision.origin === 'confirmation' ? '原文确认' : '修订记忆'}</h3><p>{revision.reason || (revision.origin === 'confirmation' ? '根据所选原文确认。' : '个人修正。')}</p><span className="timeline-evidence">{revision.evidence.length ? `${revision.evidence.length} 处原文依据` : '未引用原文'}</span></button>)}</div> : <p className="panel-hint">确认第一条记忆后，会在这里记录版本历史。</p>}</aside>
       </div>}
       </Suspense>
+      </div>
     </main>
 
-    {notice && <div className={`toast ${notice.error ? 'toast-error' : ''}`} role={notice.error ? 'alert' : 'status'}>{notice.error ? <CircleAlert size={18} /> : <Check size={18} />}<p>{notice.message}</p><button className="icon-button small" aria-label="关闭通知" onClick={() => setNotice(null)}><X size={16} /></button></div>}
+    {notice && <FeedbackToast notice={notice} onClose={() => setNotice(null)} />}
 
     {dialog === 'project' && <ProjectDialog busy={busy} close={closeDialog} submit={async (name, description) => {
       const created = await run<Project>('project', () => execute('create_project', { name, description }), '项目已创建。');

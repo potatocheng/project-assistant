@@ -3,9 +3,9 @@
   --surface: #fff;
   --canvas: #f8faff;
   --sidebar: #f6f8fc;
-  --line: #e9edf3;
+  --line: #e1e7ef;
   --ink: #202733;
-  --muted: #6c7788;
+  --muted: #5f6d80;
   --secondary: #59677b;
   --accent: #0873df;
   --accent-soft: #eaf4ff;
@@ -22,6 +22,12 @@
   background: var(--surface);
 }
 body { min-width: 320px; }
+.water-shell { scrollbar-color: #b6c4d5 transparent; scrollbar-width: thin; }
+.water-shell input, .water-shell textarea { caret-color: var(--accent); }
+.water-shell .text-button { min-height: 32px; }
+.water-shell :is(.work-page-heading, .page-heading) h2 { text-wrap: balance; }
+.water-shell .welcome-steps p { font-size: 13px; }
+.water-shell .welcome-steps li > span { color: var(--muted); }
 button, input, select, textarea { transition: background-color 160ms, border-color 160ms, color 160ms, box-shadow 160ms; }
 button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid #1688f8; outline-offset: 4px; }
 ::selection { color: #094b93; background: #d7ecff; }
@@ -34,16 +40,17 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .water-drop { transform-origin: 34px 5px; transition: transform 440ms var(--water-ease); }
 .water-brand:hover .water-current, .wb-item-select:hover .water-current { transform: rotate(15deg); }
 .water-brand:hover .water-drop { transform: translate(1px, -1px) scale(1.15); }
-.water-navigation { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); padding: 5px; width: 292px; background: rgba(250, 252, 255, .88); border: 1px solid rgba(220, 229, 240, .7); border-radius: 30px; box-shadow: 0 3px 12px #1e477c08, inset 0 1px 0 #fff; backdrop-filter: blur(18px) saturate(1.3); }
-.water-navigation-current { position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / 3); background: #e7f2ff; border-radius: 24px; box-shadow: inset 0 1px 1px #fff, 0 1px 3px #2689e909; transition: transform 420ms var(--water-ease); pointer-events: none; }
+.water-navigation { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); padding: 5px; width: 292px; background: #f1f5fa; border: 1px solid transparent; border-radius: 12px; }
+.water-navigation-current { position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / 3); background: #fff; border-radius: 8px; box-shadow: 0 2px 5px #20344b0c; transition: transform 240ms var(--water-ease); pointer-events: none; }
 .water-navigation.selected-1 .water-navigation-current { transform: translateX(100%); }
 .water-navigation.selected-2 .water-navigation-current { transform: translateX(200%); }
-.water-navigation > button { position: relative; border: 0; background: none; color: var(--secondary); padding: 9px 12px; border-radius: 24px; font-size: 14px; line-height: 20px; }
+.water-navigation > button { position: relative; border: 0; background: none; color: var(--secondary); padding: 9px 12px; border-radius: 8px; font-size: 14px; line-height: 20px; }
 .water-navigation > button[aria-current] { color: #0066c9; font-weight: 550; }
 .water-navigation > button:hover { color: var(--accent); }
 .water-toolbar { display: flex; align-items: center; justify-self: end; gap: 8px; }
-.water-shell .icon-button { border-radius: 50%; width: 35px; height: 35px; color: #465368; }
+.water-shell .icon-button { border-radius: 9px; width: 38px; height: 38px; color: #465368; }
 .water-shell .icon-button:hover { background: #edf4fc; color: var(--accent); }
+.water-shell .water-menu-trigger { width: auto; gap: 7px; padding-inline: 10px; font-size: 12px; }
 .water-toolbar .icon-button > svg { transition: transform 250ms var(--water-ease); }
 .water-toolbar .icon-button:hover > svg { transform: translateY(-1px); }
 .water-toolbar .water-refresh:hover > svg { transform: rotate(35deg); }
@@ -77,8 +84,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .water-record-tabs { display: flex; background: #f1f5fa; border-radius: 18px; padding: 3px; }
 .water-record-tabs > button { border: 0; background: none; padding: 5px 13px; border-radius: 15px; font-size: 12px; color: var(--secondary); }
 .water-record-tabs > button[aria-pressed="true"] { color: var(--accent); background: white; box-shadow: 0 1px 3px #20344b0a; }
-.water-shell .button { border-radius: 10px; }
-.water-shell .button.primary { border-radius: 20px; background: var(--accent); border-color: var(--accent); }
+.water-shell .button { border-radius: 8px; min-height: 40px; }
+.water-shell .button.compact { min-height: 34px; }
+.water-shell .button.primary { background: var(--accent); border-color: var(--accent); }
 .water-shell .button.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
 .water-shell .button.secondary { border-color: #dde5ef; background: #fff; }
 .water-shell .button.secondary:hover:not(:disabled) { background: #f2f7fd; }
@@ -286,9 +294,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .water-brand > svg { width: 28px; height: 28px; }
   .water-navigation { width: 100%; max-width: 245px; justify-self: center; padding: 4px; }
   .water-navigation-current { top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 3); }
-  .water-navigation > button { padding: 6px 2px; font-size: 12px; }
+  .water-navigation > button { padding: 6px 2px; min-height: 36px; font-size: 13px; }
   .water-toolbar { gap: 1px; }
-  .water-toolbar .icon-button { width: 28px; height: 30px; }
+  .water-toolbar .icon-button { width: 40px; height: 40px; }
+  .water-menu-trigger > span { display: none; }
   .water-toolbar .water-refresh, .water-processing { display: none; }
   .water-workbench { --wb-gutter: 18px; padding-top: 22px; padding-bottom: 20px; scrollbar-gutter: auto; }
   .wb-page-header { align-items: flex-start; gap: 10px; margin-bottom: 16px; }
@@ -331,6 +340,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .water-shell .topbar-actions { margin-left: auto; }
   .water-shell .breadcrumb { max-width: 130px; }
   .water-attention-strip { padding-inline: 18px; }
+}
+@media (pointer: coarse) {
+  .water-shell :is(.button, .icon-button, .nav-item, .text-button) { min-height: 44px; }
+  .water-toolbar .icon-button { min-width: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .water-shell *, .water-shell *::before, .water-shell *::after { animation: none !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }

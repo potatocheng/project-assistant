@@ -1,6 +1,9 @@
 mod ai;
 mod answer_contract;
 mod answer_repair;
+mod assistance;
+#[cfg(test)]
+mod assistance_tests;
 mod assistant_qa;
 mod backup;
 mod change_control;
@@ -169,6 +172,7 @@ struct Inner {
     actor: Mutex<Option<thread::JoinHandle<()>>>,
     connector: feishu::Connector,
     maintenance: Arc<maintenance::Worker>,
+    assistance_cache: Mutex<assistance::Cache>,
     _lock: File,
 }
 impl Drop for Inner {
@@ -490,6 +494,7 @@ impl Engine {
                 actor: Mutex::new(Some(actor)),
                 connector,
                 maintenance,
+                assistance_cache: Mutex::new(assistance::Cache::new()),
                 _lock: workspace_lock,
             }),
         };
@@ -579,6 +584,12 @@ impl Engine {
         }
         if request.command == "ask_assistant" {
             return assistant_qa::ask(self, &request.payload);
+        }
+        if matches!(
+            request.command.as_str(),
+            "generate_today_brief" | "generate_task_coaching"
+        ) {
+            return assistance::run(self, &request.command, &request.payload);
         }
         if request.command == "analyze_task_workload" {
             let configuration = settings::load(&self.inner.root)?;

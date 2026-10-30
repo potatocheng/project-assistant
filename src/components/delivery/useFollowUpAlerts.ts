@@ -4,8 +4,8 @@ import { localDay } from '../work/shared';
 import type { FollowUpCenterData } from './types';
 
 // Refresh the global inbox even while another workspace page is open.
-export function useFollowUpAlerts(enabled: boolean, revision: number) {
-  const [snapshot, setSnapshot] = useState({ count: 0, firstTitle: '', signature: '' });
+export function useFollowUpAlerts(enabled: boolean, revision: number, projectId = '') {
+  const [snapshot, setSnapshot] = useState({ count: 0, firstTitle: '', signature: '', projectId });
   const [dismissed, setDismissed] = useState('');
   const generation = useRef(0);
   useEffect(() => {
@@ -18,14 +18,14 @@ export function useFollowUpAlerts(enabled: boolean, revision: number) {
       pending = true;
       try {
         const date = localDay();
-        const result = await execute<FollowUpCenterData>('get_follow_up_center', { date });
+        const result = await execute<FollowUpCenterData>('get_follow_up_center', { date, projectId });
         if (!active || current !== generation.current) return;
         const items = result.items.filter((item) => !item.snoozed);
-        const signature = `${date}:${items.map((item) => `${item.taskId}:${item.followUpVersion}:${item.reasons.map((reason) => reason.kind).join(',')}`).sort().join('|')}`;
-        setSnapshot({ count: result.counts.actionable, firstTitle: items[0]?.task.title ?? '', signature });
+        const signature = `${projectId}:${date}:${items.map((item) => `${item.taskId}:${item.followUpVersion}:${item.reasons.map((reason) => reason.kind).join(',')}`).sort().join('|')}`;
+        setSnapshot({ count: result.counts.actionable, firstTitle: items[0]?.task.title ?? '', signature, projectId });
       } catch {
         // Do not present a stale inbox as a current reminder. The next refresh retries.
-        if (active && current === generation.current) setSnapshot({ count: 0, firstTitle: '', signature: '' });
+        if (active && current === generation.current) setSnapshot({ count: 0, firstTitle: '', signature: '', projectId });
       } finally { pending = false; }
     };
     void refresh();
@@ -33,7 +33,7 @@ export function useFollowUpAlerts(enabled: boolean, revision: number) {
     const onFocus = () => void refresh();
     window.addEventListener('focus', onFocus);
     return () => { active = false; window.clearInterval(interval); window.removeEventListener('focus', onFocus); };
-  }, [enabled, revision]);
+  }, [enabled, revision, projectId]);
   const dismiss = useCallback(() => setDismissed(snapshot.signature), [snapshot.signature]);
-  return { ...snapshot, showBanner: snapshot.count > 0 && snapshot.signature !== dismissed, dismiss };
+  return { ...snapshot, count: snapshot.projectId === projectId ? snapshot.count : 0, showBanner: snapshot.projectId === projectId && snapshot.count > 0 && snapshot.signature !== dismissed, dismiss };
 }

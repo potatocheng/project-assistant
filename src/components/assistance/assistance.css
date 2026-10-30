@@ -1,0 +1,37 @@
+.ai-today-brief { margin-bottom: 24px; padding: 20px 0 16px; border-block: 1px solid var(--line); }
+.ai-assistance-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; color: var(--secondary); font-size: 13px; line-height: 1.8; }
+.ai-assistance-content { max-width: 900px; }
+.ai-advice-list { list-style: none; padding: 0; margin: 0; }
+.ai-advice-item { padding: 14px 0; }
+.ai-advice-item + .ai-advice-item { border-top: 1px solid var(--line); }
+.ai-advice-item h4 { margin: 0 0 6px; font-size: 15px; line-height: 1.6; color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
+.ai-advice-item .ai-advice-next { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 0; font-size: 14px; line-height: 1.8; color: var(--secondary); overflow-wrap: anywhere; }
+.ai-advice-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px; margin-top: 6px; }
+.ai-advice-detail { min-width: 0; }
+.ai-advice-detail summary, .ai-assistance-more > summary, .ai-assistance-questions > summary { width: fit-content; cursor: pointer; padding: 4px 0; color: var(--secondary); font-size: 12px; line-height: 1.7; }
+.ai-advice-controls .ai-advice-open { grid-column: 2; align-self: start; padding: 4px 0; white-space: nowrap; }
+.ai-advice-explanation { margin-top: 10px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.ai-advice-explanation h5 { margin: 14px 0 4px; font-size: 12px; font-weight: 600; color: var(--ink); }
+.ai-advice-explanation h5:first-child { margin-top: 0; }
+.ai-advice-explanation p { margin: 4px 0; max-width: 75ch; color: var(--secondary); font-size: 13px; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ai-advice-explanation blockquote { margin: 10px 0 0; padding: 0 0 0 12px; border-left: 1px solid var(--line); }
+.ai-advice-explanation cite { color: var(--secondary); font-size: 12px; line-height: 1.7; font-style: normal; overflow-wrap: anywhere; }
+.ai-assistance-more { margin-top: 8px; }
+.ai-assistance-more > section { margin-top: 12px; }
+.ai-assistance-more h3 { margin: 0; font-size: 13px; font-weight: 600; }
+.ai-assistance-questions { margin-top: 4px; }
+.ai-assistance-questions ul { padding-left: 20px; margin: 8px 0; color: var(--secondary); font-size: 13px; line-height: 1.85; }
+.ai-assistance-meta { margin-top: 12px; color: var(--secondary); font-size: 12px; line-height: 1.8; }
+.ai-assistance-meta summary { width: fit-content; cursor: pointer; padding: 4px 0; }
+.ai-assistance-meta p { max-width: 75ch; margin: 6px 0; overflow-wrap: anywhere; }
+.ai-task-coach { padding: 16px 0; }
+.ai-task-coach textarea { width: 100%; resize: vertical; min-height: 80px; }
+.ai-task-coach .field-label { margin-top: 14px; }
+.ai-coach-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+.ai-today-brief button:focus-visible, .ai-task-coach button:focus-visible, .ai-assistance-content summary:focus-visible, .ai-assistance-meta summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 680px) {
+  .ai-today-brief { padding: 16px 0; }
+  .ai-today-brief .ah-section-heading { align-items: flex-start; flex-wrap: wrap; gap: 6px; }
+  .ai-advice-controls { display: block; }
+  .ai-advice-controls .ai-advice-open { margin-top: 4px; }
+}
