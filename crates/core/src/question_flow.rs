@@ -134,6 +134,16 @@ impl Budget {
         }
         Ok(output)
     }
+    /// Shared accounting only; callers must describe their own workflow limits.
+    pub(crate) fn usage_trace(&self) -> Value {
+        json!({"modelCalls":self.calls,"maxModelCalls":MAX_CALLS,"inputChars":self.input_chars,
+            "maxInputChars":MAX_INPUT_CHARS,"maxOutputCharsPerCall":MAX_OUTPUT_CHARS,
+            "elapsedMs":self.started.elapsed().as_millis(),"timeoutSeconds":self.timeout.as_secs(),
+            "stages":self.stages,"reportedTokens":self.reported_tokens,
+            "reportedTokenStopThreshold":MAX_REPORTED_TOKENS,
+            "usageComplete":self.stages.iter().all(|s|s["usage"].is_object()),
+            "tokenBudgetMode":"provider-reported-post-call"})
+    }
     fn trace(&self) -> Value {
         json!({"version":"bounded-question-flow-v11-full-evidence-repair","modelCalls":self.calls,"maxModelCalls":MAX_CALLS,"inputChars":self.input_chars,
             "maxInputChars":MAX_INPUT_CHARS,"maxOutputCharsPerCall":MAX_OUTPUT_CHARS,

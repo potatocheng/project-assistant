@@ -2,6 +2,9 @@ mod ai;
 mod answer_contract;
 mod answer_repair;
 mod assistance;
+mod assistance_audit;
+mod assistance_limits;
+mod assistance_review;
 #[cfg(test)]
 mod assistance_tests;
 mod assistant_qa;
@@ -26,6 +29,7 @@ mod memory_facts;
 mod memory_links;
 mod memory_query;
 mod memory_workbench;
+mod orchestration;
 mod parse;
 mod planning;
 mod proactive;
@@ -566,6 +570,9 @@ impl Engine {
                 | "get_delivery_overview"
                 | "get_follow_up_center"
                 | "get_proactive_center"
+                | "get_assistant_work"
+                | "get_action_proposal"
+                | "get_assistance_runs"
                 | "get_management_attention"
                 | "get_governance_workspace"
                 | "get_governance_item"
@@ -696,27 +703,41 @@ fn scan_proactive(db: &mut db::Database) {
         // apparent failure. The proactive module persists its own diagnostics.
         eprintln!("proactive scan: {}", error.code);
     }
+    if let Err(error) = db.execute(Request {
+        command: "_assistant_work_tick".into(),
+        payload: json!({}),
+    }) {
+        eprintln!("assistant work scan: {}", error.code);
+    }
 }
 
 fn affects_proactive_actions(command: &str) -> bool {
-    matches!(command, "restore_backup" | "_ingest_remote")
-        || [
-            "create_",
-            "save_",
-            "update_",
-            "confirm_",
-            "reject_",
-            "revise_",
-            "record_",
-            "remove_",
-            "transition_",
-            "review_",
-            "delete_",
-            "coordination_save_",
-            "coordination_confirm_",
-        ]
-        .iter()
-        .any(|prefix| command.starts_with(prefix))
+    matches!(
+        command,
+        "restore_backup"
+            | "_ingest_remote"
+            | "set_lifecycle"
+            | "decide_action_proposal"
+            | "pause_assistant_work"
+            | "resolve_memory_review"
+            | "recompare_memory_review"
+    ) || [
+        "create_",
+        "save_",
+        "update_",
+        "confirm_",
+        "reject_",
+        "revise_",
+        "record_",
+        "remove_",
+        "transition_",
+        "review_",
+        "delete_",
+        "coordination_save_",
+        "coordination_confirm_",
+    ]
+    .iter()
+    .any(|prefix| command.starts_with(prefix))
 }
 
 fn ask_project(sender: &mpsc::SyncSender<Message>, root: &Path, payload: &Value) -> Result<Value> {

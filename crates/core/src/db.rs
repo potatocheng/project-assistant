@@ -7,7 +7,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 
-pub(crate) const SCHEMA_VERSION: i64 = 13;
+pub(crate) const SCHEMA_VERSION: i64 = 14;
 pub(crate) struct ParseTask {
     pub path: PathBuf,
     pub kind: String,
@@ -46,6 +46,7 @@ impl Database {
             ));
         }
         migrate(&conn)?;
+        crate::assistance_audit::interrupt_running(&conn, "restart")?;
         conn.execute("UPDATE memory_runs SET status='cancelled',message='应用重启，等待重新整理',updated_at=? WHERE status='running'",[now()])?;
         let recovered_jobs = conn.execute("UPDATE jobs SET status='queued',stage='等待恢复',recovered=1,generation=generation+1,updated_at=? WHERE status IN ('queued','running')", [now()])?;
         Ok(Self {
@@ -64,6 +65,51 @@ impl Database {
         }
         let p = request.payload;
         match request.command.as_str() {
+            "get_assistant_work"
+            | "get_action_proposal"
+            | "decide_action_proposal"
+            | "pause_assistant_work"
+            | "save_assistant_work_settings"
+            | "run_assistant_work"
+            | "_assistant_work_tick" => {
+                crate::orchestration::dispatch(&mut self.conn, &request.command, &p)
+            }
+            "get_assistance_runs" => {
+                let mut result = crate::assistance_audit::list(&self.conn, &p)?;
+                let project = p["projectId"]
+                    .as_str()
+                    .filter(|s| !s.is_empty() && *s != "all");
+                result["budget"] = crate::assistance_limits::summary(&self.conn, project)?;
+                Ok(result)
+            }
+            "_record_assistance_run" => {
+                if p["snapshot"]["workspaceEpoch"].as_u64() != Some(self.epoch) {
+                    return Err(AppError::new(
+                        "ASSISTANCE_STALE",
+                        "工作区已恢复，分析记录已失效",
+                    ));
+                }
+                if p["event"] == "start"
+                    || p["inFlight"].is_string()
+                    || (p["event"] == "finish" && p["status"] == "succeeded")
+                {
+                    let snapshot = &p["snapshot"];
+                    let current = crate::assistance::capture(&self.conn, &snapshot["request"])?;
+                    if current["fingerprint"] != snapshot["fingerprint"]
+                        || snapshot["modelRevision"] != settings::load(&self.root)?.revision
+                    {
+                        return Err(AppError::new(
+                            "ASSISTANCE_STALE",
+                            "项目资料或模型已变化，请重新分析",
+                        ));
+                    }
+                }
+                let tx = self.conn.transaction()?;
+                let result = crate::assistance_audit::record(&tx, &p)?;
+                crate::assistance_limits::record(&tx, &p)?;
+                tx.commit()?;
+                Ok(result)
+            }
             "get_proactive_center"
             | "run_proactive_scan"
             | "save_proactive_settings"
@@ -1142,6 +1188,12 @@ pub(crate) fn migrate(conn: &Connection) -> Result<()> {
                 crate::proactive::migrate(conn)?;
             }
             conn.execute_batch("PRAGMA user_version=13;")?;
+        }
+        if version < 14 {
+            crate::assistance_audit::migrate(conn)?;
+            crate::assistance_limits::migrate(conn)?;
+            crate::orchestration::migrate(conn)?;
+            conn.execute_batch("PRAGMA user_version=14;")?;
         }
         Ok(())
     })();

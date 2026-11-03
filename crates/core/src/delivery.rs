@@ -436,7 +436,7 @@ fn save_follow_state(
     conn.execute("INSERT INTO task_follow_up_state VALUES (?,?,?,?,?,?) ON CONFLICT(task_id) DO UPDATE SET next_follow_up_date=excluded.next_follow_up_date,snoozed_until=excluded.snoozed_until,version=excluded.version,updated_at=excluded.updated_at",params![task["id"].as_str(),task["projectId"].as_str(),next,snooze,base+1,now()])?;
     follow_state(conn, task)
 }
-fn record_follow_up(conn: &Connection, p: &Value) -> Result<Value> {
+pub(crate) fn record_follow_up(conn: &Connection, p: &Value) -> Result<Value> {
     let task = tasks::task(conn, required(p, "taskId")?)?;
     if !active(&task) {
         return Err(invalid("已完成或取消的任务无需跟进"));

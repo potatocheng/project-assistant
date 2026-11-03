@@ -7,7 +7,7 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 
-const VERSION: &str = "daily-assistant-v2-concise";
+const VERSION: &str = "daily-assistant-v3-reviewed";
 pub(crate) type Cache = HashMap<String, Value>;
 
 // Polling and local draft writes do not change this signature. Follow-up notes,
@@ -249,6 +249,14 @@ fn checked_output(snapshot: &Value, output: Value) -> Result<Value> {
         .map_err(|error| invalid(&format!("AI 分析格式无效：{error}，请重新分析")))?;
     let refs = snapshot["references"].as_array().unwrap();
     let mut cited = HashSet::new();
+    if parsed.focus.len() > 3
+        || parsed.risks.len() > 2
+        || parsed.actions.len() > 2
+        || parsed.focus.len() + parsed.risks.len() + parsed.actions.len() > 5
+        || (snapshot["request"]["kind"] == "coach" && parsed.focus.len() > 2)
+    {
+        return Err(invalid("AI 分析条目超出限制"));
+    }
     for items in [&parsed.focus, &parsed.risks, &parsed.actions] {
         if items.len() > 3 {
             return Err(invalid("AI 分析条目超出限制"));
@@ -280,6 +288,9 @@ fn checked_output(snapshot: &Value, output: Value) -> Result<Value> {
                 }
                 projects.insert(text(reference, "projectId"));
                 cited.insert(evidence.reference_id.clone());
+            }
+            if projects.len() != 1 {
+                return Err(invalid("同一建议混用了不同项目的依据"));
             }
             // A suggested task must be real, in the evidence project and in the model pack.
             if let Some(task_id) = &item.task_id {
@@ -372,6 +383,7 @@ pub(crate) fn run(engine: &Engine, command: &str, p: &Value) -> Result<Value> {
             .cloned();
         if let Some(mut result) = cached {
             result["cached"] = json!(true);
+            result["queryTrace"]["cacheHit"] = json!(true);
             return Ok(result);
         }
     }
@@ -383,15 +395,105 @@ pub(crate) fn run(engine: &Engine, command: &str, p: &Value) -> Result<Value> {
         ));
     }
     let mut budget = crate::question_flow::Budget::new(&configuration);
-    let output = budget.complete(&configuration, SYSTEM,
-        json!({"request":snapshot["request"],"task":snapshot["task"],"references":refs.iter().map(model_reference).collect::<Vec<_>>(),"schema":schema()}),
-        schema(), "daily_project_assistance")?;
-    let mut result = checked_output(&snapshot, output)?;
-    // Reject a result if records, lifecycle, workspace restore or model changed during I/O.
-    engine.call(Request {
-        command: "_validate_assistance_context".into(),
-        payload: snapshot.clone(),
-    })?;
+    let run_id = crate::id();
+    let audit_snapshot = json!({"request":snapshot["request"],"fingerprint":snapshot["fingerprint"],
+        "workspaceEpoch":snapshot["workspaceEpoch"],"modelRevision":snapshot["modelRevision"]});
+    let record = |event: &str,
+                  status: &str,
+                  budget: &crate::question_flow::Budget,
+                  in_flight: Option<&str>,
+                  review: &Value,
+                  error: Option<&str>|
+     -> Result<()> {
+        engine.call(Request {
+            command: "_record_assistance_run".into(),
+            payload: json!({
+            "runId":run_id,"event":event,"snapshot":audit_snapshot,"status":status,
+            "queryTrace":run_trace(budget),"inFlight":in_flight,"review":review,"errorCode":error}),
+        })?;
+        Ok(())
+    };
+    record("start", "running", &budget, None, &Value::Null, None)?;
+    let mut review = Value::Null;
+    let attempt = (|| -> Result<Value> {
+        record(
+            "checkpoint",
+            "running",
+            &budget,
+            Some("generation"),
+            &review,
+            None,
+        )?;
+        let generated = budget.complete(&configuration, SYSTEM,
+            json!({"request":snapshot["request"],"task":snapshot["task"],"references":refs.iter().map(model_reference).collect::<Vec<_>>(),"schema":schema()}),
+            schema(), "daily_project_assistance");
+        record("checkpoint", "running", &budget, None, &review, None)?;
+        let mut result = checked_output(&snapshot, generated?)?;
+        engine.call(Request {
+            command: "_validate_assistance_context".into(),
+            payload: snapshot.clone(),
+        })?;
+        record(
+            "checkpoint",
+            "running",
+            &budget,
+            Some("review"),
+            &review,
+            None,
+        )?;
+        let reviewed = crate::assistance_review::run(
+            &configuration,
+            &mut budget,
+            &snapshot,
+            &result,
+            refs.iter().map(model_reference).collect(),
+        );
+        record("checkpoint", "running", &budget, None, &review, None)?;
+        review = reviewed?;
+        if review["status"] != "passed" {
+            return Err(AppError::new("ASSISTANCE_REVIEW_REJECTED",
+                "建议或沟通草稿存在依据不足、冲突或未保留的必要未知，已停止展示，请核对资料后重新分析"));
+        }
+        // Check current evidence again after the second network request.
+        engine.call(Request {
+            command: "_validate_assistance_context".into(),
+            payload: snapshot.clone(),
+        })?;
+        result["review"] = review.clone();
+        result["queryTrace"] = run_trace(&budget);
+        result["runId"] = json!(run_id);
+        Ok(result)
+    })();
+    let mut result = match attempt {
+        Ok(result) => {
+            if let Err(error) = record("finish", "succeeded", &budget, None, &review, None) {
+                // A final actor-side snapshot check can fail after the earlier read.
+                // Preserve the consumed requests even when the result cannot commit.
+                let _ = record(
+                    "finish",
+                    "failed",
+                    &budget,
+                    None,
+                    &review,
+                    Some(&error.code),
+                );
+                return Err(error);
+            }
+            result
+        }
+        Err(error) => {
+            // After restore, the actor rejects this old workspace's audit writes too.
+            record(
+                "finish",
+                "failed",
+                &budget,
+                None,
+                &review,
+                Some(&error.code),
+            )?;
+            return Err(error);
+        }
+    };
     result["generatedAt"] = json!(now());
     result["mode"] = json!("model");
     result["model"] = json!(configuration.model);
@@ -419,6 +521,14 @@ pub(crate) fn run(engine: &Engine, command: &str, p: &Value) -> Result<Value> {
     }
     cache.insert(key, result.clone());
     Ok(result)
+}
+
+fn run_trace(budget: &crate::question_flow::Budget) -> Value {
+    let mut trace = budget.usage_trace();
+    trace["version"] = json!("assistance-run-v1");
+    trace["maxModelCalls"] = json!(2);
+    trace["cacheHit"] = json!(false);
+    trace
 }
 
 #[cfg(test)]

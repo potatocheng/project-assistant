@@ -115,7 +115,7 @@ try {
   const initial = await center();
   assert.equal(initial.settings.enabled, true);
   assert.equal(initial.settings.reviewMinutes, 60);
-  assert.equal((await host.call('get_state')).workspace.schemaVersion, 13);
+  assert.equal((await host.call('get_state')).workspace.schemaVersion, 14);
   await assert.rejects(host.call('_proactive_tick'), 'Internal timer commands must not be public.');
   await assert.rejects(host.call('save_proactive_settings', { enabled: true, reviewMinutes: 4, baseRevision: initial.settings.revision }));
   await configure(false);

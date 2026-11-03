@@ -2,6 +2,8 @@
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
 use project_assistant_core::{AppError, Engine, Request};
 use serde_json::{json, Value};
+#[path = "common/schema.rs"]
+mod historical_schema;
 
 fn call(engine: &Engine, command: &str, payload: Value) -> Value {
     engine
@@ -639,11 +641,12 @@ fn schema_five_workspace_migrates_without_changing_existing_projects_and_tasks()
     );
     drop(engine);
     let conn = rusqlite::Connection::open(dir.path().join("workspace.sqlite")).unwrap();
+    historical_schema::remove_schema_14(&conn);
     conn.execute_batch("DROP TABLE proactive_history;DROP TABLE proactive_actions;DROP TABLE proactive_settings;DROP TABLE assistant_turns;DROP TABLE assistant_sessions;DROP TABLE workspace_drafts;DROP TABLE workspace_lifecycle_events;DROP TABLE workspace_lifecycle;DROP TABLE workspace_options;DROP TABLE extraction_drafts;DROP TABLE extraction_batches;DROP TABLE extraction_budget;DROP TABLE memory_lexical;DROP TABLE memory_lexical_state;DROP TABLE revision_facets;DROP TABLE proposal_facets;DROP TABLE extraction_assessments;DROP TABLE memory_corrections;DROP TABLE project_briefs;DROP TABLE assistant_preferences;DROP TABLE coordination_action_versions;DROP TABLE coordination_actions;DROP TABLE coordination_meeting_versions;DROP TABLE coordination_meetings;DROP TABLE coordination_report_versions;DROP TABLE coordination_reports;DROP TABLE deliverable_history;DROP TABLE deliverables;DROP TABLE change_request_history;DROP TABLE change_requests;DROP TABLE governance_revisions;DROP TABLE governance_items;DROP TABLE milestone_tasks;DROP TABLE milestones;DROP TABLE task_follow_ups;DROP TABLE task_follow_up_state;DROP TABLE project_profiles;PRAGMA user_version=5;").unwrap();
     drop(conn);
     let engine = Engine::open(dir.path()).unwrap();
     let state = call(&engine, "get_state", json!({}));
-    assert_eq!(state["workspace"]["schemaVersion"], 13);
+    assert_eq!(state["workspace"]["schemaVersion"], 14);
     assert_eq!(state["tasks"][0], task);
     let overview = call(
         &engine,

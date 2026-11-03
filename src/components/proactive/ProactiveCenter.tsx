@@ -6,6 +6,7 @@ import type { ManagementKind, Project } from '../../types';
 import { Dialog, Spinner } from '../ui';
 import { formatMoment, WorkEmpty } from '../work/shared';
 import { PROACTIVE_STATUS } from './types';
+import { AssistantWorkCenter } from './AssistantWorkCenter';
 import type { ProactiveAction, ProactiveCenterData, ProactiveHistory, ProactiveOperation, ProactiveSettings, ProactiveStatus, ProactiveTargetKind } from './types';
 import './proactive.css';
 
@@ -15,6 +16,7 @@ interface Props {
   onTaskOpen: (taskId: string, projectId: string) => void;
   onManagementOpen: (kind: ManagementKind, id: string, projectId: string) => void;
   onOverviewOpen: (projectId: string) => void;
+  onMemoryReviewOpen: (projectId: string) => void;
   notify: (message: string, error?: boolean) => void;
 }
 
@@ -41,7 +43,8 @@ function nextTime(hours: number | 'tomorrow'): string {
   return localDateTime(value);
 }
 
-export function ProactiveCenter({ projects, projectId, onProjectChange, refreshRevision, onChanged, onTaskOpen, onManagementOpen, onOverviewOpen, notify }: Props) {
+export function ProactiveCenter({ projects, projectId, onProjectChange, refreshRevision, onChanged, onTaskOpen, onManagementOpen, onOverviewOpen, onMemoryReviewOpen, notify }: Props) {
+  const [mode, setMode] = useState<'work' | 'reminders'>('work');
   const [query, setQuery] = useState<{ scope: string; data: ProactiveCenterData | null; loading: boolean; error: string }>({ scope: projectId, data: null, loading: true, error: '' });
   const [reload, setReload] = useState(0);
   const [status, setStatus] = useState<ProactiveStatus>('ready');
@@ -113,8 +116,9 @@ export function ProactiveCenter({ projects, projectId, onProjectChange, refreshR
   return <div className="work-page proactive-page">
     <div className="work-page-heading"><div><h2>待处理行动</h2></div></div>
     <div className="proactive-scroll">
-      <div className="proactive-toolbar"><label className="proactive-scope"><span>项目</span><select aria-label="主动行动项目范围" value={projectId} disabled={!!busy} onChange={(event) => onProjectChange(event.target.value)}><option value="">全部项目</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label><div className="proactive-toolbar-actions">{data && <span className={`proactive-run-state${data.settings.enabled ? ' is-running' : ''}`}><span />{data.settings.enabled ? '自动巡检中' : '巡检已暂停'}</span>}<button className="button secondary compact" disabled={!!busy || loading || !data?.settings.enabled} onClick={scan}>{busy === 'scan' ? <Spinner /> : <Radar size={14} />}立即巡检</button></div></div>
-      {loading ? <div className="proactive-loading" role="status"><Spinner />正在读取主动行动…</div> : error ? <div className="proactive-load-error" role="alert"><CircleAlert size={18} /><div><strong>暂时无法读取主动行动</strong><p>{error}</p><button className="text-button" onClick={reread}>重新读取</button></div></div> : data && <>
+      <div className="proactive-mode-switch" aria-label="行动视图"><button aria-pressed={mode === 'work'} onClick={() => { setMode('work'); setOperation(null); }}>持续推进</button><button aria-pressed={mode === 'reminders'} onClick={() => setMode('reminders')}>巡检提醒</button></div>
+      <div className="proactive-toolbar"><label className="proactive-scope"><span>项目</span><select aria-label="主动行动项目范围" value={projectId} disabled={!!busy} onChange={(event) => onProjectChange(event.target.value)}><option value="">全部项目</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>{mode === 'reminders' && <div className="proactive-toolbar-actions">{data && <span className={`proactive-run-state${data.settings.enabled ? ' is-running' : ''}`}><span />{data.settings.enabled ? '自动巡检中' : '巡检已暂停'}</span>}<button className="button secondary compact" disabled={!!busy || loading || !data?.settings.enabled} onClick={scan}>{busy === 'scan' ? <Spinner /> : <Radar size={14} />}立即巡检</button></div>}</div>
+      {mode === 'work' ? <AssistantWorkCenter key={projectId} projectId={projectId} refreshRevision={refreshRevision} onChanged={onChanged} onTaskOpen={onTaskOpen} onMemoryReviewOpen={onMemoryReviewOpen} notify={notify} /> : loading ? <div className="proactive-loading" role="status"><Spinner />正在读取主动行动…</div> : error ? <div className="proactive-load-error" role="alert"><CircleAlert size={18} /><div><strong>暂时无法读取主动行动</strong><p>{error}</p><button className="text-button" onClick={reread}>重新读取</button></div></div> : data && <>
         {!data.settings.enabled && <div className="proactive-paused"><span>巡检已暂停，已有跟进记录仍可处理。</span><button className="text-button" disabled={!!busy} onClick={() => void saveSettings(data.settings, true, data.settings.reviewMinutes)}>{busy === 'settings' && <Spinner />}启用巡检<ArrowRight size={12} /></button></div>}
         {data.lastError && <p className="proactive-runtime-error" role="alert"><CircleAlert size={13} />上次巡检未完成：{data.lastError}</p>}
         <nav className="proactive-tabs" aria-label="行动状态">{STATUSES.map((value) => <button key={value} aria-current={status === value ? 'page' : undefined} className={status === value ? 'active' : ''} onClick={() => chooseStatus(value)}>{PROACTIVE_STATUS[value]}<span>{data.counts[value]}</span></button>)}</nav>

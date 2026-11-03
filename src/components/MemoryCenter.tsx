@@ -67,11 +67,12 @@ function ReviewCard({ review, projects, disabled, resolve, recompare }: { review
   </article>;
 }
 
-export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources', onAccount, onModelSettings }: {
+export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources', initialReviewProjectId = '', onAccount, onModelSettings }: {
   projects: Project[]; close: () => void; onSaved: () => Promise<unknown>;
-  initialTab?: 'sources' | 'reviews'; onAccount?: () => void; onModelSettings?: () => void;
+  initialTab?: 'sources' | 'reviews'; initialReviewProjectId?: string; onAccount?: () => void; onModelSettings?: () => void;
 }) {
   const [tab, setTab] = useState<'sources' | 'policy' | 'reviews' | 'history' | 'quality'>(initialTab);
+  const [reviewProjectId, setReviewProjectId] = useState(initialReviewProjectId);
   const [data, setData] = useState<Maintenance | null>(null);
   const [sync, setSync] = useState<SyncStatus | null>(null);
   const [policy, setPolicy] = useState<Policy | null>(null);
@@ -83,6 +84,7 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
   const initialized = useRef(false);
   const alive = useRef(true);
   const refreshing = useRef(false);
+  useEffect(() => { setReviewProjectId(initialReviewProjectId); }, [initialReviewProjectId]);
   const refresh = useCallback(async () => {
     const [a, b] = await Promise.all([execute<Maintenance>('get_memory_maintenance'), execute<SyncStatus>('get_feishu_sources')]);
     if (!alive.current) return;
@@ -106,6 +108,8 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
   };
   const dirty = !!form && !!sync && JSON.stringify(form) !== JSON.stringify(sync.settings);
   const policyDirty = !!policy && !!data && (['enabled', 'idleSeconds', 'dailyCalls', 'autoNew'] as const).some((key) => policy[key] !== data.settings[key]);
+  const reviewProject = projects.find((project) => project.id === reviewProjectId);
+  const visibleReviews = data?.reviews.filter((review) => !reviewProjectId || review.projectId === reviewProjectId) ?? [];
   const patchSource = (index: number, patch: Partial<Subscription>) => setForm((old) => old ? { ...old, sources: old.sources.map((s, i) => i === index ? { ...s, ...patch } : s) } : old);
   const resolve = (review: Review, kind: string, content?: string) => void action(review.id, async () => { await execute('resolve_memory_review', { reviewId: review.id, action: kind, baseRevision: review.targetRevision, content }); setNotice('已处理，记忆历史与原文依据已保留。'); });
   return <Dialog title="记忆中心" subtitle="同步飞书资料，整理项目记忆，确认内容变化。" wide close={close} busy={!!busy}>
@@ -144,7 +148,16 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
           <details className="feishu-permissions"><summary>查看整理规则</summary><p>相同内容合并原文依据；修改、冲突、相似和不确定的内容进入「待确认」。自动加入的记忆会标记「自动整理」，每次变更保留历史。手动导入的候选仍需确认。</p><p>仅在应用运行期间整理。恢复备份后需重新启用。</p></details>
           <div className="memory-source-actions"><button className="button primary compact" disabled={!!busy || !policyDirty} onClick={() => void action('policy', async () => { const next = await execute<Policy>('save_memory_maintenance', policy as unknown as Record<string, unknown>); setPolicy(next); setNotice('整理设置已保存。'); })}>保存设置</button><button className="button secondary compact" disabled={!!busy || policyDirty} onClick={() => void action('run', async () => { await execute('run_memory_maintenance'); setNotice('已安排一项整理，可在「整理记录」查看结果。'); })}>立即整理一项</button><button className="text-button tiny" disabled={!!busy} onClick={() => void action('retry', async () => { await execute('retry_memory_maintenance'); await execute('run_memory_maintenance'); setNotice('已安排重新比较。提取失败的资料请在项目中重试。'); })}>重试失败项</button></div>
         </>}
-        {tab === 'reviews' && <>{data.reviews.length === 0 ? <div className="feishu-empty"><Check size={25} strokeWidth={1.5} /><p>没有待确认内容</p><span>同步整理后，需要你判断的内容变化会出现在这里。</span></div> : data.reviews.map((review) => <ReviewCard key={review.id} review={review} projects={projects} disabled={!!busy} resolve={resolve} recompare={(r) => void action(r.id, async () => { await execute('recompare_memory_review', { reviewId: r.id }); setNotice('已排队重新比较。'); })} />)}</>}
+        {tab === 'reviews' && <>
+          <label className="field-label" htmlFor="memory-review-project">待确认项目范围</label>
+          <select id="memory-review-project" value={reviewProjectId} disabled={!!busy} onChange={(event) => { setReviewProjectId(event.target.value); setNotice(''); }}>
+            <option value="">全部项目</option>
+            {reviewProjectId && !reviewProject && <option value={reviewProjectId}>指定项目（当前不可用）</option>}
+            {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+          </select>
+          <p className="field-hint">当前显示{reviewProjectId ? `「${reviewProject?.name ?? '指定项目'}」` : '全部项目'}的 {visibleReviews.length} 条待确认内容。</p>
+          {visibleReviews.length === 0 ? <div className="feishu-empty"><Check size={25} strokeWidth={1.5} /><p>{reviewProjectId ? '当前项目没有待确认内容' : '没有待确认内容'}</p><span>{reviewProjectId ? '此筛选范围内暂无需要判断的内容变化。' : '同步整理后，需要你判断的内容变化会出现在这里。'}</span>{reviewProjectId && data.reviews.length > 0 && <button type="button" className="text-button tiny" onClick={() => setReviewProjectId('')}>查看全部项目</button>}</div> : visibleReviews.map((review) => <ReviewCard key={review.id} review={review} projects={projects} disabled={!!busy} resolve={resolve} recompare={(r) => void action(r.id, async () => { await execute('recompare_memory_review', { reviewId: r.id }); setNotice('已排队重新比较。'); })} />)}
+        </>}
         {tab === 'history' && <>
           <h3>最近整理</h3>{data.runs.length ? data.runs.map((run) => <div className="memory-run" key={run.id}><strong>{run.kind === 'extract' ? '提取候选' : '比较记忆'}</strong><span>{time(run.updatedAt)}</span><p>{run.message}</p><small>{({ running: '处理中', succeeded: '已完成', failed: '失败', cancelled: '已取消' } as Record<string, string>)[run.status]}</small></div>) : <p className="field-hint">还没有整理记录。</p>}
           <h3>最近采集的原文</h3>{data.origins.map((o) => <div className="memory-run" key={o.sourceId}><strong>{o.provider === 'feishu_chat' ? '群消息' : '飞书文档'} · 版本 {o.remoteRevision.slice(0, 12)}</strong><span>采集：{time(o.fetchedAt)}</span><p>作者：{o.author}<br />发生时间：{o.occurredAt}<br /><span className="memory-source-url">{o.url}</span></p></div>)}

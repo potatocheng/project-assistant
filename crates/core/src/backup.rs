@@ -280,11 +280,16 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
         conn.query_row("SELECT count(*) FROM pragma_foreign_key_check", [], |r| {
             r.get(0)
         })?;
-    let unexpected: i64 = conn.query_row(
-        "SELECT count(*) FROM sqlite_master WHERE type IN ('trigger','view')",
-        [],
-        |r| r.get(0),
-    )?;
+    let unexpected: i64 = if version >= 14 {
+        crate::orchestration::validate_expected_triggers(&conn)?;
+        0
+    } else {
+        conn.query_row(
+            "SELECT count(*) FROM sqlite_master WHERE type IN ('trigger','view')",
+            [],
+            |r| r.get(0),
+        )?
+    };
     if fk_count != 0 || unexpected != 0 {
         return Err(AppError::new("INVALID_BACKUP", "备份数据库结构或关联异常"));
     }
@@ -369,6 +374,9 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
         crate::change_control::validate_backup(&conn)?;
         crate::coordination::validate_backup(&conn)?;
         crate::proactive::validate_backup(&conn)?;
+        crate::orchestration::validate_backup(&conn)?;
+        crate::assistance_audit::validate_backup(&conn)?;
+        crate::assistance_limits::validate_backup(&conn)?;
         crate::memory_workbench::validate_backup(&conn)?;
         crate::memory_facts::validate_backup(&conn)?;
         crate::extraction_store::validate_backup(&conn)?;
@@ -389,6 +397,9 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
     crate::change_control::validate_backup(&conn)?;
     crate::coordination::validate_backup(&conn)?;
     crate::proactive::validate_backup(&conn)?;
+    crate::orchestration::validate_backup(&conn)?;
+    crate::assistance_audit::validate_backup(&conn)?;
+    crate::assistance_limits::validate_backup(&conn)?;
     crate::memory_workbench::validate_backup(&conn)?;
     crate::memory_facts::validate_backup(&conn)?;
     crate::extraction_store::validate_backup(&conn)?;
@@ -594,6 +605,7 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
     }
     let data = validate(&db.root, p)?;
     let old_extraction_budget = crate::extraction_store::budget_records(&db.conn)?;
+    let old_assistance_requests = crate::assistance_limits::records(&db.conn)?;
     let old_budget = {
         let mut statement = db.conn.prepare("SELECT day,calls FROM memory_budget")?;
         let rows = statement
@@ -646,6 +658,7 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
         db.conn.execute("INSERT INTO memory_budget VALUES(?,?) ON CONFLICT(day) DO UPDATE SET calls=max(calls,excluded.calls)",params![day,calls])?;
     }
     crate::extraction_store::preserve_budgets(&db.conn, &old_extraction_budget)?;
+    crate::assistance_limits::preserve(&db.conn, &old_assistance_requests)?;
     db.conn.execute("UPDATE jobs SET status='cancelled',stage='还原后已暂停，请手动重试',error=NULL,error_code='RESTORED_PAUSED',generation=generation+1,updated_at=? WHERE kind='extract' AND status IN ('queued','running')",[now()])?;
     // Parsing may resume, but a restored import must never inherit authority to send material.
     db.conn
@@ -662,6 +675,8 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
     // Keep the action/audit trail, but restored authority never starts a patrol.
     // Re-enabling explicitly performs a fresh scan against the restored sources.
     crate::proactive::pause_after_restore(&db.conn)?;
+    crate::orchestration::pause_after_restore(&db.conn)?;
+    crate::assistance_audit::interrupt_running(&db.conn, "restore")?;
     db.recovered_jobs=db.conn.execute("UPDATE jobs SET status='queued',stage='等待恢复',recovered=1,generation=generation+1,updated_at=? WHERE kind='import' AND status IN ('queued','running')",[now()])?;
     // The journal is the commit marker. A process crash before removal always rolls back.
     db.conn.execute_batch("PRAGMA wal_checkpoint(FULL);")?;

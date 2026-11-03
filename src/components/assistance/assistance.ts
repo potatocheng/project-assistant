@@ -7,11 +7,23 @@ export interface AssistanceItem {
   title: string; analysis: string; action: string; taskId: string | null;
   evidence: Array<{ referenceId: string; quote: string }>;
 }
+export interface AssistanceReview {
+  version: string; status: 'passed';
+  checks: Array<{ unitId: string; kind: 'fact' | 'hypothesis' | 'suggestion' | 'unknown'; verdict: 'supported' | 'qualified' | 'appropriate' | 'unknown'; referenceIds: string[]; reason: string }>;
+  unknowns: string[]; limitation: string;
+}
+export interface AssistanceQueryTrace {
+  version: string; modelCalls: number; maxModelCalls: number; inputChars: number; maxInputChars: number;
+  elapsedMs: number; timeoutSeconds: number; reportedTokens: number; usageComplete: boolean;
+  tokenBudgetMode: string; cacheHit: boolean;
+  stages: Array<{ stage: string; elapsedMs: number; inputChars: number; usage: { inputTokens: number; outputTokens: number; totalTokens: number } | null; errorCode?: string }>;
+}
 export interface Assistance {
   focus: AssistanceItem[]; risks: AssistanceItem[]; actions: AssistanceItem[];
   questions: string[]; communicationDraft: string; citations: AssistantCitation[];
   generatedAt: string; model: string; mode: 'model'; cached: boolean; fingerprint: string;
   date: string; projectId: string | null; referenceCount: number; limited: boolean; limitations: string[];
+  runId?: string; review?: AssistanceReview; queryTrace?: AssistanceQueryTrace;
 }
 
 // Ignore polling object identities and draft saves; regenerate when project evidence changes.

@@ -41,8 +41,17 @@ export function AssistanceContent({ data, onTaskOpen, coach = false }: { data: A
 }
 
 export function AssistanceMeta({ data }: { data: Assistance }) {
+  const trace = data.queryTrace;
+  const reused = data.cached || trace?.cacheHit;
+  const hasReportedUsage = trace?.stages.some(stage => stage.usage != null);
+  const reviewKinds = { fact: '事实', hypothesis: '推断', suggestion: '建议', unknown: '待核实信息' };
   return <details className="ai-assistance-meta"><summary>AI 分析于 {new Date(data.generatedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}{data.cached ? ' · 已复用' : ''}<span> · 查看分析范围</span></summary>
     <p>{data.model} · 参考 {data.referenceCount} 条记录。风险判断与行动为建议，请结合实际情况核对。</p>
+    {data.review && <div className="ai-assistance-review"><p><strong>事实与建议已完成模型复核。</strong>{data.review.limitation}</p>
+      {data.review.unknowns.length > 0 && <div><p>仍需核实：</p><ul>{data.review.unknowns.map((unknown, index) => <li key={index}>{unknown}</li>)}</ul></div>}
+      {data.review.checks.length > 0 && <details><summary>查看 {data.review.checks.length} 项复核说明</summary><ul>{data.review.checks.map((check, index) => <li key={`${check.unitId}:${index}`}><strong>{reviewKinds[check.kind]}</strong> · {check.reason}</li>)}</ul></details>}
+    </div>}
+    {trace && <div className="ai-assistance-usage"><p>{reused ? '原分析' : '本次分析'}调用模型 {trace.modelCalls} 次{trace.modelCalls === 2 && data.review ? '，包含生成与复核' : ''}。{hasReportedUsage ? <>提供方已报告 {trace.reportedTokens.toLocaleString('zh-CN')} tokens。{!trace.usageComplete && '部分调用未报告用量，实际消耗尚不完整。'}</> : '提供方未报告 tokens 用量，实际消耗未知。'}</p>{reused && <p>本次复用已有分析，没有新增模型请求；上方用量为原分析记录。</p>}</div>}
     {data.limited && <p>仅分析部分相关资料，可切换项目缩小范围。</p>}
     {data.limitations.map((item, index) => <p key={index}>{item}</p>)}
   </details>;

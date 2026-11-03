@@ -1,6 +1,8 @@
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
 use project_assistant_core::{Engine, Request};
 use serde_json::{json, Value};
+#[path = "common/schema.rs"]
+mod historical_schema;
 
 const DAY: &str = "2026-10-19";
 fn call(e: &Engine, command: &str, payload: Value) -> Value {
@@ -145,11 +147,12 @@ fn schema_six_migrates_without_changing_delivery_state() {
     let t = task(&e, &p);
     drop(e);
     let conn = rusqlite::Connection::open(dir.path().join("workspace.sqlite")).unwrap();
+    historical_schema::remove_schema_14(&conn);
     conn.execute_batch("DROP TABLE proactive_history;DROP TABLE proactive_actions;DROP TABLE proactive_settings;DROP TABLE assistant_turns;DROP TABLE assistant_sessions;DROP TABLE workspace_drafts;DROP TABLE workspace_lifecycle_events;DROP TABLE workspace_lifecycle;DROP TABLE workspace_options;DROP TABLE extraction_drafts;DROP TABLE extraction_batches;DROP TABLE extraction_budget;DROP TABLE memory_lexical;DROP TABLE memory_lexical_state;DROP TABLE revision_facets;DROP TABLE proposal_facets;DROP TABLE extraction_assessments;DROP TABLE memory_corrections;DROP TABLE project_briefs;DROP TABLE assistant_preferences;DROP TABLE coordination_action_versions;DROP TABLE coordination_actions;DROP TABLE coordination_meeting_versions;DROP TABLE coordination_meetings;DROP TABLE coordination_report_versions;DROP TABLE coordination_reports;DROP TABLE deliverable_history;DROP TABLE deliverables;DROP TABLE change_request_history;DROP TABLE change_requests;DROP TABLE governance_revisions;DROP TABLE governance_items;PRAGMA user_version=6;").unwrap();
     drop(conn);
     let e = Engine::open(dir.path()).unwrap();
     let state = call(&e, "get_state", json!({}));
-    assert_eq!(state["workspace"]["schemaVersion"], 13);
+    assert_eq!(state["workspace"]["schemaVersion"], 14);
     assert_eq!(state["tasks"][0], t);
     assert_eq!(
         call(&e, "get_management_attention", json!({"date":DAY}))["count"],

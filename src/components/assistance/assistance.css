@@ -24,6 +24,10 @@
 .ai-assistance-meta { margin-top: 12px; color: var(--secondary); font-size: 12px; line-height: 1.8; }
 .ai-assistance-meta summary { width: fit-content; cursor: pointer; padding: 4px 0; }
 .ai-assistance-meta p { max-width: 75ch; margin: 6px 0; overflow-wrap: anywhere; }
+.ai-assistance-review { margin-top: 12px; }
+.ai-assistance-review ul { max-width: 75ch; margin: 8px 0; padding-inline-start: 20px; overflow-wrap: anywhere; }
+.ai-assistance-review li + li { margin-top: 6px; }
+.ai-assistance-usage { margin-top: 12px; font-variant-numeric: tabular-nums; }
 .ai-task-coach { padding: 16px 0; }
 .ai-task-coach textarea { width: 100%; resize: vertical; min-height: 80px; }
 .ai-task-coach .field-label { margin-top: 14px; }
