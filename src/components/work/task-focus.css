@@ -5,13 +5,13 @@
 
 .task-focus-page .work-page-heading h2 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--fs-3xl);
   line-height: 1.4;
 }
 
 .task-focus-controls {
   flex-shrink: 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--border);
 }
 
 .task-focus-page .task-focus-controls .work-filters {
@@ -28,19 +28,19 @@
   padding: 7px 9px;
   margin-left: auto;
   border: 0;
-  border-radius: 6px;
-  color: var(--secondary);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
   background: transparent;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .task-focus-page .task-filter-toggle:hover,
 .task-focus-page .task-filter-toggle[aria-expanded='true'] {
-  background: #eef3ed;
+  background: var(--bg-muted);
 }
 
 .task-focus-page .task-filter-toggle.is-active {
-  color: var(--green);
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -68,7 +68,7 @@
   min-width: 125px;
   min-height: 35px;
   padding: 7px 10px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .task-filter-search {
@@ -77,10 +77,10 @@
   gap: 8px;
   width: 230px;
   padding: 7px 10px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  color: var(--muted);
-  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--bg-surface);
 }
 
 .task-focus-page .task-filter-search input:not([type='checkbox']):not([type='file']) {
@@ -89,27 +89,27 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   box-shadow: none;
 }
 
 .task-filter-search:focus-within {
-  border-color: var(--green);
-  box-shadow: 0 0 0 2px #4f79550e;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
 }
 
 .task-filter-day {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--muted);
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
 }
 
 .task-focus-page .task-filter-day input:not([type='checkbox']):not([type='file']) {
   width: 130px;
   padding: 7px 8px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .task-focus-page .task-list-toolbar {
@@ -130,15 +130,15 @@
 
 .task-focus-page .task-list-heading h3 {
   margin: 0;
-  font-size: 15px;
-  color: var(--ink);
+  font-size: var(--fs-md);
+  color: var(--text);
   font-weight: 600;
 }
 
 .task-focus-page .task-list-heading > span {
   padding: 0;
-  color: var(--muted);
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
 }
 
 .task-arrange-button {
@@ -157,7 +157,7 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-top: 6px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
 }
 
 .task-focus-page .task-inspector {
@@ -170,7 +170,7 @@
 
 .task-focus-page .task-detail-heading h3 {
   margin-top: 7px;
-  font-size: 18px;
+  font-size: var(--fs-xl);
 }
 
 .task-focus-page .task-attributes {
@@ -189,12 +189,12 @@
 }
 
 .task-focus-page .task-attributes dt {
-  font-size: 11px;
+  font-size: var(--fs-xs);
 }
 
 .task-focus-page .task-attributes dd {
   text-align: left;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .task-progress-details > summary {
@@ -203,8 +203,8 @@
   gap: 6px;
   padding: 3px 0;
   list-style: none;
-  color: var(--secondary);
-  font-size: 12px;
+  color: var(--text-secondary);
+  font-size: var(--fs-xs);
   font-weight: 550;
   cursor: pointer;
 }
@@ -215,8 +215,8 @@
 
 .task-progress-details > summary > span {
   margin-left: auto;
-  color: var(--muted);
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
   font-weight: 400;
 }
 
@@ -229,7 +229,7 @@
 
 .task-focus-page button:focus-visible,
 .task-focus-page summary:focus-visible {
-  outline: 2px solid var(--green);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -255,7 +255,7 @@
     padding-bottom: 18px;
   }
 
-  .task-focus-page .work-page-heading h2 { font-size: 24px; }
+  .task-focus-page .work-page-heading h2 { font-size: var(--fs-2xl); }
   .task-focus-page .work-heading-actions .button { padding: 8px 11px; }
   .task-focus-filter-panel { padding-left: 22px; padding-right: 22px; }
   .task-focus-page .task-focus-controls .work-filters { gap: 9px; }
@@ -265,7 +265,7 @@
   .task-focus-page .task-focus-filter-panel > select { min-width: 105px; }
   .task-focus-page .task-list-toolbar { flex-wrap: nowrap; align-items: center; }
   .task-focus-page .task-list-heading { flex-direction: column; gap: 4px; padding: 0; }
-  .task-focus-page .task-arrange-button { font-size: 11px; }
+  .task-focus-page .task-arrange-button { font-size: var(--fs-xs); }
   .task-focus-page .task-row { padding-top: 16px; padding-bottom: 16px; }
 }
 

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, ArrowUp, Check, ChevronDown, ChevronRight, CircleAlert, Link2, RefreshCw } from 'lucide-react';
+import { ArrowRight, ArrowUp, Check, ChevronDown, ChevronRight, CircleAlert, Link2, RefreshCw, Sparkles } from 'lucide-react';
 import type { AppState, ManagementKind, Page, Task } from '../types';
 import { KIND_LABELS, TASK_STATUS } from '../types';
-import { WaterMark } from './WaterMark';
+import { BrandMark } from './shell/BrandMark';
 import { Dialog, Spinner } from './ui';
 import { TaskCoach } from './coach/TaskCoach';
 import { useDeliveryQuery } from './delivery/shared';
@@ -110,7 +110,7 @@ export function Workbench(props: WorkbenchProps) {
     <div className="ah-document">
       <header className="ah-heading"><div><p className="ah-date">{new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' }).format(new Date(`${date}T12:00:00`))}</p><h1>今天，先关注这些</h1></div><label className="ah-scope"><span className="visually-hidden">工作台项目范围</span><select value={projectId} onChange={event => props.onProjectChange(event.target.value)}><option value="">全部项目</option>{state.projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select><ChevronDown size={14}/></label></header>
       {gettingStarted ? <section className="ah-onboarding"><h2>从一项工作开始</h2><p>新建任务，或导入项目资料，让助理整理待办和变化。</p><div className="ah-onboarding-actions"><button className="button primary" onClick={props.onCreateTask}>新建任务</button><button className="button secondary" onClick={() => props.onNavigate('sources')}>导入资料</button><button className="ah-link" onClick={props.onConnect}>连接聊天与文档<ArrowRight size={13}/></button></div><button className="ah-link" onClick={() => props.onNavigate('overview')}>设置项目目标与里程碑<ArrowRight size={13}/></button></section> : <>
-      <section className="ah-brief" aria-label="今日工作摘要"><WaterMark size={28}/><div><p>{today.length ? <>你有 <strong>{today.length} 项</strong>工作需要推进。{focused?.urgent ? '先处理阻塞和逾期事项。' : '已按截止时间和优先级整理。'}</> : pendingCount ? `有 ${pendingCount} 条内容待处理，核对后继续安排工作。` : '今天还没有安排任务。'}{!delivery.loading && !delivery.error && riskProjects.length > 0 && <>另有 <strong>{riskProjects.length} 个项目</strong>出现交付风险。</>}</p><span>{focused ? `建议先看：${focused.task.title}` : <button className="ah-link" onClick={pendingCount ? () => props.onNavigate('inbox') : props.onCreateTask}>{pendingCount ? '查看待处理内容' : '新建任务'}<ArrowRight size={13}/></button>}</span></div></section>
+      <section className="ah-brief" aria-label="今日工作摘要"><BrandMark size={26}/><div><p>{today.length ? <>你有 <strong>{today.length} 项</strong>工作需要推进。{focused?.urgent ? '先处理阻塞和逾期事项。' : '已按截止时间和优先级整理。'}</> : pendingCount ? `有 ${pendingCount} 条内容待处理，核对后继续安排工作。` : '今天还没有安排任务。'}{!delivery.loading && !delivery.error && riskProjects.length > 0 && <>另有 <strong>{riskProjects.length} 个项目</strong>出现交付风险。</>}</p><span>{focused ? `建议先看：${focused.task.title}` : <button className="ah-link" onClick={pendingCount ? () => props.onNavigate('inbox') : props.onCreateTask}>{pendingCount ? '查看待处理内容' : '新建任务'}<ArrowRight size={13}/></button>}</span></div></section>
       {!sources.length && !subscriptions.length && !sync.loading && <div className="ah-start"><div><strong>先接入项目信息</strong><p>连接项目群聊与文档，或导入现有资料，让助理开始整理待办和变化。</p></div><button className="button primary compact" onClick={props.onConnect}>连接聊天与文档</button><button className="ah-link" onClick={() => props.onNavigate('sources')}>导入资料<ArrowRight size={13}/></button></div>}
       {problems.length > 0 && <details className="ah-problems"><summary><CircleAlert size={14}/>部分信息读取失败，当前内容可能不完整</summary>{problems.map(({ label, query, message }) => <div key={label}><span>{label}：{message}</span><button className="text-button" onClick={query.refresh} disabled={query.loading || query.refreshing} aria-busy={query.refreshing}>{query.refreshing ? '更新中…' : '重试'}<RefreshCw size={12}/></button></div>)}</details>}
 
@@ -163,5 +163,5 @@ export function Workbench(props: WorkbenchProps) {
 
 function AssistantComposer({ onAsk }: { onAsk: (question: string) => void }) {
   const [question, setQuestion] = useState('');
-  return <div className="ah-compose-dock"><form className="ah-compose" onSubmit={event => { event.preventDefault(); if (question.trim()) onAsk(question.trim()); }}><WaterMark size={25}/><label className="visually-hidden" htmlFor="ah-question">向项目助理提问</label><input id="ah-question" placeholder="问问助理，例如：哪个项目可能延期？" value={question} onChange={event => setQuestion(event.target.value)} maxLength={1500}/><button aria-label="发送问题" disabled={!question.trim()}><ArrowUp size={19}/></button></form><p>根据已接入的聊天、资料和工作记录回答，附原文依据</p></div>;
+  return <div className="ah-compose-dock"><form className="ah-compose" onSubmit={event => { event.preventDefault(); if (question.trim()) onAsk(question.trim()); }}><Sparkles className="ai-mark" size={18} aria-hidden="true"/><label className="visually-hidden" htmlFor="ah-question">向项目助理提问</label><input id="ah-question" placeholder="问问助理，例如：哪个项目可能延期？" value={question} onChange={event => setQuestion(event.target.value)} maxLength={1500}/><button aria-label="发送问题" disabled={!question.trim()}><ArrowUp size={19}/></button></form><p>根据已接入的聊天、资料和工作记录回答，附原文依据</p></div>;
 }

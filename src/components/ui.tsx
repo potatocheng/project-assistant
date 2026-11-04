@@ -94,7 +94,7 @@ export function Dialog({ title, subtitle, children, close, busy, wide = false }:
     return () => {
       document.removeEventListener('keydown', handler);
       if (previous?.isConnected && !previous.closest('[inert]')) previous.focus({ preventScroll: true });
-      else document.querySelector<HTMLButtonElement>('.water-menu-trigger')?.focus({ preventScroll: true });
+      else Array.from(document.querySelectorAll<HTMLElement>('.sidebar-link[aria-current="page"], .mobile-bar .icon-button')).find(element => element.getClientRects().length > 0)?.focus({ preventScroll: true });
     };
   }, [requestClose]);
   return createPortal(<div className={`dialog-overlay ${exiting ? 'is-leaving' : ''}`} ref={overlay} onPointerDown={event => { backdropPressed.current = event.target === event.currentTarget; }} onPointerUp={event => { if (backdropPressed.current && event.target === event.currentTarget) requestClose(); backdropPressed.current = false; }} onPointerCancel={() => { backdropPressed.current = false; }}><div className={`dialog ${wide ? 'dialog-wide' : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={subtitle ? subtitleId : undefined} aria-busy={Boolean(busy)} tabIndex={-1} ref={ref}>
