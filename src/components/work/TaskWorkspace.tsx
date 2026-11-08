@@ -132,7 +132,7 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
       </div>
     </div>
     <div className="task-focus-controls">
-      {mode === 'daily' ? <WorkFilters day={day} onDayChange={setDay} projects={state.projects} projectId={projectId} onProjectChange={setProjectId} useAstryx>{filterToggle}</WorkFilters>
+      {mode === 'daily' ? <WorkFilters day={day} onDayChange={setDay} projects={state.projects} projectId={projectId} onProjectChange={setProjectId}>{filterToggle}</WorkFilters>
         : <div className="work-filters task-project-controls"><Selector label="筛选项目" isLabelHidden containerClassName="astryx-task-project-filter"
           value={projectId} onChange={setProjectId} options={projectOptions} />{filterToggle}</div>}
       {filtersOpen && <div className="task-focus-filter-panel" id="task-filter-panel">

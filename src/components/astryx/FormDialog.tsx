@@ -28,7 +28,7 @@ export function FormDialog({ title, subtitle, children, close, busy = false, wid
     aria-labelledby={`${id}-title`} aria-describedby={subtitle ? `${id}-subtitle` : undefined}
     aria-busy={busy}>
     <div className="astryx-form-header">
-      <div><h2 id={`${id}-title`}>{title}</h2>
+      <div><h2 id={`${id}-title`} tabIndex={-1} data-autofocus="dialog-title">{title}</h2>
         {subtitle && <p id={`${id}-subtitle`}>{subtitle}</p>}
         {busy && <span className="dialog-busy" role="status"><Spinner />正在处理，请稍候…</span>}
       </div>

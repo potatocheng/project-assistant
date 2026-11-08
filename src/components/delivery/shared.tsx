@@ -1,3 +1,4 @@
+import { Button } from '@astryxdesign/core/Button';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CircleAlert, RefreshCw } from 'lucide-react';
 import { asError, execute } from '../../api';
@@ -60,8 +61,8 @@ export function useDeliveryQuery<T>(command: string, date: string, projectId: st
 
 export function DeliveryLoad({ loading, error, refreshError, refreshing, retry, title }: { loading: boolean; error: string; refreshError?: string; refreshing?: boolean; retry: () => void; title: string }) {
   if (loading) return <div className="loading-view"><Spinner />正在加载{title}…</div>;
-  if (error) return <WorkEmpty title={`${title}暂时无法读取`} action={<button className="button secondary" onClick={retry}><RefreshCw size={14} />重试</button>}>{error}</WorkEmpty>;
-  if (refreshError) return <div className="form-error" role="alert"><CircleAlert size={15} /><span>更新失败，仍显示上次读取的{title}。{refreshError}</span><button className="text-button tiny" onClick={retry} disabled={refreshing}>重新更新</button></div>;
+  if (error) return <WorkEmpty title={`${title}暂时无法读取`} action={<Button label="重试" onClick={retry} variant="secondary" icon={<RefreshCw size={14} />} />}>{error}</WorkEmpty>;
+  if (refreshError) return <div className="form-error" role="alert"><CircleAlert size={15} /><span>更新失败，仍显示上次读取的{title}。{refreshError}</span><Button label="重新更新" onClick={retry} isDisabled={refreshing} className="astryx-inline-action" variant="ghost" size="sm" /></div>;
   return null;
 }
 

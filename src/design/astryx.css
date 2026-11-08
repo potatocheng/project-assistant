@@ -58,9 +58,37 @@
 .astryx-task-status-filter { width: 180px; max-width: 100%; }
 .astryx-task-filter-toggle { margin-left: auto; }
 
+/* Shared working surfaces keep Ledger spacing while controls own their internals. */
+.astryx-inline-action { color: var(--accent-text); }
+.astryx-form-fields { display: flex; flex-direction: column; gap: 18px; }
+.astryx-form-fields > .field-label, .astryx-form-fields > .field-hint { margin-top: 0; }
+.astryx-form-fields > details { min-width: 0; }
+.astryx-field-action { align-self: flex-start; margin-top: -12px; }
+.astryx-setting-check { margin-top: 12px; }
+.astryx-filter, .astryx-project-filter { width: 220px; max-width: 100%; min-width: 0; }
+.astryx-filter-search { flex: 1; min-width: 0; }
+.astryx-conversation-filter { width: 260px; max-width: 100%; }
+.astryx-followup-subject { flex: 1; min-width: 0; }
+.astryx-followup-filters { flex-wrap: wrap; }
+.astryx-inbox-tabs { flex-shrink: 0; padding-inline: 24px; }
+.chat-replies-filters .astryx-filter { width: auto; }
+.astryx-report-editor { margin-block: 16px; min-width: 0; }
+.astryx-report-editor textarea { font-family: var(--font-mono); font-size: var(--fs-sm); line-height: 1.8; }
+.astryx-report-editor-control { background: var(--bg-surface); }
+
+@media (max-width: 1100px) {
+  .chat-replies-filters .astryx-filter-search { grid-column: 1 / -1; }
+}
+
 @media (max-width: 600px) {
   .astryx-form-header { padding: 20px; gap: 12px; }
   .astryx-form-dialog .dialog-footer .footer-note { flex-basis: 100%; }
   .astryx-task-search, .astryx-task-status-filter { width: 100%; flex-basis: 100%; }
   .astryx-task-project-filter { flex: 1; min-width: 0; }
+  .astryx-project-filter, .inbox-toolbar > .astryx-filter { flex: 1; min-width: 140px; }
+  .astryx-followup-filters > .astryx-filter, .astryx-followup-filters > .astryx-filter-search { width: 100%; flex-basis: 100%; }
+  .assistant-page .followup-subject { flex-wrap: wrap; }
+  .assistant-page .astryx-followup-subject { flex-basis: 100%; }
+  .assistant-compose-footer { flex-wrap: wrap; }
+  .astryx-inbox-tabs { padding-inline: 20px; }
 }

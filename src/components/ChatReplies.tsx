@@ -1,3 +1,6 @@
+import { Selector } from '@astryxdesign/core/Selector';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { Button } from '@astryxdesign/core/Button';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CircleAlert, MessageCircle, RefreshCw, Search, Settings2 } from 'lucide-react';
 import { asError, execute } from '../api';
@@ -98,38 +101,33 @@ export function ChatReplies({ projects, projectId, onProjectChange, openSettings
         {status?.authorization.user && <span>{status.authorization.user.name || status.authorization.user.openId}</span>}
       </div>
       <div className="chat-replies-actions">
-        <button className="text-button" onClick={openSettings}><Settings2 size={15} />飞书设置</button>
-        <button className="button secondary compact" disabled={!canCheck || checking || status?.runtime.polling} onClick={() => void checkNow()}>
-          {checking || status?.runtime.polling ? <Spinner /> : <RefreshCw size={14} />}立即检查
-        </button>
+        <Button label="飞书设置" onClick={openSettings} className="astryx-inline-action" variant="ghost" icon={<Settings2 size={15} />} />
+        <Button label="立即检查" isDisabled={!canCheck || checking || status?.runtime.polling} onClick={() => void checkNow()} variant="secondary" size="sm" icon={checking || status?.runtime.polling ? <Spinner /> : <RefreshCw size={14} />} />
       </div>
     </div>
     <div className="chat-replies-filters">
-      <select aria-label="聊天回复项目" value={projectId} onChange={(event) => onProjectChange(event.target.value)}>
-        <option value="">全部项目</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
-      </select>
-      <select aria-label="聊天类型" value={channel} onChange={(event) => setChannel(event.target.value)}>
-        <option value="all">全部会话</option><option value="p2p">同事私聊</option><option value="group">群聊 @提问</option>
-      </select>
-      <select aria-label="回复状态" value={result} onChange={(event) => setResult(event.target.value)}>
-        <option value="all">全部状态</option><option value="sent">已回复</option><option value="waiting">待处理</option>
-        <option value="skipped">跳过或取消</option><option value="attention">失败或待核对</option>
-      </select>
-      <label className="chat-replies-search"><Search size={15} /><input aria-label="搜索聊天回复" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索提问、回复或同事…" /></label>
+      <Selector label="聊天回复项目" isLabelHidden value={projectId} onChange={onProjectChange} containerClassName="astryx-filter"
+        options={[{ value: '', label: '全部项目' }, ...projects.map(project => ({ value: project.id, label: project.name }))]} />
+      <Selector label="聊天类型" isLabelHidden value={channel} onChange={setChannel} containerClassName="astryx-filter"
+        options={[{ value: 'all', label: '全部会话' }, { value: 'p2p', label: '同事私聊' }, { value: 'group', label: '群聊 @提问' }]} />
+      <Selector label="回复状态" isLabelHidden value={result} onChange={setResult} containerClassName="astryx-filter"
+        options={[{ value: 'all', label: '全部状态' }, { value: 'sent', label: '已回复' }, { value: 'waiting', label: '待处理' }, { value: 'skipped', label: '跳过或取消' }, { value: 'attention', label: '失败或待核对' }]} />
+      <TextInput label="搜索聊天回复" isLabelHidden value={query} onChange={setQuery} placeholder="搜索提问、回复或同事…"
+        startIcon={<Search size={15} />} containerClassName="astryx-filter-search" />
     </div>
     <div className="chat-replies-caption"><span>{messages.length} 条记录 · 在最近 50 条处理记录内筛选</span>
       <span>{status?.runtime.polling ? '正在检查消息' : `上次检查：${status?.runtime.lastPollAt ? formatMoment(status.runtime.lastPollAt) : '尚未检查'}`}</span>
     </div>
-    {(error || status?.runtime.lastError) && <div className="chat-replies-error" role="alert"><CircleAlert size={17} /><p>{error || status?.runtime.lastError}</p><button className="text-button" onClick={() => void refresh()}>重新读取</button></div>}
+    {(error || status?.runtime.lastError) && <div className="chat-replies-error" role="alert"><CircleAlert size={17} /><p>{error || status?.runtime.lastError}</p><Button label="重新读取" onClick={() => void refresh()} className="astryx-inline-action" variant="ghost" /></div>}
     {notice && <p className="chat-replies-notice" role="status">{notice}</p>}
     <div className="chat-replies-list">
       {loading ? <div className="loading-view"><Spinner /><span>正在读取聊天回复…</span></div>
-        : !status ? <div className="work-empty"><h3>暂时无法读取聊天回复</h3><button className="button secondary" onClick={() => void refresh()}>重新读取</button></div>
+        : !status ? <div className="work-empty"><h3>暂时无法读取聊天回复</h3><Button label="重新读取" onClick={() => void refresh()} variant="secondary" /></div>
           : !messages.length ? <div className="chat-replies-empty"><MessageCircle size={30} strokeWidth={1.4} />
             <h2>{status.recentMessages.length ? '没有匹配的聊天回复' : '还没有聊天回复记录'}</h2>
             <p>{status.recentMessages.length ? '调整项目、会话、状态或搜索条件。' : '启用自动回复后，同事私聊与群内 @提问的处理结果会显示在这里。'}</p>
-            {status.recentMessages.length ? <button className="button secondary" onClick={() => { onProjectChange(''); setChannel('all'); setResult('all'); setQuery(''); }}>清除筛选</button>
-              : <button className="button secondary" onClick={openSettings}>配置飞书自动回复</button>}
+            {status.recentMessages.length ? <Button label="清除筛选" onClick={() => { onProjectChange(''); setChannel('all'); setResult('all'); setQuery(''); }} variant="secondary" />
+              : <Button label="配置飞书自动回复" onClick={openSettings} variant="secondary" />}
           </div> : messages.map((message) => <article className="chat-reply" key={message.id} aria-label={`${message.chatType === 'p2p' ? '私聊' : '群聊'}：${message.question || '无文本提问'}`}>
             <header className="chat-reply-heading">
               <div><span className="chat-reply-channel">{message.chatType === 'p2p' ? '私聊' : '群聊'}</span>
