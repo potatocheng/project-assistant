@@ -4,7 +4,12 @@ import { ArrowRight, CalendarPlus, Check, ChevronDown, ChevronLeft, CircleAlert,
 import { asError, execute } from '../../api';
 import { TASK_CATEGORY, TASK_PRIORITY, TASK_STATUS } from '../../types';
 import type { AppState, DailyList, Evidence, Memory, Project, Task, TaskCategory, TaskDetail, TaskPriority, TaskStatus } from '../../types';
-import { Dialog, Spinner } from '../ui';
+import { Spinner } from '../ui';
+import { FormDialog } from '../astryx/FormDialog';
+import { Button } from '@astryxdesign/core/Button';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { TextArea } from '@astryxdesign/core/TextArea';
+import { Selector } from '@astryxdesign/core/Selector';
 import { formatMoment, localDay, WorkEmpty, WorkFilters } from './shared';
 import { TaskCoach } from '../coach/TaskCoach';
 import { ExplainedText } from '../coach/TermHelp';
@@ -115,12 +120,29 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
     catch { notify('任务已保存，列表刷新失败，请重试。', true); }
   };
   const activeCount = rows.filter((task) => ['todo', 'in_progress', 'blocked'].includes(task.status)).length;
-  const filterToggle = <button className={`task-filter-toggle ${hasFilter ? 'is-active' : ''}`} aria-expanded={filtersOpen} aria-controls="task-filter-panel" onClick={() => setFiltersOpen((open) => !open)}><SlidersHorizontal size={14} />{hasFilter ? '筛选中' : '筛选'}<ChevronDown size={13} /></button>;
+  const projectOptions = [{ value: '', label: '全部项目' }, ...state.projects.map(project => ({ value: project.id, label: project.name }))];
+  const filterToggle = <Button label={hasFilter ? '筛选中' : '筛选'} variant="ghost" size="sm"
+    className="astryx-task-filter-toggle" icon={<SlidersHorizontal size={14} />} endContent={<ChevronDown size={13} />}
+    aria-expanded={filtersOpen} aria-controls="task-filter-panel" onClick={() => setFiltersOpen(open => !open)} />;
   return <div className={`work-page task-focus-page ${mode === 'daily' ? 'work-page-daily' : ''}`}>
-    <div className="work-page-heading"><div><h2>{mode === 'daily' ? '每日清单' : '全部任务'}</h2></div><div className="work-heading-actions">{mode === 'tasks' && hasUnfinishedTasks && <button className="button secondary" onClick={() => setForm('batch')}>批量安排日期</button>}<button className="button primary" onClick={() => setForm('create')} disabled={!state.projects.length}><Plus size={15} />新建任务</button></div></div>
+    <div className="work-page-heading"><div><h2>{mode === 'daily' ? '每日清单' : '全部任务'}</h2></div>
+      <div className="work-heading-actions">
+        {mode === 'tasks' && hasUnfinishedTasks && <Button label="批量安排日期" variant="secondary" onClick={() => setForm('batch')} />}
+        <Button label="新建任务" variant="primary" icon={<Plus size={15} />} onClick={() => setForm('create')} isDisabled={!state.projects.length} />
+      </div>
+    </div>
     <div className="task-focus-controls">
-      {mode === 'daily' ? <WorkFilters day={day} onDayChange={setDay} projects={state.projects} projectId={projectId} onProjectChange={setProjectId}>{filterToggle}</WorkFilters> : <div className="work-filters task-project-controls"><select aria-label="筛选项目" className="work-project-select" value={projectId} onChange={(event) => setProjectId(event.target.value)}><option value="">全部项目</option>{state.projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select>{filterToggle}</div>}
-      {filtersOpen && <div className="task-focus-filter-panel" id="task-filter-panel"><label className="task-filter-search"><Search size={14} /><input aria-label="查找任务" placeholder="搜索任务或负责人" value={query} onChange={(event) => setQuery(event.target.value)} /></label><select aria-label="筛选任务状态" value={status} onChange={(event) => setStatus(event.target.value as TaskStatus | '')}><option value="">全部状态</option>{Object.entries(TASK_STATUS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{hasFilter && <button className="text-button tiny" onClick={() => { setQuery(''); setStatus(''); }}>清除筛选</button>}</div>}
+      {mode === 'daily' ? <WorkFilters day={day} onDayChange={setDay} projects={state.projects} projectId={projectId} onProjectChange={setProjectId} useAstryx>{filterToggle}</WorkFilters>
+        : <div className="work-filters task-project-controls"><Selector label="筛选项目" isLabelHidden containerClassName="astryx-task-project-filter"
+          value={projectId} onChange={setProjectId} options={projectOptions} />{filterToggle}</div>}
+      {filtersOpen && <div className="task-focus-filter-panel" id="task-filter-panel">
+        <TextInput label="查找任务" isLabelHidden placeholder="搜索任务或负责人" value={query} onChange={setQuery}
+          startIcon={<Search size={14} />} containerClassName="astryx-task-search" />
+        <Selector label="筛选任务状态" isLabelHidden containerClassName="astryx-task-status-filter" value={status}
+          onChange={value => setStatus(value as TaskStatus | '')}
+          options={[{ value: '', label: '全部状态' }, ...Object.entries(TASK_STATUS).map(([value, label]) => ({ value, label }))]} />
+        {hasFilter && <Button label="清除筛选" variant="ghost" size="sm" onClick={() => { setQuery(''); setStatus(''); }} />}
+      </div>}
     </div>
     {mode === 'daily' && <DailyPlanning key={`${day}:${projectId}`} day={day} projectId={projectId} tasks={state.tasks} onChanged={onChanged} onOverview={setPlanning}>{hasUnfinishedTasks && <><button className="button secondary compact" onClick={() => { setPlanTask(null); setForm('plan'); }}><CalendarPlus size={15} />选择任务</button><button className="text-button" onClick={()=>setForm('batch')}>批量安排日期</button></>}</DailyPlanning>}
     {isConfirmed && <div className="planning-list-mode"><span>{showUnplanned ? '当前显示当日全部事项。' : '按已确认的排期排列。'}</span><button className="text-button tiny" onClick={() => setShowUnplanned(!showUnplanned)}>{showUnplanned ? '只看已安排任务' : `其他事项 · ${unplannedCount}`}</button></div>}
@@ -134,7 +156,7 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
       <ListPager page={pageIndex} total={rows.length} size={50} onChange={setListPage}/>
       {mode === 'daily' && originalList.length > 0 && <div className="daily-report-link"><span>将当天已记录的进展整理成日报。</span><button className="text-button" onClick={onReport}>查看当日日报 <ArrowRight size={14} /></button></div>}
     </section>{selectedSnapshot && <aside className="task-inspector" ref={inspectorRef} tabIndex={-1} aria-label="任务详情"><button className="task-inspector-back" onClick={returnToList}><ChevronLeft size={14} />返回任务列表</button>{detailLoading ? <div className="loading-view"><Spinner />正在读取任务…</div> : detailError ? <WorkEmpty title="任务暂时无法读取" action={<button className="button secondary" onClick={() => setTick((value) => value + 1)}>重试</button>}>{detailError}</WorkEmpty> : !detail ? <WorkEmpty title="正在读取任务详情" /> : <>
-      <div className="task-detail-heading"><div className="eyebrow">最新进度 · v{detail.task.version}</div><h3><ExplainedText text={detail.task.title} context={detail.task.title} /></h3><div className="task-detail-status"><TaskStatusLabel status={detail.task.status} /><span>{detail.task.progress}%</span></div>{mode === 'daily' && selectedSnapshot && selectedSnapshot.version !== detail.task.version && <p className="task-history-notice">清单记录为 v{selectedSnapshot.version}，当前进度已更新至 v{detail.task.version}。</p>}<div className="task-detail-actions"><button className="button primary compact" onClick={() => setForm('edit')}><PencilLine size={13} />更新进度</button><button className="button secondary compact" onClick={() => { setPlanTask(detail.task); setForm('plan'); }}><CalendarPlus size={13} />安排日期</button></div></div>
+      <div className="task-detail-heading"><div className="eyebrow">最新进度 · v{detail.task.version}</div><h3><ExplainedText text={detail.task.title} context={detail.task.title} /></h3><div className="task-detail-status"><TaskStatusLabel status={detail.task.status} /><span>{detail.task.progress}%</span></div>{mode === 'daily' && selectedSnapshot && selectedSnapshot.version !== detail.task.version && <p className="task-history-notice">清单记录为 v{selectedSnapshot.version}，当前进度已更新至 v{detail.task.version}。</p>}<div className="task-detail-actions"><Button label="更新进度" variant="primary" size="sm" icon={<PencilLine size={13} />} onClick={() => setForm('edit')} /><Button label="安排日期" variant="secondary" size="sm" icon={<CalendarPlus size={13} />} onClick={() => { setPlanTask(detail.task); setForm('plan'); }} /></div></div>
       <TaskCoach state={state} key={detail.task.id} task={detail.task} date={day} onChanged={async () => { setTick(v => v + 1); await onChanged(); }} /><dl className="task-attributes"><div><dt>项目</dt><dd>{state.projects.find((project) => project.id === detail.task.projectId)?.name}</dd></div><div><dt>执行方式</dt><dd>{TASK_CATEGORY[detail.task.category]}</dd></div><div><dt>负责人</dt><dd>{detail.task.assignee || '待定'}</dd></div><div><dt>优先级</dt><dd>{TASK_PRIORITY[detail.task.priority]}</dd></div><div><dt>计划日期</dt><dd>{detail.task.plannedDate || '未安排'}</dd></div><div><dt>截止日期</dt><dd>{detail.task.dueDate || '未设置'}</dd></div></dl>
       {detail.task.description && <div className="task-description"><h4>任务说明</h4><p><ExplainedText text={detail.task.description} context={detail.task.title} /></p></div>}
       <details className="task-source-section task-source-details"><summary>原文依据{detail.evidence.length > 0 && <span>{detail.evidence.length} 处</span>}</summary>{detail.evidence.length ? detail.evidence.map((evidence) => <div className="task-evidence" key={evidence.segmentId}><strong>{evidence.sourceTitle}</strong><p>{evidence.text}</p><button className="text-button tiny" onClick={() => onEvidence(evidence)}>查看原文 · {evidence.locator} <ArrowRight size={12} /></button></div>) : <p className="panel-hint">{detail.task.memoryId ? `来自项目记忆 v${detail.task.memoryRevision}，无关联原文。` : '此任务为手动创建。'}</p>}</details>
@@ -155,40 +177,56 @@ export function TaskFormDialog({ task: initialTask, latestWorkDate, projects, pr
   const [baseWorkDate, setBaseWorkDate] = useState(latestWorkDate);
   const draftState = useDraftState(`task:${initialTask?.id ?? `new:${memory?.id ?? projectId}:${workDate}`}`, { baseVersion: initialTask?.version ?? 0, projectId: task?.projectId ?? memory?.projectId ?? (projectId || projects[0]?.id || ''), title: task?.title ?? (memory?.content.slice(0, 300) ?? ''), description: task?.description ?? memory?.content ?? '', category: task?.category ?? 'action' as TaskCategory, assignee: task?.assignee ?? '', priority: task?.priority ?? 'medium' as TaskPriority, status: task?.status ?? 'todo' as TaskStatus, progress: task?.progress ?? 0, dueDate: task?.dueDate ?? '', plannedDate: task?.plannedDate ?? plannedDate ?? '', workDate, note: '' });
   const { value: draft, setValue: setDraft } = draftState;
+  const titleInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (draftState.ready) titleInput.current?.focus({ preventScroll: true });
+  }, [draftState.ready]);
   const [busy, setBusy] = useState(false); const [error, setError] = useState('');
   const requestId = useRef(crypto.randomUUID());
   const patch = (value: Partial<typeof draft>) => { requestId.current = crypto.randomUUID(); setDraft((current) => ({ ...current, ...value })); setError(''); };
   const invalidDate = !!task && !!baseWorkDate && draft.workDate < baseWorkDate;
+  const disabled = !draftState.ready || busy;
   const additionalFields = <>
-    <label><span className="field-label">优先级</span><select aria-label="任务优先级" value={draft.priority} onChange={(event) => patch({ priority: event.target.value as TaskPriority })} disabled={busy}>{Object.entries(TASK_PRIORITY).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-    <label><span className="field-label">{task ? '状态' : '初始状态'}</span><select aria-label="任务状态" value={draft.status} onChange={(event) => patch({ status: event.target.value as TaskStatus, ...(event.target.value === 'done' ? { progress: 100 } : {}) })} disabled={busy}>{Object.entries(TASK_STATUS).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-    <label><span className="field-label">进度（%）</span><input aria-label="任务进度百分比" type="number" min={0} max={100} step={1} value={draft.progress} onChange={(event) => patch({ progress: Number(event.target.value) })} disabled={busy || draft.status === 'done'} required /></label>
-    <label><span className="field-label">进展日期</span><input aria-label="任务记录发生日期" type="date" value={draft.workDate} min={task ? baseWorkDate : undefined} onChange={(event) => patch({ workDate: event.target.value })} required disabled={busy} /></label>
+    <Selector label="优先级" aria-label="任务优先级" value={draft.priority} onChange={value => patch({ priority: value as TaskPriority })}
+      isDisabled={disabled} options={Object.entries(TASK_PRIORITY).map(([value, label]) => ({ value, label }))} />
+    <Selector label={task ? '状态' : '初始状态'} aria-label="任务状态" value={draft.status}
+      onChange={value => patch({ status: value as TaskStatus, ...(value === 'done' ? { progress: 100 } : {}) })}
+      isDisabled={disabled} options={Object.entries(TASK_STATUS).map(([value, label]) => ({ value, label }))} />
+    <label><span className="field-label">进度（%）</span><input aria-label="任务进度百分比" type="number" min={0} max={100} step={1} value={draft.progress} onChange={(event) => patch({ progress: Number(event.target.value) })} disabled={disabled || draft.status === 'done'} required /></label>
+    <label><span className="field-label">进展日期</span><input aria-label="任务记录发生日期" type="date" value={draft.workDate} min={task ? baseWorkDate : undefined} onChange={(event) => patch({ workDate: event.target.value })} required disabled={disabled} /></label>
   </>;
-  return <Dialog title={task ? '更新任务' : '新建任务'} subtitle={task ? '更新状态与进度，并记录本次变化。' : memory ? `从项目记忆 v${memory.revision} 创建，保留来源。` : '写清要做什么，再设置负责人和日期。'} close={close} busy={busy} wide><form onSubmit={async (event) => {
-    event.preventDefault(); if (!draft.title.trim() || !draft.workDate || invalidDate) return; setBusy(true); setError('');
+  return <FormDialog title={task ? '更新任务' : '新建任务'} subtitle={task ? '更新状态与进度，并记录本次变化。' : memory ? `从项目记忆 v${memory.revision} 创建，保留来源。` : '写清要做什么，再设置负责人和日期。'} close={close} busy={busy} wide><form onSubmit={async (event) => {
+    event.preventDefault(); if (disabled || !draft.title.trim() || !draft.projectId || !draft.workDate || invalidDate || (task && !draft.note.trim())) return; setBusy(true); setError('');
     try {
       const fields = { title: draft.title.trim(), description: draft.description.trim(), category: draft.category, assignee: draft.assignee.trim() || null, priority: draft.priority, status: draft.status, progress: draft.progress, dueDate: draft.dueDate || null, plannedDate: draft.plannedDate || null, workDate: draft.workDate, clientRequestId: requestId.current };
       const result = task ? await execute<Task>('update_task', { ...fields, taskId: task.id, baseVersion: draft.baseVersion, note: draft.note.trim() }) : await execute<Task>('create_task', { ...fields, projectId: draft.projectId, ...(memory ? { memoryId: memory.id } : {}) });
       await draftState.clear(); await onSaved(result);
     } catch (caught) { setError(asError(caught).message); } finally { setBusy(false); }
-  }}><div className="dialog-body task-form-body"><DraftStatus status={draftState.status} discard={draftState.discard} /><fieldset disabled={!draftState.ready || busy} className="draft-fields">
-    {!task && <><label className="field-label" htmlFor="task-project">所属项目</label><select id="task-project" value={draft.projectId} onChange={(event) => patch({ projectId: event.target.value })} disabled={busy || !!memory} required>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></>}
-    <label className={`field-label ${!task ? 'spaced' : ''}`} htmlFor="task-title">任务标题</label><input id="task-title" value={draft.title} onChange={(event) => patch({ title: event.target.value })} required maxLength={300} disabled={busy} placeholder="写清楚需要交付或推进的具体结果" />
-    <label className="field-label spaced" htmlFor="task-description">任务说明 <span>可选</span></label><textarea id="task-description" rows={3} value={draft.description} onChange={(event) => patch({ description: event.target.value })} maxLength={10000} disabled={busy} />
+  }}><div className="dialog-body task-form-body"><DraftStatus status={draftState.status} discard={draftState.discard} /><fieldset disabled={!draftState.ready || busy} className="draft-fields astryx-task-fields">
+    {!task && <Selector id="task-project" label="所属项目" value={draft.projectId} onChange={value => patch({ projectId: value })}
+      isDisabled={disabled || !!memory} isRequired options={projects.map(project => ({ value: project.id, label: project.name }))} />}
+    <TextInput ref={titleInput} id="task-title" label="任务标题" value={draft.title} onChange={value => patch({ title: value.slice(0, 300) })}
+      isRequired isDisabled={disabled} placeholder="写清楚需要交付或推进的具体结果" />
+    <TextArea id="task-description" label="任务说明" isOptional rows={3} value={draft.description}
+      onChange={value => patch({ description: value.slice(0, 10000) })} isDisabled={disabled} />
     <div className="task-form-grid">
-      <label><span className="field-label">执行方式</span><select aria-label="任务执行方式" value={draft.category} onChange={(event) => patch({ category: event.target.value as TaskCategory })} disabled={busy}>{Object.entries(TASK_CATEGORY).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-      <label><span className="field-label">负责人</span><input aria-label="任务负责人" value={draft.assignee} onChange={(event) => patch({ assignee: event.target.value })} disabled={busy} placeholder="未确认可留空" maxLength={300} /></label>
+      <Selector label="执行方式" aria-label="任务执行方式" value={draft.category} onChange={value => patch({ category: value as TaskCategory })}
+        isDisabled={disabled} options={Object.entries(TASK_CATEGORY).map(([value, label]) => ({ value, label }))} />
+      <TextInput label="负责人" aria-label="任务负责人" value={draft.assignee} onChange={value => patch({ assignee: value.slice(0, 300) })}
+        isDisabled={disabled} placeholder="未确认可留空" />
       {task && additionalFields}
-      <label><span className="field-label">计划日期</span><input aria-label="任务计划日期" type="date" value={draft.plannedDate} onChange={(event) => patch({ plannedDate: event.target.value })} disabled={busy} /></label>
-      <label><span className="field-label">截止日期</span><input aria-label="任务截止日期" type="date" value={draft.dueDate} onChange={(event) => patch({ dueDate: event.target.value })} disabled={busy} /></label>
+      <label><span className="field-label">计划日期</span><input aria-label="任务计划日期" type="date" value={draft.plannedDate} onChange={(event) => patch({ plannedDate: event.target.value })} disabled={disabled} /></label>
+      <label><span className="field-label">截止日期</span><input aria-label="任务截止日期" type="date" value={draft.dueDate} onChange={(event) => patch({ dueDate: event.target.value })} disabled={disabled} /></label>
     </div>
     {!task && <details className="advanced-settings"><summary>更多设置<ChevronDown size={14} /></summary><div className="task-form-grid">{additionalFields}</div><p className="field-hint">完成任务时，请同步将状态设为“完成”。</p></details>}
     {task && <p className="field-hint">完成任务时，请同步将状态设为“完成”。</p>}
-    {task && <><label className="field-label spaced" htmlFor="task-note">本次进展说明 <span>必填</span></label><textarea id="task-note" rows={3} value={draft.note} onChange={(event) => patch({ note: event.target.value })} placeholder="记录实际发生的变化、当前阻塞或调整原因" required maxLength={10000} disabled={busy} /></>}
+    {task && <TextArea id="task-note" label="本次进展说明" isRequired rows={3} value={draft.note}
+      onChange={value => patch({ note: value.slice(0, 10000) })} placeholder="记录实际发生的变化、当前阻塞或调整原因" isDisabled={disabled} />}
     {invalidDate && <div className="form-error"><CircleAlert size={17} /><p>进展日期不能早于最近一条记录：{baseWorkDate}。</p></div>}{error && <div className="form-error" role="alert"><CircleAlert size={17} /><p>{error}</p></div>}
     {task && <div className="revision-version-check"><span>当前编辑 v{task.version}。重新加载会替换任务字段，并保留本次进展说明。</span><button type="button" className="text-button tiny" disabled={busy} onClick={async () => { setBusy(true); try { const current = await execute<TaskDetail>('get_task', { taskId: task.id }); setTask(current.task); setBaseWorkDate(current.events[0]?.workDate); setDraft((value) => ({ ...value, baseVersion:current.task.version, ...taskFields(current.task), assignee: current.task.assignee ?? '', dueDate: current.task.dueDate ?? '', plannedDate: current.task.plannedDate ?? '' })); requestId.current = crypto.randomUUID(); setError(''); } catch (caught) { setError(asError(caught).message); } finally { setBusy(false); } }}>重新加载</button></div>}
-  </fieldset></div><div className="dialog-footer"><span className="footer-note">{task ? `校验版本 v${task.version}` : '保存后建立任务历史'}</span><button type="button" className="button secondary" onClick={close} disabled={busy}>取消</button><button className="button primary" disabled={!draftState.ready || busy || invalidDate || !draft.title.trim() || !draft.projectId || !draft.workDate || (!!task && !draft.note.trim())}>{busy ? <Spinner /> : <Check size={15} />}{task ? '保存进展' : '创建任务'}</button></div></form></Dialog>;
+  </fieldset></div><div className="dialog-footer"><span className="footer-note">{task ? `校验版本 v${task.version}` : '保存后建立任务历史'}</span><Button label="取消" variant="secondary" onClick={close} isDisabled={busy} />
+    <Button type="submit" label={task ? '保存进展' : '创建任务'} variant="primary" icon={<Check size={15} />}
+      isLoading={busy} isDisabled={disabled || invalidDate || !draft.title.trim() || !draft.projectId || !draft.workDate || (!!task && !draft.note.trim())} /></div></form></FormDialog>;
 }
 
 function PlanDialog({ tasks, initialTask, day, close, onSaved }: { tasks: Task[]; initialTask: Task | null; day: string; close: () => void; onSaved: (task: Task) => Promise<void> }) {
@@ -198,8 +236,8 @@ function PlanDialog({ tasks, initialTask, day, close, onSaved }: { tasks: Task[]
   const requestId = useRef(crypto.randomUUID());
   const pendingPayload = useRef<Record<string, unknown> | null>(null);
   const touch = () => { requestId.current = crypto.randomUUID(); pendingPayload.current = null; setError(''); };
-  return <Dialog title="安排任务日期" subtitle="选择任务与计划日期，加入当天清单。" close={close} busy={busy}><form onSubmit={async (event) => {
-    event.preventDefault(); setBusy(true); setError('');
+  return <FormDialog title="安排任务日期" subtitle="选择任务与计划日期，加入当天清单。" close={close} busy={busy}><form onSubmit={async (event) => {
+    event.preventDefault(); if (busy || !taskId || !plannedDate || !workDate || !note.trim()) return; setBusy(true); setError('');
     try {
       if (!pendingPayload.current) {
         const current = await execute<TaskDetail>('get_task', { taskId });
@@ -209,5 +247,16 @@ function PlanDialog({ tasks, initialTask, day, close, onSaved }: { tasks: Task[]
       const result = await execute<Task>('update_task', pendingPayload.current); await onSaved(result);
     }
     catch (caught) { setError(asError(caught).message); } finally { setBusy(false); }
-  }}><div className="dialog-body"><label className="field-label" htmlFor="plan-task">选择任务</label><select id="plan-task" value={taskId} required disabled={busy || !!initialTask} onChange={(event) => { setTaskId(event.target.value); touch(); }}>{(initialTask ? [initialTask] : tasks).map((task) => <option key={task.id} value={task.id}>{task.title}</option>)}</select><label className="field-label spaced" htmlFor="plan-day">计划日期</label><input id="plan-day" type="date" value={plannedDate} required onChange={(event) => { setPlannedDate(event.target.value); touch(); }} disabled={busy} /><label className="field-label spaced" htmlFor="plan-work-date">进展日期</label><input id="plan-work-date" type="date" value={workDate} required onChange={(event) => { setWorkDate(event.target.value); touch(); }} disabled={busy} /><label className="field-label spaced" htmlFor="plan-note">安排说明</label><textarea id="plan-note" rows={2} value={note} required maxLength={10000} onChange={(event) => { setNote(event.target.value); touch(); }} disabled={busy} />{error && <div className="form-error" role="alert"><CircleAlert size={17} /><p>{error}</p></div>}</div><div className="dialog-footer"><button type="button" className="button secondary" disabled={busy} onClick={close}>取消</button><button className="button primary" disabled={busy || !taskId || !plannedDate || !workDate || !note.trim()}>{busy ? <Spinner /> : <CalendarPlus size={15} />}保存安排</button></div></form></Dialog>;
+  }}><div className="dialog-body astryx-task-fields">
+    <Selector id="plan-task" label="选择任务" value={taskId} isRequired isDisabled={busy || !!initialTask}
+      onChange={value => { setTaskId(value); touch(); }} options={(initialTask ? [initialTask] : tasks).map(task => ({ value: task.id, label: task.title }))} />
+    <label><span className="field-label">计划日期</span><input id="plan-day" type="date" aria-label="计划日期" value={plannedDate} required onChange={event => { setPlannedDate(event.target.value); touch(); }} disabled={busy} /></label>
+    <label><span className="field-label">进展日期</span><input id="plan-work-date" type="date" aria-label="进展日期" value={workDate} required onChange={event => { setWorkDate(event.target.value); touch(); }} disabled={busy} /></label>
+    <TextArea id="plan-note" label="安排说明" rows={2} value={note} isRequired onChange={value => { setNote(value.slice(0, 10000)); touch(); }} isDisabled={busy} />
+    {error && <div className="form-error" role="alert"><CircleAlert size={17} /><p>{error}</p></div>}
+  </div><div className="dialog-footer">
+    <Button label="取消" variant="secondary" isDisabled={busy} onClick={close} />
+    <Button type="submit" label="保存安排" variant="primary" icon={<CalendarPlus size={15} />} isLoading={busy}
+      isDisabled={busy || !taskId || !plannedDate || !workDate || !note.trim()} />
+  </div></form></FormDialog>;
 }

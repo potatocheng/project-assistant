@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Project } from '../../types';
+import { Selector } from '@astryxdesign/core/Selector';
 
 export function localDay(value = new Date()): string {
   return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
@@ -19,9 +20,9 @@ export function formatMoment(value: string | null | undefined, time = true): str
   return new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', ...(time ? { hour: '2-digit', minute: '2-digit' } as const : {}) }).format(parsed);
 }
 
-export function WorkFilters({ day, onDayChange, projects, projectId, onProjectChange, children, showDate = true }: {
+export function WorkFilters({ day, onDayChange, projects, projectId, onProjectChange, children, showDate = true, useAstryx = false }: {
   day: string; onDayChange: (day: string) => void; projects: Project[];
-  projectId: string; onProjectChange: (projectId: string) => void; children?: ReactNode; showDate?: boolean;
+  projectId: string; onProjectChange: (projectId: string) => void; children?: ReactNode; showDate?: boolean; useAstryx?: boolean;
 }) {
   return <div className="work-filters">
     {showDate && <div className="work-date-controls">
@@ -30,7 +31,9 @@ export function WorkFilters({ day, onDayChange, projects, projectId, onProjectCh
       <button className="icon-button" aria-label="后一天" title="后一天" onClick={() => onDayChange(shiftDay(day, 1))}><ChevronRight size={17} /></button>
       <button className="text-button" aria-label="回到今天" disabled={day === localDay()} onClick={() => onDayChange(localDay())}>今天</button>
     </div>}
-    <select aria-label="筛选项目" className="work-project-select" value={projectId} onChange={(event) => onProjectChange(event.target.value)}><option value="">全部项目</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select>
+    {useAstryx ? <Selector label="筛选项目" isLabelHidden value={projectId} onChange={onProjectChange}
+      containerClassName="astryx-task-project-filter" options={[{ value: '', label: '全部项目' }, ...projects.map(project => ({ value: project.id, label: project.name }))]} />
+      : <select aria-label="筛选项目" className="work-project-select" value={projectId} onChange={(event) => onProjectChange(event.target.value)}><option value="">全部项目</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select>}
     {children}
   </div>;
 }

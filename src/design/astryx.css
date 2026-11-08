@@ -1,0 +1,66 @@
+/* Legacy element defaults sit below Astryx; page classes stay in place. */
+@layer reset, ledger-native, astryx-base, astryx-theme;
+@import '@astryxdesign/core/reset.css';
+@import '@astryxdesign/core/astryx.css';
+@import '@astryxdesign/theme-neutral/theme.css';
+
+/* The root covers portals; the Theme boundary overrides Neutral's own tokens. */
+:root, [data-astryx-theme='neutral'] {
+  --font-family-body: var(--font-sans);
+  --font-family-heading: var(--font-sans);
+  --font-family-code: var(--font-mono);
+  --color-background-body: var(--bg-canvas);
+  --color-background-surface: var(--bg-surface);
+  --color-background-card: var(--bg-surface);
+  --color-background-popover: var(--bg-surface);
+  --color-background-muted: var(--bg-muted);
+  --color-text-primary: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-disabled: var(--text-faint);
+  --color-text-accent: var(--accent-text);
+  --color-icon-primary: var(--text);
+  --color-icon-secondary: var(--text-secondary);
+  --color-icon-accent: var(--accent);
+  --color-border: var(--border);
+  --color-border-emphasized: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-muted: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-neutral: var(--bg-muted);
+  --color-overlay: var(--overlay);
+  --color-success: var(--success);
+  --color-success-muted: var(--success-soft);
+  --color-text-success: var(--success-text);
+  --color-warning: var(--warning);
+  --color-warning-muted: var(--warning-soft);
+  --color-text-warning: var(--warning-text);
+  --color-error: var(--danger);
+  --color-error-muted: var(--danger-soft);
+  --color-text-error: var(--danger-text);
+  --color-border-error: var(--danger-border);
+  --radius-container: var(--radius-lg);
+}
+
+.astryx-form-dialog { border: 1px solid var(--border); box-shadow: var(--shadow-lg); }
+.astryx-form-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 24px 28px; border-bottom: 1px solid var(--border); }
+.astryx-form-header h2 { font-size: var(--fs-xl); line-height: var(--lh-normal); }
+.astryx-form-header p { margin-top: 6px; font-size: var(--fs-sm); color: var(--text-secondary); }
+.astryx-form-dialog form { min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.astryx-form-dialog .dialog-body { overflow-y: auto; }
+.astryx-form-dialog .dialog-footer { flex-shrink: 0; }
+.astryx-task-fields { display: flex; flex-direction: column; gap: 18px; }
+.astryx-task-fields .task-form-grid { margin-top: 0; }
+.astryx-task-fields .advanced-settings { margin-top: 0; }
+.astryx-task-fields .task-form-grid > label { min-width: 0; }
+.astryx-task-fields .field-label { margin-top: 0; }
+.astryx-task-project-filter { width: 220px; max-width: 100%; }
+.astryx-task-search { flex: 1; min-width: 160px; }
+.astryx-task-status-filter { width: 180px; max-width: 100%; }
+.astryx-task-filter-toggle { margin-left: auto; }
+
+@media (max-width: 600px) {
+  .astryx-form-header { padding: 20px; gap: 12px; }
+  .astryx-form-dialog .dialog-footer .footer-note { flex-basis: 100%; }
+  .astryx-task-search, .astryx-task-status-filter { width: 100%; flex-basis: 100%; }
+  .astryx-task-project-filter { flex: 1; min-width: 0; }
+}

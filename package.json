@@ -32,9 +32,13 @@
     "verify:daily-use:scale": "node scripts/verify-daily-use-scale.mjs",
     "verify:retention:scoring": "node --test scripts/score-chat-retention.test.mjs",
     "release:preflight": "node scripts/release-preflight.mjs",
-    "verify:coach": "node --test scripts/coach-model.test.mjs"
+    "verify:coach": "node --test scripts/coach-model.test.mjs",
+    "astryx": "node node_modules/@astryxdesign/cli/clients/cli/bin/astryx.mjs"
   },
   "dependencies": {
+    "@astryxdesign/core": "0.7.11",
+    "@astryxdesign/theme-neutral": "0.7.11",
+    "@stylexjs/stylex": "0.19.0",
     "@tauri-apps/api": "^2.0.0",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
@@ -43,6 +47,7 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@astryxdesign/cli": "0.7.11",
     "@tauri-apps/cli": "^2.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

@@ -2,12 +2,14 @@
 ::selection { color: var(--accent-text); background: var(--accent-soft); }
 body { color: var(--text); background: var(--bg-canvas); }
 a { color: var(--accent-text); text-underline-offset: 3px; }
+@layer ledger-native {
 button, input, select, textarea { caret-color: var(--accent); }
-button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible {
+button:not(.astryx-button):focus-visible, input:not(:where(.astryx-field *)):focus-visible, textarea:not(:where(.astryx-field *)):focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 3px;
 }
-input:not([type='checkbox']):not([type='file']):focus, textarea:focus, select:focus {
+input:not([type='checkbox']):not([type='file']):not(:where(.astryx-field *)):focus, textarea:not(:where(.astryx-field *)):focus, select:focus {
   border-color: var(--accent-border); box-shadow: var(--focus-ring);
+}
 }
 .ledger-shell .button { min-height: var(--control-h); border-radius: var(--radius-sm); box-shadow: none; }
 .ledger-shell .button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); box-shadow: none; }
