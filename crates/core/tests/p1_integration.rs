@@ -152,7 +152,7 @@ fn schema_six_migrates_without_changing_delivery_state() {
     drop(conn);
     let e = Engine::open(dir.path()).unwrap();
     let state = call(&e, "get_state", json!({}));
-    assert_eq!(state["workspace"]["schemaVersion"], 14);
+    assert_eq!(state["workspace"]["schemaVersion"], 16);
     assert_eq!(state["tasks"][0], t);
     assert_eq!(
         call(&e, "get_management_attention", json!({"date":DAY}))["count"],

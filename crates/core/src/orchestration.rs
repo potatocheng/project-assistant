@@ -599,6 +599,15 @@ fn decide(conn: &Connection, p: &Value, at: &DateTime<FixedOffset>) -> Result<Va
         "INSERT INTO assistant_decisions VALUES(?,?,?,?,?)",
         params![decision, key, payload_hash, w.to_string(), stamp(at)],
     )?;
+    if choice == "dismiss" {
+        let _ = crate::habits::observe_proactive_feedback(
+            conn,
+            w["projectId"].as_str(),
+            w["kind"].as_str().unwrap_or(""),
+            "dismiss",
+            None,
+        );
+    }
     Ok(w)
 }
 

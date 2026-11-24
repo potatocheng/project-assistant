@@ -4,7 +4,12 @@ use crate::{AppError, Result};
 use rusqlite::{functions::FunctionFlags, Connection};
 use serde_json::Value;
 use std::collections::BTreeMap;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
+
+fn jieba() -> &'static jieba_rs::Jieba {
+    static INSTANCE: OnceLock<jieba_rs::Jieba> = OnceLock::new();
+    INSTANCE.get_or_init(jieba_rs::Jieba::new)
+}
 
 const ALIASES: &[&[&str]] = &[
     &["登录", "登陆", "login", "signin"],
@@ -605,6 +610,7 @@ pub(crate) struct Query {
     terms: BTreeMap<String, f64>,
     concepts: Vec<Vec<String>>,
     rewrites: Vec<Query>,
+    custom_aliases: Vec<Vec<String>>,
 }
 
 impl Query {
@@ -644,6 +650,10 @@ impl Query {
             .join(" OR ")
     }
     pub(crate) fn new(question: &str) -> Self {
+        Self::new_with_aliases(question, &[])
+    }
+
+    pub(crate) fn new_with_aliases(question: &str, alias_groups: &[Vec<String>]) -> Self {
         let original = normalize(question);
         let mut cleaned = original.clone();
         // Spaces preserve boundaries instead of joining words across removed text.
@@ -705,15 +715,56 @@ impl Query {
         ] {
             cleaned = cleaned.replace(stop, " ");
         }
+        let normalized_custom: Vec<Vec<String>> = alias_groups
+            .iter()
+            .map(|group| {
+                let mut seen = std::collections::HashSet::new();
+                group
+                    .iter()
+                    .map(|s| normalize(s.trim()))
+                    .filter(|s| !s.is_empty() && seen.insert(s.clone()))
+                    .collect::<Vec<_>>()
+            })
+            .filter(|group| group.len() >= 2)
+            .collect();
         let mut query = Self {
             original,
             terms: BTreeMap::new(),
             concepts: Vec::new(),
             rewrites: Vec::new(),
+            custom_aliases: normalized_custom.clone(),
         };
+        let mut tokens = cleaned.clone();
+        // User-configured entity/term aliases expand recall first so team nicknames,
+        // short project names, and domain jargon match cleanly without fracturing.
+        for aliases in &normalized_custom {
+            let matched: Vec<&String> = aliases
+                .iter()
+                .filter(|alias| occurrences(&query.original, alias).next().is_some())
+                .collect();
+            if !matched.is_empty() {
+                query.concepts.push(aliases.clone());
+                for alias in aliases {
+                    let weight = if matched.contains(&alias) { 2.5 } else { 1.4 };
+                    query
+                        .terms
+                        .entry(alias.clone())
+                        .and_modify(|w| *w = w.max(weight))
+                        .or_insert(weight);
+                }
+                for alias in matched {
+                    for offset in occurrences(&tokens, alias)
+                        .collect::<Vec<_>>()
+                        .into_iter()
+                        .rev()
+                    {
+                        tokens.replace_range(offset..offset + alias.len(), " ");
+                    }
+                }
+            }
+        }
         // Treat a known concept as one unit rather than giving its overlapping
         // Chinese n-grams more votes than an equivalent English expression.
-        let mut tokens = cleaned.clone();
         for aliases in ALIASES {
             let matched: Vec<_> = aliases
                 .iter()
@@ -724,10 +775,12 @@ impl Query {
                     .concepts
                     .push(aliases.iter().map(|alias| (*alias).to_owned()).collect());
                 for alias in *aliases {
-                    query.terms.insert(
-                        (*alias).to_owned(),
-                        if matched.contains(&alias) { 2.0 } else { 0.6 },
-                    );
+                    let weight = if matched.contains(&alias) { 2.0 } else { 0.6 };
+                    query
+                        .terms
+                        .entry((*alias).to_owned())
+                        .and_modify(|w| *w = w.max(weight))
+                        .or_insert(weight);
                 }
                 for alias in matched {
                     // Replace from the end so byte offsets stay valid.
@@ -759,7 +812,17 @@ impl Query {
     /// Rewrites are search strings only. They cannot change scope, question,
     /// visibility, versions, or the facts available to an answer.
     pub(crate) fn from_payload(payload: &Value) -> Result<Self> {
-        let mut query = Self::new(payload["question"].as_str().unwrap_or(""));
+        Self::from_payload_with_aliases(payload, &[])
+    }
+
+    pub(crate) fn from_payload_with_aliases(
+        payload: &Value,
+        alias_groups: &[Vec<String>],
+    ) -> Result<Self> {
+        let mut query = Self::new_with_aliases(
+            payload["question"].as_str().unwrap_or(""),
+            alias_groups,
+        );
         if let Some(values) = payload.get("searchQueries") {
             let values = values
                 .as_array()
@@ -774,10 +837,16 @@ impl Query {
                 if text.trim().chars().count() < 2 || text.chars().count() > 160 {
                     return Err(AppError::new("SEARCH_PLAN", "检索词组长度无效"));
                 }
-                query.rewrites.push(Self::new(text));
+                query
+                    .rewrites
+                    .push(Self::new_with_aliases(text, alias_groups));
             }
         }
         Ok(query)
+    }
+
+    pub(crate) fn alias_group_count(&self) -> usize {
+        self.custom_aliases.len()
     }
 
     pub(crate) fn overview(&self) -> bool {
@@ -804,9 +873,18 @@ impl Query {
 
     pub(crate) fn names_entity(&self, entity: &str) -> bool {
         let entity = normalize(entity);
-        specific_entity(&entity)
-            && !entity.is_empty()
-            && occurrences(&self.original, &entity).next().is_some()
+        if !specific_entity(&entity) || entity.is_empty() {
+            return false;
+        }
+        if occurrences(&self.original, &entity).next().is_some() {
+            return true;
+        }
+        self.custom_aliases.iter().any(|group| {
+            group.iter().any(|item| item == &entity)
+                && group
+                    .iter()
+                    .any(|item| occurrences(&self.original, item).next().is_some())
+        })
     }
 
     /// Broad data questions need data-source and study context as alternatives
@@ -880,17 +958,54 @@ impl Query {
         }
         if chinese {
             let chars: Vec<_> = run.chars().collect();
-            for (width, weight) in [(2, 1.0), (3, 1.5)] {
+            // Jieba search-mode words receive higher weight than raw overlapping n-grams,
+            // preventing cross-word character pairs from outscoring real Chinese words.
+            let mut jieba_words = Vec::new();
+            for seg in jieba().cut_for_search(run, true) {
+                let count = seg.word.chars().count();
+                if count >= 2 && self.terms.len() < 256 {
+                    let owned = seg.word.to_owned();
+                    self.terms
+                        .entry(owned.clone())
+                        .and_modify(|w| *w = w.max(2.0))
+                        .or_insert(2.0);
+                    if !jieba_words.contains(&owned) {
+                        jieba_words.push(owned);
+                    }
+                }
+            }
+            for (width, weight) in [(2, 0.8), (3, 1.2)] {
                 for part in chars.windows(width).take(128) {
-                    self.terms.insert(part.iter().collect(), weight);
+                    if self.terms.len() >= 256 {
+                        break;
+                    }
+                    let token: String = part.iter().collect();
+                    self.terms
+                        .entry(token)
+                        .and_modify(|w| *w = w.max(weight))
+                        .or_insert(weight);
                 }
             }
             if (2..=16).contains(&chars.len()) {
-                self.terms.insert(run.to_owned(), 2.0);
+                self.terms
+                    .entry(run.to_owned())
+                    .and_modify(|w| *w = w.max(2.2))
+                    .or_insert(2.2);
+            }
+            if chars.len() > 4 && jieba_words.len() >= 2 {
+                // For long Chinese clauses, track Jieba words as concepts so non-adjacent
+                // phrasing in memories still earns strong concept coverage.
+                for seg in jieba_words.into_iter().take(6) {
+                    self.concepts.push(vec![seg]);
+                }
+            } else if (2..=16).contains(&chars.len()) {
                 self.concepts.push(vec![run.to_owned()]);
             }
         } else if run.len() > 1 && !english_stopword(run) {
-            self.terms.insert(run.to_owned(), 3.0);
+            self.terms
+                .entry(run.to_owned())
+                .and_modify(|w| *w = w.max(3.0))
+                .or_insert(3.0);
             self.concepts.push(vec![run.to_owned()]);
         }
     }
@@ -1059,6 +1174,11 @@ pub(crate) fn index_tokens(text: &str) -> std::collections::BTreeSet<String> {
     for c in normalize(text).chars().chain(std::iter::once(' ')) {
         if !word(c) || (!run.is_empty() && chinese != cjk(c)) {
             if chinese {
+                for seg in jieba().cut_for_search(&run, true) {
+                    if seg.word.chars().count() >= 2 {
+                        tokens.insert(seg.word.to_owned());
+                    }
+                }
                 let chars = run.chars().collect::<Vec<_>>();
                 for pair in chars.windows(2) {
                     tokens.insert(pair.iter().collect());
@@ -1085,7 +1205,11 @@ pub(crate) fn index_tokens(text: &str) -> std::collections::BTreeSet<String> {
 /// Query text stays captured data, never executable SQL. The same scorer runs
 /// before LIMIT and in the final desktop reference ranking.
 pub(crate) fn register(conn: &Connection, payload: &Value) -> Result<()> {
-    let query = Arc::new(Query::from_payload(payload)?);
+    let scope = payload["projectId"]
+        .as_str()
+        .filter(|s| !s.is_empty() && *s != "all");
+    let aliases = crate::aliases::load_groups(conn, scope)?;
+    let query = Arc::new(Query::from_payload_with_aliases(payload, &aliases)?);
     let scorer = query.clone();
     let flags = FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC;
     conn.create_scalar_function("project_search_score", 2, flags, move |ctx| {
@@ -1351,5 +1475,29 @@ mod tests {
         ] {
             assert!(!data_provenance(body), "{body}");
         }
+    }
+
+    #[test]
+    fn jieba_segmentation_and_custom_aliases_improve_chinese_recall_and_entity_matching() {
+        let query = Query::new("客户支付重构上线方案是什么？");
+        let scores = query.rank(&[
+            "客户二期的支付重构方案已定于周五上线。",
+            "客户食堂本周菜单更新通知。",
+        ]);
+        assert!(scores[0] > scores[1] * 3.0);
+
+        let aliases = vec![
+            vec!["王明".into(), "老王".into(), "后端王哥".into()],
+            vec!["支付重构".into(), "二期".into()],
+        ];
+        let aliased = Query::new_with_aliases("老王负责二期哪个模块？", &aliases);
+        assert!(aliased.names_entity("王明"));
+        assert!(aliased.names_entity("支付重构"));
+        let rank = aliased.rank(&[
+            "支付重构核心模块由王明负责。",
+            "前端视觉走查由李静负责。",
+        ]);
+        assert!(rank[0] > rank[1]);
+        assert!(index_tokens("支付重构方案").contains("重构"));
     }
 }

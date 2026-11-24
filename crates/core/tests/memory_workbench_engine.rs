@@ -143,7 +143,7 @@ fn organized_facets_are_atomic_revision_bound_and_survive_restore() {
     let reopened = Engine::open(dir.path()).unwrap();
     assert_eq!(
         call(&reopened, "get_state", json!({}))["workspace"]["schemaVersion"],
-        14
+        16
     );
     assert_eq!(
         call(&reopened, "get_memory", json!({"memoryId":m["id"]}))["memory"]["content"],

@@ -886,7 +886,15 @@ fn save_report(conn: &Connection, p: &Value) -> Result<Value> {
             "日报已有新版本，请打开最新版本后保存",
         ));
     }
-    insert_report(conn, date, project, true, content, &old["basis"])
+    let saved = insert_report(conn, date, project, true, content, &old["basis"])?;
+    let _ = crate::habits::observe_report_edit(
+        conn,
+        project,
+        "日报",
+        old["content"].as_str().unwrap_or(""),
+        content,
+    );
+    Ok(saved)
 }
 
 fn mutate(

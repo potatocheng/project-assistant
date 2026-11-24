@@ -155,6 +155,32 @@ pub(crate) struct Selection {
     pub catalog: Value,
 }
 
+#[derive(Clone, Debug)]
+pub(crate) struct SemanticSignals {
+    pub hits: Vec<(String, f64)>,
+    pub trace: Value,
+}
+
+pub(crate) fn parse_semantic(payload: &Value) -> Option<SemanticSignals> {
+    let trace = payload.get("_semanticTrace")?.clone();
+    let hits = payload
+        .get("_semanticHits")
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(|pair| {
+                    let arr = pair.as_array()?;
+                    let id = arr.first()?.as_str()?.to_owned();
+                    let dist = arr.get(1)?.as_f64()?;
+                    dist.is_finite().then_some((id, dist))
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    Some(SemanticSignals { hits, trace })
+}
+
 pub(crate) fn evidence(
     conn: &Connection,
     revision: &str,
@@ -182,6 +208,7 @@ pub(crate) fn evidence(
         .map_err(Into::into)
 }
 
+#[cfg(test)]
 pub(crate) fn retrieve(
     conn: &Connection,
     scope: Option<&str>,
@@ -190,6 +217,29 @@ pub(crate) fn retrieve(
     excerpt_chars: usize,
     include_unmatched: bool,
     as_of: &str,
+) -> Result<Selection> {
+    retrieve_with_semantic(
+        conn,
+        scope,
+        query,
+        limit,
+        excerpt_chars,
+        include_unmatched,
+        as_of,
+        None,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn retrieve_with_semantic(
+    conn: &Connection,
+    scope: Option<&str>,
+    query: &Query,
+    limit: usize,
+    excerpt_chars: usize,
+    include_unmatched: bool,
+    as_of: &str,
+    semantic: Option<SemanticSignals>,
 ) -> Result<Selection> {
     let limit = limit.min(MAX_CANDIDATES);
     crate::tasks::valid_date(as_of)?;
@@ -309,12 +359,73 @@ pub(crate) fn retrieve(
         .into_iter()
         .filter(|m| applicable(&m["facets"], &named, as_of))
         .collect::<Vec<_>>();
-    let scores = query.rank(
+    let bm25_scores = query.rank(
         &corpus
             .iter()
             .map(|m| m["content"].as_str().unwrap())
             .collect::<Vec<_>>(),
     );
+    let mut scores = bm25_scores.clone();
+    let mut hybrid_trace = semantic
+        .as_ref()
+        .map(|s| s.trace.clone())
+        .unwrap_or_else(|| json!({"enabled": false, "backend": "sqlite-vec", "fusion": "lexical_only", "vecHits": 0}));
+    let mut eligible_vec_hits = 0usize;
+    if let Some(signals) = &semantic {
+        if !signals.hits.is_empty() && !corpus.is_empty() {
+            const RRF_K: f64 = 60.0;
+            const MAX_COSINE_DISTANCE: f64 = 0.65;
+            let corpus_ids: std::collections::HashSet<&str> = corpus
+                .iter()
+                .filter_map(|m| m["id"].as_str())
+                .collect();
+            // Vectors NEVER bypass eligibility: filter strictly to active, non-conflicted,
+            // non-archived, retention-valid, entity/date-applicable memories in `corpus`.
+            let mut vec_ranks = std::collections::HashMap::<&str, usize>::new();
+            for (memory_id, distance) in &signals.hits {
+                if *distance <= MAX_COSINE_DISTANCE && corpus_ids.contains(memory_id.as_str()) {
+                    let next_rank = vec_ranks.len() + 1;
+                    vec_ranks.entry(memory_id.as_str()).or_insert(next_rank);
+                }
+            }
+            eligible_vec_hits = vec_ranks.len();
+            if eligible_vec_hits > 0 {
+                let mut bm25_order: Vec<usize> = (0..corpus.len())
+                    .filter(|&i| bm25_scores[i] > 0.0)
+                    .collect();
+                bm25_order.sort_by(|&a, &b| {
+                    bm25_scores[b]
+                        .total_cmp(&bm25_scores[a])
+                        .then_with(|| corpus[b]["updatedAt"].as_str().cmp(&corpus[a]["updatedAt"].as_str()))
+                        .then_with(|| corpus[a]["id"].as_str().cmp(&corpus[b]["id"].as_str()))
+                });
+                let mut bm25_ranks = std::collections::HashMap::<usize, usize>::new();
+                for (pos, idx) in bm25_order.into_iter().enumerate() {
+                    bm25_ranks.insert(idx, pos + 1);
+                }
+                for (idx, memory) in corpus.iter().enumerate() {
+                    let id = memory["id"].as_str().unwrap_or("");
+                    let b_rank = bm25_ranks.get(&idx).copied();
+                    let v_rank = vec_ranks.get(id).copied();
+                    scores[idx] = if b_rank.is_some() || v_rank.is_some() {
+                        let b_part = b_rank.map_or(0.0, |r| 1.0 / (RRF_K + r as f64));
+                        let v_part = v_rank.map_or(0.0, |r| 0.9 / (RRF_K + r as f64));
+                        let tie = if bm25_scores[idx] > 0.0 {
+                            (bm25_scores[idx] / (bm25_scores[idx] + 10.0)) * 0.002
+                        } else {
+                            0.0
+                        };
+                        b_part + v_part + tie
+                    } else {
+                        0.0
+                    };
+                }
+            }
+        }
+    }
+    if let Some(obj) = hybrid_trace.as_object_mut() {
+        obj.insert("eligibleVecHits".into(), json!(eligible_vec_hits));
+    }
     let matched = scores.iter().filter(|score| **score > 0.0).count();
     let mut ranked = corpus
         .iter()
@@ -754,7 +865,9 @@ pub(crate) fn retrieve(
     }
     Ok(Selection {
         trace: json!({"version":"organized-memory-v12-sparse-context-fallback","scanned":scanned,
-        "indexBackend":"fts5-derived-v3","matched":matched,"returned":records.len(),"limited":limited,"ranking":ranking,"exactDuplicatesCollapsed":duplicate_count,"adjacentConfirmed":adjacent_count,"sourceNavigation":navigation_count,
+        "indexBackend":"fts5-derived-v3","jieba":true,"aliasGroupsApplied":query.alias_group_count(),
+        "hybridRetrieval":hybrid_trace,
+        "matched":matched,"returned":records.len(),"limited":limited,"ranking":ranking,"exactDuplicatesCollapsed":duplicate_count,"adjacentConfirmed":adjacent_count,"sourceNavigation":navigation_count,
         "candidateLimit":MAX_CANDIDATES,"navigationLinks":link_trace,
         "sectionForwardNavigation":section_forward_count,"sectionForwardMaxSegments":6,"maxSourceNavigation":4,
         "sectionMaxGroups":4,"sectionMaxFactsPerGroup":2,"sectionDirectoryLimit":1,
@@ -1903,5 +2016,67 @@ mod tests {
             result.trace["version"],
             "organized-memory-v12-sparse-context-fallback"
         );
+    }
+
+    #[test]
+    fn hybrid_rrf_recalls_semantic_hit_without_bypassing_conflict_or_expiry_guards() {
+        let conn = database();
+        conn.execute_batch(
+            "INSERT OR IGNORE INTO projects VALUES('p','项目','','now');
+             INSERT OR IGNORE INTO sources VALUES('src','p','记录','text','a.txt',NULL,'now','h','ready',1,NULL,'originals/a');",
+        )
+        .unwrap();
+        add_memory(&conn, "eligible-vec", "p", "网关发版计划后移至下周三。", json!({}));
+        add_memory(&conn, "conflicted-vec", "p", "旧版上线时间已推迟。", json!({}));
+        add_memory(&conn, "expired-working", "p", "临时延期观察项。", json!({}));
+        add_memory(&conn, "archived-vec", "p", "已归档的延期历史。", json!({}));
+        conn.execute("UPDATE memories SET state='archived' WHERE id='archived-vec'", [])
+            .unwrap();
+        conn.execute(
+            "INSERT INTO proposals(id,project_id,source_id,kind,content,status,created_at,memory_id)
+             VALUES('prop-c','p','src','fact','新上线时间','pending','now',NULL)",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO memory_reviews VALUES('rev-c','prop-c','conflict','conflicted-vec',1,'','变更','pending','now','now')",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO revision_retention VALUES('expired-working','{\"layer\":\"working\",\"reviewAfter\":\"2026-10-01\",\"reason\":\"临时状态\"}')",
+            [],
+        )
+        .unwrap();
+
+        let semantic = SemanticSignals {
+            hits: vec![
+                ("conflicted-vec".into(), 0.05),
+                ("expired-working".into(), 0.08),
+                ("archived-vec".into(), 0.09),
+                ("eligible-vec".into(), 0.12),
+            ],
+            trace: json!({"enabled": true, "backend": "sqlite-vec", "fusion": "rrf", "vecHits": 4}),
+        };
+        // Query has zero lexical overlap with "网关发版计划后移至下周三。"
+        let result = retrieve_with_semantic(
+            &conn,
+            Some("p"),
+            &Query::new("是否会延期？"),
+            10,
+            2000,
+            false,
+            "2026-10-21",
+            Some(semantic),
+        )
+        .unwrap();
+        let ids: Vec<&str> = result
+            .records
+            .iter()
+            .filter_map(|m| m["id"].as_str())
+            .collect();
+        assert_eq!(ids, vec!["eligible-vec"]);
+        assert_eq!(result.trace["hybridRetrieval"]["eligibleVecHits"], 1);
+        assert_eq!(result.trace["jieba"], true);
     }
 }

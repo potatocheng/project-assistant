@@ -533,7 +533,16 @@ fn scan_at(
     if !force && previous_hash.as_deref() == Some(&fingerprint) && !due {
         return Ok(json!({"scanned":false,"changed":0,"ready":0,"lastRunAt":last}));
     }
-    let candidates = candidates(conn, project, at)?;
+    let mut candidates = candidates(conn, project, at)?;
+    if let Ok(adjustments) = crate::habits::proactive_priority_adjustments(conn, project) {
+        if !adjustments.is_empty() {
+            for candidate in candidates.values_mut() {
+                if let Some(&delta) = adjustments.get(&candidate.kind) {
+                    candidate.priority = (candidate.priority + delta).max(10);
+                }
+            }
+        }
+    }
     let all = read_actions(conn, project)?;
     let mut existing: HashMap<String, Value> = all
         .into_iter()
@@ -789,6 +798,22 @@ fn update_action(conn: &Connection, p: &Value, at: &DateTime<FixedOffset>) -> Re
     )?;
     store(conn, &a, &source)?;
     history(conn, &a, operation, note, &stamp(at))?;
+    if matches!(operation, "dismiss" | "snooze") {
+        let snooze_days = if operation == "snooze" {
+            next.as_deref()
+                .and_then(|ts| parse_stamp(ts).ok())
+                .map(|target| (target - *at).num_days().max(1))
+        } else {
+            None
+        };
+        let _ = crate::habits::observe_proactive_feedback(
+            conn,
+            a["projectId"].as_str(),
+            a["targetKind"].as_str().unwrap_or(""),
+            operation,
+            snooze_days,
+        );
+    }
     Ok(a)
 }
 

@@ -69,17 +69,22 @@ function Reports({ list, changed, ...props }: ContentProps) {
     }
     setBusy(`polish-${style}`); setError('');
     try {
-      const res = await execute<{ content: string }>('polish_report', {
+      const res = await execute<{ content: string; factWarnings?: string[] }>('polish_report', {
         content: content.trim(),
         reportType: 'weekly',
         style,
+        projectId: report.projectId || null,
         projectName: scopeTitle,
         dateLabel: `${report.startDate} 至 ${report.endDate}`,
       });
       setContent(res.content);
       setEditing(false);
       void writeDraft(`weekly:${report.id}:${report.version}`, res.content).catch(() => {});
-      props.notify(`已切换为「${style === 'executive' ? '老板高管版' : style === 'team' ? '项目群对齐版' : '客户汇报版'}」，请核对后点击「保存新版本」。`);
+      if (res.factWarnings && res.factWarnings.length > 0) {
+        props.notify(`已切换周报风格，但检测到事实核对提示：${res.factWarnings.join(' ')}`, true);
+      } else {
+        props.notify(`已切换为「${style === 'executive' ? '老板高管版' : style === 'team' ? '项目群对齐版' : '客户汇报版'}」，请核对后点击「保存新版本」。`);
+      }
     } catch (caught) {
       setError(asError(caught).message);
     } finally {

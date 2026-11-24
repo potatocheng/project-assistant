@@ -89,7 +89,8 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
             return Err(AppError::new("NOT_FOUND", "项目不存在"));
         }
     }
-    let query = search::Query::from_payload(payload)?;
+    let aliases = crate::aliases::load_groups(conn, scope)?;
+    let query = search::Query::from_payload_with_aliases(payload, &aliases)?;
     search::register(conn, payload)?;
     let mut projects = read(conn,
         "SELECT json_object('id',p.id,'name',p.name,'description',substr(p.description,1,2000),'goal',substr(coalesce(f.goal,''),1,2000),'status',coalesce(f.status,'active'),'targetDate',f.target_date,'version',coalesce(f.version,0),'updatedAt',coalesce(f.updated_at,p.created_at)) FROM projects p LEFT JOIN project_profiles f ON f.project_id=p.id WHERE (?1 IS NULL OR p.id=?1) ORDER BY p.id LIMIT ?2", scope, 301)?;
@@ -101,7 +102,8 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
     }
     let work = read_bound(conn,&format!(
         "SELECT json_object('id',t.id,'projectId',t.project_id,'title',t.title,'description',project_search_excerpt(t.description,1200),'category',t.category,'status',t.status,'progress',t.progress,'assignee',t.assignee,'priority',t.priority,'dueDate',t.due_date,'plannedDate',t.planned_date,'memoryId',t.memory_id,'memoryRevision',t.memory_revision,'version',t.version,'updatedAt',t.updated_at,'latestNote',substr(coalesce((SELECT note FROM task_events e WHERE e.task_id=t.id ORDER BY version DESC LIMIT 1),''),1,1500),'workDate',(SELECT work_date FROM task_events e WHERE e.task_id=t.id ORDER BY version DESC LIMIT 1)) FROM tasks t WHERE (?1 IS NULL OR t.project_id=?1) ORDER BY {} DESC,CASE t.status WHEN 'blocked' THEN 0 WHEN 'in_progress' THEN 1 WHEN 'todo' THEN 2 ELSE 3 END,t.updated_at DESC,t.id LIMIT ?2",relevance_sql("t.title","t.description || ' ' || coalesce(t.assignee,'') || ' ' || coalesce((SELECT note FROM task_events e WHERE e.task_id=t.id ORDER BY version DESC LIMIT 1),'')")),params![scope,(MAX_TASKS+1) as i64])?;
-    let memory_selection = crate::memory_query::retrieve(
+    let semantic = crate::memory_query::parse_semantic(payload);
+    let memory_selection = crate::memory_query::retrieve_with_semantic(
         conn,
         scope,
         &query,
@@ -109,6 +111,7 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
         4000,
         query.overview(),
         date,
+        semantic,
     )?;
     let memory_candidates = memory_selection.records;
     let memory_pack = crate::qa::selected_memory_pack(question, &memory_candidates);
@@ -195,6 +198,12 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
     }
     context["preferences"] = crate::memory_workbench::preferences(conn)?;
     context["contextIntent"] = json!(context_intent(question));
+    if let Some(hits) = payload.get("_semanticHits") {
+        context["_semanticHits"] = hits.clone();
+    }
+    if let Some(trace) = payload.get("_semanticTrace") {
+        context["_semanticTrace"] = trace.clone();
+    }
     context["fingerprint"] = json!(hash(context.to_string().as_bytes()));
     context["capturedAt"] = json!(now());
     Ok(context)
@@ -1619,11 +1628,12 @@ fn ask_shared(
         payload,
         true,
         |payload| {
+            let enriched = crate::enrich_payload_with_semantic(sender, root, payload);
             crate::actor_call(
                 sender,
                 Request {
                     command: "_assistant_context".into(),
-                    payload,
+                    payload: enriched,
                 },
             )
         },

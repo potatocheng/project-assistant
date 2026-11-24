@@ -187,9 +187,11 @@ impl Database {
         let proposal=self.conn.query_row("SELECT p.id FROM proposals p WHERE p.status='pending' AND p.origin='ai' AND p.edited=0 AND NOT EXISTS(SELECT 1 FROM memory_reviews r WHERE r.proposal_id=p.id) AND NOT EXISTS(SELECT 1 FROM memory_runs x WHERE x.subject_id=p.id AND x.status='failed') ORDER BY p.created_at LIMIT 1",[],|r|r.get::<_,String>(0)).optional()?;
         if let Some(proposal) = proposal {
             let p = self.proposal(&proposal)?;
-            let memories = memory_snapshot(&self.conn, required(&p, "projectId")?)?;
+            let project_id = required(&p, "projectId")?;
+            let memories = memory_snapshot(&self.conn, project_id)?;
             let full_hash = hash(json!(memories).to_string().as_bytes());
-            let selected = comparison_context(&p, &memories, 32000);
+            let aliases = crate::aliases::load_groups(&self.conn, Some(project_id))?;
+            let selected = comparison_context(&p, &memories, 32000, &aliases);
             let source=self.conn.query_row("SELECT json_object('sourceAt',s.source_at,'occurredAt',o.occurred_at,'fetchedAt',o.fetched_at,'remoteRevision',o.remote_revision,'author',o.author,'url',o.url) FROM sources s LEFT JOIN source_origins o ON o.source_id=s.id WHERE s.id=?",[required(&p,"sourceId")?],|r|r.get::<_,String>(0))?;
             let source: Value = serde_json::from_str(&source)
                 .map_err(|_| AppError::new("DATABASE", "资料来源快照无效"))?;
@@ -403,6 +405,13 @@ impl Database {
                 "UPDATE proposals SET status='rejected' WHERE id=?",
                 [&row.0],
             )?;
+            let _ = crate::habits::observe_proposal_feedback(
+                &tx,
+                proposal["projectId"].as_str(),
+                proposal["kind"].as_str().unwrap_or("fact"),
+                "ignore",
+                None,
+            );
         } else {
             if !["new", "replace", "mergeEvidence"].contains(&action) {
                 return Err(AppError::new("VALIDATION", "确认操作无效"));
@@ -511,8 +520,14 @@ impl Database {
     }
 }
 
-fn comparison_context(proposal: &Value, memories: &[Value], limit: usize) -> Vec<Value> {
-    let query = crate::search::Query::new(proposal["content"].as_str().unwrap_or(""));
+fn comparison_context(
+    proposal: &Value,
+    memories: &[Value],
+    limit: usize,
+    aliases: &[Vec<String>],
+) -> Vec<Value> {
+    let query =
+        crate::search::Query::new_with_aliases(proposal["content"].as_str().unwrap_or(""), aliases);
     let scores = query.rank(
         &memories
             .iter()
@@ -1007,7 +1022,7 @@ mod tests {
         let old = json!({"id":"old","kind":"fact","content":"Atlas采购审批由李思负责。"});
         let mut memories=(0..100).map(|i|json!({"id":format!("new-{i}"),"kind":"fact","content":"其他项目消息日志上限为200条。"})).collect::<Vec<_>>();
         memories.push(old.clone());
-        let selected = comparison_context(&p, &memories, 300);
+        let selected = comparison_context(&p, &memories, 300, &[]);
         assert_eq!(selected[0], old);
         assert!(selected.len() < memories.len());
     }

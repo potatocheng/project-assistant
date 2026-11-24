@@ -703,6 +703,8 @@ svg { flex-shrink: 0; }
 .memory-run > span { float:right; color: var(--text-secondary); }
 .memory-run p { line-height:1.75; margin:8px 0; overflow-wrap:anywhere; }
 .memory-center h3 { margin-top:24px; font-size:var(--fs-md); }
+.memory-audit-section { margin-top:26px; padding-top:18px; border-top:1px solid var(--border); }
+.habits-panel textarea, .habits-panel input[type=text], .habits-panel input:not([type]) { width:100%; }
 .memory-source-url { overflow-wrap:anywhere; }
 .memory-empty { padding:35px 0; }
 @media(max-width:680px) { .memory-form-row,.memory-comparison { grid-template-columns:1fr; } .memory-run > span { float:none; display:block; margin-top:5px; } }

@@ -1,4 +1,5 @@
 mod ai;
+mod aliases;
 mod answer_contract;
 mod answer_repair;
 mod assistance;
@@ -21,9 +22,11 @@ mod extraction_context;
 mod extraction_store;
 mod feishu;
 mod governance;
+mod habits;
 mod maintenance;
 mod management;
 mod memory;
+mod memory_audit;
 #[cfg(test)]
 mod memory_evaluation;
 mod memory_facts;
@@ -41,6 +44,7 @@ mod question_plan;
 mod question_target;
 mod retention;
 mod search;
+mod semantic;
 mod settings;
 mod source_passages;
 mod tasks;
@@ -600,6 +604,11 @@ impl Engine {
                 | "coordination_get_meeting"
                 | "get_source"
                 | "get_memory"
+                | "list_entity_aliases"
+                | "search_verified_memories"
+                | "get_semantic_search_status"
+                | "get_habits_center"
+                | "get_memory_audits"
         ) {
             self.inner.maintenance.touch();
         }
@@ -637,6 +646,28 @@ impl Engine {
         if request.command == "polish_report" {
             let settings = settings::load(&self.inner.root)?;
             settings.validate_material_access()?;
+            let preferences = self
+                .call(Request {
+                    command: "get_assistant_preferences".into(),
+                    payload: json!({}),
+                })
+                .ok();
+            let writing_habits = self
+                .call(Request {
+                    command: "_writing_habits".into(),
+                    payload: json!({
+                        "projectId": request.payload.get("projectId").cloned().unwrap_or(Value::Null),
+                        "context": format!(
+                            "{} {} {}",
+                            request.payload["reportType"].as_str().unwrap_or(""),
+                            request.payload["style"].as_str().unwrap_or(""),
+                            request.payload["projectName"].as_str().unwrap_or("")
+                        ),
+                    }),
+                })
+                .ok()
+                .and_then(|v| v["habits"].as_array().cloned())
+                .unwrap_or_default();
             return ai::polish_report(
                 &settings.config(),
                 settings.api_key.as_deref(),
@@ -647,7 +678,43 @@ impl Engine {
                     .as_str()
                     .unwrap_or("全部项目"),
                 request.payload["dateLabel"].as_str().unwrap_or(""),
+                preferences.as_ref(),
+                &writing_habits,
             );
+        }
+        if request.command == "get_semantic_search_status" {
+            let active = self
+                .call(Request {
+                    command: "_semantic_active_memories".into(),
+                    payload: request.payload.clone(),
+                })
+                .ok()
+                .and_then(|v| v["count"].as_i64());
+            return semantic::status(&self.inner.root, active);
+        }
+        if request.command == "save_semantic_search_settings" {
+            return semantic::save_settings(&self.inner.root, &request.payload);
+        }
+        if request.command == "test_embedding_connection" {
+            return semantic::test_connection(&self.inner.root);
+        }
+        if request.command == "rebuild_semantic_index" {
+            let active = self.call(Request {
+                command: "_semantic_active_memories".into(),
+                payload: request.payload.clone(),
+            })?;
+            let inputs = semantic::ActiveMemoryInput::from_values(
+                active["memories"].as_array().map(Vec::as_slice).unwrap_or(&[]),
+            );
+            return semantic::rebuild_index(&self.inner.root, &inputs);
+        }
+        if request.command == "search_verified_memories" {
+            let enriched =
+                enrich_payload_with_semantic(&self.inner.sender, &self.inner.root, request.payload);
+            return self.call(Request {
+                command: "_search_verified_memories".into(),
+                payload: enriched,
+            });
         }
         if request.command == "ask_project" {
             return ask_project(&self.inner.sender, &self.inner.root, &request.payload);
@@ -797,6 +864,54 @@ fn affects_proactive_actions(command: &str) -> bool {
     .any(|prefix| command.starts_with(prefix))
 }
 
+pub(crate) fn enrich_payload_with_semantic(
+    sender: &mpsc::SyncSender<Message>,
+    root: &Path,
+    mut payload: Value,
+) -> Value {
+    let Ok(config) = semantic::load_settings(root) else {
+        return payload;
+    };
+    if !config.enabled {
+        return payload;
+    }
+    let query_text = payload["question"]
+        .as_str()
+        .or_else(|| payload["query"].as_str())
+        .unwrap_or("")
+        .trim()
+        .to_owned();
+    if query_text.is_empty() {
+        return payload;
+    }
+    let scope_payload = json!({"projectId": payload.get("projectId").cloned().unwrap_or(Value::Null)});
+    let Ok(active) = actor_call(
+        sender,
+        Request {
+            command: "_semantic_active_memories".into(),
+            payload: scope_payload,
+        },
+    ) else {
+        return payload;
+    };
+    let inputs = semantic::ActiveMemoryInput::from_values(
+        active["memories"].as_array().map(Vec::as_slice).unwrap_or(&[]),
+    );
+    let outcome = semantic::query_hits(root, &query_text, &inputs, 64);
+    if let Some(obj) = payload.as_object_mut() {
+        obj.insert(
+            "_semanticHits".into(),
+            json!(outcome
+                .hits
+                .into_iter()
+                .map(|(id, dist)| json!([id, dist]))
+                .collect::<Vec<_>>()),
+        );
+        obj.insert("_semanticTrace".into(), outcome.trace);
+    }
+    payload
+}
+
 fn ask_project(sender: &mpsc::SyncSender<Message>, root: &Path, payload: &Value) -> Result<Value> {
     // Take a project-scoped snapshot on the database actor; network I/O stays outside it.
     let configuration = settings::load(root)?;
@@ -805,11 +920,12 @@ fn ask_project(sender: &mpsc::SyncSender<Message>, root: &Path, payload: &Value)
         payload,
         false,
         |payload| {
+            let enriched = enrich_payload_with_semantic(sender, root, payload);
             actor_call(
                 sender,
                 Request {
                     command: "_retrieve_qa_context".into(),
-                    payload,
+                    payload: enriched,
                 },
             )
         },

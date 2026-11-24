@@ -382,6 +382,9 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
         crate::extraction_store::validate_backup(&conn)?;
         crate::retention::validate_backup(&conn)?;
         crate::daily_use::validate_backup(&conn)?;
+        crate::aliases::validate_backup(&conn)?;
+        crate::habits::validate_backup(&conn)?;
+        crate::memory_audit::validate_backup(&conn)?;
         return Ok(Validated {
             stage,
             manifest,
@@ -405,6 +408,9 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
     crate::extraction_store::validate_backup(&conn)?;
     crate::retention::validate_backup(&conn)?;
     crate::daily_use::validate_backup(&conn)?;
+    crate::aliases::validate_backup(&conn)?;
+    crate::habits::validate_backup(&conn)?;
+    crate::memory_audit::validate_backup(&conn)?;
     Ok(Validated {
         stage,
         manifest,
@@ -645,6 +651,7 @@ pub(crate) fn restore(db: &mut Database, p: &Value) -> Result<Value> {
     }
     db.conn
         .execute_batch("DELETE FROM memory_lexical; DELETE FROM memory_lexical_state;")?;
+    crate::semantic::clear_workspace_cache(&db.root);
     db.epoch += 1;
     db.conn.execute("UPDATE workspace_options SET value=json_set(value,'$.enabled',json('false'),'$.automaticIds',json('[]')) WHERE key='backup_policy'",[])?;
     db.conn.execute("UPDATE workspace_options SET value=json_set(value,'$.notifications',json('false'),'$.autostart',json('false')) WHERE key='desktop'",[])?;

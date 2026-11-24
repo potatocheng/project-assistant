@@ -28,7 +28,9 @@ impl Worker {
         let weak = Arc::downgrade(&state);
         thread::Builder::new()
             .name("memory-maintenance".into())
-            .spawn(move || loop {
+            .spawn(move || {
+                let mut last_sleep_gen = u64::MAX;
+                loop {
                 thread::sleep(Duration::from_secs(2));
                 let Some(state) = weak.upgrade() else { return };
                 if state.stopped.load(Ordering::SeqCst) {
@@ -51,13 +53,19 @@ impl Worker {
                     t.elapsed().as_secs()
                         >= status["settings"]["idleSeconds"].as_u64().unwrap_or(120)
                 });
+                let activity = state.generation.load(Ordering::SeqCst);
+                // Zero-token Sleep-time Compute: once per idle cycle, run local habit synthesis
+                // and active-memory contradiction audit without consuming LLM daily budget.
+                if (idle || force) && last_sleep_gen != activity {
+                    let _ = call("_sleep_time_maintenance", json!({}));
+                    last_sleep_gen = activity;
+                }
                 if (!force && (status["settings"]["enabled"] != true || !idle))
                     || status["callsToday"].as_i64().unwrap_or(0)
                         >= status["settings"]["dailyCalls"].as_i64().unwrap_or(100)
                 {
                     continue;
                 }
-                let activity = state.generation.load(Ordering::SeqCst);
                 let (tx, rx) = mpsc::channel();
                 if sender.send(Message::ClaimMaintenance(tx)).is_err() {
                     return;
@@ -157,6 +165,7 @@ impl Worker {
                     ));
                 } else {
                     let _ = call("_memory_cancel", json!({"run":run,"job":job}));
+                }
                 }
             })?;
         Ok(state)

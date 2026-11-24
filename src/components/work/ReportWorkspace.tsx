@@ -65,10 +65,11 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, o
     }
     setBusy(`polish-${style}`); setError('');
     try {
-      const res = await execute<{ content: string; model: string }>('polish_report', {
+      const res = await execute<{ content: string; model: string; factWarnings?: string[] }>('polish_report', {
         content: content.trim(),
         reportType: 'daily',
         style,
+        projectId: projectId || null,
         projectName: scopeName,
         dateLabel: report.date,
       });
@@ -76,7 +77,11 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, o
       setEditing(false);
       void writeDraft(`report:${report.id}`, res.content).catch(() => {});
       saveId.current = crypto.randomUUID();
-      notify(`已切换为「${style === 'executive' ? '老板高管版' : style === 'team' ? '项目群对齐版' : '客户汇报版'}」，请核对后点击「保存修改」。`);
+      if (res.factWarnings && res.factWarnings.length > 0) {
+        notify(`已切换风格，但检测到事实核对提示：${res.factWarnings.join(' ')}`, true);
+      } else {
+        notify(`已切换为「${style === 'executive' ? '老板高管版' : style === 'team' ? '项目群对齐版' : '客户汇报版'}」，请核对后点击「保存修改」。`);
+      }
     } catch (caught) {
       setError(asError(caught).message);
     } finally {

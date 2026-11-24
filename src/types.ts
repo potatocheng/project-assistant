@@ -60,6 +60,114 @@ export interface AiSettings {
   outputFormat: 'json_object' | 'json_schema'; timeoutSeconds: number;
   autoExtract: boolean; remoteConsent: boolean; configured: boolean; hasApiKey: boolean;
 }
+export interface AssistantPreferences {
+  role: string;
+  answerStyle: 'standard' | 'concise' | 'detailed';
+  reportFormat: 'structured' | 'brief';
+  reminderStyle: 'standard' | 'gentle' | 'direct';
+  version: number;
+  updatedAt?: string;
+}
+export interface EntityAlias {
+  id: string;
+  projectId: string | null;
+  canonical: string;
+  aliases: string[];
+  kind: 'person' | 'project' | 'term';
+  note: string;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface SemanticSearchSettings {
+  enabled: boolean;
+  provider: 'ollama' | 'openai_compatible';
+  baseUrl: string;
+  model: string;
+  timeoutSeconds: number;
+  remoteConsent: boolean;
+  hasApiKey: boolean;
+  usingSharedAiKey: boolean;
+  isRemote: boolean;
+  configured: boolean;
+}
+export interface SemanticSearchStatus {
+  settings: SemanticSearchSettings;
+  sqliteVecVersion: string;
+  index: {
+    indexedCount: number;
+    dimensions: number | null;
+    profileKey?: string | null;
+    vecTableReady: boolean;
+  };
+  activeMemoryCount: number | null;
+}
+export type HabitCategory = 'writing' | 'reminder' | 'workflow' | 'filtering';
+export interface HabitProposal {
+  id: string;
+  projectId: string | null;
+  patternKey: string;
+  category: HabitCategory;
+  title: string;
+  instruction: string;
+  rule: Record<string, unknown>;
+  evidenceCount: number;
+  confidence: number;
+  status: 'pending' | 'confirmed' | 'rejected';
+  samples?: Array<{ id: string; sourceKind: string; summary: string; createdAt: string }>;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface UserHabit {
+  id: string;
+  projectId: string | null;
+  patternKey: string;
+  category: HabitCategory;
+  title: string;
+  instruction: string;
+  rule: Record<string, unknown>;
+  status: 'active' | 'paused' | 'archived';
+  confidence: number;
+  appliedCount: number;
+  acceptedCount: number;
+  overriddenCount: number;
+  utilityScore: number;
+  lowUtilityWarning: boolean;
+  version: number;
+  lastAppliedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface HabitsCenter {
+  proposals: HabitProposal[];
+  habits: UserHabit[];
+  recentObservations: Array<{
+    id: string;
+    projectId: string | null;
+    sourceKind: string;
+    patternKey: string;
+    category: HabitCategory;
+    summary: string;
+    createdAt: string;
+  }>;
+  counts: { pendingProposals: number; activeHabits: number; lowUtilityHabits: number };
+}
+export interface MemoryAuditItem {
+  id: string;
+  projectId: string;
+  kind: 'date_conflict' | 'owner_conflict' | 'negation_conflict' | 'duplicate_overlap';
+  reason: string;
+  status: 'open' | 'dismissed' | 'resolved';
+  createdAt: string;
+  updatedAt: string;
+  memoryA: { id: string; revision: number; content: string; sourceTitle: string; updatedAt: string };
+  memoryB: { id: string; revision: number; content: string; sourceTitle: string; updatedAt: string };
+}
+export interface MemoryAuditsResponse {
+  audits: MemoryAuditItem[];
+  openCount: number;
+  scan?: { scannedProjects: number; newFindings: number; autoResolved: number };
+}
 export interface Counts { projects: number; sources: number; memories: number; tasks?: number; reports?: number }
 export interface Backup {
   id: string; filename: string; createdAt: string; byteSize: number; sha256: string;

@@ -1681,6 +1681,7 @@ pub(crate) fn complete_agent_turn(
     }))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn polish_report(
     config: &AiConfig,
     api_key: Option<&str>,
@@ -1689,6 +1690,8 @@ pub(crate) fn polish_report(
     style: &str,
     project_name: &str,
     date_label: &str,
+    preferences: Option<&Value>,
+    writing_habits: &[Value],
 ) -> Result<Value> {
     let trimmed = content.trim();
     if trimmed.is_empty() || trimmed.chars().count() > 100_000 {
@@ -1718,9 +1721,42 @@ pub(crate) fn polish_report(
     } else {
         "工作日报"
     };
+    let mut pref_lines = Vec::new();
+    if let Some(prefs) = preferences {
+        if let Some(role) = prefs["role"].as_str().map(str::trim).filter(|s| !s.is_empty()) {
+            pref_lines.push(format!("- 用户角色与关注重点：{role}"));
+        }
+        match prefs["answerStyle"].as_str() {
+            Some("concise") => pref_lines.push("- 表达详略偏好：偏简洁，优先要点式表达。".into()),
+            Some("detailed") => pref_lines.push("- 表达详略偏好：偏详细，保留原稿关键背景与条件。".into()),
+            _ => {}
+        }
+        match prefs["reportFormat"].as_str() {
+            Some("brief") => pref_lines.push("- 报告篇幅偏好：精简工作简报风格。".into()),
+            Some("structured") => pref_lines.push("- 报告篇幅偏好：分节结构化汇报。".into()),
+            _ => {}
+        }
+    }
+    for habit in writing_habits.iter().take(6) {
+        if let Some(inst) = habit["instruction"]
+            .as_str()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+        {
+            pref_lines.push(format!("- 已确认写作习惯：{inst}"));
+        }
+    }
+    let pref_block = if pref_lines.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "\n\n用户明确填写的个人呈现偏好（仅影响结构与详略，绝不能覆盖客观事实）：\n{}",
+            pref_lines.join("\n")
+        )
+    };
     let system_prompt = format!(
         "你是一位资深项目管理助理。请基于用户提供的「{kind_label}」原始记录草稿，在不改变任何客观事实的前提下，按以下要求改写为清晰可读的 Markdown 报告。\n\n\
-        目标风格：\n{audience_guide}\n\n\
+        目标风格：\n{audience_guide}{pref_block}\n\n\
         严格事实红线：\n\
         1. 严禁虚构或新增原稿中没有的任务名称、人名、日期、比例或已解决结论。\n\
         2. 保持数值、日期与责任人准确；原稿中未说明的信息不要臆测补全。\n\
@@ -1823,12 +1859,84 @@ pub(crate) fn polish_report(
     if polished.is_empty() {
         return Err(AppError::new("MODEL_RESPONSE", "模型未生成有效的报告正文"));
     }
+    let fact_warnings = detect_polished_fact_drift(trimmed, date_label, &polished);
     Ok(json!({
         "content": polished,
         "style": style,
         "model": config.model,
-        "usage": usage
+        "usage": usage,
+        "factWarnings": fact_warnings
     }))
+}
+
+fn extract_iso_dates(text: &str) -> std::collections::BTreeSet<String> {
+    let bytes = text.as_bytes();
+    let mut dates = std::collections::BTreeSet::new();
+    if bytes.len() < 10 {
+        return dates;
+    }
+    for i in 0..=bytes.len() - 10 {
+        let s = &bytes[i..i + 10];
+        if s[0..4].iter().all(u8::is_ascii_digit)
+            && s[4] == b'-'
+            && s[5..7].iter().all(u8::is_ascii_digit)
+            && s[7] == b'-'
+            && s[8..10].iter().all(u8::is_ascii_digit)
+        {
+            if let Ok(token) = std::str::from_utf8(s) {
+                dates.insert(token.to_owned());
+            }
+        }
+    }
+    dates
+}
+
+fn extract_percentages(text: &str) -> std::collections::BTreeSet<String> {
+    let chars: Vec<char> = text.chars().collect();
+    let mut percents = std::collections::BTreeSet::new();
+    for (idx, &ch) in chars.iter().enumerate() {
+        if ch == '%' || ch == '％' {
+            let mut start = idx;
+            while start > 0 && (chars[start - 1].is_ascii_digit() || chars[start - 1] == '.') {
+                start -= 1;
+            }
+            if start < idx {
+                let num: String = chars[start..idx].iter().collect();
+                if num.chars().any(|c| c.is_ascii_digit()) {
+                    percents.insert(format!("{num}%"));
+                }
+            }
+        }
+    }
+    percents
+}
+
+fn detect_polished_fact_drift(source: &str, date_label: &str, polished: &str) -> Vec<String> {
+    let mut warnings = Vec::new();
+    let mut allowed_dates = extract_iso_dates(source);
+    allowed_dates.extend(extract_iso_dates(date_label));
+    let new_dates: Vec<String> = extract_iso_dates(polished)
+        .into_iter()
+        .filter(|d| !allowed_dates.contains(d))
+        .collect();
+    if !new_dates.is_empty() {
+        warnings.push(format!(
+            "润色稿新增了原稿未出现的日期：{}，保存前请核对。",
+            new_dates.join("、")
+        ));
+    }
+    let allowed_percents = extract_percentages(source);
+    let new_percents: Vec<String> = extract_percentages(polished)
+        .into_iter()
+        .filter(|p| !allowed_percents.contains(p))
+        .collect();
+    if !new_percents.is_empty() {
+        warnings.push(format!(
+            "润色稿新增了原稿未出现的比例数值：{}，保存前请核对。",
+            new_percents.join("、")
+        ));
+    }
+    warnings
 }
 
 #[cfg(test)]
@@ -1838,6 +1946,25 @@ mod tests {
     use std::net::{TcpListener, TcpStream};
     use std::sync::{Arc, Mutex};
     use std::thread::{self, JoinHandle};
+
+    #[test]
+    fn polish_report_fact_guard_flags_only_newly_invented_dates_and_percentages() {
+        let draft = "2026-11-24：支付联调完成 60%，目标 2026-11-28 交付。";
+        assert!(detect_polished_fact_drift(
+            draft,
+            "2026-11-24",
+            "核心进展：支付联调已达 60%，计划 2026-11-28 交付。"
+        )
+        .is_empty());
+        let warnings = detect_polished_fact_drift(
+            draft,
+            "2026-11-24",
+            "核心进展：支付联调已达 85%，计划 2026-12-01 交付。",
+        );
+        assert_eq!(warnings.len(), 2);
+        assert!(warnings[0].contains("2026-12-01"));
+        assert!(warnings[1].contains("85%"));
+    }
 
     #[derive(Clone, Debug)]
     struct CapturedRequest {

@@ -10,7 +10,7 @@ import {
   type Tool,
   type ToolCall,
 } from '@mariozechner/pi-ai';
-import type { AppState, Page } from '../../types';
+import type { AppState, AssistantPreferences, EntityAlias, Page, UserHabit } from '../../types';
 
 function defineTool<T extends TSchema>(tool: AgentTool<T>): AgentTool<any> {
   return tool;
@@ -29,6 +29,14 @@ export interface ToolApprovalRequest {
   details: string[];
   args: Record<string, unknown>;
 }
+
+export type ToolApprovalDecision =
+  | boolean
+  | {
+      approved: boolean;
+      overrideArgs?: Record<string, unknown>;
+      rememberAsHabit?: boolean;
+    };
 
 export interface AgentTurnResponse {
   model: string;
@@ -245,22 +253,83 @@ export function buildSystemPrompt(
   projectId: string,
   date: string,
   contextLabel: string,
+  preferences?: AssistantPreferences | null,
+  aliases?: EntityAlias[],
+  habits?: UserHabit[],
 ): string {
   const activeProject = state.projects.find(p => p.id === projectId);
   const projectList = state.projects.map(p => `- ${p.name} (id: ${p.id})`).join('\n') || '（暂无项目）';
-  return [
-    '你是「项目助理」内置的 AI 副驾驶（基于 Pi Agent 运行时），专门协助项目经理高效推进日常交付与项目管理。',
+  const lines = [
+    '你是「循序（Cadence）」内置的 AI 副驾驶（基于 Pi Agent 运行时），专门协助项目经理高效推进日常交付与项目管理。',
     `当前日期：${date}`,
     `当前页面：${contextLabel}`,
     `当前项目范围：${activeProject ? `${activeProject.name} (id: ${activeProject.id})` : '全部项目'}`,
     `工作区项目列表：\n${projectList}`,
+  ];
+
+  if (preferences) {
+    const prefParts: string[] = [];
+    if (preferences.role?.trim()) {
+      prefParts.push(`- 职责与关注重点：${preferences.role.trim()}`);
+    }
+    const styleMap: Record<string, string> = {
+      standard: '标准',
+      concise: '简洁（优先给结论与要点）',
+      detailed: '详细（补充关键背景与条件）',
+    };
+    const reminderMap: Record<string, string> = {
+      standard: '标准',
+      gentle: '温和委婉',
+      direct: '直接利落',
+    };
+    prefParts.push(`- 回答详略：${styleMap[preferences.answerStyle] ?? '标准'}`);
+    prefParts.push(`- 催办与跟进措辞：${reminderMap[preferences.reminderStyle] ?? '标准'}`);
+    prefParts.push(`- 日报篇幅习惯：${preferences.reportFormat === 'brief' ? '简短工作简报' : '分节结构化日报'}`);
+    lines.push(
+      '',
+      '用户明确填写的个人偏好（仅控制表达风格、详略和关注重点，绝不能覆盖项目客观事实或推断“我”的身份）：',
+      ...prefParts,
+    );
+  }
+
+  if (aliases && aliases.length > 0) {
+    const aliasLines = aliases.slice(0, 30).map(item => {
+      const kindLabel = item.kind === 'person' ? '人名' : item.kind === 'project' ? '项目' : '术语';
+      const scopeLabel = item.projectId ? '本项目' : '全局';
+      return `- [${kindLabel}/${scopeLabel}] ${item.canonical} = ${item.aliases.join(' / ')}`;
+    });
+    lines.push(
+      '',
+      '团队常用术语与别名映射（用于理解简称与检索召回，回答时请优先使用标准名称）：',
+      ...aliasLines,
+    );
+  }
+
+  const activeHabits = (habits ?? []).filter(h => h.status === 'active').slice(0, 12);
+  if (activeHabits.length > 0) {
+    const catLabel: Record<string, string> = {
+      writing: '写作汇报',
+      reminder: '提醒节奏',
+      workflow: '工作流',
+      filtering: '信息过滤',
+    };
+    lines.push(
+      '',
+      '用户已确认的个人工作习惯（由你审阅启用；仅用于调整表达风格、工具默认参数与交互习惯，绝不能覆盖客观项目事实）：',
+      ...activeHabits.map(h => `- [${catLabel[h.category] ?? h.category}] ${h.instruction}`),
+    );
+  }
+
+  lines.push(
     '',
     '工作准则：',
-    '1. 先查后说：回答进度、风险、任务或资料问题前，优先调用只读工具核实最新记录，严禁编造任务、日期或结论。',
-    '2. 主动闭环：当用户要求新建任务、改期、标记完成、记录风险/决策或生成日报时，直接调用对应的写入工具；系统会自动向用户弹出确认卡，你无需在文字里重复要求用户手动复制或自己操作。',
-    '3. 修改已有任务前，务必先调用 list_tasks 获取准确的 taskId 与 version。',
-    '4. 表达简洁、结构清晰、使用中文大白话，重点突出下一步行动。',
-  ].join('\n');
+    '1. 先查后说、绝不绕过依据：回答项目事实、历史决策、责任归属、日期或资料内容前，优先调用 ask_verified_memory（走本地完整证据包与原文断言核验）或 search_project_memory（走本地可信记忆过滤与混合检索），严禁编造任务、日期、人名或结论。',
+    '2. 明确区分依据与冲突：若工具返回 pendingReviewCount > 0，或 status 为 unknown / conflicted，必须如实提醒用户存在待确认的冲突更新或依据不足，绝不把被屏蔽的旧记忆或个人猜测当作事实。回答引用项目记忆时标明来源标题与版本。',
+    '3. 主动闭环：当用户要求新建任务、改期、标记完成、记录风险/决策或生成日报时，直接调用对应的写入工具；系统会自动向用户弹出确认卡，你无需在文字里重复要求用户手动复制或自己操作。',
+    '4. 修改已有任务前，务必先调用 list_tasks 获取准确的 taskId 与 version。',
+    '5. 表达结构清晰、使用中文大白话，重点突出下一步行动。',
+  );
+  return lines.join('\n');
 }
 
 function summarizeApproval(
@@ -344,8 +413,13 @@ export function createPmAgentTools(deps: {
   getProjectId: () => string;
   onMutated: () => Promise<unknown>;
   onNavigate?: (page: Page) => void;
+  consumeOverrideArgs?: (toolCallId: string) => Record<string, unknown> | undefined;
 }): AgentTool<any>[] {
-  const { executor, getState, getDate, getProjectId, onMutated, onNavigate } = deps;
+  const { executor, getState, getDate, getProjectId, onMutated, onNavigate, consumeOverrideArgs } = deps;
+  const mergeOverrides = <T extends Record<string, unknown>>(toolCallId: string, params: T): T => {
+    const patch = consumeOverrideArgs?.(toolCallId);
+    return patch ? ({ ...params, ...patch } as T) : params;
+  };
 
   const resolveProjectId = (provided?: string) => {
     const state = getState();
@@ -452,26 +526,125 @@ export function createPmAgentTools(deps: {
     defineTool({
       name: 'search_project_memory',
       label: '检索项目记忆与资料',
-      description: '按关键词搜索已确认的项目事实、决策、需求、风险记忆及原始资料标题。',
+      description: '通过本地可信检索引擎（jieba 分词 + 团队术语别名 + 可选 sqlite-vec 混合检索）搜索当前有效的项目事实、决策、需求、风险记忆与原文摘录。已自动过滤已归档、过期临时状态及存在待审冲突的旧记忆。',
       parameters: Type.Object({
-        query: Type.String({ description: '要搜索的关键词' }),
+        query: Type.String({ description: '要搜索的关键词或自然语言问句' }),
         projectId: Type.Optional(Type.String({ description: '可选，限定项目 ID' })),
       }),
       execute: async (_id, params) => {
-        const state = getState();
         const pid = params.projectId || getProjectId();
-        const kw = params.query.trim().toLowerCase();
-        const memories = state.memories
-          .filter(m => (!pid || m.projectId === pid) && m.content.toLowerCase().includes(kw))
-          .slice(0, 15)
-          .map(m => ({ id: m.id, kind: m.kind, content: m.content, sourceTitle: m.sourceTitle }));
-        const sources = state.sources
-          .filter(s => (!pid || s.projectId === pid) && s.title.toLowerCase().includes(kw))
-          .slice(0, 10)
-          .map(s => ({ id: s.id, title: s.title, importedAt: s.importedAt }));
+        const data = await executor<{
+          memories: Array<{
+            id: string;
+            projectId: string;
+            kind: string;
+            content: string;
+            revision: number;
+            origin: string;
+            evidenceLabel?: string;
+            sourceTitle: string;
+            updatedAt: string;
+            facets?: Record<string, unknown>;
+            evidence?: Array<{ sourceTitle: string; locator: string; text: string }>;
+          }>;
+          sourcePassages: Array<{ sourceTitle?: string; locator?: string; text?: string }>;
+          sources: Array<{ id: string; title: string; importedAt: string }>;
+          pendingReviewCount: number;
+          searchTrace?: Record<string, unknown>;
+        }>('search_verified_memories', {
+          query: params.query.trim(),
+          ...(pid ? { projectId: pid } : {}),
+          date: getDate(),
+          limit: 15,
+        });
+        const compact = {
+          memories: (data.memories ?? []).map(m => ({
+            id: m.id,
+            kind: m.kind,
+            content: m.content,
+            revision: m.revision,
+            origin: m.origin,
+            evidenceLabel: m.evidenceLabel,
+            sourceTitle: m.sourceTitle,
+            updatedAt: m.updatedAt,
+            facets: m.facets,
+            evidence: (m.evidence ?? []).slice(0, 2).map(e => ({
+              sourceTitle: e.sourceTitle,
+              locator: e.locator,
+              excerpt: e.text.slice(0, 240),
+            })),
+          })),
+          sourcePassages: (data.sourcePassages ?? []).slice(0, 3).map(p => ({
+            note: '导入原文（非正式记忆，仅供语境补充）',
+            sourceTitle: p.sourceTitle,
+            locator: p.locator,
+            excerpt: (p.text ?? '').slice(0, 400),
+          })),
+          sources: data.sources ?? [],
+          pendingReviewCount: data.pendingReviewCount ?? 0,
+          pendingReviewNotice:
+            (data.pendingReviewCount ?? 0) > 0
+              ? `当前范围内有 ${data.pendingReviewCount} 条待确认的冲突或不确定记忆更新，受影响的旧记忆已自动屏蔽，请提醒用户先在「记忆中心 → 待确认」核对。`
+              : undefined,
+          hybridRetrieval: data.searchTrace?.hybridRetrieval,
+        };
         return {
-          content: [{ type: 'text', text: JSON.stringify({ memories, sources }, null, 2) }],
-          details: { kind: 'read', count: memories.length + sources.length },
+          content: [{ type: 'text', text: JSON.stringify(compact, null, 2).slice(0, 8000) }],
+          details: {
+            kind: 'read',
+            count: (data.memories?.length ?? 0) + (data.sources?.length ?? 0),
+          },
+        };
+      },
+    }),
+    defineTool({
+      name: 'ask_verified_memory',
+      label: '核验项目事实与原文依据',
+      description: '调用内置的严格证据包问答引擎（含原文锚点绑定与语义断言核验）回答关于项目历史决策、责任归属、具体日期、条款或文档细节的问题，返回带原文引用的核验结论及缺口说明。',
+      parameters: Type.Object({
+        question: Type.String({ description: '要核验的具体项目问题' }),
+        projectId: Type.Optional(Type.String({ description: '可选，限定项目 ID' })),
+      }),
+      execute: async (_id, params) => {
+        const pid = params.projectId || getProjectId();
+        const res = await executor<{
+          answer: string;
+          status?: string;
+          grounded?: boolean;
+          claims?: Array<{ text: string; citationIds?: string[] }>;
+          unknowns?: string[];
+          citations?: Array<{
+            id: string;
+            kind: string;
+            title?: string;
+            sourceTitle?: string;
+            revision?: number;
+            locator?: string;
+            evidence?: Array<{ sourceTitle: string; locator: string }>;
+          }>;
+        }>('ask_assistant', {
+          question: params.question.trim(),
+          ...(pid ? { projectId: pid } : {}),
+          date: getDate(),
+          useModel: true,
+        });
+        const compact = {
+          status: res.status ?? (res.grounded ? 'answered' : 'unknown'),
+          grounded: !!res.grounded,
+          answer: res.answer,
+          unknowns: res.unknowns ?? [],
+          citations: (res.citations ?? []).slice(0, 12).map(c => ({
+            id: c.id,
+            kind: c.kind,
+            title: c.title || c.sourceTitle,
+            revision: c.revision,
+            locator: c.locator,
+            evidence: (c.evidence ?? []).slice(0, 2),
+          })),
+        };
+        return {
+          content: [{ type: 'text', text: JSON.stringify(compact, null, 2).slice(0, 8000) }],
+          details: { kind: 'read', grounded: !!res.grounded },
         };
       },
     }),
@@ -490,7 +663,8 @@ export function createPmAgentTools(deps: {
         dueDate: Type.Optional(Type.String({ description: '可选，截止日期 YYYY-MM-DD' })),
         plannedDate: Type.Optional(Type.String({ description: '可选，计划执行日期 YYYY-MM-DD' })),
       }),
-      execute: async (_id, params) => {
+      execute: async (toolCallId, rawParams) => {
+        const params = mergeOverrides(toolCallId, rawParams as Record<string, unknown>) as typeof rawParams;
         const pid = resolveProjectId(params.projectId);
         if (!pid) throw new Error('没有可用的目标项目，请先新建一个项目。');
         const created = await executor('create_task', {
@@ -532,7 +706,8 @@ export function createPmAgentTools(deps: {
         assignee: Type.Optional(Type.String()),
         note: Type.Optional(Type.String({ description: '本次调整的原因或进展说明' })),
       }),
-      execute: async (_id, params) => {
+      execute: async (toolCallId, rawParams) => {
+        const params = mergeOverrides(toolCallId, rawParams as Record<string, unknown>) as typeof rawParams;
         const state = getState();
         const existing = state.tasks.find(t => t.id === params.taskId);
         if (!existing) throw new Error(`找不到任务 ${params.taskId}，请先调用 list_tasks 核对。`);
@@ -571,7 +746,8 @@ export function createPmAgentTools(deps: {
         severity: Type.Optional(Type.Union([Type.Literal('low'), Type.Literal('medium'), Type.Literal('high')])),
         dueDate: Type.Optional(Type.String({ description: '可选，处理期限 YYYY-MM-DD' })),
       }),
-      execute: async (_id, params) => {
+      execute: async (toolCallId, rawParams) => {
+        const params = mergeOverrides(toolCallId, rawParams as Record<string, unknown>) as typeof rawParams;
         const pid = resolveProjectId(params.projectId);
         if (!pid) throw new Error('没有可用的目标项目。');
         const created = await executor('save_governance_item', {
@@ -636,11 +812,26 @@ export function createPmCopilotAgent(deps: {
   getDate: () => string;
   getProjectId: () => string;
   getContextLabel: () => string;
+  getPreferences?: () => AssistantPreferences | null;
+  getAliases?: () => EntityAlias[];
+  getHabits?: () => UserHabit[];
   onMutated: () => Promise<unknown>;
   onNavigate?: (page: Page) => void;
-  requestApproval: (req: ToolApprovalRequest, signal?: AbortSignal) => Promise<boolean>;
+  requestApproval: (req: ToolApprovalRequest, signal?: AbortSignal) => Promise<ToolApprovalDecision>;
 }): Agent {
-  const { executor, getState, getDate, getProjectId, getContextLabel, onMutated, onNavigate, requestApproval } = deps;
+  const {
+    executor,
+    getState,
+    getDate,
+    getProjectId,
+    getContextLabel,
+    getPreferences,
+    getAliases,
+    getHabits,
+    onMutated,
+    onNavigate,
+    requestApproval,
+  } = deps;
   const ai = getState().aiSettings;
   const model: Model<any> = {
     id: ai.model || 'configured-model',
@@ -655,6 +846,7 @@ export function createPmCopilotAgent(deps: {
     maxTokens: 4096,
   };
 
+  const approvedOverrides = new Map<string, Record<string, unknown>>();
   const tools = createPmAgentTools({
     executor,
     getState,
@@ -662,11 +854,24 @@ export function createPmCopilotAgent(deps: {
     getProjectId,
     onMutated,
     onNavigate,
+    consumeOverrideArgs: (toolCallId) => {
+      const value = approvedOverrides.get(toolCallId);
+      approvedOverrides.delete(toolCallId);
+      return value;
+    },
   });
 
   return new Agent({
     initialState: {
-      systemPrompt: buildSystemPrompt(getState(), getProjectId(), getDate(), getContextLabel()),
+      systemPrompt: buildSystemPrompt(
+        getState(),
+        getProjectId(),
+        getDate(),
+        getContextLabel(),
+        getPreferences?.(),
+        getAliases?.(),
+        getHabits?.(),
+      ),
       model,
       tools,
       thinkingLevel: 'off',
@@ -679,7 +884,7 @@ export function createPmCopilotAgent(deps: {
       }
       const args = (ctx.args && typeof ctx.args === 'object' ? ctx.args : {}) as Record<string, unknown>;
       const info = summarizeApproval(ctx.toolCall.name, args, getState());
-      const approved = await requestApproval(
+      const rawDecision = await requestApproval(
         {
           toolCallId: ctx.toolCall.id,
           toolName: ctx.toolCall.name,
@@ -690,8 +895,36 @@ export function createPmCopilotAgent(deps: {
         },
         signal,
       );
-      if (!approved) {
+      const decision =
+        typeof rawDecision === 'boolean'
+          ? { approved: rawDecision, overrideArgs: undefined, rememberAsHabit: false }
+          : rawDecision;
+      const finalArgs = decision.overrideArgs ? { ...args, ...decision.overrideArgs } : args;
+      const edited =
+        !!decision.overrideArgs &&
+        Object.keys(decision.overrideArgs).some(k => decision.overrideArgs![k] !== args[k]);
+      const appliedHabitIds = (getHabits?.() ?? [])
+        .filter(h => h.status === 'active' && h.category === 'workflow')
+        .map(h => h.id);
+      const pid = typeof finalArgs.projectId === 'string' && finalArgs.projectId
+        ? finalArgs.projectId
+        : getProjectId() || null;
+
+      void executor('record_copilot_feedback', {
+        projectId: pid,
+        toolName: ctx.toolCall.name,
+        decision: !decision.approved ? 'rejected' : edited ? 'edited_and_approved' : 'approved',
+        originalArgs: args,
+        finalArgs,
+        rememberAsHabit: !!decision.rememberAsHabit,
+        appliedHabitIds,
+      }).catch(() => {});
+
+      if (!decision.approved) {
         return { block: true, reason: '用户取消了此操作，请尊重用户决定并简短告知。' };
+      }
+      if (decision.overrideArgs) {
+        approvedOverrides.set(ctx.toolCall.id, finalArgs);
       }
       return undefined;
     },

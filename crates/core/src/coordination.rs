@@ -493,6 +493,13 @@ fn save_report(conn: &Connection, p: &Value) -> Result<Value> {
         params![base + 1, now(), key],
     )?;
     insert_report_version(conn, key, base + 1, &content, &old["basis"], true)?;
+    let _ = crate::habits::observe_report_edit(
+        conn,
+        old["projectId"].as_str(),
+        "周报",
+        old["content"].as_str().unwrap_or(""),
+        &content,
+    );
     report(conn, key, None)
 }
 

@@ -8,11 +8,12 @@ import {
 import type { Agent, AgentEvent } from '@mariozechner/pi-agent-core';
 import { execute } from '../../api';
 import { clearDraft, readDraft, writeDraft } from '../../drafts';
-import type { AppState, Evidence, ManagementKind, Page } from '../../types';
+import type { AppState, AssistantPreferences, EntityAlias, Evidence, HabitsCenter, ManagementKind, Page, UserHabit } from '../../types';
 import { Spinner } from '../ui';
 import {
   buildSystemPrompt,
   createPmCopilotAgent,
+  type ToolApprovalDecision,
   type ToolApprovalRequest,
 } from './pi-copilot-agent';
 
@@ -49,7 +50,8 @@ const TOOL_LABELS: Record<string, string> = {
   list_tasks: '查询任务清单',
   get_governance_items: '查询风险与待决策',
   get_proactive_items: '查询主动推进建议',
-  search_project_memory: '检索项目记忆与资料',
+  search_project_memory: '检索可信项目记忆与资料',
+  ask_verified_memory: '核验项目事实与原文依据',
   create_task: '新建项目任务',
   update_task: '更新任务状态或排期',
   create_risk_or_decision: '记录风险或待决策',
@@ -80,9 +82,43 @@ export function CopilotDrawer({
   const [running, setRunning] = useState(false);
   const [approval, setApproval] = useState<{
     request: ToolApprovalRequest;
-    resolve: (approved: boolean) => void;
+    draftArgs: Record<string, unknown>;
+    rememberAsHabit: boolean;
+    resolve: (decision: ToolApprovalDecision) => void;
   } | null>(null);
   const [qaQuestion, setQaQuestion] = useState<{ id: number; text: string } | null>(null);
+  const preferencesRef = useRef<AssistantPreferences | null>(null);
+  const aliasesRef = useRef<EntityAlias[]>([]);
+  const habitsRef = useRef<UserHabit[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    void Promise.all([
+      execute<AssistantPreferences>('get_assistant_preferences').catch(() => null),
+      execute<{ aliases: EntityAlias[] }>('list_entity_aliases', projectId ? { projectId } : {}).catch(() => null),
+      execute<HabitsCenter>('get_habits_center', projectId ? { projectId } : {}).catch(() => null),
+    ]).then(([prefs, aliasRes, habitsRes]) => {
+      if (!active) return;
+      preferencesRef.current = prefs;
+      aliasesRef.current = aliasRes?.aliases ?? [];
+      habitsRef.current = habitsRes?.habits ?? [];
+      if (agentRef.current) {
+        agentRef.current.state.systemPrompt = buildSystemPrompt(
+          stateRef.current,
+          projectIdRef.current,
+          dateRef.current,
+          contextLabelRef.current,
+          preferencesRef.current,
+          aliasesRef.current,
+          habitsRef.current,
+        );
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [open, projectId, state.assistantPreferenceVersion, state.workspace.revision]);
 
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -149,6 +185,9 @@ export function CopilotDrawer({
         projectIdRef.current,
         dateRef.current,
         contextLabelRef.current,
+        preferencesRef.current,
+        aliasesRef.current,
+        habitsRef.current,
       );
       return agentRef.current;
     }
@@ -159,12 +198,15 @@ export function CopilotDrawer({
       getDate: () => dateRef.current,
       getProjectId: () => projectIdRef.current,
       getContextLabel: () => contextLabelRef.current,
+      getPreferences: () => preferencesRef.current,
+      getAliases: () => aliasesRef.current,
+      getHabits: () => habitsRef.current,
       onMutated: async () => {
         await onChangedRef.current();
       },
       onNavigate: (page) => onNavigateRef.current(page),
       requestApproval: (req, signal) =>
-        new Promise<boolean>((resolve) => {
+        new Promise<ToolApprovalDecision>((resolve) => {
           if (signal?.aborted) {
             resolve(false);
             return;
@@ -176,10 +218,12 @@ export function CopilotDrawer({
           signal?.addEventListener('abort', onAbort, { once: true });
           setApproval({
             request: req,
-            resolve: (approved) => {
+            draftArgs: { ...req.args },
+            rememberAsHabit: false,
+            resolve: (decision) => {
               signal?.removeEventListener('abort', onAbort);
               setApproval(null);
-              resolve(approved);
+              resolve(decision);
             },
           });
         }),
@@ -418,7 +462,7 @@ export function CopilotDrawer({
               </div>
             )}
 
-            {/* Human-in-the-Loop Write Tool Approval Card */}
+            {/* Human-in-the-Loop Write Tool Approval Card (PAHF inline parameter override + habit learning) */}
             {approval && (
               <div className="copilot-action-card" role="region" aria-label="待确认操作">
                 <div className="copilot-action-card-head">
@@ -434,18 +478,93 @@ export function CopilotDrawer({
                     ))}
                   </div>
                 )}
+                {(approval.request.toolName === 'create_task' || approval.request.toolName === 'update_task') && (
+                  <div className="memory-form-row" style={{ marginTop: 8 }}>
+                    {approval.request.toolName === 'create_task' && (
+                      <label style={{ fontSize: 12 }}>
+                        优先级
+                        <select
+                          aria-label="确认卡任务优先级"
+                          value={String(approval.draftArgs.priority ?? 'medium')}
+                          onChange={(e) => setApproval(prev => prev ? { ...prev, draftArgs: { ...prev.draftArgs, priority: e.target.value } } : prev)}
+                        >
+                          <option value="high">高</option>
+                          <option value="medium">中</option>
+                          <option value="low">低</option>
+                        </select>
+                      </label>
+                    )}
+                    <label style={{ fontSize: 12 }}>
+                      负责人
+                      <input
+                        aria-label="确认卡负责人"
+                        value={String(approval.draftArgs.assignee ?? '')}
+                        placeholder="留空不改"
+                        onChange={(e) => setApproval(prev => prev ? { ...prev, draftArgs: { ...prev.draftArgs, assignee: e.target.value } } : prev)}
+                      />
+                    </label>
+                    <label style={{ fontSize: 12 }}>
+                      截止日期
+                      <input
+                        aria-label="确认卡截止日期"
+                        type="date"
+                        value={String(approval.draftArgs.dueDate ?? '')}
+                        onChange={(e) => setApproval(prev => prev ? { ...prev, draftArgs: { ...prev.draftArgs, dueDate: e.target.value || null } } : prev)}
+                      />
+                    </label>
+                  </div>
+                )}
+                {approval.request.toolName === 'create_risk_or_decision' && (
+                  <div className="memory-form-row" style={{ marginTop: 8 }}>
+                    <label style={{ fontSize: 12 }}>
+                      严重度
+                      <select
+                        aria-label="确认卡严重度"
+                        value={String(approval.draftArgs.severity ?? 'medium')}
+                        onChange={(e) => setApproval(prev => prev ? { ...prev, draftArgs: { ...prev.draftArgs, severity: e.target.value } } : prev)}
+                      >
+                        <option value="high">高</option>
+                        <option value="medium">中</option>
+                        <option value="low">低</option>
+                      </select>
+                    </label>
+                    <label style={{ fontSize: 12 }}>
+                      处理期限
+                      <input
+                        aria-label="确认卡处理期限"
+                        type="date"
+                        value={String(approval.draftArgs.dueDate ?? '')}
+                        onChange={(e) => setApproval(prev => prev ? { ...prev, draftArgs: { ...prev.draftArgs, dueDate: e.target.value || null } } : prev)}
+                      />
+                    </label>
+                  </div>
+                )}
+                {approval.request.toolName !== 'generate_daily_report' && (
+                  <label className="checkbox-row" style={{ margin: '8px 0 4px', fontSize: 12 }}>
+                    <input
+                      type="checkbox"
+                      checked={approval.rememberAsHabit}
+                      onChange={(e) => setApproval(prev => prev ? { ...prev, rememberAsHabit: e.target.checked } : prev)}
+                    />
+                    <span>记住本次参数调整为个人工作习惯</span>
+                  </label>
+                )}
                 <div className="copilot-action-buttons">
                   <button
                     type="button"
                     className="button primary compact"
-                    onClick={() => approval.resolve(true)}
+                    onClick={() => approval.resolve({
+                      approved: true,
+                      overrideArgs: approval.draftArgs,
+                      rememberAsHabit: approval.rememberAsHabit,
+                    })}
                   >
                     <Check size={13} />确认执行
                   </button>
                   <button
                     type="button"
                     className="button secondary compact"
-                    onClick={() => approval.resolve(false)}
+                    onClick={() => approval.resolve({ approved: false })}
                   >
                     <X size={13} />取消
                   </button>

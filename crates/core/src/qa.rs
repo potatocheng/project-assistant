@@ -123,11 +123,13 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
         })
         .optional()?
         .ok_or_else(|| AppError::new("NOT_FOUND", "项目不存在"))?;
-    let query = Query::from_payload(payload)?;
+    let aliases = crate::aliases::load_groups(conn, Some(project))?;
+    let query = Query::from_payload_with_aliases(payload, &aliases)?;
     let today = chrono::Local::now().format("%Y-%m-%d").to_string();
     let as_of = payload["asOfDate"].as_str().unwrap_or(&today);
     crate::tasks::valid_date(as_of)?;
-    let selection = memory_query::retrieve(
+    let semantic = memory_query::parse_semantic(payload);
+    let selection = memory_query::retrieve_with_semantic(
         conn,
         Some(project),
         &query,
@@ -135,6 +137,7 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
         MAX_CONTENT_CHARS,
         false,
         as_of,
+        semantic,
     )?;
     let mut memories = Vec::new();
     for mut memory in selection.records {
@@ -163,7 +166,7 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
         .to_string()
         .chars()
         .count();
-    Ok(json!({
+    let mut out = json!({
         "projectId":project,"projectName":name,"question":question,"asOfDate":as_of,
         "retrievalVersion":RETRIEVAL_VERSION,"memories":pack.references,"memoryCandidatePool":memories,
         "evidenceSelectionTrace":pack.trace,
@@ -173,14 +176,22 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
         "contextPack":{"version":"current-content-pack-v2-indexed-spans","maxReferences":MAX_MEMORIES,
             "maxModelChars":MAX_CONTEXT_CHARS,"modelChars":context_chars,"returned":pack.references.len(),
             "candidateLimit":MAX_CANDIDATES,"candidateCount":memories.len()}
-    }))
+    });
+    if let Some(hits) = payload.get("_semanticHits") {
+        out["_semanticHits"] = hits.clone();
+    }
+    if let Some(trace) = payload.get("_semanticTrace") {
+        out["_semanticTrace"] = trace.clone();
+    }
+    Ok(out)
 }
 
 pub(crate) fn validate(conn: &Connection, context: &Value) -> Result<Value> {
-    let query = Query::from_payload(context)?;
+    let project = context["projectId"].as_str().ok_or_else(stale)?;
+    let aliases = crate::aliases::load_groups(conn, Some(project))?;
+    let query = Query::from_payload_with_aliases(context, &aliases)?;
     let as_of = context["asOfDate"].as_str().ok_or_else(stale)?;
     crate::tasks::valid_date(as_of).map_err(|_| stale())?;
-    let project = context["projectId"].as_str().ok_or_else(stale)?;
     let project_exists: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM projects WHERE id=? AND name=?)",
         params![project, context["projectName"].as_str().ok_or_else(stale)?],

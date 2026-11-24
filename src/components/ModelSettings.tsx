@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Check, CircleAlert, ExternalLink, Globe2, Monitor, PlugZap, ShieldCheck, Sparkles } from 'lucide-react';
 import { asError, execute } from '../api';
-import type { AiSettings } from '../types';
+import type { AiSettings, SemanticSearchSettings, SemanticSearchStatus } from '../types';
 import { Spinner } from './ui';
 
 interface ModelPreset {
@@ -113,6 +113,12 @@ export function ModelSettingsDialog({ close, onSaved }: { close: () => void; onS
   const [tested, setTested] = useState(false);
   const [reload, setReload] = useState(0);
   const [usage, setUsage] = useState<{ todayCalls: number; totalCalls: number; totalTokens: number } | null>(null);
+  const [semantic, setSemantic] = useState<SemanticSearchStatus | null>(null);
+  const [semanticForm, setSemanticForm] = useState<SemanticSearchSettings | null>(null);
+  const [semanticKey, setSemanticKey] = useState('');
+  const [semanticBusy, setSemanticBusy] = useState<'' | 'save' | 'test' | 'rebuild'>('');
+  const [semanticError, setSemanticError] = useState('');
+  const [semanticResult, setSemanticResult] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -120,11 +126,16 @@ export function ModelSettingsDialog({ close, onSaved }: { close: () => void; onS
     Promise.all([
       execute<AiSettings>('get_ai_settings'),
       execute<{ todayCalls: number; totalCalls: number; totalTokens: number }>('get_usage_summary').catch(() => null),
-    ]).then(([settings, summary]) => {
+      execute<SemanticSearchStatus>('get_semantic_search_status').catch(() => null),
+    ]).then(([settings, summary, sem]) => {
       if (!cancelled) {
         setSaved(settings);
         setForm(settings);
         setUsage(summary);
+        if (sem) {
+          setSemantic(sem);
+          setSemanticForm(sem.settings);
+        }
       }
     }).catch((caught) => { if (!cancelled) setError(asError(caught).message); })
       .finally(() => { if (!cancelled) setBusy(''); });
@@ -177,6 +188,63 @@ export function ModelSettingsDialog({ close, onSaved }: { close: () => void; onS
       setResult(response.message || '连接测试通过，模型与结构化输出可用。'); setTested(true);
     } catch (caught) { setError(asError(caught).message); }
     finally { setBusy(''); }
+  };
+  const semanticTarget = endpointInfo(semanticForm?.baseUrl ?? '');
+  const patchSemantic = (patchValue: Partial<SemanticSearchSettings>) => {
+    setSemanticForm((cur) => cur ? { ...cur, ...patchValue } : cur);
+    setSemanticError(''); setSemanticResult('');
+  };
+  const saveSemantic = async () => {
+    if (!semanticForm || semanticBusy) return;
+    setSemanticBusy('save'); setSemanticError(''); setSemanticResult('');
+    try {
+      const next = await execute<SemanticSearchStatus>('save_semantic_search_settings', {
+        enabled: semanticForm.enabled,
+        provider: semanticForm.provider,
+        baseUrl: semanticForm.baseUrl.trim(),
+        model: semanticForm.model.trim(),
+        timeoutSeconds: semanticForm.timeoutSeconds,
+        remoteConsent: semanticForm.remoteConsent,
+        ...(semanticKey.trim() ? { apiKey: semanticKey.trim() } : {}),
+      });
+      setSemantic(next);
+      setSemanticForm(next.settings);
+      setSemanticKey('');
+      setSemanticResult(next.settings.enabled ? '本地混合语义检索配置已保存。' : '已关闭向量语义检索，继续使用 jieba 分词 + 别名 BM25 检索。');
+    } catch (caught) {
+      setSemanticError(asError(caught).message);
+    } finally {
+      setSemanticBusy('');
+    }
+  };
+  const testSemantic = async () => {
+    if (semanticBusy) return;
+    setSemanticBusy('test'); setSemanticError(''); setSemanticResult('');
+    try {
+      const res = await execute<{ message: string }>('test_embedding_connection');
+      setSemanticResult(res.message || '向量连接测试通过。');
+    } catch (caught) {
+      setSemanticError(asError(caught).message);
+    } finally {
+      setSemanticBusy('');
+    }
+  };
+  const rebuildSemantic = async () => {
+    if (semanticBusy) return;
+    setSemanticBusy('rebuild'); setSemanticError(''); setSemanticResult('');
+    try {
+      const res = await execute<{ indexed: number; skipped: number; pruned: number; dimensions?: number | null }>('rebuild_semantic_index');
+      const refreshed = await execute<SemanticSearchStatus>('get_semantic_search_status').catch(() => null);
+      if (refreshed) {
+        setSemantic(refreshed);
+        setSemanticForm(refreshed.settings);
+      }
+      setSemanticResult(`本地向量索引已更新：新增 ${res.indexed} 条，复用 ${res.skipped} 条，清理 ${res.pruned} 条${res.dimensions ? `（维度 ${res.dimensions}）` : ''}。`);
+    } catch (caught) {
+      setSemanticError(asError(caught).message);
+    } finally {
+      setSemanticBusy('');
+    }
   };
 
   return <FormDialog title="模型设置" subtitle="自带模型账号，从资料提取任务、回答项目问题并一键润色汇报。" close={close} busy={!!busy} wide>
@@ -237,6 +305,94 @@ export function ModelSettingsDialog({ close, onSaved }: { close: () => void; onS
           options={[{ value: 'json_object', label: 'JSON 对象' }, { value: 'json_schema', label: 'JSON Schema' }]} /><label><span className="field-label">请求超时（秒）</span><input aria-label="请求超时秒数" type="number" min={5} max={300} value={form.timeoutSeconds} onChange={(event) => patch({ timeoutSeconds: Number(event.target.value) })} disabled={!!busy} required /></label></div><p className="field-hint">更改模型配置会取消正在进行的提取任务。</p></details>
         <div className="model-data-notice">{target.local ? <Monitor size={18} /> : <Globe2 size={18} />}<div><strong>{target.local ? '使用本机模型' : '使用远程模型'}</strong><p>原文段落与位置将发送至 <b>{target.host}</b>，提取结果由你确认。</p>{!target.local && <CheckboxInput label="允许将资料发送至此服务" value={form.remoteConsent} onChange={value => patch({ remoteConsent: value })} isDisabled={!!busy} className="astryx-setting-check" />}{form.provider === 'ollama' && !target.local && <p className="settings-inline-error">Ollama 仅支持本机地址，请修改服务地址。</p>}</div></div>
         <CheckboxInput label="导入后自动提取" description="对新导入的资料生效；已有资料可手动提取。" value={form.autoExtract} onChange={value => patch({ autoExtract: value })} isDisabled={!!busy} />
+        {semanticForm && (
+          <details className="advanced-settings">
+            <summary>
+              本地混合语义检索（sqlite-vec {semantic?.sqliteVecVersion ?? ''} · {semanticForm.enabled ? '已开启' : '未开启'}） <Chevron />
+            </summary>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+              <p className="field-hint">
+                默认使用 jieba 中文分词 + 术语别名 BM25 检索。开启后会在本机 <code>semantic-index.sqlite</code> 中建立 sqlite-vec 向量派生缓存，与 BM25 做 RRF 融合排序；向量仅用于扩大召回，所有冲突屏蔽、归档与有效期规则仍由本机 Rust 严格把关。
+              </p>
+              <p className="field-hint">
+                当前索引：{semantic?.index.indexedCount ?? 0} / {semantic?.activeMemoryCount ?? 0} 条活跃记忆
+                {semantic?.index.dimensions ? ` · ${semantic.index.dimensions} 维` : ''}
+              </p>
+              <CheckboxInput
+                label="启用 sqlite-vec 混合语义检索（BM25 + 向量 RRF）"
+                value={semanticForm.enabled}
+                isDisabled={!!semanticBusy}
+                onChange={(value) => patchSemantic({ enabled: value })}
+              />
+              <Selector
+                id="embedding-provider"
+                label="向量服务类型"
+                value={semanticForm.provider}
+                isDisabled={!!semanticBusy}
+                onChange={(value) => {
+                  if (value === 'ollama') {
+                    patchSemantic({ provider: 'ollama', baseUrl: 'http://127.0.0.1:11434', model: 'bge-m3', remoteConsent: false });
+                  } else {
+                    patchSemantic({ provider: 'openai_compatible', baseUrl: 'https://api.siliconflow.cn/v1', model: 'BAAI/bge-m3', remoteConsent: false });
+                  }
+                  setSemanticKey('');
+                }}
+                options={[
+                  { value: 'ollama', label: '本机 Ollama（100% 离线，推荐 bge-m3 / nomic-embed-text）' },
+                  { value: 'openai_compatible', label: 'OpenAI 兼容向量接口（硅基流动 / 百炼 / OpenAI）' },
+                ]}
+              />
+              <TextInput
+                id="embedding-base-url"
+                label="向量服务地址"
+                type="url"
+                value={semanticForm.baseUrl}
+                isDisabled={!!semanticBusy}
+                hasSpellCheck={false}
+                onChange={(value) => patchSemantic({ baseUrl: value, remoteConsent: false })}
+              />
+              <TextInput
+                id="embedding-model"
+                label="向量模型名称"
+                value={semanticForm.model}
+                placeholder={semanticForm.provider === 'ollama' ? 'bge-m3' : 'BAAI/bge-m3'}
+                isDisabled={!!semanticBusy}
+                hasSpellCheck={false}
+                onChange={(value) => patchSemantic({ model: value })}
+              />
+              {semanticForm.provider === 'openai_compatible' && (
+                <>
+                  <TextInput
+                    id="embedding-api-key"
+                    label="向量 API 密钥（可选）"
+                    description={semanticForm.usingSharedAiKey ? '已自动复用同地址模型密钥' : semanticForm.hasApiKey ? '本机已保存独立密钥' : '与上方同服务地址时可留空自动复用'}
+                    type="password"
+                    value={semanticKey}
+                    placeholder="留空保持当前配置或复用同地址密钥"
+                    isDisabled={!!semanticBusy}
+                    hasSpellCheck={false}
+                    onChange={(value) => { setSemanticKey(value); setSemanticError(''); setSemanticResult(''); }}
+                  />
+                  {!semanticTarget.local && (
+                    <CheckboxInput
+                      label={`允许将活跃记忆正文发送至 ${semanticTarget.host} 生成向量`}
+                      value={semanticForm.remoteConsent}
+                      isDisabled={!!semanticBusy}
+                      onChange={(value) => patchSemantic({ remoteConsent: value })}
+                    />
+                  )}
+                </>
+              )}
+              {semanticError && <div className="form-error" role="alert"><CircleAlert size={15} /><p>{semanticError}</p></div>}
+              {semanticResult && <div className="settings-result" role="status"><Check size={15} /><p>{semanticResult}</p></div>}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <Button label="保存向量配置" type="button" variant="primary" size="sm" isDisabled={!!semanticBusy} onClick={() => void saveSemantic()} />
+                <Button label="测试向量连接" type="button" variant="secondary" size="sm" isDisabled={!!semanticBusy} onClick={() => void testSemantic()} />
+                <Button label="重建本地向量索引" type="button" variant="secondary" size="sm" isDisabled={!!semanticBusy || !semantic?.settings.enabled} onClick={() => void rebuildSemantic()} />
+              </div>
+            </div>
+          </details>
+        )}
         {error && <div className="form-error" role="alert"><CircleAlert size={17} /><p>{error}</p></div>}
         {result && <div className="settings-result" role="status">{tested ? <ShieldCheck size={17} /> : <Check size={17} />}<p>{result}</p></div>}
         {busy === 'test' && <p className="connection-progress" role="status"><Spinner />正在验证连接和输出格式…</p>}

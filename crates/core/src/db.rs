@@ -7,7 +7,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 
-pub(crate) const SCHEMA_VERSION: i64 = 14;
+pub(crate) const SCHEMA_VERSION: i64 = 16;
 pub(crate) struct ParseTask {
     pub path: PathBuf,
     pub kind: String,
@@ -167,6 +167,34 @@ impl Database {
             | "assess_extraction" => {
                 crate::memory_workbench::dispatch(&self.conn, &request.command, &p)
             }
+            "list_entity_aliases" | "save_entity_alias" | "delete_entity_alias" => {
+                crate::aliases::dispatch(&self.conn, &request.command, &p)
+            }
+            "get_habits_center"
+            | "resolve_habit_proposal"
+            | "save_user_habit"
+            | "update_habit_status"
+            | "delete_user_habit"
+            | "record_copilot_feedback"
+            | "record_habit_outcome" => crate::habits::dispatch(&self.conn, &request.command, &p),
+            "get_memory_audits" | "run_memory_audit" | "resolve_memory_audit" => {
+                crate::memory_audit::dispatch(&mut self.conn, &request.command, &p)
+            }
+            "_writing_habits" => {
+                let scope = p["projectId"]
+                    .as_str()
+                    .map(str::trim)
+                    .filter(|s| !s.is_empty() && *s != "all");
+                let ctx = p["context"].as_str().unwrap_or("");
+                let items =
+                    crate::habits::select_for_context(&self.conn, scope, &["writing"], ctx, 6)?;
+                Ok(json!({"habits": items}))
+            }
+            "_sleep_time_maintenance" => {
+                let proposals = crate::habits::synthesize_proposals(&self.conn)?;
+                let audit = crate::memory_audit::scan(&self.conn, None)?;
+                Ok(json!({"habitProposalsCreated": proposals, "audit": audit}))
+            }
             "get_governance_workspace"
             | "get_governance_item"
             | "save_governance_item"
@@ -309,6 +337,8 @@ impl Database {
                 context["workspaceEpoch"] = json!(self.epoch);
                 Ok(context)
             }
+            "_semantic_active_memories" => self.semantic_active_memories(&p),
+            "_search_verified_memories" => self.search_verified_memories(&p),
             "_validate_qa_context" => {
                 if p["workspaceEpoch"].as_u64() != Some(self.epoch)
                     || p["modelRevision"].as_str()
@@ -364,6 +394,159 @@ impl Database {
             "backups": self.all("SELECT id,filename,created_at,byte_size,sha256,counts FROM backups ORDER BY created_at DESC", backup_row)?.into_iter().filter(|b| b["filename"].as_str().is_some_and(|f| backup::safe_filename(f) && self.root.join("backups").join(f).is_file())).collect::<Vec<_>>()
         }))
     }
+    fn semantic_active_memories(&self, p: &Value) -> Result<Value> {
+        let scope = p["projectId"]
+            .as_str()
+            .filter(|s| !s.is_empty() && *s != "all");
+        let mut stmt = self.conn.prepare(
+            "SELECT m.id,r.id,m.project_id,m.content
+             FROM memories m
+             JOIN revisions r ON r.memory_id=m.id AND r.number=m.revision AND r.content=m.content
+             WHERE (?1 IS NULL OR m.project_id=?1)
+               AND m.state='active'
+               AND NOT EXISTS(SELECT 1 FROM workspace_lifecycle l WHERE l.kind='project' AND l.entity_id=m.project_id AND l.archived=1)
+             ORDER BY m.updated_at DESC, m.id
+             LIMIT 10000",
+        )?;
+        let rows = stmt
+            .query_map([scope], |row| {
+                Ok(json!({
+                    "memoryId": row.get::<_, String>(0)?,
+                    "revisionId": row.get::<_, String>(1)?,
+                    "projectId": row.get::<_, String>(2)?,
+                    "content": row.get::<_, String>(3)?,
+                }))
+            })?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        let count = rows.len();
+        Ok(json!({"memories": rows, "count": count}))
+    }
+
+    fn search_verified_memories(&self, p: &Value) -> Result<Value> {
+        let raw_query = p["query"]
+            .as_str()
+            .or_else(|| p["question"].as_str())
+            .unwrap_or("")
+            .trim();
+        if raw_query.is_empty() {
+            return Err(AppError::new("VALIDATION", "检索关键词不能为空"));
+        }
+        if raw_query.chars().count() > 2_000 {
+            return Err(AppError::new("VALIDATION", "检索关键词最多 2000 字"));
+        }
+        let scope = match p.get("projectId") {
+            None | Some(Value::Null) => None,
+            Some(Value::String(id)) if id.trim().is_empty() || id.trim() == "all" => None,
+            Some(Value::String(id)) => {
+                self.ensure_project(id.trim())?;
+                Some(id.trim())
+            }
+            _ => return Err(AppError::new("VALIDATION", "项目范围无效")),
+        };
+        let default_date = chrono::Local::now().format("%Y-%m-%d").to_string();
+        let as_of = p["date"]
+            .as_str()
+            .or_else(|| p["asOfDate"].as_str())
+            .filter(|s| !s.trim().is_empty())
+            .unwrap_or(&default_date);
+        tasks::valid_date(as_of)?;
+        let limit = p["limit"].as_u64().unwrap_or(15).clamp(1, 24) as usize;
+        let aliases = crate::aliases::load_groups(&self.conn, scope)?;
+        let query = crate::search::Query::new_with_aliases(raw_query, &aliases);
+        let semantic = crate::memory_query::parse_semantic(p);
+        let selection = crate::memory_query::retrieve_with_semantic(
+            &self.conn,
+            scope,
+            &query,
+            limit,
+            2_000,
+            false,
+            as_of,
+            semantic,
+        )?;
+        let mut memories = Vec::with_capacity(selection.records.len());
+        for mut memory in selection.records {
+            let project_id = memory["projectId"].as_str().unwrap_or("").to_owned();
+            let revision_id = memory["revisionId"].as_str().unwrap_or("").to_owned();
+            let evidence =
+                crate::memory_query::evidence(&self.conn, &revision_id, &project_id, &query, 600)?;
+            memory["evidenceLabel"] = json!(if evidence.is_empty() {
+                if memory["origin"] == "user_correction" {
+                    "人工纠正（当前有效）"
+                } else {
+                    "已确认记忆（无原文依据）"
+                }
+            } else if memory["origin"] == "user_correction" {
+                "人工纠正（含原文依据）"
+            } else {
+                "当前版本原文依据"
+            });
+            memory["evidence"] = json!(evidence);
+            memories.push(memory);
+        }
+        let mut passages =
+            crate::source_passages::retrieve(&self.conn, scope, &query, as_of, &memories)?;
+        passages.truncate(4);
+        let mut source_stmt = self.conn.prepare(
+            "SELECT s.id,s.project_id,s.title,s.imported_at
+             FROM sources s
+             WHERE (?1 IS NULL OR s.project_id=?1)
+               AND s.status='ready'
+               AND NOT EXISTS(SELECT 1 FROM workspace_lifecycle l WHERE l.kind='project' AND l.entity_id=s.project_id AND l.archived=1)
+               AND NOT EXISTS(SELECT 1 FROM workspace_lifecycle l WHERE l.kind='source' AND l.entity_id=s.id AND l.archived=1)
+             ORDER BY s.imported_at DESC, s.id
+             LIMIT 200",
+        )?;
+        let lowered = raw_query.to_lowercase();
+        let mut sources: Vec<(usize, Value)> = source_stmt
+            .query_map([scope], |r| {
+                Ok((
+                    r.get::<_, String>(0)?,
+                    r.get::<_, String>(1)?,
+                    r.get::<_, String>(2)?,
+                    r.get::<_, String>(3)?,
+                ))
+            })?
+            .collect::<std::result::Result<Vec<_>, _>>()?
+            .into_iter()
+            .filter_map(|(id, project_id, title, imported_at)| {
+                let s = query.score(&title, "");
+                let literal = title.to_lowercase().contains(&lowered);
+                if s > 0 || literal {
+                    Some((
+                        s + usize::from(literal),
+                        json!({"id": id, "projectId": project_id, "title": title, "importedAt": imported_at}),
+                    ))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        sources.sort_by_key(|b| std::cmp::Reverse(b.0));
+        let sources: Vec<Value> = sources.into_iter().take(8).map(|(_, v)| v).collect();
+        let pending_review_count: i64 = self.conn.query_row(
+            "SELECT count(*)
+             FROM memory_reviews r
+             JOIN proposals p ON p.id=r.proposal_id
+             WHERE r.status='pending'
+               AND p.status='pending'
+               AND r.disposition IN ('conflict','uncertain')
+               AND (?1 IS NULL OR p.project_id=?1)",
+            [scope],
+            |r| r.get(0),
+        )?;
+        Ok(json!({
+            "query": raw_query,
+            "asOfDate": as_of,
+            "projectId": scope,
+            "memories": memories,
+            "sourcePassages": passages,
+            "sources": sources,
+            "pendingReviewCount": pending_review_count,
+            "searchTrace": selection.trace,
+        }))
+    }
+
     pub fn counts(&self) -> Result<Value> {
         Ok(json!({
             "projects": self.conn.query_row("SELECT count(*) FROM projects", [], |r| r.get::<_,i64>(0))?,
@@ -749,6 +932,15 @@ impl Database {
             "UPDATE proposals SET status='rejected' WHERE id=?",
             [proposal],
         )?;
+        if p["origin"] == "ai" {
+            let _ = crate::habits::observe_proposal_feedback(
+                &self.conn,
+                p["projectId"].as_str(),
+                p["kind"].as_str().unwrap_or("fact"),
+                "reject",
+                None,
+            );
+        }
         self.proposal(proposal)
     }
     pub(crate) fn memory(&self, memory: &str) -> Result<Value> {
@@ -1397,6 +1589,15 @@ pub(crate) fn migrate(conn: &Connection) -> Result<()> {
             crate::assistance_limits::migrate(conn)?;
             crate::orchestration::migrate(conn)?;
             conn.execute_batch("PRAGMA user_version=14;")?;
+        }
+        if version < 15 {
+            crate::aliases::migrate(conn)?;
+            conn.execute_batch("PRAGMA user_version=15;")?;
+        }
+        if version < 16 {
+            crate::habits::migrate(conn)?;
+            crate::memory_audit::migrate(conn)?;
+            conn.execute_batch("PRAGMA user_version=16;")?;
         }
         Ok(())
     })();
