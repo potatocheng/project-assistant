@@ -1,1 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="1" y="1" width="22" height="22" rx="6" fill="#1d1f23"/><path d="M7 8.5h10M7 12h10M7 15.5h5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="16.5" cy="15.5" r="1.9" fill="#8b9dff"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <linearGradient id="c-bg" x1="2" y1="1" x2="22" y2="23" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#171C30"/>
+      <stop offset="100%" stop-color="#0A0D18"/>
+    </linearGradient>
+    <linearGradient id="c-ai" x1="6" y1="9.5" x2="11.5" y2="14.5" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7C86FF"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="22" height="22" rx="6" fill="url(#c-bg)" stroke="#394162" stroke-opacity="0.55" stroke-width="0.75"/>
+  <line x1="8.2" y1="3.5" x2="8.2" y2="20.5" stroke="#818CF8" stroke-opacity="0.45" stroke-width="0.75"/>
+  <rect x="5.5" y="6" width="8" height="2.4" rx="1.2" fill="#F4F6FB"/>
+  <rect x="7" y="10.8" width="12" height="2.4" rx="1.2" fill="#F4F6FB"/>
+  <rect x="11.4" y="15.6" width="7.6" height="2.4" rx="1.2" fill="#F4F6FB"/>
+  <circle cx="8.2" cy="12" r="2.1" fill="url(#c-ai)"/>
+  <path d="M8.2 10.75L8.55 11.65L9.45 12L8.55 12.35L8.2 13.25L7.85 12.35L6.95 12L7.85 11.65Z" fill="#FFFFFF"/>
+</svg>

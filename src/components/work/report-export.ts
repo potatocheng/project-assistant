@@ -283,7 +283,7 @@ export async function exportReportCardPng(opts: {
 
   ctx.fillStyle = 'rgba(255,255,255,0.78)';
   ctx.font = '500 12px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.fillText('项目助理 · 本地智能汇报卡', padX, 54);
+  ctx.fillText('循序 Cadence · 本地智能汇报卡', padX, 54);
 
   ctx.fillStyle = '#ffffff';
   ctx.font = '700 22px "PingFang SC","Microsoft YaHei",sans-serif';
@@ -329,7 +329,7 @@ export async function exportReportCardPng(opts: {
 
   ctx.fillStyle = '#8690a0';
   ctx.font = '400 12px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.fillText('由「项目助理」基于本机真实记录生成 · 数据全程留存本地', padX, totalHeight - 36);
+  ctx.fillText('由「循序 Cadence」基于本机真实记录生成 · 数据全程留存本地', padX, totalHeight - 36);
 
   const dataUrl = canvas.toDataURL('image/png');
   return exportDocument({

@@ -1,6 +1,164 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect x="16" y="16" width="480" height="480" rx="112" fill="#245549"/>
-  <path d="M155 116h143l62 63v218H155z" fill="#f5f2e9"/>
-  <path d="M298 116v63h62" fill="#bfd0bf"/>
-  <path d="M201 237h112M201 285h112M201 333h69" fill="none" stroke="#245549" stroke-width="20" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- Authentic macOS squircle clip -->
+    <clipPath id="squircle-clip">
+      <rect x="82" y="82" width="860" height="860" rx="194" ry="194" />
+    </clipPath>
+
+    <!-- Deep obsidian-midnight base gradient -->
+    <linearGradient id="bg-base" x1="18%" y1="4%" x2="82%" y2="96%">
+      <stop offset="0%" stop-color="#15192B" />
+      <stop offset="48%" stop-color="#0D101D" />
+      <stop offset="100%" stop-color="#070912" />
+    </linearGradient>
+
+    <!-- Subtle top-surface glass sheen -->
+    <radialGradient id="bg-top-sheen" cx="50%" cy="6%" r="72%">
+      <stop offset="0%" stop-color="#333C63" stop-opacity="0.34" />
+      <stop offset="55%" stop-color="#191F38" stop-opacity="0.10" />
+      <stop offset="100%" stop-color="#0B0E19" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Atmospheric indigo ambient glow behind bars -->
+    <radialGradient id="ambient-indigo" cx="42%" cy="50%" r="44%">
+      <stop offset="0%" stop-color="#4F46E5" stop-opacity="0.40" />
+      <stop offset="45%" stop-color="#3730A3" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#0D101D" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Concentrated halo around the AI beacon -->
+    <radialGradient id="beacon-halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#818CF8" stop-opacity="0.72" />
+      <stop offset="38%" stop-color="#6366F1" stop-opacity="0.36" />
+      <stop offset="72%" stop-color="#4F46E5" stop-opacity="0.10" />
+      <stop offset="100%" stop-color="#4F46E5" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Outer metallic bevel stroke -->
+    <linearGradient id="bevel-stroke" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#6B7494" stop-opacity="0.65" />
+      <stop offset="18%" stop-color="#3B425E" stop-opacity="0.42" />
+      <stop offset="82%" stop-color="#1E2336" stop-opacity="0.50" />
+      <stop offset="100%" stop-color="#3B4362" stop-opacity="0.35" />
+    </linearGradient>
+
+    <!-- Inner thin specular rim -->
+    <linearGradient id="inner-rim" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22" />
+      <stop offset="28%" stop-color="#A5B4FC" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.02" />
+    </linearGradient>
+
+    <!-- Vertical "Today / Provenance" trace line -->
+    <linearGradient id="trace-line" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8" stop-opacity="0" />
+      <stop offset="18%" stop-color="#94A3B8" stop-opacity="0.34" />
+      <stop offset="48%" stop-color="#A5B4FC" stop-opacity="0.88" />
+      <stop offset="56%" stop-color="#818CF8" stop-opacity="0.82" />
+      <stop offset="84%" stop-color="#6366F1" stop-opacity="0.24" />
+      <stop offset="100%" stop-color="#6366F1" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Frosted ceramic-white pill bar fill -->
+    <linearGradient id="pill-fill" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="52%" stop-color="#F2F4F9" />
+      <stop offset="100%" stop-color="#DCE1EE" />
+    </linearGradient>
+
+    <!-- Middle active pill bar fill with subtle indigo light spill on the left -->
+    <linearGradient id="pill-active-wash" x1="0%" y1="50%" x2="42%" y2="50%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.85" />
+      <stop offset="32%" stop-color="#818CF8" stop-opacity="0.42" />
+      <stop offset="68%" stop-color="#C7D2FE" stop-opacity="0.14" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Pill rim highlight -->
+    <linearGradient id="pill-stroke" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
+      <stop offset="55%" stop-color="#E2E8F0" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#94A3B8" stop-opacity="0.35" />
+    </linearGradient>
+
+    <!-- Electric indigo-to-violet AI beacon disc -->
+    <linearGradient id="beacon-fill" x1="18%" y1="12%" x2="86%" y2="88%">
+      <stop offset="0%" stop-color="#7B86FF" />
+      <stop offset="46%" stop-color="#554BF0" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+
+    <linearGradient id="beacon-rim" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#E0E7FF" stop-opacity="0.72" />
+      <stop offset="50%" stop-color="#A5B4FC" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#4C1D95" stop-opacity="0.40" />
+    </linearGradient>
+
+    <!-- Subtle macOS Dock drop shadow -->
+    <filter id="dock-shadow" x="-12%" y="-10%" width="124%" height="128%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#04060D" flood-opacity="0.34" />
+    </filter>
+
+    <!-- Pill bar soft elevation shadow -->
+    <filter id="pill-shadow" x="-15%" y="-35%" width="130%" height="190%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#03050C" flood-opacity="0.52" />
+    </filter>
+
+    <!-- Spark crisp glow -->
+    <filter id="spark-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="0" stdDeviation="4.5" flood-color="#FFFFFF" flood-opacity="0.65" />
+    </filter>
+  </defs>
+
+  <!-- Base macOS Squircle with dock shadow -->
+  <g filter="url(#dock-shadow)">
+    <rect x="82" y="82" width="860" height="860" rx="194" ry="194" fill="url(#bg-base)" />
+  </g>
+
+  <!-- Clipped interior artwork -->
+  <g clip-path="url(#squircle-clip)">
+    <!-- Ambient lighting layers -->
+    <rect x="82" y="82" width="860" height="860" fill="url(#bg-top-sheen)" />
+    <rect x="82" y="82" width="860" height="860" fill="url(#ambient-indigo)" />
+
+    <!-- Vertical Today / Provenance trace line aligned to beacon center x=346 -->
+    <rect x="344" y="138" width="4" height="748" fill="url(#trace-line)" />
+
+    <!-- Soft bloom right behind the AI beacon -->
+    <circle cx="346" cy="512" r="146" fill="url(#beacon-halo)" />
+
+    <!-- Bar 1 (Top: Earlier / Completed) -->
+    <g filter="url(#pill-shadow)">
+      <rect x="242" y="274" width="324" height="100" rx="50" fill="url(#pill-fill)" stroke="url(#pill-stroke)" stroke-width="2.5" />
+    </g>
+
+    <!-- Bar 2 (Middle: Active Focus anchored by AI Beacon) -->
+    <g filter="url(#pill-shadow)">
+      <rect x="296" y="462" width="490" height="100" rx="50" fill="url(#pill-fill)" stroke="url(#pill-stroke)" stroke-width="2.5" />
+      <!-- Luminous indigo light wash from the AI beacon into the bar -->
+      <rect x="296" y="462" width="490" height="100" rx="50" fill="url(#pill-active-wash)" />
+    </g>
+
+    <!-- Bar 3 (Bottom: Next Milestone) -->
+    <g filter="url(#pill-shadow)">
+      <rect x="478" y="650" width="308" height="100" rx="50" fill="url(#pill-fill)" stroke="url(#pill-stroke)" stroke-width="2.5" />
+    </g>
+
+    <!-- Glowing Electric Indigo-Violet AI Provenance Beacon -->
+    <g>
+      <circle cx="346" cy="512" r="50" fill="url(#beacon-fill)" stroke="url(#beacon-rim)" stroke-width="2.5" />
+      <!-- Razor-crisp 4-point AI spark inside the beacon -->
+      <path
+        d="M346 479 C349.5 498 360 508.5 379 512 C360 515.5 349.5 526 346 545 C342.5 526 332 515.5 313 512 C332 508.5 342.5 498 346 479 Z"
+        fill="#FFFFFF"
+        filter="url(#spark-glow)"
+      />
+    </g>
+
+    <!-- Inner subtle rim highlight -->
+    <rect x="88" y="88" width="848" height="848" rx="188" ry="188" fill="none" stroke="url(#inner-rim)" stroke-width="3" />
+  </g>
+
+  <!-- Crisp outer metallic bezel -->
+  <rect x="83.5" y="83.5" width="857" height="857" rx="192.5" ry="192.5" fill="none" stroke="url(#bevel-stroke)" stroke-width="3" />
 </svg>

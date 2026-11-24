@@ -3,7 +3,7 @@ use project_assistant_core::{AppError, Engine, Request};
 use serde_json::{json, Value};
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         Mutex,
     },
     time::Duration,
@@ -33,12 +33,12 @@ pub fn setup(app: &mut tauri::App, engine: Engine) -> Result<(), Box<dyn std::er
         tray::TrayIconBuilder,
     };
     app.manage(RuntimeStatus(Mutex::new(None)));
-    let open = MenuItem::with_id(app, "open", "打开项目助理", true, None::<&str>)?;
+    let open = MenuItem::with_id(app, "open", "打开循序", true, None::<&str>)?;
     let inbox = MenuItem::with_id(app, "inbox", "查看待处理", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open, &inbox, &quit])?;
     let mut tray = TrayIconBuilder::new()
-        .tooltip("项目助理")
+        .tooltip("循序 · Cadence")
         .menu(&menu)
         .on_menu_event(|app, event| match event.id.as_ref() {
             "open" => show(app),
@@ -48,7 +48,7 @@ pub fn setup(app: &mut tauri::App, engine: Engine) -> Result<(), Box<dyn std::er
             }
             "quit" => {
                 show(app);
-                let _ = app.emit("request-quit", ());
+                request_quit(app);
             }
             _ => {}
         });
@@ -79,7 +79,7 @@ pub fn setup(app: &mut tauri::App, engine: Engine) -> Result<(), Box<dyn std::er
                     let result = handle
                         .notification()
                         .builder()
-                        .title(digest["title"].as_str().unwrap_or("项目助理"))
+                        .title(digest["title"].as_str().unwrap_or("循序"))
                         .body(digest["body"].as_str().unwrap_or("有事项需要查看"))
                         .show();
                     match result {
@@ -166,8 +166,50 @@ pub async fn save_runtime_settings(
     .await
     .map_err(|_| app_error("RUNTIME", "保存桌面设置失败"))?
 }
+static QUIT_SEQ: AtomicU64 = AtomicU64::new(0);
+static QUIT_PENDING: AtomicBool = AtomicBool::new(false);
+
+pub fn request_quit(app: &tauri::AppHandle) {
+    // If a previous quit request was never acknowledged by the webview (e.g. blank/crashed page),
+    // a second close/quit action exits immediately instead of deadlocking the window.
+    if QUIT_PENDING.swap(true, Ordering::AcqRel) {
+        QUIT_PENDING.store(false, Ordering::Release);
+        QUIT_SEQ.fetch_add(1, Ordering::AcqRel);
+        app.exit(0);
+        return;
+    }
+    let seq = QUIT_SEQ.fetch_add(1, Ordering::AcqRel).wrapping_add(1);
+    let emitted = app
+        .get_webview_window("main")
+        .map(|window| window.emit("request-quit", ()))
+        .unwrap_or_else(|| app.emit("request-quit", ()));
+    if emitted.is_err() {
+        QUIT_PENDING.store(false, Ordering::Release);
+        app.exit(0);
+        return;
+    }
+    let handle = app.clone();
+    let _ = std::thread::Builder::new()
+        .name("quit-fallback".into())
+        .spawn(move || {
+            std::thread::sleep(Duration::from_millis(1500));
+            if QUIT_PENDING.load(Ordering::Acquire) && QUIT_SEQ.load(Ordering::Acquire) == seq {
+                QUIT_PENDING.store(false, Ordering::Release);
+                handle.exit(0);
+            }
+        });
+}
+
+#[tauri::command]
+pub fn ack_quit_request() {
+    QUIT_PENDING.store(false, Ordering::Release);
+    QUIT_SEQ.fetch_add(1, Ordering::AcqRel);
+}
+
 #[tauri::command]
 pub fn finish_quit(app: tauri::AppHandle) {
+    QUIT_PENDING.store(false, Ordering::Release);
+    QUIT_SEQ.fetch_add(1, Ordering::AcqRel);
     app.exit(0);
 }
 static UPDATING: AtomicBool = AtomicBool::new(false);

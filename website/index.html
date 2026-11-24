@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>项目助理 — 专为项目经理打造的本地 AI 交付工作台</title>
-  <meta name="description" content="资料全存本机不泄密，杂乱会议纪要、Excel 排期和微信群聊秒变清晰行动，每句结论溯源原文，一键导出老板版周报与汇报长图。" />
+  <title>循序 · Cadence — 专为项目经理打造的本地 AI 交付工作台</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Crect x='1' y='1' width='22' height='22' rx='6' fill='%230D101D'/%3E%3Cline x1='8.2' y1='3.5' x2='8.2' y2='20.5' stroke='%23818CF8' stroke-opacity='0.5' stroke-width='0.8'/%3E%3Crect x='5.5' y='6' width='8' height='2.4' rx='1.2' fill='%23F4F6FB'/%3E%3Crect x='7' y='10.8' width='12' height='2.4' rx='1.2' fill='%23F4F6FB'/%3E%3Crect x='11.4' y='15.6' width='7.6' height='2.4' rx='1.2' fill='%23F4F6FB'/%3E%3Ccircle cx='8.2' cy='12' r='2.1' fill='%236366F1'/%3E%3Cpath d='M8.2 10.75L8.55 11.65L9.45 12L8.55 12.35L8.2 13.25L7.85 12.35L6.95 12L7.85 11.65Z' fill='%23FFFFFF'/%3E%3C/svg%3E" />
+  <meta name="description" content="循原文之据，理交付之序。资料全存本机不泄密，杂乱会议纪要、Excel 排期和微信群聊秒变清晰行动，每句结论溯源原文，一键导出老板版周报与汇报长图。" />
   <style>
     :root {
       --bg: #f8f9fb;
@@ -51,8 +52,8 @@
     }
     .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
     .brand-icon {
-      width: 28px; height: 28px; border-radius: 8px; background: var(--text);
-      display: grid; place-items: center; color: #fff; font-size: 14px;
+      width: 28px; height: 28px; border-radius: 8px;
+      display: grid; place-items: center; overflow: hidden;
     }
     .nav-links { display: flex; align-items: center; gap: 22px; font-size: 14px; color: var(--text-2); }
     .nav-links a:hover { color: var(--accent); }
@@ -214,8 +215,28 @@
   <header class="nav">
     <div class="container nav-inner">
       <a href="#" class="brand">
-        <span class="brand-icon">项</span>
-        <span>项目助理</span>
+        <span class="brand-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <defs>
+              <linearGradient id="w-bg" x1="2" y1="1" x2="22" y2="23" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#171C30"/>
+                <stop offset="100%" stop-color="#0A0D18"/>
+              </linearGradient>
+              <linearGradient id="w-ai" x1="6" y1="9.5" x2="11.5" y2="14.5" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#7C86FF"/>
+                <stop offset="100%" stop-color="#7C3AED"/>
+              </linearGradient>
+            </defs>
+            <rect x="0.5" y="0.5" width="23" height="23" rx="6" fill="url(#w-bg)" stroke="#394162" stroke-opacity="0.55" stroke-width="0.75"/>
+            <line x1="8.2" y1="3.5" x2="8.2" y2="20.5" stroke="#818CF8" stroke-opacity="0.45" stroke-width="0.75"/>
+            <rect x="5.5" y="6" width="8" height="2.4" rx="1.2" fill="#F4F6FB"/>
+            <rect x="7" y="10.8" width="12" height="2.4" rx="1.2" fill="#F4F6FB"/>
+            <rect x="11.4" y="15.6" width="7.6" height="2.4" rx="1.2" fill="#F4F6FB"/>
+            <circle cx="8.2" cy="12" r="2.1" fill="url(#w-ai)"/>
+            <path d="M8.2 10.75L8.55 11.65L9.45 12L8.55 12.35L8.2 13.25L7.85 12.35L6.95 12L7.85 11.65Z" fill="#FFFFFF"/>
+          </svg>
+        </span>
+        <span>循序 <small style="font-weight:500;color:var(--muted);font-size:13px;margin-left:2px;">Cadence</small></span>
       </a>
       <nav class="nav-links">
         <a href="#features">核心场景</a>
@@ -244,7 +265,7 @@
       <div class="mockup" aria-label="产品界面预览">
         <div class="mockup-bar">
           <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-          <span style="margin-left:8px;">项目助理 v0.3.0 · 本地工作区</span>
+          <span style="margin-left:8px;">循序 · Cadence v0.3.0 · 本地工作区</span>
         </div>
         <div class="mockup-body">
           <aside class="mockup-side">
@@ -306,7 +327,7 @@
           </ul>
         </div>
         <div class="compare-card highlight">
-          <h3>项目助理（本地工作台）</h3>
+          <h3>循序 · Cadence（本地工作台）</h3>
           <ul>
             <li><strong>不强迫团队换工具</strong>：拖入 Excel/PPT/纪要或粘贴微信记录就能跑</li>
             <li><strong>结论可溯源</strong>：每条事实锚定原文页码/段落，修改有历史可回退</li>
@@ -436,7 +457,7 @@
   <section class="section" id="privacy">
     <div class="container">
       <div class="download-box" id="download">
-        <h2>下载「项目助理」桌面端</h2>
+        <h2>下载「循序 · Cadence」桌面端</h2>
         <p>本地单机运行，所有项目资料与数据库 100% 留存在您的本机硬盘。内置零 AI 示例模式与一键脱敏诊断导出。</p>
         <div class="dl-cards">
           <div class="dl-card">
@@ -485,7 +506,7 @@
 
   <footer>
     <div class="container">
-      <p>项目助理 · MIT 开源协议 · <a href="https://github.com/potatocheng/project-assistant" target="_blank" rel="noreferrer">GitHub 仓库</a> · 数据全存本机，安全可控</p>
+      <p>循序 · Cadence · MIT 开源协议 · <a href="https://github.com/potatocheng/project-assistant" target="_blank" rel="noreferrer">GitHub 仓库</a> · 循原文之据，理交付之序</p>
     </div>
   </footer>
 

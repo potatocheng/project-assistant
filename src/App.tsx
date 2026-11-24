@@ -414,7 +414,7 @@ export default function App() {
     if(['meeting','governance','change','deliverable','weekly_report'].includes(hit.kind)){openManagement(hit.kind as import('./types').ManagementKind,hit.id,hit.projectId||'');return;}
     setWorkProjectId(hit.projectId||'');setProjectId(hit.projectId);if(hit.kind==='report'){setWorkDay(hit.title.slice(0,10));setPage('reports');}else setPage('overview');
   };
-  useEffect(()=>{if(!('__TAURI_INTERNALS__' in window))return;let active=true;const removers:Array<()=>void>=[];void Promise.all([listen('open-inbox',()=>setPage('inbox')),listen('request-quit',()=>{void settleDrafts().then(()=>invoke('finish_quit')).catch(e=>setNotice({message:`草稿尚未保存，暂未退出：${asError(e).message}`,error:true}));})]).then(list=>{if(active)removers.push(...list);else list.forEach(remove=>remove());});return()=>{active=false;removers.forEach(remove=>remove());};},[]);
+  useEffect(()=>{if(!('__TAURI_INTERNALS__' in window))return;let active=true;const removers:Array<()=>void>=[];void Promise.all([listen('open-inbox',()=>setPage('inbox')),listen('request-quit',()=>{void invoke('ack_quit_request').catch(()=>{});void settleDrafts().then(()=>invoke('finish_quit')).catch(e=>setNotice({message:`草稿尚未保存，暂未退出：${asError(e).message}`,error:true}));})]).then(list=>{if(active)removers.push(...list);else list.forEach(remove=>remove());});return()=>{active=false;removers.forEach(remove=>remove());};},[]);
   const closeDialog = useCallback(() => setDialog(null), []);
   const run = async <T,>(name: string, operation: () => Promise<T>, message?: string): Promise<T | undefined> => {
     if (busy) return undefined;

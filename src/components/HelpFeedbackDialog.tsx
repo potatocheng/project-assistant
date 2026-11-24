@@ -82,7 +82,7 @@ export function HelpFeedbackDialog({
       const diag = await execute<Record<string, unknown>>('get_diagnostics');
       const day = new Date().toISOString().slice(0, 10);
       const saved = await exportDocument({
-        title: '项目助理脱敏诊断报告',
+        title: '循序脱敏诊断报告',
         content: JSON.stringify(diag, null, 2),
         format: 'json',
         filename: `project-assistant-diagnostics-${day}.json`,
@@ -255,7 +255,7 @@ export function HelpFeedbackDialog({
           <div className="help-section" role="tabpanel">
             <div className="help-about-head">
               <div>
-                <h3>项目助理 · 本地智能工作台</h3>
+                <h3>循序 · Cadence（本地 AI 交付工作台）</h3>
                 <p>当前版本：v0.3.0 · 本地数据格式 v{state?.workspace.schemaVersion ?? 14} · MIT 开源协议</p>
               </div>
             </div>

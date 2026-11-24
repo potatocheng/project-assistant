@@ -6,7 +6,7 @@ mod runtime;
 use project_assistant_core::{AppError, Engine, Request};
 use serde_json::{json, Value};
 use std::path::{Component, Path, PathBuf};
-use tauri::{Emitter, Manager, State};
+use tauri::{Manager, State};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::DialogExt;
 
@@ -630,7 +630,7 @@ fn main() {
                         let _ = window.hide();
                     } else {
                         api.prevent_close();
-                        let _ = window.emit("request-quit", ());
+                        runtime::request_quit(window.app_handle());
                     }
                 }
             }
@@ -639,6 +639,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             runtime::desktop_runtime_status,
             runtime::save_runtime_settings,
+            runtime::ack_quit_request,
             runtime::finish_quit,
             runtime::update_application,
             execute,
@@ -651,5 +652,5 @@ fn main() {
             open_feishu_authorization
         ])
         .run(tauri::generate_context!())
-        .expect("无法启动项目助理");
+        .expect("无法启动循序");
 }

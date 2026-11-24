@@ -106,9 +106,9 @@ export function AppSidebar({
       tabIndex={-1}
     >
       <div className="sidebar-brand">
-        <button className="sidebar-brand-button" onClick={() => onNavigate('workbench')} aria-label="项目助理 · 今日行动流">
+        <button className="sidebar-brand-button" onClick={() => onNavigate('workbench')} aria-label="循序 Cadence · 今日行动流">
           <BrandMark size={22} />
-          <span>项目助理</span>
+          <span>循序</span>
         </button>
         {runningJobs > 0 && (
           <span className="sidebar-processing" role="status" title={`${runningJobs} 项处理中`}>

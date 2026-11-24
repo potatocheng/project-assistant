@@ -99,7 +99,7 @@ export function OnboardingWizard({
         <div className="onboarding-top">
           <div className="onboarding-brand">
             <BrandMark size={26} />
-            <span>项目助理</span>
+            <span>循序 · Cadence</span>
           </div>
           <ol className="onboarding-stepper" aria-label="引导步骤">
             <li className={step === 1 ? 'is-current' : step > 1 ? 'is-done' : ''}>
@@ -119,7 +119,7 @@ export function OnboardingWizard({
 
         {step === 1 && (
           <div className="onboarding-body">
-            <div className="onboarding-badge"><Sparkles size={13} />AI 主动项目助理 · 100% 本地隐私</div>
+            <div className="onboarding-badge"><Sparkles size={13} />循序 Cadence · 本地 AI 交付工作台</div>
             <h1>让 AI 帮你盯进度、理风险、备好汇报</h1>
             <p className="onboarding-lead">
               先连接你的 AI 模型（支持 DeepSeek / 通义千问 / 豆包 / Kimi / 本机 Ollama），进入工作台后即可自动提取会议待办、识别延期风险并一键生成各版本周报。

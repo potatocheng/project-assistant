@@ -164,5 +164,5 @@ export function Workbench(props: WorkbenchProps) {
 
 function AssistantComposer({ onAsk }: { onAsk: (question: string) => void }) {
   const [question, setQuestion] = useState('');
-  return <div className="ah-compose-dock"><form className="ah-compose" onSubmit={event => { event.preventDefault(); if (question.trim()) onAsk(question.trim()); }}><Sparkles className="ai-mark" size={18} aria-hidden="true"/><label className="visually-hidden" htmlFor="ah-question">向项目助理提问</label><input id="ah-question" placeholder="问问助理，例如：哪个项目可能延期？" value={question} onChange={event => setQuestion(event.target.value)} maxLength={1500}/><button aria-label="发送问题" disabled={!question.trim()}><ArrowUp size={19}/></button></form><p>根据已接入的聊天、资料和工作记录回答，附原文依据</p></div>;
+  return <div className="ah-compose-dock"><form className="ah-compose" onSubmit={event => { event.preventDefault(); if (question.trim()) onAsk(question.trim()); }}><Sparkles className="ai-mark" size={18} aria-hidden="true"/><label className="visually-hidden" htmlFor="ah-question">向循序提问</label><input id="ah-question" placeholder="问问循序，例如：哪个项目可能延期？" value={question} onChange={event => setQuestion(event.target.value)} maxLength={1500}/><button aria-label="发送问题" disabled={!question.trim()}><ArrowUp size={19}/></button></form><p>根据已接入的聊天、资料和工作记录回答，附原文依据</p></div>;
 }
