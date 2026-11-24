@@ -20,11 +20,13 @@
       {
         "label": "main",
         "title": "项目助理",
-        "width": 1380,
-        "height": 900,
+        "width": 1240,
+        "height": 780,
         "minWidth": 900,
         "minHeight": 640,
-        "resizable": true
+        "center": true,
+        "resizable": true,
+        "alwaysOnTop": false
       }
     ],
     "security": {

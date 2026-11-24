@@ -27,6 +27,8 @@ async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Val
     if !matches!(
         request.command.as_str(),
         "get_state"
+            | "get_usage_summary"
+            | "get_diagnostics"
             | "ask_conversation"
             | "list_conversations"
             | "create_conversation"
@@ -65,6 +67,7 @@ async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Val
             | "test_ai_connection"
             | "start_extraction"
             | "retry_extraction"
+            | "review_extraction_draft"
             | "cancel_extraction"
             | "update_proposal"
             | "batch_schedule_tasks"
@@ -142,6 +145,8 @@ async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Val
             | "save_feishu_settings"
             | "begin_feishu_authorization"
             | "begin_feishu_connection"
+            | "check_feishu_permissions"
+            | "dismiss_feishu_notification"
             | "disconnect_feishu"
             | "poll_feishu_now"
             | "list_feishu_chats"
@@ -156,6 +161,8 @@ async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Val
             | "retry_memory_maintenance"
             | "run_memory_maintenance"
             | "memory_activity"
+            | "copilot_agent_turn"
+            | "polish_report"
     ) {
         return Err(app_error("INVALID_COMMAND", "不支持这项操作。"));
     }
@@ -378,7 +385,109 @@ async fn copy_coordination_report(
 }
 
 #[tauri::command]
-async fn open_feishu_authorization(url: String) -> Result<(), AppError> {
+async fn export_document(
+    title: String,
+    content: String,
+    format: String,
+    suggested_filename: String,
+    window: tauri::WebviewWindow,
+    app: tauri::AppHandle,
+) -> Result<Value, AppError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let safe_name = Path::new(&suggested_filename)
+            .file_name()
+            .and_then(|n| n.to_str())
+            .filter(|s| !s.is_empty())
+            .unwrap_or("export.txt")
+            .to_owned();
+        let (filter_name, ext, bytes): (&str, &str, Vec<u8>) = match format.as_str() {
+            "docx" => (
+                "Word 文档",
+                "docx",
+                project_assistant_core::markdown_to_docx_bytes(&title, &content)?,
+            ),
+            "csv" => {
+                let mut out = vec![0xEF, 0xBB, 0xBF];
+                out.extend_from_slice(content.as_bytes());
+                ("CSV 表格", "csv", out)
+            }
+            "json" => ("JSON 数据", "json", content.into_bytes()),
+            "md" => ("Markdown", "md", content.into_bytes()),
+            "html" => ("HTML 文档", "html", content.into_bytes()),
+            "png_base64" => (
+                "PNG 图片",
+                "png",
+                project_assistant_core::decode_base64_bytes(&content)?,
+            ),
+            _ => return Err(app_error("VALIDATION", "不支持的导出格式。")),
+        };
+        let chosen = app
+            .dialog()
+            .file()
+            .set_parent(&window)
+            .add_filter(filter_name, &[ext])
+            .set_file_name(&safe_name)
+            .blocking_save_file();
+        let Some(chosen) = chosen else {
+            return Ok(json!({ "cancelled": true }));
+        };
+        let target = chosen
+            .into_path()
+            .map_err(|_| app_error("INVALID_PATH", "请选择本地保存位置。"))?;
+        std::fs::write(&target, bytes)
+            .map_err(|e| app_error("IO_ERROR", format!("导出失败：{e}")))?;
+        Ok(json!({ "cancelled": false, "path": target.to_string_lossy() }))
+    })
+    .await
+    .map_err(|e| app_error("EXECUTION_FAILED", format!("导出未完成：{e}")))?
+}
+
+pub(crate) fn ensure_normal_window_z_order(window: &tauri::WebviewWindow) {
+    let _ = window.set_always_on_top(false);
+    #[cfg(target_os = "windows")]
+    if let Ok(hwnd) = window.hwnd() {
+        #[link(name = "user32")]
+        extern "system" {
+            fn GetWindowLongPtrW(hwnd: isize, index: i32) -> isize;
+            fn SetWindowLongPtrW(hwnd: isize, index: i32, new_long: isize) -> isize;
+            fn SetWindowPos(
+                hwnd: isize,
+                hwnd_insert_after: isize,
+                x: i32,
+                y: i32,
+                cx: i32,
+                cy: i32,
+                flags: u32,
+            ) -> i32;
+        }
+        const GWL_EXSTYLE: i32 = -20;
+        const WS_EX_TOPMOST: isize = 0x00000008;
+        const HWND_NOTOPMOST: isize = -2;
+        const SWP_NOSIZE: u32 = 0x0001;
+        const SWP_NOMOVE: u32 = 0x0002;
+        const SWP_NOACTIVATE: u32 = 0x0010;
+        const SWP_FRAMECHANGED: u32 = 0x0020;
+        let raw = hwnd.0 as isize;
+        unsafe {
+            let ex_style = GetWindowLongPtrW(raw, GWL_EXSTYLE);
+            if (ex_style & WS_EX_TOPMOST) != 0 {
+                SetWindowLongPtrW(raw, GWL_EXSTYLE, ex_style & !WS_EX_TOPMOST);
+            }
+            SetWindowPos(
+                raw,
+                HWND_NOTOPMOST,
+                0,
+                0,
+                0,
+                0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED,
+            );
+        }
+    }
+}
+
+#[tauri::command]
+async fn open_feishu_authorization(app: tauri::AppHandle, url: String) -> Result<(), AppError> {
     let parsed = tauri::Url::parse(&url)
         .map_err(|_| app_error("INVALID_AUTHORIZATION_URL", "飞书授权地址无效。"))?;
     if parsed.scheme() != "https"
@@ -392,33 +501,71 @@ async fn open_feishu_authorization(url: String) -> Result<(), AppError> {
             "仅允许打开飞书官方授权地址。",
         ));
     }
+    if let Some(window) = app.get_webview_window("main") {
+        ensure_normal_window_z_order(&window);
+    }
     let target = parsed.as_str();
     #[cfg(target_os = "windows")]
-    let mut command = {
-        use std::os::windows::process::CommandExt;
-        let mut command = std::process::Command::new("rundll32.exe");
-        command.args(["url.dll,FileProtocolHandler", target]);
-        command.creation_flags(0x08000000);
-        command
-    };
+    {
+        use std::os::windows::ffi::OsStrExt;
+        #[link(name = "shell32")]
+        extern "system" {
+            fn ShellExecuteW(
+                hwnd: isize,
+                operation: *const u16,
+                file: *const u16,
+                parameters: *const u16,
+                directory: *const u16,
+                show_cmd: i32,
+            ) -> isize;
+        }
+        let op: Vec<u16> = std::ffi::OsStr::new("open")
+            .encode_wide()
+            .chain(Some(0))
+            .collect();
+        let file: Vec<u16> = std::ffi::OsStr::new(target)
+            .encode_wide()
+            .chain(Some(0))
+            .collect();
+        let result = unsafe {
+            ShellExecuteW(
+                0,
+                op.as_ptr(),
+                file.as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                1,
+            )
+        };
+        if result <= 32 {
+            return Err(app_error(
+                "OPEN_BROWSER_FAILED",
+                "无法打开浏览器，请复制授权链接后手动打开。",
+            ));
+        }
+    }
     #[cfg(target_os = "macos")]
-    let mut command = {
+    {
         let mut command = std::process::Command::new("open");
         command.arg(target);
-        command
-    };
+        command.spawn().map_err(|_| {
+            app_error(
+                "OPEN_BROWSER_FAILED",
+                "无法打开浏览器，请复制授权链接后手动打开。",
+            )
+        })?;
+    }
     #[cfg(not(any(target_os = "windows", target_os = "macos")))]
-    let mut command = {
+    {
         let mut command = std::process::Command::new("xdg-open");
         command.arg(target);
-        command
-    };
-    command.spawn().map_err(|_| {
-        app_error(
-            "OPEN_BROWSER_FAILED",
-            "无法打开浏览器，请复制授权链接后手动打开。",
-        )
-    })?;
+        command.spawn().map_err(|_| {
+            app_error(
+                "OPEN_BROWSER_FAILED",
+                "无法打开浏览器，请复制授权链接后手动打开。",
+            )
+        })?;
+    }
     Ok(())
 }
 
@@ -427,7 +574,9 @@ fn main() {
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
+                let _ = window.unminimize();
                 let _ = window.set_focus();
+                ensure_normal_window_z_order(&window);
             }
         }))
         .plugin(tauri_plugin_notification::init())
@@ -436,6 +585,9 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                ensure_normal_window_z_order(&window);
+            }
             let root = match std::env::var_os("PROJECT_ASSISTANT_DATA_DIR") {
                 Some(path) => PathBuf::from(path),
                 None => app.path().app_data_dir()?.join("workspace"),
@@ -458,8 +610,13 @@ fn main() {
             app.manage(DesktopState { engine, root });
             Ok(())
         })
-        .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+        .on_window_event(|window, event| match event {
+            tauri::WindowEvent::Focused(_) => {
+                if let Some(webview) = window.app_handle().get_webview_window(window.label()) {
+                    ensure_normal_window_z_order(&webview);
+                }
+            }
+            tauri::WindowEvent::CloseRequested { api, .. } => {
                 if let Some(state) = window.app_handle().try_state::<DesktopState>() {
                     if state
                         .engine
@@ -477,6 +634,7 @@ fn main() {
                     }
                 }
             }
+            _ => {}
         })
         .invoke_handler(tauri::generate_handler![
             runtime::desktop_runtime_status,
@@ -489,6 +647,7 @@ fn main() {
             copy_report,
             export_coordination_report,
             copy_coordination_report,
+            export_document,
             open_feishu_authorization
         ])
         .run(tauri::generate_context!())

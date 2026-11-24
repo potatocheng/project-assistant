@@ -21,13 +21,22 @@ impl Default for Config {
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct Source {
-    kind: String,
-    target: String,
-    project_id: String,
-    enabled: bool,
+    pub(super) kind: String,
+    pub(super) target: String,
+    pub(super) project_id: String,
+    pub(super) enabled: bool,
     history_days: u64,
     #[serde(default)]
     since: i64,
+}
+pub(super) fn source_capability(source: &Source) -> capabilities::Capability {
+    if source.kind == "chat" {
+        capabilities::Capability::GroupSync
+    } else if document_reference(&source.target).is_ok_and(|(kind, _)| kind == "wiki") {
+        capabilities::Capability::WikiSync
+    } else {
+        capabilities::Capability::DocxSync
+    }
 }
 fn conversation_groups(messages: &[Value]) -> std::collections::BTreeMap<String, String> {
     fn root(links: &std::collections::BTreeMap<String, String>, id: &str) -> String {
@@ -129,22 +138,79 @@ fn extend_messages(target: &mut Vec<Value>, items: Vec<Value>) -> Result<()> {
 }
 impl Inner {
     pub(super) fn knowledge_status(&self) -> Result<Value> {
-        let saved = lock(&self.state)?.saved.clone();
+        let (saved, approved) = {
+            let state = lock(&self.state)?;
+            (state.saved.clone(), state.approved_app_scopes.clone())
+        };
         let config = saved.knowledge.clone();
+        let connected = saved.session.as_ref().is_some_and(|session| {
+            !session.invalid
+                && (session.expires_at > timestamp() || session.refresh_expires_at > timestamp())
+        });
+        let granted = saved
+            .session
+            .as_ref()
+            .filter(|_| connected)
+            .map(Session::granted_scopes)
+            .unwrap_or_default();
         let mut statuses = Vec::new();
+        let mut paused_count = 0usize;
         if let Some(session) = saved.session {
             for source in &config.sources {
+                let cap = source_capability(source);
+                let lacking = source.enabled && connected && !cap.is_satisfied_by(&granted);
+                if lacking {
+                    paused_count += 1;
+                }
                 let key = self.source_key(source, &session.user.open_id);
                 if let Some(raw) = self.metadata(&format!("knowledge-status:{key}"))? {
-                    if let Ok(status) = serde_json::from_str::<Value>(&raw) {
-                        statuses.push(status)
+                    if let Ok(mut status) = serde_json::from_str::<Value>(&raw) {
+                        if lacking {
+                            status["paused"] = json!(true);
+                            status["pauseReason"] =
+                                json!(capabilities::format_missing_permission_message(
+                                    cap,
+                                    &granted,
+                                    approved.as_ref(),
+                                ));
+                            status["capabilityId"] = json!(cap.id());
+                            status["missingScopes"] = json!(cap.missing_from(&granted));
+                        } else if status["paused"] == true {
+                            status["paused"] = json!(false);
+                            status["pauseReason"] = Value::Null;
+                        }
+                        statuses.push(status);
+                        continue;
                     }
+                }
+                if lacking {
+                    statuses.push(json!({
+                        "target": source.target,
+                        "projectId": source.project_id,
+                        "at": now(),
+                        "imported": 0,
+                        "error": null,
+                        "paused": true,
+                        "pauseReason": capabilities::format_missing_permission_message(
+                            cap,
+                            &granted,
+                            approved.as_ref(),
+                        ),
+                        "capabilityId": cap.id(),
+                        "missingScopes": cap.missing_from(&granted),
+                    }));
                 }
             }
         }
-        Ok(
-            json!({"settings":config,"syncing":self.syncing.load(Ordering::SeqCst),"statuses":statuses,"lastError":self.metadata("knowledge-error")?}),
-        )
+        let permissions = self.permissions_snapshot()?;
+        Ok(json!({
+            "settings": config,
+            "syncing": self.syncing.load(Ordering::SeqCst),
+            "statuses": statuses,
+            "pausedCount": paused_count,
+            "permissions": permissions,
+            "lastError": self.metadata("knowledge-error")?
+        }))
     }
     pub(super) fn save_knowledge(&self, p: &Value) -> Result<Value> {
         let mut config: Config = serde_json::from_value(p.clone())
@@ -224,7 +290,7 @@ impl Inner {
             })
             .optional()?)
     }
-    fn set_metadata(&self, key: &str, value: &str) -> Result<()> {
+    pub(super) fn set_metadata(&self, key: &str, value: &str) -> Result<()> {
         lock(&self.receipts)?.execute(
             "INSERT INTO metadata VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
             params![key, value],
@@ -274,12 +340,34 @@ impl Inner {
         result
     }
     pub(super) fn trigger_knowledge(&self) -> Result<Value> {
-        let saved = lock(&self.state)?.saved.clone();
+        let (saved, approved) = {
+            let state = lock(&self.state)?;
+            (state.saved.clone(), state.approved_app_scopes.clone())
+        };
         if !saved.knowledge.enabled || !saved.knowledge.sources.iter().any(|s| s.enabled) {
             return Err(error("FEISHU_SOURCE", "请先启用并指定至少一个资料来源"));
         }
-        if saved.session.is_none() {
-            return Err(error("FEISHU_NOT_CONNECTED", "请先授权飞书个人账号"));
+        let session = saved
+            .session
+            .as_ref()
+            .filter(|s| !s.invalid)
+            .ok_or_else(|| error("FEISHU_NOT_CONNECTED", "请先授权飞书个人账号"))?;
+        let granted = session.granted_scopes();
+        let enabled_sources: Vec<_> = saved
+            .knowledge
+            .sources
+            .iter()
+            .filter(|s| s.enabled)
+            .collect();
+        if !enabled_sources
+            .iter()
+            .any(|source| session.has_capability(source_capability(source)))
+        {
+            let cap = source_capability(enabled_sources[0]);
+            return Err(error(
+                "FEISHU_PERMISSION",
+                &capabilities::format_missing_permission_message(cap, &granted, approved.as_ref()),
+            ));
         }
         if self.syncing.load(Ordering::SeqCst) {
             return Err(error("FEISHU_SYNC_BUSY", "资料正在同步"));
@@ -296,12 +384,36 @@ impl Inner {
         if lock(&self.ingest)?.is_none() {
             return Err(error("FEISHU_SOURCE", "资料库尚未就绪"));
         }
+        let granted = session.granted_scopes();
+        let approved = lock(&self.state)?.approved_app_scopes.clone();
         self.set_metadata("knowledge-last", &timestamp().to_string())?;
         let mut failures = 0;
         let mut imported = 0;
+        let mut paused = 0;
         for source in saved.knowledge.sources.iter().filter(|s| s.enabled) {
             self.check_generation(&saved.generation, false)?;
             let key = self.source_key(source, &session.user.open_id);
+            let cap = source_capability(source);
+            if !session.has_capability(cap) {
+                paused += 1;
+                let status = json!({
+                    "target": source.target,
+                    "projectId": source.project_id,
+                    "at": now(),
+                    "imported": 0,
+                    "error": null,
+                    "paused": true,
+                    "pauseReason": capabilities::format_missing_permission_message(
+                        cap,
+                        &granted,
+                        approved.as_ref(),
+                    ),
+                    "capabilityId": cap.id(),
+                    "missingScopes": cap.missing_from(&granted),
+                });
+                self.set_metadata(&format!("knowledge-status:{key}"), &status.to_string())?;
+                continue;
+            }
             let result = if source.kind == "chat" {
                 self.sync_chat(&saved, &session, source, &key)
             } else {
@@ -310,19 +422,19 @@ impl Inner {
             let status = match result {
                 Ok(n) => {
                     imported += n;
-                    json!({"target":source.target,"projectId":source.project_id,"at":now(),"through":if source.kind=="chat"{self.metadata(&key)?.and_then(|v|v.parse::<i64>().ok()).map(iso)}else{None},"imported":n,"error":null})
+                    json!({"target":source.target,"projectId":source.project_id,"at":now(),"through":if source.kind=="chat"{self.metadata(&key)?.and_then(|v|v.parse::<i64>().ok()).map(iso)}else{None},"imported":n,"error":null,"paused":false,"pauseReason":null})
                 }
                 Err(e) => {
                     if e.code == "FEISHU_CANCELLED" {
                         return Err(e);
                     }
                     failures += 1;
-                    json!({"target":source.target,"projectId":source.project_id,"at":now(),"imported":0,"error":format!("{}: {}",e.code,e.message)})
+                    json!({"target":source.target,"projectId":source.project_id,"at":now(),"imported":0,"error":format!("{}: {}",e.code,e.message),"paused":false,"pauseReason":null})
                 }
             };
             self.set_metadata(&format!("knowledge-status:{key}"), &status.to_string())?;
         }
-        Ok(json!({"imported":imported,"failures":failures}))
+        Ok(json!({"imported":imported,"failures":failures,"paused":paused}))
     }
     fn commit_source(&self, saved: &Saved, source: &Source, payload: Value) -> Result<bool> {
         let _gate = lock(&self.send_gate)?;

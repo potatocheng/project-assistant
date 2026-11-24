@@ -75,6 +75,9 @@ export function ChatReplies({ projects, projectId, onProjectChange, openSettings
 
   const connected = status?.authorization.status === 'connected';
   const enabledBindings = status?.settings.bindings.some((binding) => binding.enabled);
+  const replyCaps = (status?.permissions?.capabilities ?? []).filter((item) => item.id === 'group_reply' || item.id === 'p2p_reply');
+  const pausedReplyCaps = connected ? replyCaps.filter((item) => item.status !== 'enabled') : [];
+  const readyReplyCaps = replyCaps.filter((item) => item.status === 'ready_to_confirm');
   const canCheck = connected && status?.settings.enabled && enabledBindings;
   const checkNow = async () => {
     if (checking || status?.runtime.polling || !canCheck) return;
@@ -119,6 +122,8 @@ export function ChatReplies({ projects, projectId, onProjectChange, openSettings
       <span>{status?.runtime.polling ? '正在检查消息' : `上次检查：${status?.runtime.lastPollAt ? formatMoment(status.runtime.lastPollAt) : '尚未检查'}`}</span>
     </div>
     {(error || status?.runtime.lastError) && <div className="chat-replies-error" role="alert"><CircleAlert size={17} /><p>{error || status?.runtime.lastError}</p><Button label="重新读取" onClick={() => void refresh()} className="astryx-inline-action" variant="ghost" /></div>}
+    {readyReplyCaps.length > 0 ? <div className="chat-replies-notice" role="status"><span>「{readyReplyCaps.map((c) => c.label).join('、')}」权限已获批，前往「飞书设置」一键确认后即可自动启用。</span><Button label="前往确认" onClick={openSettings} className="astryx-inline-action" variant="ghost" /></div>
+      : pausedReplyCaps.length > 0 && <div className="chat-replies-notice" role="status"><span>部分自动回复功能暂未开启（{pausedReplyCaps.map((c) => c.label).join('、')}，等待飞书权限审批）；已获批渠道正常运作。</span><Button label="查看权限" onClick={openSettings} className="astryx-inline-action" variant="ghost" /></div>}
     {notice && <p className="chat-replies-notice" role="status">{notice}</p>}
     <div className="chat-replies-list">
       {loading ? <div className="loading-view"><Spinner /><span>正在读取聊天回复…</span></div>

@@ -15,6 +15,7 @@ export function FormDialog({ title, subtitle, children, close, busy = false, wid
     // A conditionally mounted native dialog may be removed before its own
     // focus-return cleanup runs. Wait until all removal effects have settled.
     queueMicrotask(() => {
+      if (!document.hasFocus()) return;
       if (document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]')) return;
       const target = opener.current;
       if (target?.isConnected && !target.closest('[inert]')) target.focus({ preventScroll: true });

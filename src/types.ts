@@ -131,6 +131,37 @@ export interface FeishuMessage {
   chatType: 'group' | 'p2p'; peerId: string; peerName: string;
   status: string; error: string | null; createdAt: string; updatedAt: string;
 }
+export type FeishuCapabilityId = 'docx_sync' | 'wiki_sync' | 'chat_list' | 'group_sync' | 'group_reply' | 'p2p_reply';
+export type FeishuCapabilityState = 'enabled' | 'ready_to_confirm' | 'pending_approval' | 'unavailable';
+export interface FeishuCapability {
+  id: FeishuCapabilityId;
+  label: string;
+  description: string;
+  status: FeishuCapabilityState;
+  requiredScopes: string[];
+  missingScopes: string[];
+  pendingApprovalScopes: string[];
+  readyToConfirmScopes: string[];
+}
+export interface FeishuPermissionNotification {
+  id: string;
+  kind: 'approval_ready' | 'capabilities_unlocked' | string;
+  title: string;
+  message: string;
+  capabilityIds: FeishuCapabilityId[];
+  createdAt: string;
+}
+export interface FeishuPermissionsStatus {
+  targetScopes: string[];
+  grantedScopes: string[];
+  approvedAppScopes: string[] | null;
+  pendingApprovalScopes: string[];
+  newlyApprovedScopes: string[];
+  lastCheckedAt: string | null;
+  lastCheckError: string | null;
+  capabilities: FeishuCapability[];
+  notifications: FeishuPermissionNotification[];
+}
 export interface FeishuStatus {
   settings: FeishuEditableSettings & { hasAppSecret: boolean; redirectUri: string };
   authorization: {
@@ -139,6 +170,7 @@ export interface FeishuStatus {
     stage?: 'permissions' | 'account';
   };
   runtime: { polling: boolean; lastPollAt: string | null; lastError: string | null };
+  permissions?: FeishuPermissionsStatus;
   recentMessages: FeishuMessage[];
 }
 export interface ProjectAnswer {

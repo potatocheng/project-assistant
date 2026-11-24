@@ -70,7 +70,7 @@ export function Dialog({ title, subtitle, children, close, busy, wide = false }:
     });
     const elements = getFocusableElements();
     const initial = elements.find((element) => element.matches('input:not([type="file"]), textarea, select')) ?? elements[0] ?? node;
-    initial.focus({ preventScroll: true });
+    if (document.hasFocus()) initial.focus({ preventScroll: true });
     const handler = (event: KeyboardEvent) => {
       // Only the front dialog handles Escape and traps focus when help or a
       // result form is opened inside an existing task dialog.
@@ -93,6 +93,7 @@ export function Dialog({ title, subtitle, children, close, busy, wide = false }:
     document.addEventListener('keydown', handler);
     return () => {
       document.removeEventListener('keydown', handler);
+      if (!document.hasFocus()) return;
       if (previous?.isConnected && !previous.closest('[inert]')) previous.focus({ preventScroll: true });
       else Array.from(document.querySelectorAll<HTMLElement>('.sidebar-link[aria-current="page"], .mobile-bar .icon-button')).find(element => element.getClientRects().length > 0)?.focus({ preventScroll: true });
     };

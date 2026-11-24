@@ -2,8 +2,9 @@ import { readDraft, writeDraft, clearDraft, useDraftState, DraftStatus } from '.
 import { useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ArrowDownToLine, ArrowRight, CalendarDays, Check, Copy, FilePenLine, History, ListChecks, Plus, RefreshCw, Users } from 'lucide-react';
-import { asError, copyCoordinationReport, execute, exportCoordinationReport } from '../../api';
+import { ArrowDownToLine, ArrowRight, CalendarDays, Check, Copy, FilePenLine, FileText, History, Image as ImageIcon, ListChecks, Plus, Printer, RefreshCw, Sparkles, Users } from 'lucide-react';
+import { asError, copyCoordinationReport, execute, exportCoordinationReport, exportDocument } from '../../api';
+import { copyRichMarkdown, exportReportCardPng, printMarkdownAsPdf } from '../work/report-export';
 import { TASK_STATUS } from '../../types';
 import { Dialog, Spinner } from '../ui';
 import { formatMoment, WorkEmpty } from '../work/shared';
@@ -59,14 +60,46 @@ function Reports({ list, changed, ...props }: ContentProps) {
     try { const result = await execute<WeeklyReport>(command, payload); if (report) await clearDraft(`weekly:${report.id}:${report.version}`); setReport(result); setContent(result.content); setSelected(result.id); setViewVersion(undefined); setEditing(false); await changed(); props.notify(message); }
     catch (caught) { setError(asError(caught).message); } finally { setBusy(''); }
   };
+  const scopeTitle = report ? (props.state.projects.find((p) => p.id === report.projectId)?.name || '全部项目') : '全部项目';
+  const polish = async (style: 'executive' | 'team' | 'client') => {
+    if (!report || !content.trim() || historical) return;
+    if (!props.state.aiSettings.configured) {
+      props.notify('请先在左侧「工具与设置 → 模型设置」中配置并允许使用 AI 模型。', true);
+      return;
+    }
+    setBusy(`polish-${style}`); setError('');
+    try {
+      const res = await execute<{ content: string }>('polish_report', {
+        content: content.trim(),
+        reportType: 'weekly',
+        style,
+        projectName: scopeTitle,
+        dateLabel: `${report.startDate} 至 ${report.endDate}`,
+      });
+      setContent(res.content);
+      setEditing(false);
+      void writeDraft(`weekly:${report.id}:${report.version}`, res.content).catch(() => {});
+      props.notify(`已切换为「${style === 'executive' ? '老板高管版' : style === 'team' ? '项目群对齐版' : '客户汇报版'}」，请核对后点击「保存新版本」。`);
+    } catch (caught) {
+      setError(asError(caught).message);
+    } finally {
+      setBusy('');
+    }
+  };
   return <><div className="coord-toolbar"><label><span>起始日期</span><input type="date" aria-label="周报起始日期" value={range.start} disabled={!!busy} onChange={(e) => setRange({ ...range, start: e.target.value })} /></label><span className="coord-range-to">至</span><label><span>截止日期</span><input type="date" aria-label="周报截止日期" value={range.end} disabled={!!busy} onChange={(e) => setRange({ ...range, end: e.target.value })} /></label><button className="button secondary" disabled={!!busy} onClick={() => setRange(week(props.date))}>所选日期所在周</button><button className="button primary" disabled={!!busy || dirty || !range.start || !range.end || range.start > range.end} onClick={() => run('generate', 'coordination_generate_report', { ...(props.projectId ? { projectId: props.projectId } : {}), startDate: range.start, endDate: range.end }, '周报已生成并保存，依据已冻结。')}>{busy === 'generate' ? <Spinner /> : <Plus size={15} />}生成周报</button></div>
     {error && <div className="coord-retry"><DeliveryError message={error} /><button className="text-button" disabled={!!busy || loading} onClick={() => setTick((v) => v + 1)}>重新读取周报</button></div>}
     <div className="coord-layout"><aside className="coord-list"><h3>已保存周报 <span>{list.reports.length}</span></h3>{list.reports.length ? list.reports.map((r) => <button disabled={!!busy} className={selected === r.id ? 'selected' : ''} key={r.id} onClick={() => { setSelected(r.id); setViewVersion(undefined); }}><strong>{r.startDate} — {r.endDate}</strong><span>{props.state.projects.find((p) => p.id === r.projectId)?.name || '全部项目'} · v{r.version}</span><small>{formatMoment(r.updatedAt)}</small></button>) : <p>生成后可在这里回看任意期间的周报。</p>}</aside>
       <section className="coord-detail">{loading ? <div className="loading-view"><Spinner />正在读取周报…</div> : !report ? <WorkEmpty title="让每周的进展有据可查">选择日期区间和项目，生成一份可编辑、可回看的周报。生成过程在本机完成。</WorkEmpty> : <>
         <div className="coord-detail-heading"><div><h3>{report.startDate} 至 {report.endDate}</h3><p>v{report.version} · {report.edited ? '人工修订' : '本地整理'} · {formatMoment(report.savedAt)}{dirty && ' · 尚未保存'}</p></div><div className="coord-inline-actions"><button className="button secondary compact" disabled={!!busy || historical} onClick={() => setEditing(!editing)}>{editing ? '阅读预览' : '编辑正文'}</button><button className="button secondary compact" disabled={!!busy} onClick={() => { setViewVersion(undefined); setTick((v) => v + 1); }}>重新读取</button></div></div>
+        {!historical && <div className="report-view-controls" role="group" aria-label="AI 切换周报风格" style={{ marginBottom: 10 }}>
+          <span className="report-style-label"><Sparkles size={12} />AI 切换汇报风格：</span>
+          <button type="button" className="text-button tiny" disabled={!!busy} onClick={() => void polish('executive')}>{busy === 'polish-executive' ? <Spinner /> : null}老板高管版</button>
+          <button type="button" className="text-button tiny" disabled={!!busy} onClick={() => void polish('team')}>{busy === 'polish-team' ? <Spinner /> : null}项目群对齐版</button>
+          <button type="button" className="text-button tiny" disabled={!!busy} onClick={() => void polish('client')}>{busy === 'polish-client' ? <Spinner /> : null}客户汇报版</button>
+        </div>}
         {historical && <div className="historical-banner"><History size={14} />历史版本，只读<button className="text-button" onClick={() => setViewVersion(undefined)}>查看最新版</button></div>}
         {editing && !historical ? <textarea className="coord-report-editor" aria-label="周报正文 Markdown" disabled={!!busy} value={content} maxLength={200000} onChange={(e) => { setContent(e.target.value); void writeDraft(`weekly:${report.id}:${report.version}`, e.target.value).catch(e => setError(`草稿暂存失败：${asError(e).message}`)); }} /> : <article className="report-markdown coord-markdown"><Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown></article>}
-        <div className="coord-report-actions"><button className="button primary" disabled={!!busy || !dirty || historical || !content.trim()} onClick={() => run('save', 'coordination_save_report', { reportId: report.id, baseVersion: report.version, content }, '周报修改已保存为新版本。')}>{busy === 'save' ? <Spinner /> : <Check size={14} />}保存新版本</button><button className="button secondary" disabled={!!busy || dirty} onClick={async () => { setBusy('copy'); try { await copyCoordinationReport(report.id, report.version, report.content); props.notify('已复制此版本周报。'); } catch (caught) { props.notify(asError(caught).message, true); } finally { setBusy(''); } }}><Copy size={14} />复制</button><button className="button secondary" disabled={!!busy || dirty} onClick={async () => { setBusy('export'); try { const exported = await exportCoordinationReport(report.id, report.version, `${report.startDate}-${report.endDate}-周报-v${report.version}.md`); props.notify(exported ? '已导出 Markdown。' : '已取消导出。'); } catch (caught) { props.notify(asError(caught).message, true); } finally { setBusy(''); } }}><ArrowDownToLine size={14} />导出 Markdown</button><button className="text-button" disabled={!!busy || dirty || historical} onClick={() => run('regenerate', 'coordination_generate_report', { reportId: report.id, baseVersion: report.version, projectId: report.projectId, startDate: report.startDate, endDate: report.endDate }, '已按最新记录重新生成新版本。')}>{busy === 'regenerate' && <Spinner />}重新生成此期间</button></div>
+        <div className="coord-report-actions"><button className="button primary" disabled={!!busy || !dirty || historical || !content.trim()} onClick={() => run('save', 'coordination_save_report', { reportId: report.id, baseVersion: report.version, content }, '周报修改已保存为新版本。')}>{busy === 'save' ? <Spinner /> : <Check size={14} />}保存新版本</button><button className="button secondary" disabled={!!busy || !content.trim()} onClick={async () => { setBusy('copy-rich'); try { const kind = await copyRichMarkdown(`${scopeTitle} · 项目周报`, `${report.startDate} 至 ${report.endDate} · v${report.version}`, content); props.notify(kind === 'rich' ? '已复制带格式周报，可直接粘贴到飞书/企微/Word。' : '已复制周报正文。'); } catch (caught) { props.notify(asError(caught).message, true); } finally { setBusy(''); } }}><Copy size={14} />复制富文本</button><button className="button secondary" disabled={!!busy || dirty} onClick={async () => { setBusy('copy'); try { await copyCoordinationReport(report.id, report.version, report.content); props.notify('已复制此版本周报。'); } catch (caught) { props.notify(asError(caught).message, true); } finally { setBusy(''); } }}><Copy size={14} />复制</button><button className="button secondary" disabled={!!busy || !content.trim()} onClick={async () => { setBusy('export-docx'); try { const ok = await exportDocument({ title: `${scopeTitle} · 项目周报 (${report.startDate}~${report.endDate})`, content, format: 'docx', filename: `${report.startDate}-${report.endDate}-周报-v${report.version}.docx` }); props.notify(ok ? 'Word (.docx) 已导出。' : '已取消导出。'); } catch (caught) { props.notify(asError(caught).message, true); } finally { setBusy(''); } }}><FileText size={14} />导出 Word</button><button className="button secondary" disabled={!!busy || !content.trim()} onClick={async () => { setBusy('export-png'); try { const ok = await exportReportCardPng({ title: `${scopeTitle} · 项目周报`, subtitle: `${report.startDate} 至 ${report.endDate} · v${report.version}`, markdown: content, filename: `${report.startDate}-${report.endDate}-周报卡.png` }); props.notify(ok ? '周报长图 (.png) 已导出。' : '已取消导出。'); } catch (caught) { props.notify(asError(caught).message, true); } finally { setBusy(''); } }}><ImageIcon size={14} />汇报长图</button><button className="button secondary" disabled={!!busy || !content.trim()} onClick={() => printMarkdownAsPdf(`${scopeTitle} · 项目周报`, `${report.startDate} 至 ${report.endDate} · v${report.version}`, content)}><Printer size={14} />存 PDF</button><button className="button secondary" disabled={!!busy || dirty} onClick={async () => { setBusy('export'); try { const exported = await exportCoordinationReport(report.id, report.version, `${report.startDate}-${report.endDate}-周报-v${report.version}.md`); props.notify(exported ? '已导出 Markdown。' : '已取消导出。'); } catch (caught) { props.notify(asError(caught).message, true); } finally { setBusy(''); } }}><ArrowDownToLine size={14} />导出 Markdown</button><button className="text-button" disabled={!!busy || dirty || historical} onClick={() => run('regenerate', 'coordination_generate_report', { reportId: report.id, baseVersion: report.version, projectId: report.projectId, startDate: report.startDate, endDate: report.endDate }, '已按最新记录重新生成新版本。')}>{busy === 'regenerate' && <Spinner />}重新生成此期间</button></div>
         {dirty && <p className="coord-hint">修改自动暂存到本机，重新打开此版本可恢复。保存后可复制、导出。</p>}
         <details className="coord-basis"><summary>生成依据 · {report.basis.taskEvents.length} 条期间进展 · {report.basis.completed.length} 项本期完成</summary><Basis basis={report.basis} {...props} /></details>
         <div className="coord-versions"><h4><History size={14} />版本历史</h4>{report.history.map((v) => <button className={report.version === v.version ? 'selected' : ''} key={v.version} disabled={!!busy} onClick={() => setViewVersion(v.version)}><strong>v{v.version}</strong><span>{v.edited ? '人工修订' : '本地整理'}</span><small>{formatMoment(v.createdAt)}</small></button>)}</div>

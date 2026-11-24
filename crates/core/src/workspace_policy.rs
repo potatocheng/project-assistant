@@ -190,7 +190,7 @@ pub(crate) fn backup_tick(db: &mut Database) -> Result<Value> {
     cleanup?;
     Ok(json!({"created":true,"backup":record}))
 }
-pub(crate) fn notification(conn: &Connection) -> Result<Value> {
+pub(crate) fn notification(conn: &Connection, p: &Value) -> Result<Value> {
     let settings = desktop(conn)?;
     if settings["notifications"] != true {
         return Ok(Value::Null);
@@ -208,6 +208,18 @@ pub(crate) fn notification(conn: &Connection) -> Result<Value> {
     };
     if quiet {
         return Ok(Value::Null);
+    }
+    let previous = option(conn, "notification_receipt", json!({}))?;
+    if let Some(feishu) = p.get("feishuNotification").filter(|v| v.is_object()) {
+        if let (Some(title), Some(body), Some(sig)) = (
+            feishu["title"].as_str(),
+            feishu["body"].as_str(),
+            feishu["signature"].as_str(),
+        ) {
+            if previous["signature"].as_str() != Some(sig) {
+                return Ok(json!({"title": title, "body": body, "signature": sig}));
+            }
+        }
     }
     let date = now_local.date_naive().to_string();
     let hidden = crate::daily_use::lifecycle_map(conn)?
@@ -251,7 +263,6 @@ pub(crate) fn notification(conn: &Connection) -> Result<Value> {
             .to_string()
             .as_bytes(),
     );
-    let previous = option(conn, "notification_receipt", json!({}))?;
     if previous["signature"] == signature {
         return Ok(Value::Null);
     }

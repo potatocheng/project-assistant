@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Check, ChevronRight, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { execute, asError } from '../api';
-import type { Project, MemoryDetail, SourceDetail } from '../types';
+import type { FeishuCapabilityId, FeishuCapabilityState, FeishuPermissionsStatus, Project, MemoryDetail, SourceDetail } from '../types';
 import { Dialog, Spinner } from './ui';
 import { MemoryQualityPanel } from './MemoryWorkbench';
 
@@ -13,8 +13,14 @@ interface Subscription { kind: 'chat' | 'document'; target: string; projectId: s
 interface SyncConfig { enabled: boolean; intervalSeconds: number; sources: Subscription[] }
 interface Review { retention?: RetentionPolicy; id: string; proposalId: string; projectId: string; sourceId: string; sourceTitle: string; content: string; disposition: string; targetId: string | null; targetRevision: number | null; targetContent: string | null; currentTargetRevision: number | null; currentTargetContent: string | null; reason: string; quotes: Array<{ segmentId: string; quote: string }> }
 interface Maintenance { settings: Policy; reviews: Review[]; runs: Array<{ id: string; kind: string; subjectId: string; status: string; message: string; updatedAt: string }>; origins: Array<{ sourceId: string; provider: string; remoteRevision: string; url: string; author: string; occurredAt: string; fetchedAt: string }>; callsToday: number; blockedReason?: string | null }
-interface SyncStatus { settings: SyncConfig; syncing: boolean; lastError?: string | null; statuses: Array<{ target: string; projectId: string; at: string; through?: string | null; imported: number; error: string | null }> }
+interface SyncStatus {
+  settings: SyncConfig; syncing: boolean; lastError?: string | null; pausedCount?: number;
+  permissions?: FeishuPermissionsStatus;
+  statuses: Array<{ target: string; projectId: string; at: string; through?: string | null; imported: number; error: string | null; paused?: boolean; pauseReason?: string | null; capabilityId?: FeishuCapabilityId }>;
+}
 const disposition: Record<string, string> = { new: '新内容', duplicate: '相似记忆', conflict: '内容有变化', uncertain: '需要确认' };
+const CAP_LABEL: Record<FeishuCapabilityState, string> = { enabled: '已开启', ready_to_confirm: '已获批待确认', pending_approval: '待审批', unavailable: '未开启' };
+const SOURCE_CAP_IDS: FeishuCapabilityId[] = ['docx_sync', 'wiki_sync', 'group_sync'];
 const time = (s: string) => new Date(s).toLocaleString('zh-CN', { hour12: false });
 
 function navigateTabs(event: KeyboardEvent<HTMLDivElement>) {
@@ -118,7 +124,12 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
       {error && <p className="inline-error" role="alert">{error}</p>}{notice && <p className="inline-success" role="status">{notice}</p>}
       {tab === 'quality' ? <div role="tabpanel" id="memory-panel-quality" aria-labelledby="memory-tab-quality"><MemoryQualityPanel projects={projects} /></div> : !data || !form || !policy ? <p className="field-hint"><Spinner /> 正在读取记忆设置…</p> : <div role="tabpanel" id={`memory-panel-${tab}`} aria-labelledby={`memory-tab-${tab}`}>
         {tab === 'sources' && <>
-          <p className="field-hint">选择项目群聊或文档，之后自动获取新内容。{onAccount ? <button className="text-button tiny" disabled={!!busy || dirty || policyDirty} onClick={onAccount}>连接飞书账号<ChevronRight size={12}/></button> : '请先在「飞书助理」中连接账号。'}</p>
+          <p className="field-hint">选择项目群聊或文档，已获批权限的来源会自动同步，未获批的来源暂缓并在权限通过后自动恢复。{onAccount ? <button className="text-button tiny" disabled={!!busy || dirty || policyDirty} onClick={onAccount}>管理飞书账号与权限<ChevronRight size={12}/></button> : '请先在「飞书助理」中连接账号。'}</p>
+          {sync?.permissions && <div className="feishu-cap-chips" aria-label="飞书采集权限状态">
+            {SOURCE_CAP_IDS.map((id) => sync.permissions?.capabilities.find((c) => c.id === id)).filter((c): c is NonNullable<typeof c> => !!c).map((cap) => (
+              <span key={cap.id} className={`feishu-cap-badge ${cap.status}`} title={cap.missingScopes.length ? `缺少：${cap.missingScopes.join('、')}` : '权限已就绪'}>{cap.label} · {CAP_LABEL[cap.status]}</span>
+            ))}
+          </div>}
           {sync?.lastError && <p className="inline-error">{sync.lastError}</p>}
           <label className="checkbox-row"><input type="checkbox" checked={form.enabled} onChange={(e) => setForm({ ...form, enabled: e.target.checked })} disabled={!!busy} />自动同步</label>
           <div className="memory-source-actions"><button className="button secondary compact" disabled={!!busy || !projects.length} onClick={() => setForm({ ...form, sources: [...form.sources, { kind: 'chat', target: '', projectId: projects[0]?.id ?? '', enabled: true, historyDays: 7 }] })}><Plus size={14} />添加群</button><button className="button secondary compact" disabled={!!busy || !projects.length} onClick={() => setForm({ ...form, sources: [...form.sources, { kind: 'document', target: '', projectId: projects[0]?.id ?? '', enabled: true, historyDays: 7 }] })}><Plus size={14} />添加文档</button><button className="text-button tiny" disabled={!!busy} onClick={() => void action('chats', async () => { const result = await execute<{ chats: Array<{ chatId: string; name: string }> }>('list_feishu_chats'); setChats(result.chats); setNotice(`已读取 ${result.chats.length} 个可访问的群。`); })}>读取群列表</button></div>
@@ -131,7 +142,7 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
               <div className="memory-review-heading"><label className="checkbox-row"><input type="checkbox" checked={source.enabled} onChange={(e) => patchSource(index, { enabled: e.target.checked })} disabled={!!busy} />{source.kind === 'chat' ? '飞书群' : '飞书文档'}</label><button className="icon-button small" aria-label={`移除来源 ${index + 1}`} disabled={!!busy} onClick={() => setForm({ ...form, sources: form.sources.filter((_, i) => i !== index) })}><Trash2 size={15} /></button></div>
               <label className="field-label" htmlFor={`memory-target-${index}`}>{source.kind === 'chat' ? '群 ID' : '文档链接'}</label><input id={`memory-target-${index}`} list={source.kind === 'chat' ? 'memory-feishu-chats' : undefined} placeholder={source.kind === 'chat' ? '选择已读取的群，或输入 oc_…' : '粘贴飞书 docx 或 wiki 链接'} value={source.target} disabled={!!busy} onChange={(e) => patchSource(index, { target: e.target.value })} />
               <div className="memory-form-row"><label>保存到项目<select aria-label={`来源 ${index + 1} 保存到项目`} value={source.projectId} onChange={(e) => patchSource(index, { projectId: e.target.value })} disabled={!!busy}>{projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>{source.kind === 'chat' && <label>首次同步最近几天<input type="number" min={1} max={30} aria-label={`来源 ${index + 1} 首次同步天数`} value={source.historyDays} onChange={(e) => patchSource(index, { historyDays: Number(e.target.value) })} disabled={!!busy} /></label>}</div>
-              {status && <p className={status.error ? 'inline-error' : 'field-hint'}>{time(status.at)} · {status.error ?? `新增 ${status.imported} 份原文${status.through ? `，已同步至 ${time(status.through)}` : ''}`}</p>}
+              {status?.paused ? <p className="feishu-source-paused">{status.pauseReason || '等待飞书权限审批，获批并确认后将自动恢复同步。'}</p> : status && <p className={status.error ? 'inline-error' : 'field-hint'}>{time(status.at)} · {status.error ?? `新增 ${status.imported} 份原文${status.through ? `，已同步至 ${time(status.through)}` : ''}`}</p>}
             </article>;
           })}
           <details className="feishu-permissions"><summary>同步设置与支持范围</summary><label className="field-label spaced" htmlFor="source-sync-interval">同步间隔（秒）</label><input id="source-sync-interval" type="number" min={60} max={3600} value={form.intervalSeconds} onChange={(e) => setForm({ ...form, intervalSeconds: Number(e.target.value) })} disabled={!!busy} /><p>应用运行时同步，仅采集已启用的来源。首次同步后增量读取，同步与自动回复独立设置。</p><p>支持群文字、富文本、话题文字和新版文档正文；暂不支持图片、附件和语音。原文来源与版本会保留。</p></details>

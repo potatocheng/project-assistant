@@ -1,7 +1,9 @@
 import { useDraftState, DraftStatus } from '../../drafts';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, CalendarPlus, Check, ChevronDown, ChevronLeft, CircleAlert, FileText, History, PencilLine, Plus, Search, SlidersHorizontal } from 'lucide-react';
-import { asError, execute } from '../../api';
+import { ArrowRight, CalendarPlus, Check, ChevronDown, ChevronLeft, CircleAlert, Download, FileText, History, LayoutGrid, List, PencilLine, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { asError, execute, exportDocument } from '../../api';
+import { buildTasksCsv } from './report-export';
+import { TaskKanban } from './TaskKanban';
 import { TASK_CATEGORY, TASK_PRIORITY, TASK_STATUS } from '../../types';
 import type { AppState, DailyList, Evidence, Memory, Project, Task, TaskCategory, TaskDetail, TaskPriority, TaskStatus } from '../../types';
 import { Spinner } from '../ui';
@@ -40,6 +42,8 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<TaskStatus | ''>('');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [exportingCsv, setExportingCsv] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(focusTaskId);
   const [detail, setDetail] = useState<TaskDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -96,7 +100,7 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
 
   const showInspector = () => {
     revealDetail.current = false;
-    if (!window.matchMedia('(max-width: 980px)').matches) return;
+    if (!window.matchMedia('(max-width: 980px)').matches || !document.hasFocus()) return;
     inspectorRef.current?.focus({ preventScroll: true });
     inspectorRef.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   };
@@ -127,6 +131,38 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
   return <div className={`work-page task-focus-page ${mode === 'daily' ? 'work-page-daily' : ''}`}>
     <div className="work-page-heading"><div><h2>{mode === 'daily' ? '每日清单' : '全部任务'}</h2></div>
       <div className="work-heading-actions">
+        {mode === 'tasks' && (
+          <div className="task-view-switcher" role="group" aria-label="任务视图切换">
+            <button type="button" className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')}>
+              <List size={14} />列表
+            </button>
+            <button type="button" className={viewMode === 'kanban' ? 'is-active' : ''} onClick={() => setViewMode('kanban')}>
+              <LayoutGrid size={14} />看板
+            </button>
+          </div>
+        )}
+        {rows.length > 0 && (
+          <Button
+            label="导出表格"
+            variant="secondary"
+            icon={exportingCsv ? <Spinner /> : <Download size={14} />}
+            isDisabled={exportingCsv}
+            onClick={() => {
+              setExportingCsv(true);
+              void exportDocument({
+                title: '任务清单导出',
+                content: buildTasksCsv(rows, state.projects),
+                format: 'csv',
+                filename: `任务清单-${day}.csv`,
+              })
+                .then(ok => {
+                  if (ok) notify(`已导出 ${rows.length} 条任务为 CSV 表格（可直接用 Excel 打开）。`);
+                })
+                .catch(caught => notify(asError(caught).message, true))
+                .finally(() => setExportingCsv(false));
+            }}
+          />
+        )}
         {mode === 'tasks' && hasUnfinishedTasks && <Button label="批量安排日期" variant="secondary" onClick={() => setForm('batch')} />}
         <Button label="新建任务" variant="primary" icon={<Plus size={15} />} onClick={() => setForm('create')} isDisabled={!state.projects.length} />
       </div>
@@ -146,14 +182,14 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
     </div>
     {mode === 'daily' && <DailyPlanning key={`${day}:${projectId}`} day={day} projectId={projectId} tasks={state.tasks} onChanged={onChanged} onOverview={setPlanning}>{hasUnfinishedTasks && <><button className="button secondary compact" onClick={() => { setPlanTask(null); setForm('plan'); }}><CalendarPlus size={15} />选择任务</button><button className="text-button" onClick={()=>setForm('batch')}>批量安排日期</button></>}</DailyPlanning>}
     {isConfirmed && <div className="planning-list-mode"><span>{showUnplanned ? '当前显示当日全部事项。' : '按已确认的排期排列。'}</span><button className="text-button tiny" onClick={() => setShowUnplanned(!showUnplanned)}>{showUnplanned ? '只看已安排任务' : `其他事项 · ${unplannedCount}`}</button></div>}
-    <div className={`work-layout ${selectedSnapshot ? 'has-task-detail' : 'list-only'}`}><section className="task-list-panel" ref={listPanelRef}><div className="task-list-toolbar"><div className="task-list-heading"><h3>{mode === 'daily' ? '当天任务' : projectId ? '项目任务' : '全部任务'}</h3><span>{activeCount} 项未完成{rows.length !== activeCount && ` · 共 ${rows.length} 项`}</span></div></div>
+    <div className={`work-layout ${selectedSnapshot ? 'has-task-detail' : 'list-only'} ${mode === 'tasks' && viewMode === 'kanban' ? 'is-kanban-layout' : ''}`}><section className="task-list-panel" ref={listPanelRef}><div className="task-list-toolbar"><div className="task-list-heading"><h3>{mode === 'daily' ? '当天任务' : projectId ? '项目任务' : '全部任务'}</h3><span>{activeCount} 项未完成{rows.length !== activeCount && ` · 共 ${rows.length} 项`}</span></div></div>
       {mode === 'daily' && day !== localDay() && <p className="work-scope-note">清单为截至 {day} 的记录；任务详情显示最新进度。</p>}
-      {loading ? <div className="loading-view"><Spinner />正在加载任务…</div> : error ? <WorkEmpty title="清单加载失败" action={<button className="button secondary" onClick={() => setTick((value) => value + 1)}>重试</button>}>{error}</WorkEmpty> : !rows.length ? <WorkEmpty title={hasFilter ? '没有匹配的任务' : !state.projects.length ? '先创建一个项目' : mode === 'daily' ? '这一天暂无任务' : '还没有任务'} action={hasFilter ? <button className="button secondary" onClick={() => { setQuery(''); setStatus(''); }}>清除筛选</button> : mode === 'daily' && hasUnfinishedTasks ? <button className="button secondary" onClick={() => { setPlanTask(null); setForm('plan'); }}><CalendarPlus size={15} />安排已有任务</button> : state.projects.length > 0 ? <button className="button secondary" onClick={() => setForm('create')}><Plus size={15} />新建任务</button> : undefined}>{hasFilter ? '试试其他关键词，或清除状态筛选。' : !state.projects.length ? '在左侧创建项目后，即可添加任务。' : mode === 'daily' ? hasUnfinishedTasks ? '选择已有任务安排到这一天，或新建事项。' : '新建这一天需要推进的事项。' : '添加需要完成或跟进的具体事项。'}</WorkEmpty> : <div className="task-table"><div className="task-table-head"><span>任务 / 负责人</span><span>截止日期</span><span>状态</span></div>{rows.slice(pageIndex*50,(pageIndex+1)*50).map((task) => {
+      {loading ? <div className="loading-view"><Spinner />正在加载任务…</div> : error ? <WorkEmpty title="清单加载失败" action={<button className="button secondary" onClick={() => setTick((value) => value + 1)}>重试</button>}>{error}</WorkEmpty> : !rows.length ? <WorkEmpty title={hasFilter ? '没有匹配的任务' : !state.projects.length ? '先创建一个项目' : mode === 'daily' ? '这一天暂无任务' : '还没有任务'} action={hasFilter ? <button className="button secondary" onClick={() => { setQuery(''); setStatus(''); }}>清除筛选</button> : mode === 'daily' && hasUnfinishedTasks ? <button className="button secondary" onClick={() => { setPlanTask(null); setForm('plan'); }}><CalendarPlus size={15} />安排已有任务</button> : state.projects.length > 0 ? <button className="button secondary" onClick={() => setForm('create')}><Plus size={15} />新建任务</button> : undefined}>{hasFilter ? '试试其他关键词，或清除状态筛选。' : !state.projects.length ? '在左侧创建项目后，即可添加任务。' : mode === 'daily' ? hasUnfinishedTasks ? '选择已有任务安排到这一天，或新建事项。' : '新建这一天需要推进的事项。' : '添加需要完成或跟进的具体事项。'}</WorkEmpty> : mode === 'tasks' && viewMode === 'kanban' ? <TaskKanban tasks={rows} projects={state.projects} day={day} selectedId={selectedId} onSelect={selectTask} onChanged={async () => { setTick(v => v + 1); await onChanged(); }} notify={notify} /> : <div className="task-table"><div className="task-table-head"><span>任务 / 负责人</span><span>截止日期</span><span>状态</span></div>{rows.slice(pageIndex*50,(pageIndex+1)*50).map((task) => {
         const allocation = mode === 'daily' ? currentPlanning?.allocations.find((a) => a.taskId === task.id) : undefined;
         const overdue = !!task.dueDate && task.dueDate < day && ['todo', 'in_progress', 'blocked'].includes(task.status);
         return <button key={task.id} className={`task-row ${selectedId === task.id ? 'task-row-selected' : ''}`} aria-pressed={selectedId === task.id} onClick={() => selectTask(task.id)}><div className="task-row-main"><div className="task-row-title">{task.priority === 'high' && <span className="priority-high" title="高优先级">高</span>}<strong>{task.title}</strong></div><div className="task-row-meta"><span>{TASK_CATEGORY[task.category]}</span><span>{task.assignee || '负责人待定'}</span>{!projectId && <span>{state.projects.find((project) => project.id === task.projectId)?.name ?? '所属项目'}</span>}</div>{allocation && <p className="planning-row-reason" title={allocation.reason}>预计 {allocation.minutes} 分钟 · {allocation.reason}</p>}</div><div className={`task-row-due ${overdue ? 'task-overdue' : ''}`}>{task.dueDate ?? '未设置'}{overdue && <small>已逾期</small>}</div><div className="task-row-state"><TaskStatusLabel status={task.status} /><span>{task.progress}%</span></div></button>;
       })}</div>}
-      <ListPager page={pageIndex} total={rows.length} size={50} onChange={setListPage}/>
+      {!(mode === 'tasks' && viewMode === 'kanban') && <ListPager page={pageIndex} total={rows.length} size={50} onChange={setListPage}/>}
       {mode === 'daily' && originalList.length > 0 && <div className="daily-report-link"><span>将当天已记录的进展整理成日报。</span><button className="text-button" onClick={onReport}>查看当日日报 <ArrowRight size={14} /></button></div>}
     </section>{selectedSnapshot && <aside className="task-inspector" ref={inspectorRef} tabIndex={-1} aria-label="任务详情"><button className="task-inspector-back" onClick={returnToList}><ChevronLeft size={14} />返回任务列表</button>{detailLoading ? <div className="loading-view"><Spinner />正在读取任务…</div> : detailError ? <WorkEmpty title="任务暂时无法读取" action={<button className="button secondary" onClick={() => setTick((value) => value + 1)}>重试</button>}>{detailError}</WorkEmpty> : !detail ? <WorkEmpty title="正在读取任务详情" /> : <>
       <div className="task-detail-heading"><div className="eyebrow">最新进度 · v{detail.task.version}</div><h3><ExplainedText text={detail.task.title} context={detail.task.title} /></h3><div className="task-detail-status"><TaskStatusLabel status={detail.task.status} /><span>{detail.task.progress}%</span></div>{mode === 'daily' && selectedSnapshot && selectedSnapshot.version !== detail.task.version && <p className="task-history-notice">清单记录为 v{selectedSnapshot.version}，当前进度已更新至 v{detail.task.version}。</p>}<div className="task-detail-actions"><Button label="更新进度" variant="primary" size="sm" icon={<PencilLine size={13} />} onClick={() => setForm('edit')} /><Button label="安排日期" variant="secondary" size="sm" icon={<CalendarPlus size={13} />} onClick={() => { setPlanTask(detail.task); setForm('plan'); }} /></div></div>
@@ -179,7 +215,7 @@ export function TaskFormDialog({ task: initialTask, latestWorkDate, projects, pr
   const { value: draft, setValue: setDraft } = draftState;
   const titleInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (draftState.ready) titleInput.current?.focus({ preventScroll: true });
+    if (draftState.ready && document.hasFocus()) titleInput.current?.focus({ preventScroll: true });
   }, [draftState.ready]);
   const [busy, setBusy] = useState(false); const [error, setError] = useState('');
   const requestId = useRef(crypto.randomUUID());

@@ -130,3 +130,51 @@ export async function copyCoordinationReport(reportId: string, version: number, 
     throw new AppError('请从桌面应用复制周报。', 'DESKTOP_REQUIRED');
   } catch (error) { throw asError(error); }
 }
+
+export type ExportDocumentFormat = 'docx' | 'csv' | 'json' | 'md' | 'html' | 'png_base64';
+
+export async function exportDocument(params: {
+  title: string;
+  content: string;
+  format: ExportDocumentFormat;
+  filename: string;
+}): Promise<boolean> {
+  try {
+    if ('__TAURI_INTERNALS__' in window) {
+      const result = await invoke<{ cancelled?: boolean }>('export_document', {
+        title: params.title,
+        content: params.content,
+        format: params.format,
+        suggestedFilename: params.filename,
+      });
+      return !result.cancelled;
+    }
+    let blob: Blob;
+    if (params.format === 'png_base64') {
+      const raw = params.content.includes(',') ? params.content.split(',').pop() || '' : params.content;
+      const bin = atob(raw);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      blob = new Blob([bytes], { type: 'image/png' });
+    } else if (params.format === 'docx') {
+      throw new AppError('原生 Word (.docx) 导出请在桌面端应用中使用，或在当前界面使用「复制富文本 / 存 PDF」。', 'DESKTOP_REQUIRED');
+    } else if (params.format === 'csv') {
+      blob = new Blob([`\uFEFF${params.content}`], { type: 'text/csv;charset=utf-8' });
+    } else if (params.format === 'json') {
+      blob = new Blob([params.content], { type: 'application/json;charset=utf-8' });
+    } else if (params.format === 'html') {
+      blob = new Blob([params.content], { type: 'text/html;charset=utf-8' });
+    } else {
+      blob = new Blob([params.content], { type: 'text/markdown;charset=utf-8' });
+    }
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = params.filename;
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return true;
+  } catch (error) {
+    throw asError(error);
+  }
+}

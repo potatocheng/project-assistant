@@ -18,7 +18,7 @@ if (!workspace || !path.isAbsolute(workspace)) {
 }
 const port = Number(arg('--port', '4174'));
 const binary = path.resolve(arg('--binary', 'target/debug/pm-host'));
-const allowedOrigins = new Set(['http://127.0.0.1:1420', 'http://localhost:1420']);
+const allowedOrigins = new Set(['http://127.0.0.1:1420', 'http://localhost:1420', 'http://127.0.0.1:1421', 'http://localhost:1421']);
 const child = spawn(binary, [workspace], { stdio: ['pipe', 'pipe', 'inherit'] });
 let sequence = 0;
 let childExited = false;

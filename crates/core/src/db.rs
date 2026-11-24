@@ -138,7 +138,7 @@ impl Database {
             "get_backup_policy" => crate::workspace_policy::backup_settings(&self.conn),
             "save_backup_policy" => crate::workspace_policy::save_backup_settings(&self.conn, &p),
             "run_automatic_backup" => crate::workspace_policy::backup_tick(self),
-            "get_notification_digest" => crate::workspace_policy::notification(&self.conn),
+            "get_notification_digest" => crate::workspace_policy::notification(&self.conn, &p),
             "ack_notification" => {
                 crate::workspace_policy::save(
                     &self.conn,
@@ -281,6 +281,8 @@ impl Database {
                 Ok(json!({}))
             }
             "get_state" => self.state(),
+            "get_usage_summary" => self.usage_summary(),
+            "get_diagnostics" => self.diagnostics_summary(),
             "create_project" => self.create_project(&p),
             "import_text" => self.import(&p, true),
             "import_file" => self.import(&p, false),
@@ -429,10 +431,13 @@ impl Database {
                 .next()
                 .unwrap_or("")
                 .to_ascii_lowercase();
-            if !matches!(kind.as_str(), "txt" | "md" | "docx" | "pdf") {
+            if !matches!(
+                kind.as_str(),
+                "txt" | "md" | "docx" | "pdf" | "csv" | "xlsx" | "pptx" | "eml"
+            ) {
                 return Err(AppError::new(
                     "UNSUPPORTED_FILE",
-                    "支持 TXT、MD、DOCX 和文本 PDF",
+                    "支持 TXT、MD、DOCX、文本 PDF、CSV、XLSX、PPTX 和 EML 邮件",
                 ));
             }
             let encoded = required(p, "contentBase64")?;
@@ -1093,6 +1098,204 @@ impl Database {
         self.conn.execute("UPDATE jobs SET status='succeeded',stage=?,error=NULL,error_code=NULL,completed_batches=?,total_batches=?,candidate_count=?,task_candidate_count=?,discarded_count=?,updated_at=? WHERE id=?", params![stage,output.batch_count as i64,output.batch_count as i64,created,tasks,output.discarded_count as i64,now(),job])?;
         Ok(())
     }
+
+    fn usage_summary(&self) -> Result<Value> {
+        let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+        let is_today = |ts: &str| -> bool {
+            chrono::DateTime::parse_from_rfc3339(ts)
+                .map(|dt| {
+                    dt.with_timezone(&chrono::Local)
+                        .format("%Y-%m-%d")
+                        .to_string()
+                        == today
+                })
+                .unwrap_or_else(|_| ts.starts_with(&today))
+        };
+
+        let mut assistance_calls = 0u64;
+        let mut assistance_tokens = 0u64;
+        let mut today_calls = 0u64;
+        let mut today_tokens = 0u64;
+        let mut incomplete_usage = false;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT trace_json, created_at FROM assistance_runs")?;
+        for row in stmt.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))? {
+            let (raw, created_at) = row?;
+            if let Ok(trace) = serde_json::from_str::<Value>(&raw) {
+                let calls = trace["modelCalls"].as_u64().unwrap_or(0);
+                let tokens = trace["reportedTokens"].as_u64().unwrap_or(0);
+                if trace["usageComplete"] == false {
+                    incomplete_usage = true;
+                }
+                assistance_calls += calls;
+                assistance_tokens += tokens;
+                if is_today(&created_at) {
+                    today_calls += calls;
+                    today_tokens += tokens;
+                }
+            }
+        }
+
+        let mut qa_calls = 0u64;
+        let mut qa_tokens = 0u64;
+        let mut qa_stmt = self
+            .conn
+            .prepare("SELECT answer, created_at FROM assistant_turns")?;
+        for row in
+            qa_stmt.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?
+        {
+            let (raw, created_at) = row?;
+            if let Ok(answer) = serde_json::from_str::<Value>(&raw) {
+                let trace = &answer["queryTrace"];
+                let calls = trace["modelCalls"].as_u64().unwrap_or(0);
+                let tokens = trace["reportedTokens"].as_u64().unwrap_or(0);
+                if trace["usageComplete"] == false {
+                    incomplete_usage = true;
+                }
+                qa_calls += calls;
+                qa_tokens += tokens;
+                if is_today(&created_at) {
+                    today_calls += calls;
+                    today_tokens += tokens;
+                }
+            }
+        }
+
+        let mut extract_calls = 0u64;
+        let mut extract_tokens = 0u64;
+        let mut ext_stmt = self.conn.prepare("SELECT budget FROM extraction_budget")?;
+        for row in ext_stmt.query_map([], |r| r.get::<_, String>(0))? {
+            let raw = row?;
+            if let Ok(budget) = serde_json::from_str::<Value>(&raw) {
+                extract_calls += budget["requests"].as_u64().unwrap_or(0);
+                let inp = budget["inputTokens"].as_u64().unwrap_or(0);
+                let out = budget["outputTokens"].as_u64().unwrap_or(0);
+                extract_tokens += inp + out;
+                if budget["usageComplete"] == false {
+                    incomplete_usage = true;
+                }
+            }
+        }
+
+        let maintenance_today: i64 = self
+            .conn
+            .query_row(
+                "SELECT calls FROM memory_budget WHERE day=?",
+                [&today],
+                |r| r.get(0),
+            )
+            .optional()?
+            .unwrap_or(0);
+
+        let total_calls = assistance_calls + qa_calls + extract_calls;
+        let total_tokens = assistance_tokens + qa_tokens + extract_tokens;
+        let ai_cfg = settings::load(&self.root)?;
+
+        Ok(json!({
+            "today": today,
+            "todayCalls": today_calls + maintenance_today.max(0) as u64,
+            "todayTokens": today_tokens,
+            "totalCalls": total_calls,
+            "totalTokens": total_tokens,
+            "maintenanceToday": maintenance_today,
+            "usageIncomplete": incomplete_usage,
+            "breakdown": {
+                "extraction": { "calls": extract_calls, "tokens": extract_tokens },
+                "qa": { "calls": qa_calls, "tokens": qa_tokens },
+                "assistance": { "calls": assistance_calls, "tokens": assistance_tokens }
+            },
+            "model": {
+                "provider": ai_cfg.provider,
+                "model": ai_cfg.model,
+                "configured": ai_cfg.validate_material_access().is_ok(),
+                "isRemote": ai_cfg.is_remote()
+            }
+        }))
+    }
+
+    fn diagnostics_summary(&self) -> Result<Value> {
+        let counts = self.counts()?;
+        let failed_jobs: i64 =
+            self.conn
+                .query_row("SELECT count(*) FROM jobs WHERE status='failed'", [], |r| {
+                    r.get(0)
+                })?;
+        let pending_proposals: i64 = self.conn.query_row(
+            "SELECT count(*) FROM proposals WHERE status='pending'",
+            [],
+            |r| r.get(0),
+        )?;
+        let open_proactive: i64 = self.conn.query_row(
+            "SELECT count(*) FROM proactive_actions WHERE status='ready'",
+            [],
+            |r| r.get(0),
+        )?;
+        let backups_count: i64 = self
+            .conn
+            .query_row("SELECT count(*) FROM backups", [], |r| r.get(0))?;
+
+        let mut job_stmt = self.conn.prepare(
+            "SELECT kind, stage, error_code, updated_at FROM jobs WHERE status='failed' ORDER BY updated_at DESC LIMIT 10",
+        )?;
+        let recent_failed_jobs = job_stmt
+            .query_map([], |r| {
+                Ok(json!({
+                    "kind": r.get::<_, String>(0)?,
+                    "stage": r.get::<_, String>(1)?,
+                    "errorCode": r.get::<_, Option<String>>(2)?,
+                    "updatedAt": r.get::<_, String>(3)?
+                }))
+            })?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+
+        let ai_cfg = settings::load(&self.root)?;
+        let backup_policy = crate::workspace_policy::backup_settings(&self.conn)?;
+
+        Ok(json!({
+            "sanitized": true,
+            "appVersion": env!("CARGO_PKG_VERSION"),
+            "schemaVersion": SCHEMA_VERSION,
+            "generatedAt": now(),
+            "platform": {
+                "os": std::env::consts::OS,
+                "arch": std::env::consts::ARCH
+            },
+            "counts": {
+                "projects": counts["projects"],
+                "sources": counts["sources"],
+                "memories": counts["memories"],
+                "tasks": counts["tasks"],
+                "reports": counts["reports"],
+                "backups": backups_count,
+                "failedJobs": failed_jobs,
+                "pendingProposals": pending_proposals,
+                "openProactiveActions": open_proactive
+            },
+            "ai": {
+                "provider": ai_cfg.provider,
+                "model": ai_cfg.model,
+                "outputFormat": ai_cfg.output_format,
+                "timeoutSeconds": ai_cfg.timeout_seconds,
+                "autoExtract": ai_cfg.auto_extract,
+                "remoteConsent": ai_cfg.remote_consent,
+                "configured": ai_cfg.validate_material_access().is_ok(),
+                "isRemote": ai_cfg.is_remote(),
+                "hasApiKey": ai_cfg.api_key.as_ref().is_some_and(|k| !k.is_empty())
+            },
+            "credentialProtection": {
+                "enabled": crate::protection::enabled(&self.root),
+                "supported": cfg!(any(target_os = "windows", target_os = "macos"))
+            },
+            "backupPolicy": {
+                "enabled": backup_policy["enabled"],
+                "intervalHours": backup_policy["intervalHours"],
+                "keep": backup_policy["keep"],
+                "lastSuccess": backup_policy["lastSuccess"]
+            },
+            "recentFailedJobs": recent_failed_jobs
+        }))
+    }
 }
 
 pub(crate) fn enqueue_extraction(
@@ -1615,6 +1818,33 @@ mod tests {
                 .unwrap()["segments"][0]["text"],
             "真正原文"
         );
+    }
+
+    #[test]
+    fn copilot_drafts_usage_summary_and_sanitized_diagnostics_work() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut db = Database::open(dir.path().into()).unwrap();
+        local_settings(&mut db, false);
+        let source = imported(&mut db, "绝密客户项目名称-不要出现在诊断里");
+        finish_parse(&mut db, &source);
+
+        db.execute(Request {
+            command: "save_draft".into(),
+            payload: json!({"key":"copilot:timeline:default","body":{"items":[{"kind":"user","text":"hello"}]},"baseVersion":0}),
+        })
+        .unwrap();
+        crate::daily_use::validate_backup(&db.conn).unwrap();
+
+        let usage = db.usage_summary().unwrap();
+        assert_eq!(usage["model"]["provider"], "ollama");
+        assert!(usage["totalCalls"].is_u64());
+
+        let diag = db.diagnostics_summary().unwrap();
+        assert_eq!(diag["sanitized"], true);
+        assert_eq!(diag["schemaVersion"], SCHEMA_VERSION);
+        let diag_str = diag.to_string();
+        assert!(!diag_str.contains("绝密客户项目名称"));
+        assert!(!diag_str.contains(&dir.path().to_string_lossy().to_string()));
     }
 }
 

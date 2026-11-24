@@ -5,10 +5,95 @@ import { FormDialog } from './astryx/FormDialog';
 import { Button } from '@astryxdesign/core/Button';
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Check, CircleAlert, Globe2, Monitor, PlugZap, ShieldCheck } from 'lucide-react';
+import { Check, CircleAlert, ExternalLink, Globe2, Monitor, PlugZap, ShieldCheck, Sparkles } from 'lucide-react';
 import { asError, execute } from '../api';
 import type { AiSettings } from '../types';
 import { Spinner } from './ui';
+
+interface ModelPreset {
+  id: string;
+  label: string;
+  provider: 'openai_compatible' | 'ollama';
+  baseUrl: string;
+  model: string;
+  tip: string;
+  keyUrl?: string;
+}
+
+const MODEL_PRESETS: ModelPreset[] = [
+  {
+    id: 'deepseek',
+    label: 'DeepSeek',
+    provider: 'openai_compatible',
+    baseUrl: 'https://api.deepseek.com',
+    model: 'deepseek-chat',
+    tip: '性价比极高，中文理解强，新用户通常有体验额度（日常仅需几分钱/天）。',
+    keyUrl: 'https://platform.deepseek.com/api_keys',
+  },
+  {
+    id: 'qwen',
+    label: '通义千问（百炼）',
+    provider: 'openai_compatible',
+    baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    model: 'qwen-plus',
+    tip: '阿里云百炼 OpenAI 兼容接口，开通即送百万级免费试用额度。',
+    keyUrl: 'https://bailian.console.aliyun.com/',
+  },
+  {
+    id: 'doubao',
+    label: '豆包（火山方舟）',
+    provider: 'openai_compatible',
+    baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
+    model: 'doubao-seed-1-6-250615',
+    tip: '字节火山方舟接入，也可填自己在控制台创建的推理接入点 ID（ep-xxx）。',
+    keyUrl: 'https://console.volcengine.com/ark',
+  },
+  {
+    id: 'kimi',
+    label: 'Kimi',
+    provider: 'openai_compatible',
+    baseUrl: 'https://api.moonshot.cn/v1',
+    model: 'moonshot-v1-8k',
+    tip: '月之暗面长文本能力强，适合处理长篇项目会议纪要与周报整理。',
+    keyUrl: 'https://platform.moonshot.cn/console/api-keys',
+  },
+  {
+    id: 'glm',
+    label: '智谱 GLM',
+    provider: 'openai_compatible',
+    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    model: 'glm-4-flash',
+    tip: 'glm-4-flash 官方长期免费或极低资费，适合日常高频提取与问答。',
+    keyUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
+  },
+  {
+    id: 'siliconflow',
+    label: '硅基流动',
+    provider: 'openai_compatible',
+    baseUrl: 'https://api.siliconflow.cn/v1',
+    model: 'deepseek-ai/DeepSeek-V3',
+    tip: '聚合多种开源大模型，注册通常赠送免费额度。',
+    keyUrl: 'https://cloud.siliconflow.cn/account/ak',
+  },
+  {
+    id: 'openai',
+    label: 'OpenAI',
+    provider: 'openai_compatible',
+    baseUrl: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini',
+    tip: '需本机网络可直接访问 OpenAI API。',
+    keyUrl: 'https://platform.openai.com/api-keys',
+  },
+  {
+    id: 'ollama',
+    label: '本机 Ollama（零外发）',
+    provider: 'ollama',
+    baseUrl: 'http://127.0.0.1:11434',
+    model: 'qwen2.5:7b',
+    tip: '100% 本地离线运行，不花钱且任何项目文字都不离开本机电脑。',
+    keyUrl: 'https://ollama.com/download',
+  },
+];
 
 export function endpointInfo(baseUrl: string) {
   try {
@@ -27,12 +112,20 @@ export function ModelSettingsDialog({ close, onSaved }: { close: () => void; onS
   const [result, setResult] = useState('');
   const [tested, setTested] = useState(false);
   const [reload, setReload] = useState(0);
+  const [usage, setUsage] = useState<{ todayCalls: number; totalCalls: number; totalTokens: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setBusy('load'); setError('');
-    execute<AiSettings>('get_ai_settings').then((settings) => {
-      if (!cancelled) { setSaved(settings); setForm(settings); }
+    Promise.all([
+      execute<AiSettings>('get_ai_settings'),
+      execute<{ todayCalls: number; totalCalls: number; totalTokens: number }>('get_usage_summary').catch(() => null),
+    ]).then(([settings, summary]) => {
+      if (!cancelled) {
+        setSaved(settings);
+        setForm(settings);
+        setUsage(summary);
+      }
     }).catch((caught) => { if (!cancelled) setError(asError(caught).message); })
       .finally(() => { if (!cancelled) setBusy(''); });
     return () => { cancelled = true; };
@@ -42,9 +135,23 @@ export function ModelSettingsDialog({ close, onSaved }: { close: () => void; onS
   const dirty = useMemo(() => !!form && !!saved && (JSON.stringify(form) !== JSON.stringify(saved) || !!key || clearKey), [form, saved, key, clearKey]);
   const sameEndpoint = form?.provider === saved?.provider && form?.baseUrl.replace(/\/+$/, '') === saved?.baseUrl.replace(/\/+$/, '');
   const canTest = !!saved?.baseUrl.trim() && !!saved.model.trim() && (saved.provider === 'ollama' || endpointInfo(saved.baseUrl).local || saved.hasApiKey);
+  const activePreset = MODEL_PRESETS.find(p => form && p.provider === form.provider && form.baseUrl.replace(/\/+$/, '') === p.baseUrl);
   const patch = (value: Partial<AiSettings>) => {
     setForm((current) => current ? { ...current, ...value } : current);
     setResult(''); setError(''); setTested(false);
+  };
+  const applyPreset = (preset: ModelPreset) => {
+    patch({
+      provider: preset.provider,
+      baseUrl: preset.baseUrl,
+      model: preset.model,
+      outputFormat: 'json_object',
+      remoteConsent: preset.provider === 'ollama' ? false : form?.remoteConsent ?? false,
+    });
+    if (preset.provider === 'ollama') {
+      setKey('');
+      setClearKey(false);
+    }
   };
   const save = async (event: FormEvent) => {
     event.preventDefault();
@@ -58,7 +165,7 @@ export function ModelSettingsDialog({ close, onSaved }: { close: () => void; onS
         ...(clearKey ? { apiKey: '' } : key.trim() ? { apiKey: key.trim() } : {}),
       });
       setSaved(next); setForm(next); setKey(''); setClearKey(false); setTested(false);
-      setResult('设置已保存，可测试连接。');
+      setResult('设置已保存，可点击左下角「测试连接」验证。');
       await onSaved();
     } catch (caught) { setError(asError(caught).message); }
     finally { setBusy(''); }
@@ -72,24 +179,55 @@ export function ModelSettingsDialog({ close, onSaved }: { close: () => void; onS
     finally { setBusy(''); }
   };
 
-  return <FormDialog title="模型设置" subtitle="连接 AI 模型，从资料中提取待确认内容。" close={close} busy={!!busy} wide>
+  return <FormDialog title="模型设置" subtitle="自带模型账号，从资料提取任务、回答项目问题并一键润色汇报。" close={close} busy={!!busy} wide>
     {busy === 'load' ? <div className="dialog-body settings-loading"><Spinner />正在读取本机设置…</div> : !form ? <div className="dialog-body"><div className="form-error" role="alert"><CircleAlert size={17} /><p>{error || '设置暂时无法读取。'}</p></div><Button label="重新读取设置" onClick={() => setReload((value) => value + 1)} className="settings-reload" variant="secondary" /></div> : <form onSubmit={save}>
       <div className="dialog-body model-settings-body astryx-form-fields">
-        <div className="settings-status"><span className={`settings-status-dot ${saved?.configured ? 'ready' : ''}`} /><span>{saved?.configured ? '配置已保存' : '待配置'}</span><span>{tested ? '连接测试通过' : '保存后可测试连接'}</span></div>
+        <div className="settings-status"><span className={`settings-status-dot ${saved?.configured ? 'ready' : ''}`} /><span>{saved?.configured ? '配置已保存' : '待配置'}</span><span>{tested ? '连接测试通过' : '保存后可测试连接'}</span>{usage && <span style={{ marginLeft: 'auto', fontSize: 12 }}>累计 {usage.totalCalls} 次 · {usage.totalTokens.toLocaleString()} tokens</span>}</div>
+
+        <div className="model-preset-block">
+          <span className="field-label"><Sparkles size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 5 }} />常用模型一键预设</span>
+          <div className="model-preset-pills" role="group" aria-label="常用模型服务预设">
+            {MODEL_PRESETS.map(preset => {
+              const selected = activePreset?.id === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  disabled={!!busy}
+                  className={`model-preset-pill ${selected ? 'is-selected' : ''}`}
+                  onClick={() => applyPreset(preset)}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
+          </div>
+          {activePreset && (
+            <div className="model-preset-tip">
+              <span>{activePreset.tip}</span>
+              {activePreset.keyUrl && (
+                <a href={activePreset.keyUrl} target="_blank" rel="noreferrer">
+                  1 分钟获取 API Key / 下载 <ExternalLink size={11} />
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+
         <Selector id="ai-provider" label="服务类型" value={form.provider} isDisabled={!!busy} onChange={value => {
-          if (value === 'ollama') patch({ provider: 'ollama', baseUrl: 'http://127.0.0.1:11434', model: '', outputFormat: 'json_object', remoteConsent: false });
-          else patch({ provider: 'openai_compatible', baseUrl: 'https://api.deepseek.com', model: 'deepseek-flash', outputFormat: 'json_object', remoteConsent: false });
+          if (value === 'ollama') patch({ provider: 'ollama', baseUrl: 'http://127.0.0.1:11434', model: 'qwen2.5:7b', outputFormat: 'json_object', remoteConsent: false });
+          else patch({ provider: 'openai_compatible', baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat', outputFormat: 'json_object', remoteConsent: false });
           setKey(''); setClearKey(false);
-        }} options={[{ value: 'openai_compatible', label: 'OpenAI 兼容服务（如 DeepSeek）' }, { value: 'ollama', label: '本机 Ollama' }]} />
+        }} options={[{ value: 'openai_compatible', label: 'OpenAI 兼容服务（DeepSeek / 千问 / 豆包 / Kimi 等）' }, { value: 'ollama', label: '本机 Ollama（离线零外发）' }]} />
         <TextInput id="ai-base-url" label="服务地址" type="url" value={form.baseUrl} placeholder={form.provider === 'ollama' ? 'http://127.0.0.1:11434' : 'https://api.deepseek.com'}
           onChange={value => patch({ baseUrl: value, remoteConsent: false })} isRequired isDisabled={!!busy} hasSpellCheck={false} />
         {form.provider === 'openai_compatible' && <Button label="使用 DeepSeek 默认值" type="button" variant="ghost" size="sm" className="astryx-inline-action astryx-field-action" isDisabled={!!busy}
-          onClick={() => patch({ baseUrl: 'https://api.deepseek.com', model: 'deepseek-flash', outputFormat: 'json_object', remoteConsent: false })} />}
-        <TextInput id="ai-model" label="模型名称" value={form.model} onChange={value => patch({ model: value })} placeholder={form.provider === 'ollama' ? '填写本机已安装的模型名称' : 'deepseek-flash'}
+          onClick={() => patch({ baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat', outputFormat: 'json_object', remoteConsent: false })} />}
+        <TextInput id="ai-model" label="模型名称" value={form.model} onChange={value => patch({ model: value })} placeholder={form.provider === 'ollama' ? '填写本机已安装的模型名称，如 qwen2.5:7b' : 'deepseek-chat'}
           isRequired isDisabled={!!busy} hasSpellCheck={false} />
         {form.provider === 'openai_compatible' && <>
-          <TextInput id="ai-api-key" label="API 密钥" description={saved?.hasApiKey && sameEndpoint ? '本机已保存' : '不随备份导出'} type="password" value={key}
-            onChange={value => { setKey(value); setResult(''); setTested(false); }} placeholder={saved?.hasApiKey && sameEndpoint ? '留空保留已保存的密钥' : '输入此服务的 API 密钥'}
+          <TextInput id="ai-api-key" label="API 密钥" description={saved?.hasApiKey && sameEndpoint ? '本机已保存（绝不上传或进入备份）' : '仅保存于本机 secrets 目录'} type="password" value={key}
+            onChange={value => { setKey(value); setResult(''); setTested(false); }} placeholder={saved?.hasApiKey && sameEndpoint ? '留空保留已保存的密钥' : '粘贴 sk-... 密钥'}
             autoComplete="new-password" hasSpellCheck={false} isDisabled={!!busy || clearKey} />
           {saved?.hasApiKey && !sameEndpoint && <p className="field-hint">服务地址已变更。保存后旧密钥会清除，请填写新服务的密钥。</p>}
           {saved?.hasApiKey && sameEndpoint && <CheckboxInput label="清除本机已保存的密钥" value={clearKey} isDisabled={!!busy}

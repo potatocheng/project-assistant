@@ -26,11 +26,17 @@
 
 私聊与群聊共用个人账号授权、模型配置、发送前依据校验和消息去重。修改设置、断开授权、还原工作区会取消旧处理；发送结果不确定时不会自动重发。自动回复与“记忆中心”的资料采集分别配置，开启私聊代答不会自动将私聊收进项目记忆。
 
-## 权限自动申请
+## 权限自动申请与按场景分级启用
 
-项目使用[飞书官方 SDK 的应用注册/更新协议](https://github.com/larksuite/node-sdk/tree/main/scene/registration)：通过设备授权申请更新已有应用，确认链接携带当前 App ID 和 gzip + Base64URL 编码的 `addons`。设置 `preset: false` 并仅声明项目所需的用户身份权限，避免附带默认模板的业务权限。此流程无需额外开通应用管理权限，也不获取租户令牌。
+项目使用[飞书官方 SDK 的应用注册/更新协议](https://github.com/larksuite/node-sdk/tree/main/scene/registration)：通过设备授权申请更新已有应用，确认链接携带当前 App ID 和 gzip + Base64URL 编码的 `addons`。设置 `preset: false` 并仅声明项目所需的用户身份权限，避免附带默认模板的业务权限。此流程无需额外开通应用管理权限。
 
-应用申请和个人 OAuth 使用同一份权限定义：`offline_access`、`search:message`、`im:message.p2p_msg:get_as_user`、`im:message.group_msg:get_as_user`、`im:message`、`im:message.send_as_user`、`im:chat:read`、`docx:document:readonly`、`wiki:wiki:readonly`，覆盖自动回复和记忆采集。增加功能权限后再次点击连接即可申请更新。
+首次连接仍一次性申请全部 9 项用户身份权限：`offline_access`、`search:message`、`im:message.p2p_msg:get_as_user`、`im:message.group_msg:get_as_user`、`im:message`、`im:message.send_as_user`、`im:chat:read`、`docx:document:readonly`、`wiki:wiki:readonly`。
+
+为避免“部分权限尚在企业审批导致整个授权被飞书 `20027` 拦死”，项目会通过飞书无需额外权限的只读接口 `GET /open-apis/application/v6/scopes` 查询当前应用实际已获批的权限范围（仅为此单次只读查询在内存中临时换取 `tenant_access_token`，不持久化、绝不用于任何消息/文档读写或回复；所有业务读写与代答仍严格使用个人 `user_access_token`）：
+
+- **拿到什么权限，立即开启什么功能**：个人 OAuth 仅请求「9 项目标 ∩ 当前已获批权限」（附 `offline_access`），按 6 个场景独立启用——飞书文档采集（`docx`）、飞书知识库采集（`wiki`）、读取群列表、飞书群消息采集、群聊 `@提问` 自动代答、同事私聊自动代答。
+- **未获批功能暂缓并清晰提示**：未拿到权限的同步来源和自动回复渠道会优雅暂停，不影响已获批功能正常运行，也不会推进未同步来源的游标。
+- **审批通过后自动提醒并一键恢复**：后台每分钟轮询只读审批状态（也可手动点击「检查审批状态」）。一旦检测到管理员批准了新权限，应用会立即通过顶部横幅和桌面通知提醒用户；用户点击「一键确认」完成增量个人授权后，新功能立即解锁，此前已配置并勾选的相关同步来源与自动回复绑定会自动恢复运行。
 
 后台按飞书返回的间隔检查确认结果，遇到限流放慢轮询；拒绝或过期会显示可重试的提示。重复点击复用未结束的请求。关闭设置窗口后后台仍可继续，重新打开窗口会恢复授权页面。断开账号、修改设置或还原工作区会取消本次请求，迟到的确认结果不能覆盖新设置。飞书返回的应用 ID 必须与当前应用一致，凭据只保存在本机秘密目录，不会通过状态接口暴露。应用权限确认不会代替个人 OAuth 的同意操作。
 

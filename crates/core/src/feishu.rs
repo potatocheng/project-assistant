@@ -1,12 +1,19 @@
-//! Personal-account Feishu connector. No tenant/bot token is ever requested.
+//! Personal-account Feishu connector.
+//! All chat, document, search, and reply calls strictly use the authorized user's
+//! `user_access_token`. A short-lived in-memory `tenant_access_token` is used ONLY
+//! for the zero-scope read-only `GET /open-apis/application/v6/scopes` query so the
+//! app can request only approved scopes during personal OAuth and detect new admin
+//! approvals in the background.
 //!
 //! Protocol references (checked 2026-10-19):
 //! - open.feishu.cn/document/authentication-management/access-token/obtain-oauth-code.md
 //!   currently directs PKCE authorization-code clients to the v2 token endpoint.
 //! - .../get-user-access-token.md and .../refresh-user-access-token-v3.md
+//! - .../application-v6/scope/list (read-only tenant scope approval status)
 //! - github.com/larksuite/cli/shortcuts/im/{im_messages_search,helpers,
 //!   im_messages_reply,im_chat_search}.go (MIT): wire formats, not a CLI dependency.
 use crate::{id, now, AppError, Result};
+mod capabilities;
 mod knowledge;
 mod permissions;
 use base64::Engine as _;
@@ -103,6 +110,18 @@ struct Session {
     #[serde(default)]
     invalid: bool,
 }
+impl Session {
+    fn granted_scopes(&self) -> HashSet<String> {
+        capabilities::parse_scope_set(&self.scope)
+    }
+    fn has_capability(&self, cap: capabilities::Capability) -> bool {
+        cap.is_satisfied_by(&self.granted_scopes())
+    }
+    fn has_scopes(&self, required: &[&str]) -> bool {
+        let granted = self.granted_scopes();
+        required.iter().all(|scope| granted.contains(*scope))
+    }
+}
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 struct Saved {
@@ -146,6 +165,10 @@ struct State {
     saved: Saved,
     authorization: Option<PendingAuthorization>,
     permissions: Option<permissions::Pending>,
+    approved_app_scopes: Option<HashSet<String>>,
+    last_scope_check_at: Option<String>,
+    last_scope_check_error: Option<String>,
+    last_scope_check_epoch: i64,
     polling: bool,
     last_poll_at: Option<String>,
     last_error: Option<String>,
@@ -220,6 +243,33 @@ impl Api {
         })
         .map_err(|_| error("FEISHU_HTTP", "飞书授权地址无效"))?;
         self.perform_request(Method::POST, url, None, Some(body))
+    }
+    fn probe_approved_app_scopes(&self, app_id: &str, app_secret: &str) -> Result<HashSet<String>> {
+        // Strictly read-only scope check: tenant_access_token stays in local memory
+        // for this single call and is never persisted or sent to any chat/doc/reply API.
+        let token_url = Url::parse(&format!(
+            "{}/open-apis/auth/v3/tenant_access_token/internal",
+            self.base
+        ))
+        .map_err(|_| error("FEISHU_HTTP", "飞书应用权限查询地址无效"))?;
+        let token_response = self.perform_request(
+            Method::POST,
+            token_url,
+            None,
+            Some(&json!({"app_id": app_id, "app_secret": app_secret})),
+        )?;
+        let tenant_token = token_response["tenant_access_token"]
+            .as_str()
+            .filter(|s| !s.is_empty() && s.len() <= 32_768 && !s.contains(['\r', '\n']))
+            .ok_or_else(|| error("FEISHU_RESPONSE", "飞书未返回有效应用权限查询凭证"))?;
+        let data = self.json(
+            Method::GET,
+            "/open-apis/application/v6/scopes",
+            &[],
+            Some(tenant_token),
+            None,
+        )?;
+        capabilities::parse_app_scopes_response(&data)
     }
     fn perform_request(
         &self,
@@ -383,6 +433,15 @@ impl Connector {
                 ))?;
             }
         }
+        let cached_approved = db
+            .query_row(
+                "SELECT value FROM metadata WHERE key='approved-app-scopes'",
+                [],
+                |r| r.get::<_, String>(0),
+            )
+            .optional()?
+            .and_then(|raw| serde_json::from_str::<Vec<String>>(&raw).ok())
+            .map(|items| items.into_iter().collect::<HashSet<_>>());
         let (wake, receiver) = mpsc::sync_channel(1);
         let inner = Arc::new(Inner {
             root,
@@ -390,6 +449,10 @@ impl Connector {
                 saved,
                 authorization: None,
                 permissions: None,
+                approved_app_scopes: cached_approved,
+                last_scope_check_at: None,
+                last_scope_check_error: None,
+                last_scope_check_epoch: 0,
                 polling: false,
                 last_poll_at: None,
                 last_error: None,
@@ -422,6 +485,7 @@ impl Connector {
                     if inner.stopped.load(Ordering::SeqCst) {
                         return;
                     }
+                    let _ = inner.check_app_scopes_if_due();
                     if let Err(e) = inner.sync_knowledge_if_due() {
                         if e.code != "FEISHU_CANCELLED" && e.code != "FEISHU_SYNC_BUSY" {
                             inner.record_error(&e);
@@ -437,6 +501,8 @@ impl Connector {
             "save_feishu_settings" => self.inner.save_settings(p),
             "begin_feishu_authorization" => self.inner.begin_authorization(),
             "begin_feishu_connection" => self.inner.begin_permissions(),
+            "check_feishu_permissions" => self.inner.check_permissions_now(),
+            "dismiss_feishu_notification" => self.inner.dismiss_notification(p),
             "disconnect_feishu" => self.inner.disconnect(),
             "poll_feishu_now" => self.inner.trigger(),
             "list_feishu_chats" => self.inner.list_chats(),
@@ -446,6 +512,9 @@ impl Connector {
             "sync_feishu_sources" => self.inner.trigger_knowledge(),
             _ => return None,
         })
+    }
+    pub(crate) fn pending_notification(&self) -> Option<(String, String, String)> {
+        self.inner.pending_notification()
     }
     pub(crate) fn invalidate(&self) -> Result<()> {
         self.inner.invalidate(false)
@@ -506,13 +575,262 @@ impl Inner {
             });
         }
         let runtime = json!({"polling":state.polling,"lastPollAt":state.last_poll_at,"lastError":state.last_error});
+        let connected = auth == "connected";
+        let granted = s
+            .session
+            .as_ref()
+            .map(Session::granted_scopes)
+            .unwrap_or_default();
+        let approved = state.approved_app_scopes.clone();
+        let last_checked_at = state.last_scope_check_at.clone();
+        let last_check_error = state.last_scope_check_error.clone();
         drop(state);
+        let notifications = self.load_notifications().unwrap_or_default();
+        let permissions = capabilities::build_permissions_snapshot(
+            connected,
+            &granted,
+            approved.as_ref(),
+            last_checked_at.as_deref(),
+            last_check_error.as_deref(),
+            &notifications,
+        );
         let db = lock(&self.receipts)?;
         let mut statement = db.prepare("SELECT id,message_id,chat_id,project_id,question,answer,status,error,created_at,updated_at,chat_type,peer_id,peer_name FROM receipts ORDER BY rowid DESC LIMIT 50")?;
         let recent = statement.query_map([], |r| Ok(json!({"id":r.get::<_,String>(0)?,"messageId":r.get::<_,String>(1)?,"chatId":r.get::<_,String>(2)?,"projectId":r.get::<_,String>(3)?,"question":r.get::<_,String>(4)?,"answer":r.get::<_,Option<String>>(5)?,"status":r.get::<_,String>(6)?,"error":r.get::<_,Option<String>>(7)?,"createdAt":r.get::<_,String>(8)?,"updatedAt":r.get::<_,String>(9)?,"chatType":r.get::<_,String>(10)?,"peerId":r.get::<_,String>(11)?,"peerName":r.get::<_,String>(12)?})))?.collect::<std::result::Result<Vec<_>,_>>()?;
         Ok(
-            json!({"settings":settings,"authorization":authorization,"runtime":runtime,"recentMessages":recent}),
+            json!({"settings":settings,"authorization":authorization,"runtime":runtime,"permissions":permissions,"recentMessages":recent}),
         )
+    }
+    pub(super) fn permissions_snapshot(&self) -> Result<Value> {
+        let state = lock(&self.state)?;
+        let s = &state.saved;
+        let connected = s.session.as_ref().is_some_and(|session| {
+            !session.invalid
+                && (session.expires_at > timestamp() || session.refresh_expires_at > timestamp())
+        });
+        let granted = s
+            .session
+            .as_ref()
+            .map(Session::granted_scopes)
+            .unwrap_or_default();
+        let approved = state.approved_app_scopes.clone();
+        let last_checked_at = state.last_scope_check_at.clone();
+        let last_check_error = state.last_scope_check_error.clone();
+        drop(state);
+        let notifications = self.load_notifications().unwrap_or_default();
+        Ok(capabilities::build_permissions_snapshot(
+            connected,
+            &granted,
+            approved.as_ref(),
+            last_checked_at.as_deref(),
+            last_check_error.as_deref(),
+            &notifications,
+        ))
+    }
+    fn load_notifications(&self) -> Result<Vec<capabilities::PermissionNotification>> {
+        let Some(raw) = self.metadata("permission-notifications")? else {
+            return Ok(Vec::new());
+        };
+        Ok(serde_json::from_str(&raw).unwrap_or_default())
+    }
+    fn save_notifications(&self, items: &[capabilities::PermissionNotification]) -> Result<()> {
+        self.set_metadata("permission-notifications", &json!(items).to_string())
+    }
+    fn push_notification(&self, item: capabilities::PermissionNotification) -> Result<()> {
+        let mut items = self.load_notifications()?;
+        if item.kind == "approval_ready" {
+            items.retain(|existing| existing.kind != "approval_ready");
+        }
+        items.insert(0, item);
+        items.truncate(10);
+        self.save_notifications(&items)
+    }
+    fn dismiss_notification(&self, p: &Value) -> Result<Value> {
+        let id = p["id"].as_str().map(str::trim).filter(|s| !s.is_empty());
+        let mut items = self.load_notifications()?;
+        if let Some(target) = id {
+            items.retain(|item| item.id != target);
+        } else {
+            items.clear();
+        }
+        self.save_notifications(&items)?;
+        self.status()
+    }
+    fn pending_notification(&self) -> Option<(String, String, String)> {
+        let items = self.load_notifications().ok()?;
+        let item = items.first()?;
+        let sig = crate::hash(
+            json!([
+                "feishu-permission",
+                &item.id,
+                &item.kind,
+                &item.capability_ids
+            ])
+            .to_string()
+            .as_bytes(),
+        );
+        Some((item.title.clone(), item.message.clone(), sig))
+    }
+    fn load_notified_ready_caps(&self) -> HashSet<String> {
+        self.metadata("notified-ready-caps")
+            .ok()
+            .flatten()
+            .and_then(|raw| serde_json::from_str::<Vec<String>>(&raw).ok())
+            .map(|items| items.into_iter().collect())
+            .unwrap_or_default()
+    }
+    fn save_notified_ready_caps(
+        &self,
+        caps: &std::collections::BTreeSet<capabilities::Capability>,
+    ) -> Result<()> {
+        let ids: Vec<&str> = caps.iter().map(|c| c.id()).collect();
+        self.set_metadata("notified-ready-caps", &json!(ids).to_string())
+    }
+    fn persist_approved_app_scopes(&self, approved: &HashSet<String>) -> Result<()> {
+        let mut list: Vec<&str> = approved.iter().map(String::as_str).collect();
+        list.sort_unstable();
+        self.set_metadata("approved-app-scopes", &json!(list).to_string())
+    }
+    fn probe_and_update_app_scopes(
+        &self,
+        saved: &Saved,
+        emit_notifications: bool,
+    ) -> Result<HashSet<String>> {
+        let secret = saved
+            .app_secret
+            .as_deref()
+            .filter(|_| !saved.app_id.is_empty())
+            .ok_or_else(|| error("FEISHU_CONFIG", "请先保存飞书 App ID 和 App Secret"))?;
+        match self.api.probe_approved_app_scopes(&saved.app_id, secret) {
+            Ok(approved) => {
+                let (connected, granted) = {
+                    let mut state = lock(&self.state)?;
+                    if self.stopped.load(Ordering::SeqCst)
+                        || state.saved.app_id != saved.app_id
+                        || state.saved.app_secret != saved.app_secret
+                    {
+                        return Err(error("FEISHU_CANCELLED", "飞书应用配置已变化"));
+                    }
+                    state.approved_app_scopes = Some(approved.clone());
+                    state.last_scope_check_at = Some(now());
+                    state.last_scope_check_error = None;
+                    state.last_scope_check_epoch = timestamp();
+                    let connected = state.saved.session.as_ref().is_some_and(|session| {
+                        !session.invalid
+                            && (session.expires_at > timestamp()
+                                || session.refresh_expires_at > timestamp())
+                    });
+                    let granted = state
+                        .saved
+                        .session
+                        .as_ref()
+                        .map(Session::granted_scopes)
+                        .unwrap_or_default();
+                    (connected, granted)
+                };
+                let _ = self.persist_approved_app_scopes(&approved);
+                if emit_notifications {
+                    let ready = capabilities::ready_to_confirm_capabilities(
+                        connected,
+                        &granted,
+                        Some(&approved),
+                    );
+                    let already = self.load_notified_ready_caps();
+                    let newly_ready: Vec<_> = ready
+                        .iter()
+                        .copied()
+                        .filter(|cap| !already.contains(cap.id()))
+                        .collect();
+                    if !newly_ready.is_empty() {
+                        let names = ready
+                            .iter()
+                            .map(|cap| cap.label())
+                            .collect::<Vec<_>>()
+                            .join("、");
+                        let (title, message) = if connected {
+                            (
+                                "飞书新权限已获批，可一键启用".to_owned(),
+                                format!(
+                                    "飞书管理员已批准「{names}」权限，点击「确认已获批权限」完成个人确认后将自动启用对应功能。"
+                                ),
+                            )
+                        } else {
+                            (
+                                "飞书权限已获批，可连接启用".to_owned(),
+                                format!(
+                                    "飞书已获批「{names}」权限，现在可以完成个人账号授权并立即启用已获批功能。"
+                                ),
+                            )
+                        };
+                        let _ = self.push_notification(capabilities::PermissionNotification {
+                            id: id(),
+                            kind: "approval_ready".into(),
+                            title,
+                            message,
+                            capability_ids: ready.iter().map(|c| c.id().into()).collect(),
+                            created_at: now(),
+                        });
+                        let _ = self.save_notified_ready_caps(&ready);
+                    } else if ready.is_empty() {
+                        if let Ok(mut items) = self.load_notifications() {
+                            let before = items.len();
+                            items.retain(|item| item.kind != "approval_ready");
+                            if items.len() != before {
+                                let _ = self.save_notifications(&items);
+                            }
+                        }
+                        let _ = self.save_notified_ready_caps(&ready);
+                    }
+                }
+                Ok(approved)
+            }
+            Err(e) => {
+                if let Ok(mut state) = self.state.lock() {
+                    if state.saved.app_id == saved.app_id {
+                        state.last_scope_check_error = Some(e.message.clone());
+                        state.last_scope_check_epoch = timestamp();
+                    }
+                }
+                Err(e)
+            }
+        }
+    }
+    fn check_app_scopes_if_due(&self) -> Result<()> {
+        let saved = {
+            let state = lock(&self.state)?;
+            if state.saved.app_id.is_empty() || state.saved.app_secret.is_none() {
+                return Ok(());
+            }
+            if state.permissions.is_some() || state.authorization.is_some() {
+                return Ok(());
+            }
+            let connected = state.saved.session.as_ref().is_some_and(|session| {
+                !session.invalid
+                    && (session.expires_at > timestamp()
+                        || session.refresh_expires_at > timestamp())
+            });
+            if connected
+                && state.saved.session.as_ref().is_some_and(|session| {
+                    capabilities::has_all_business_scopes(&session.granted_scopes())
+                })
+            {
+                return Ok(());
+            }
+            if timestamp() - state.last_scope_check_epoch < 60 {
+                return Ok(());
+            }
+            state.saved.clone()
+        };
+        let _ = self.probe_and_update_app_scopes(&saved, true);
+        Ok(())
+    }
+    fn check_permissions_now(&self) -> Result<Value> {
+        let saved = lock(&self.state)?.saved.clone();
+        if saved.app_id.is_empty() || saved.app_secret.is_none() {
+            return Err(error("FEISHU_CONFIG", "请先保存飞书 App ID 和 App Secret"));
+        }
+        self.probe_and_update_app_scopes(&saved, true)?;
+        self.status()
     }
     fn persist(&self, saved: &Saved) -> Result<()> {
         save_private(&self.root, saved)
@@ -542,12 +860,31 @@ impl Inner {
     fn save_settings(&self, p: &Value) -> Result<Value> {
         let _gate = lock(&self.send_gate)?;
         let mut state = lock(&self.state)?;
+        let credentials_changed = {
+            let next_app = p["appId"].as_str().unwrap_or("").trim();
+            next_app != state.saved.app_id
+                || p.get("appSecret")
+                    .and_then(Value::as_str)
+                    .is_some_and(|s| state.saved.app_secret.as_deref() != Some(s.trim()))
+        };
         let next = parse_settings(&state.saved, p)?;
         self.persist(&next)?;
         state.saved = next;
         state.authorization = None;
         state.permissions = None;
+        if credentials_changed {
+            state.approved_app_scopes = None;
+            state.last_scope_check_at = None;
+            state.last_scope_check_error = None;
+            state.last_scope_check_epoch = 0;
+        }
         drop(state);
+        if credentials_changed {
+            let _ = lock(&self.receipts)?.execute(
+                "DELETE FROM metadata WHERE key IN ('approved-app-scopes','permission-notifications','notified-ready-caps')",
+                [],
+            );
+        }
         self.cancel_pending("飞书设置已更新，本次回复取消")?;
         let _ = self.wake.try_send(());
         drop(_gate);
@@ -566,19 +903,51 @@ impl Inner {
         state.permissions = None;
         state.last_error = None;
         drop(state);
+        let _ = lock(&self.receipts)?.execute(
+            "DELETE FROM metadata WHERE key IN ('permission-notifications','notified-ready-caps')",
+            [],
+        );
         self.cancel_pending("个人账号已断开，本次回复取消")?;
         drop(_gate);
         self.status()
     }
     fn trigger(&self) -> Result<Value> {
-        let state = lock(&self.state)?;
-        if !state.saved.enabled {
+        let (enabled, session, bindings, approved) = {
+            let state = lock(&self.state)?;
+            (
+                state.saved.enabled,
+                state.saved.session.clone(),
+                state.saved.bindings.clone(),
+                state.approved_app_scopes.clone(),
+            )
+        };
+        if !enabled {
             return Err(error("FEISHU_DISABLED", "请先启用飞书自动回复"));
         }
-        if state.saved.session.is_none() {
-            return Err(error("FEISHU_NOT_CONNECTED", "请先授权飞书个人账号"));
+        let session = session
+            .filter(|s| !s.invalid)
+            .ok_or_else(|| error("FEISHU_NOT_CONNECTED", "请先授权飞书个人账号"))?;
+        let granted = session.granted_scopes();
+        let has_group_binding = bindings
+            .iter()
+            .any(|b| b.enabled && b.chat_type == ChatType::Group);
+        let has_p2p_binding = bindings
+            .iter()
+            .any(|b| b.enabled && b.chat_type == ChatType::P2p);
+        let can_group =
+            has_group_binding && session.has_capability(capabilities::Capability::GroupReply);
+        let can_p2p = has_p2p_binding && session.has_capability(capabilities::Capability::P2pReply);
+        if (has_group_binding || has_p2p_binding) && !can_group && !can_p2p {
+            let cap = if has_group_binding {
+                capabilities::Capability::GroupReply
+            } else {
+                capabilities::Capability::P2pReply
+            };
+            return Err(error(
+                "FEISHU_PERMISSION",
+                &capabilities::format_missing_permission_message(cap, &granted, approved.as_ref()),
+            ));
         }
-        drop(state);
         let _ = self.wake.try_send(());
         Ok(json!({"queued":true}))
     }
@@ -586,9 +955,41 @@ impl Inner {
         self.begin_authorization_for(None)
     }
     fn begin_authorization_for(self: &Arc<Self>, generation: Option<&str>) -> Result<Value> {
+        let probe_target = {
+            let state = lock(&self.state)?;
+            if self.stopped.load(Ordering::SeqCst)
+                || generation.is_some_and(|g| g != state.saved.generation)
+            {
+                return Err(error("FEISHU_CANCELLED", "飞书连接已取消或设置已变化"));
+            }
+            if state.permissions.is_some() {
+                return Err(error(
+                    "FEISHU_AUTH_BUSY",
+                    "请先在飞书确认本次权限申请，随后会自动继续个人授权",
+                ));
+            }
+            if let Some(p) = state
+                .authorization
+                .as_ref()
+                .filter(|p| p.expires_at > timestamp())
+            {
+                return Ok(
+                    json!({"authorizationUrl":p.url,"redirectUri":REDIRECT_URI,"expiresAt":iso(p.expires_at)}),
+                );
+            }
+            if state.saved.app_id.is_empty() || state.saved.app_secret.is_none() {
+                return Err(error("FEISHU_CONFIG", "请先保存飞书 App ID 和 App Secret"));
+            }
+            state.saved.clone()
+        };
+        // Probe currently approved tenant scopes before building the OAuth URL so
+        // unapproved scopes never trigger Feishu error 20027. Falls back cleanly
+        // to full SCOPES if the probe endpoint is unreachable.
+        let _ = self.probe_and_update_app_scopes(&probe_target, false);
         let _gate = lock(&self.send_gate)?;
         let mut state = lock(&self.state)?;
         if self.stopped.load(Ordering::SeqCst)
+            || state.saved.generation != probe_target.generation
             || generation.is_some_and(|g| g != state.saved.generation)
         {
             return Err(error("FEISHU_CANCELLED", "飞书连接已取消或设置已变化"));
@@ -608,10 +1009,6 @@ impl Inner {
                 json!({"authorizationUrl":p.url,"redirectUri":REDIRECT_URI,"expiresAt":iso(p.expires_at)}),
             );
         }
-        let saved = &state.saved;
-        if saved.app_id.is_empty() || saved.app_secret.is_none() {
-            return Err(error("FEISHU_CONFIG", "请先保存飞书 App ID 和 App Secret"));
-        }
         if self.listener_active.load(Ordering::SeqCst) {
             return Err(error(
                 "FEISHU_AUTH_BUSY",
@@ -625,7 +1022,7 @@ impl Inner {
             )
         })?;
         listener.set_nonblocking(true)?;
-        let pending = new_authorization(saved)?;
+        let pending = new_authorization(&state.saved, state.approved_app_scopes.as_ref())?;
         let output = json!({"authorizationUrl":pending.url,"redirectUri":REDIRECT_URI,"expiresAt":iso(pending.expires_at)});
         state.authorization = Some(pending);
         self.listener_active.store(true, Ordering::SeqCst);
@@ -689,20 +1086,132 @@ impl Inner {
                 "此次授权账号与已连接账号不同，请先断开原账号再连接新账号",
             ));
         }
-        let session = session_from_token(&token, user)?;
+        let session = session_from_token(&token, user, None)?;
+        let after_granted = session.granted_scopes();
+        let after_caps = capabilities::enabled_capabilities(true, &after_granted);
         let _gate = lock(&self.send_gate)?;
         let mut state = lock(&self.state)?;
         if self.stopped.load(Ordering::SeqCst) || state.saved.generation != pending.generation {
             return Err(error("FEISHU_CANCELLED", "授权期间设置已变化，请重新授权"));
         }
+        let prev_connected = state
+            .saved
+            .session
+            .as_ref()
+            .is_some_and(|s| !s.invalid && s.user.open_id == session.user.open_id);
+        let prev_granted = state
+            .saved
+            .session
+            .as_ref()
+            .filter(|_| prev_connected)
+            .map(Session::granted_scopes)
+            .unwrap_or_default();
+        let before_caps = capabilities::enabled_capabilities(prev_connected, &prev_granted);
+        let newly_unlocked: Vec<_> = after_caps.difference(&before_caps).copied().collect();
+        if let Some(ref mut approved) = state.approved_app_scopes {
+            for scope in &after_granted {
+                approved.insert(scope.clone());
+            }
+        }
+        let approved_snapshot = state.approved_app_scopes.clone();
         let mut next = state.saved.clone();
-        next.session = Some(session);
+        next.session = Some(session.clone());
         next.generation = id();
         next.active_since = timestamp();
         self.persist(&next)?;
-        state.saved = next;
+        state.saved = next.clone();
         state.last_error = None;
         drop(state);
+        if let Some(ref approved) = approved_snapshot {
+            let _ = self.persist_approved_app_scopes(approved);
+        }
+        let remaining_ready = capabilities::ready_to_confirm_capabilities(
+            true,
+            &after_granted,
+            approved_snapshot.as_ref(),
+        );
+        let _ = self.save_notified_ready_caps(&remaining_ready);
+        if let Ok(mut items) = self.load_notifications() {
+            items.retain(|item| item.kind != "approval_ready");
+            let _ = self.save_notifications(&items);
+        }
+        if !newly_unlocked.is_empty() {
+            let unlocked_set: HashSet<_> = newly_unlocked.iter().copied().collect();
+            let resumed_sources: Vec<_> = if next.knowledge.enabled {
+                next.knowledge
+                    .sources
+                    .iter()
+                    .filter(|s| {
+                        s.enabled && unlocked_set.contains(&knowledge::source_capability(s))
+                    })
+                    .collect()
+            } else {
+                Vec::new()
+            };
+            let resumed_bindings = if next.enabled {
+                next.bindings
+                    .iter()
+                    .filter(|b| {
+                        b.enabled
+                            && unlocked_set.contains(&match b.chat_type {
+                                ChatType::Group => capabilities::Capability::GroupReply,
+                                ChatType::P2p => capabilities::Capability::P2pReply,
+                            })
+                    })
+                    .count()
+            } else {
+                0
+            };
+            if !resumed_sources.is_empty() {
+                for source in &resumed_sources {
+                    let key = self.source_key(source, &session.user.open_id);
+                    let _ = lock(&self.receipts)?.execute(
+                        "DELETE FROM metadata WHERE key=?1",
+                        params![format!("knowledge-status:{key}")],
+                    );
+                }
+                let _ = self.set_metadata("knowledge-last", "0");
+            }
+            let names = newly_unlocked
+                .iter()
+                .map(|c| c.label())
+                .collect::<Vec<_>>()
+                .join("、");
+            let mut details = vec![format!("已开启：{names}。")];
+            if !resumed_sources.is_empty() || resumed_bindings > 0 {
+                let mut resumed_parts = Vec::new();
+                if !resumed_sources.is_empty() {
+                    resumed_parts.push(format!("{} 个资料同步来源", resumed_sources.len()));
+                }
+                if resumed_bindings > 0 {
+                    resumed_parts.push(format!("{} 个自动回复绑定", resumed_bindings));
+                }
+                details.push(format!("已自动恢复运行：{}。", resumed_parts.join("、")));
+            }
+            let remaining_missing = capabilities::ALL_CAPABILITIES
+                .len()
+                .saturating_sub(after_caps.len());
+            if remaining_missing > 0 {
+                details.push(format!(
+                    "其余 {remaining_missing} 项功能等待飞书审批通过后会自动通知你。"
+                ));
+            }
+            let title = if prev_connected {
+                "飞书新功能已自动开启".to_owned()
+            } else if remaining_missing > 0 {
+                "飞书账号已连接，已获批功能已开启".to_owned()
+            } else {
+                "飞书全部功能已开启".to_owned()
+            };
+            let _ = self.push_notification(capabilities::PermissionNotification {
+                id: id(),
+                kind: "capabilities_unlocked".into(),
+                title,
+                message: details.join(""),
+                capability_ids: newly_unlocked.iter().map(|c| c.id().into()).collect(),
+                created_at: now(),
+            });
+        }
         self.cancel_pending("个人账号重新授权，本次回复取消")?;
         let _ = self.wake.try_send(());
         Ok(())
@@ -758,7 +1267,8 @@ impl Inner {
                 .inspect_err(|e| {
                     self.invalidate_session(&saved.generation, &session.access_token, e)
                 })?;
-            session = session_from_token(&token, session.user.clone())?;
+            let previous_scope = session.scope.clone();
+            session = session_from_token(&token, session.user.clone(), Some(&previous_scope))?;
             // Persist the rotated refresh token before any further network call.
             let _gate = lock(&self.send_gate)?;
             let mut state = lock(&self.state)?;
@@ -834,6 +1344,20 @@ impl Inner {
     }
     fn list_chats(&self) -> Result<Value> {
         let (saved, session) = self.valid_session().inspect_err(|e| self.record_error(e))?;
+        if !session.has_capability(capabilities::Capability::ChatList) {
+            let approved = lock(&self.state)?.approved_app_scopes.clone();
+            return Err(error(
+                "FEISHU_PERMISSION",
+                &format!(
+                    "{}；你仍可手动输入群 ID（oc_…）",
+                    capabilities::format_missing_permission_message(
+                        capabilities::Capability::ChatList,
+                        &session.granted_scopes(),
+                        approved.as_ref(),
+                    )
+                ),
+            ));
+        }
         let mut chats = Vec::new();
         let mut page = String::new();
         let mut seen = HashSet::new();
@@ -919,6 +1443,22 @@ impl Inner {
     }
     fn list_private_chats(&self) -> Result<Value> {
         let (saved, mut session) = self.valid_session().inspect_err(|e| self.record_error(e))?;
+        if !session.has_scopes(&[
+            "search:message",
+            "im:message.p2p_msg:get_as_user",
+            "im:message",
+            "im:chat:read",
+        ]) {
+            let approved = lock(&self.state)?.approved_app_scopes.clone();
+            return Err(error(
+                "FEISHU_PERMISSION",
+                &capabilities::format_missing_permission_message(
+                    capabilities::Capability::P2pReply,
+                    &session.granted_scopes(),
+                    approved.as_ref(),
+                ),
+            ));
+        }
         let end = timestamp();
         let body = json!({"query":"","filter":{"chat_type":"p2p","from_types":["user"],
             "time_range":{"start_time":iso(end - 30 * 86400),"end_time":iso(end)}}});
@@ -1043,13 +1583,30 @@ impl Inner {
         if !saved.bindings.iter().any(|b| b.enabled) {
             return Ok(());
         }
+        let can_group = session.has_capability(capabilities::Capability::GroupReply);
+        let can_p2p = session.has_capability(capabilities::Capability::P2pReply);
+        let has_enabled_group = saved
+            .bindings
+            .iter()
+            .any(|b| b.enabled && b.chat_type == ChatType::Group);
+        let has_enabled_p2p = saved
+            .bindings
+            .iter()
+            .any(|b| b.enabled && b.chat_type == ChatType::P2p);
+        if (!has_enabled_group || !can_group) && (!has_enabled_p2p || !can_p2p) {
+            return Ok(());
+        }
         let account = format!("{}:{}", saved.app_id, session.user.open_id);
-        self.verify_private_bindings(&saved, &session)?;
+        if has_enabled_p2p && can_p2p {
+            self.verify_private_bindings(&saved, &session)?;
+        }
         self.process_pending(&saved, &session, &account)?;
         // A slow answer can rotate the token. Do not keep using the original
         // poll snapshot after pending work finishes.
         let (_, mut session) = self.valid_session()?;
         self.check_generation(&saved.generation, true)?;
+        let can_group = session.has_capability(capabilities::Capability::GroupReply);
+        let can_p2p = session.has_capability(capabilities::Capability::P2pReply);
         let key = format!("watermark:{account}");
         let watermark: i64 = lock(&self.receipts)?
             .query_row("SELECT value FROM metadata WHERE key=?1", [&key], |r| {
@@ -1060,7 +1617,13 @@ impl Inner {
             .unwrap_or(saved.active_since);
         let end = timestamp();
         let start = (watermark - OVERLAP_SECONDS).max(saved.active_since);
+        let mut polled_any = false;
         for chat_type in [ChatType::Group, ChatType::P2p] {
+            if (chat_type == ChatType::Group && !can_group)
+                || (chat_type == ChatType::P2p && !can_p2p)
+            {
+                continue;
+            }
             let chats: Vec<_> = saved
                 .bindings
                 .iter()
@@ -1076,10 +1639,14 @@ impl Inner {
                 body["filter"]["is_at_me"] = json!(true);
             }
             self.search_poll(&saved, &mut session, &account, &body, chat_type)?;
+            polled_any = true;
         }
         self.check_generation(&saved.generation, true)?;
-        lock(&self.receipts)?.execute("INSERT INTO metadata(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value",params![key,end.to_string()])?;
-        self.process_pending(&saved, &session, &account)
+        if polled_any {
+            lock(&self.receipts)?.execute("INSERT INTO metadata(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value",params![key,end.to_string()])?;
+            self.process_pending(&saved, &session, &account)?;
+        }
+        Ok(())
     }
     fn search_poll(
         &self,
@@ -1190,7 +1757,7 @@ impl Inner {
     fn process_pending(&self, saved: &Saved, session: &Session, account: &str) -> Result<()> {
         let rows = {
             let db = lock(&self.receipts)?;
-            let mut stmt = db.prepare("SELECT id,message_id,chat_id,project_id,question,uuid,generation FROM receipts WHERE account=?1 AND status='pending' ORDER BY rowid LIMIT 100")?;
+            let mut stmt = db.prepare("SELECT id,message_id,chat_id,project_id,question,uuid,generation,chat_type FROM receipts WHERE account=?1 AND status='pending' ORDER BY rowid LIMIT 100")?;
             let result = stmt
                 .query_map([account], |r| {
                     Ok(Receipt {
@@ -1201,6 +1768,7 @@ impl Inner {
                         question: r.get(4)?,
                         uuid: r.get(5)?,
                         generation: r.get(6)?,
+                        chat_type: r.get(7)?,
                     })
                 })?
                 .collect::<std::result::Result<Vec<_>, _>>()?;
@@ -1208,6 +1776,14 @@ impl Inner {
         };
         for row in rows {
             self.check_generation(&saved.generation, true)?;
+            let required_cap = if row.chat_type == "p2p" {
+                capabilities::Capability::P2pReply
+            } else {
+                capabilities::Capability::GroupReply
+            };
+            if !session.has_capability(required_cap) {
+                continue;
+            }
             if row.generation != saved.generation
                 || !saved.bindings.iter().any(|b| {
                     b.enabled && b.chat_id == row.chat_id && b.project_id == row.project_id
@@ -1361,6 +1937,7 @@ struct Receipt {
     question: String,
     uuid: String,
     generation: String,
+    chat_type: String,
 }
 struct Candidate<'a> {
     binding: &'a Binding,
@@ -1704,18 +2281,22 @@ fn parse_settings(old: &Saved, p: &Value) -> Result<Saved> {
         knowledge: old.knowledge.clone(),
     })
 }
-fn new_authorization(saved: &Saved) -> Result<PendingAuthorization> {
+fn new_authorization(
+    saved: &Saved,
+    approved_app_scopes: Option<&HashSet<String>>,
+) -> Result<PendingAuthorization> {
     let state = format!("{}{}", id().replace('-', ""), id().replace('-', ""));
     let verifier = format!("{}{}", id().replace('-', ""), id().replace('-', ""));
     let challenge = base64::engine::general_purpose::URL_SAFE_NO_PAD
         .encode(Sha256::digest(verifier.as_bytes()));
+    let scope = capabilities::oauth_scope_string(approved_app_scopes);
     let mut url = Url::parse("https://accounts.feishu.cn/open-apis/authen/v1/authorize")
         .map_err(|_| error("FEISHU_CONFIG", "授权地址无效"))?;
     url.query_pairs_mut().extend_pairs([
         ("client_id", saved.app_id.as_str()),
         ("response_type", "code"),
         ("redirect_uri", REDIRECT_URI),
-        ("scope", SCOPES),
+        ("scope", scope.as_str()),
         ("state", state.as_str()),
         ("prompt", "consent"),
         ("code_challenge", challenge.as_str()),
@@ -1766,7 +2347,7 @@ fn callback_code(target: &str, pending: &PendingAuthorization) -> Result<String>
     }
     Ok(codes[0].1.to_string())
 }
-fn session_from_token(token: &Value, user: User) -> Result<Session> {
+fn session_from_token(token: &Value, user: User, fallback_scope: Option<&str>) -> Result<Session> {
     let access_token = token["access_token"]
         .as_str()
         .filter(|s| !s.is_empty() && s.len() <= 32_768 && !s.contains(['\r', '\n']))
@@ -1788,16 +2369,21 @@ fn session_from_token(token: &Value, user: User) -> Result<Session> {
         .as_i64()
         .filter(|n| *n > 0 && *n <= 63_072_000)
         .ok_or_else(|| error("FEISHU_TOKEN", "个人刷新凭证有效期无效"))?;
-    let scope = token["scope"].as_str().unwrap_or("");
-    let granted: HashSet<_> = scope.split_whitespace().collect();
-    for required in SCOPES.split_whitespace() {
-        if !granted.contains(required) {
-            return Err(AppError::new(
-                "FEISHU_PERMISSION",
-                format!("个人授权缺少 {required} 权限，请在连接账号页点击「自动申请权限并连接」补充权限"),
-            ));
-        }
-    }
+    let raw_scope = token["scope"]
+        .as_str()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .or(fallback_scope)
+        .unwrap_or("");
+    let mut granted = capabilities::parse_scope_set(raw_scope);
+    // A valid refresh_token proves offline_access was granted even if Feishu
+    // omits it from a refresh response's scope string.
+    granted.insert(capabilities::BASE_SCOPE.into());
+    let scope = capabilities::target_scopes()
+        .into_iter()
+        .filter(|s| granted.contains(*s))
+        .collect::<Vec<_>>()
+        .join(" ");
     if token["token_type"]
         .as_str()
         .is_some_and(|s| !s.eq_ignore_ascii_case("Bearer"))
@@ -1809,7 +2395,7 @@ fn session_from_token(token: &Value, user: User) -> Result<Session> {
         refresh_token: refresh_token.into(),
         expires_at: timestamp() + expires,
         refresh_expires_at: timestamp() + refresh_expires,
-        scope: scope.into(),
+        scope,
         user,
         invalid: false,
     })
@@ -2169,7 +2755,7 @@ mod tests {
                 since: 0,
                 ..Binding::default()
             }],
-            session: Some(session_from_token(&token(), user).unwrap()),
+            session: Some(session_from_token(&token(), user, None).unwrap()),
             ..Saved::default()
         }
     }
@@ -2999,7 +3585,7 @@ mod tests {
     #[test]
     fn oauth_state_pkce_path_expiry_and_duplicate_values_are_checked() {
         let s = saved();
-        let p = new_authorization(&s).unwrap();
+        let p = new_authorization(&s, None).unwrap();
         let url = Url::parse(&p.url).unwrap();
         let pairs: std::collections::HashMap<_, _> = url.query_pairs().collect();
         assert_eq!(pairs["code_challenge_method"], "S256");
@@ -3172,7 +3758,7 @@ mod tests {
         });
         let dir = tempfile::tempdir().unwrap();
         let c = connector(dir.path(), &fixture, Arc::new(|_, _| Ok(answer())));
-        let p = new_authorization(&lock(&c.inner.state).unwrap().saved).unwrap();
+        let p = new_authorization(&lock(&c.inner.state).unwrap().saved, None).unwrap();
         lock(&c.inner.state).unwrap().authorization = Some(p.clone());
         let target = format!("/feishu/callback?code=valid_code&state={}", p.state);
         c.inner.finish_authorization(&target).unwrap();
@@ -3191,7 +3777,7 @@ mod tests {
                 .count(),
             1
         );
-        let mut p = new_authorization(&lock(&c.inner.state).unwrap().saved).unwrap();
+        let mut p = new_authorization(&lock(&c.inner.state).unwrap().saved, None).unwrap();
         p.expected_user = Some("ou_someone_else".into());
         lock(&c.inner.state).unwrap().authorization = Some(p.clone());
         assert_eq!(
@@ -3642,5 +4228,287 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn partial_app_scopes_build_matching_oauth_url_and_enable_only_granted_capabilities() {
+        let fixture = Fixture::new(|request| {
+            if request.target == "/open-apis/auth/v3/tenant_access_token/internal" {
+                assert_eq!(request.body["app_id"], "cli_fixture");
+                assert_eq!(request.body["app_secret"], "private-app-secret");
+                return Some(
+                    json!({"code":0,"tenant_access_token":"private-tenant-probe-token","expire":7200}),
+                );
+            }
+            if request.target == "/open-apis/application/v6/scopes" {
+                assert_eq!(request.authorization, "Bearer private-tenant-probe-token");
+                return Some(json!({
+                    "code": 0,
+                    "data": {
+                        "scopes": [
+                            {"scope_name": "docx:document:readonly", "grant_status": 1, "scope_type": "user"},
+                            {"scope_name": "im:message.group_msg:get_as_user", "grant_status": 2, "scope_type": "user"},
+                            {"scope_name": "im:message", "grant_status": 1, "scope_type": "tenant"}
+                        ]
+                    }
+                }));
+            }
+            if request.target == "/token/exchange" {
+                return Some(json!({
+                    "code": 0,
+                    "access_token": "private-partial-user-token",
+                    "refresh_token": "private-partial-refresh-token",
+                    "expires_in": 7200,
+                    "refresh_token_expires_in": 604800,
+                    "scope": "offline_access docx:document:readonly",
+                    "token_type": "Bearer"
+                }));
+            }
+            if request.target.starts_with("/open-apis/authen/v1/user_info") {
+                assert_eq!(request.authorization, "Bearer private-partial-user-token");
+                return Some(identity());
+            }
+            panic!("unexpected request {}", request.target)
+        });
+        let dir = tempfile::tempdir().unwrap();
+        let mut initial = saved();
+        initial.session = None;
+        initial.enabled = false;
+        save_private(dir.path(), &initial).unwrap();
+        let c = Connector::create(
+            dir.path().into(),
+            Arc::new(|_, _| Ok(answer())),
+            Arc::new(|_| Ok(())),
+            fixture.api(),
+            false,
+        )
+        .unwrap();
+        let approved = c.inner.probe_and_update_app_scopes(&initial, true).unwrap();
+        assert!(approved.contains("docx:document:readonly"));
+        assert!(!approved.contains("im:message.group_msg:get_as_user"));
+        assert!(!approved.contains("im:message")); // tenant-only scope ignored
+
+        let pending =
+            new_authorization(&lock(&c.inner.state).unwrap().saved, Some(&approved)).unwrap();
+        let url = Url::parse(&pending.url).unwrap();
+        let params: HashMap<_, _> = url.query_pairs().collect();
+        assert_eq!(params["scope"], "offline_access docx:document:readonly");
+
+        lock(&c.inner.state).unwrap().authorization = Some(pending.clone());
+        c.inner
+            .finish_authorization(&format!(
+                "/feishu/callback?code=partial_code&state={}",
+                pending.state
+            ))
+            .unwrap();
+
+        let status = c.inner.status().unwrap();
+        assert_eq!(status["authorization"]["status"], "connected");
+        // Security invariant: tenant probe token must never appear in status or disk config.
+        assert!(!status.to_string().contains("private-tenant-probe-token"));
+        let disk_raw = fs::read_to_string(
+            private_directory(dir.path())
+                .unwrap()
+                .join("feishu-settings.json"),
+        )
+        .unwrap();
+        assert!(!disk_raw.contains("private-tenant-probe-token"));
+
+        let caps = status["permissions"]["capabilities"].as_array().unwrap();
+        let cap_state = |id: &str| {
+            caps.iter().find(|c| c["id"] == id).unwrap()["status"]
+                .as_str()
+                .unwrap()
+                .to_owned()
+        };
+        assert_eq!(cap_state("docx_sync"), "enabled");
+        assert_eq!(cap_state("wiki_sync"), "pending_approval");
+        assert_eq!(cap_state("group_sync"), "pending_approval");
+        assert_eq!(cap_state("group_reply"), "pending_approval");
+        assert_eq!(cap_state("p2p_reply"), "pending_approval");
+        assert_eq!(
+            status["permissions"]["notifications"][0]["kind"],
+            "capabilities_unlocked"
+        );
+    }
+
+    #[test]
+    fn knowledge_sync_runs_permitted_sources_and_pauses_unpermitted_ones_until_approved() {
+        let approved_group = Arc::new(AtomicBool::new(false));
+        let group_ready = approved_group.clone();
+        let fixture = Fixture::new(move |request| {
+            if request.target == "/open-apis/auth/v3/tenant_access_token/internal" {
+                return Some(
+                    json!({"code":0,"tenant_access_token":"private-tenant-probe-token","expire":7200}),
+                );
+            }
+            if request.target == "/open-apis/application/v6/scopes" {
+                let mut scopes = vec![
+                    json!({"scope_name": "docx:document:readonly", "grant_status": 1, "scope_type": "user"}),
+                ];
+                if group_ready.load(Ordering::SeqCst) {
+                    scopes.push(json!({"scope_name": "im:message.group_msg:get_as_user", "grant_status": 1, "scope_type": "user"}));
+                    scopes.push(json!({"scope_name": "im:message", "grant_status": 1, "scope_type": "user"}));
+                    scopes.push(json!({"scope_name": "search:message", "grant_status": 1, "scope_type": "user"}));
+                }
+                return Some(json!({"code":0,"data":{"scopes":scopes}}));
+            }
+            if request.target == "/token/exchange" {
+                return Some(json!({
+                    "code": 0,
+                    "access_token": "private-upgraded-user-token",
+                    "refresh_token": "private-upgraded-refresh-token",
+                    "expires_in": 7200,
+                    "refresh_token_expires_in": 604800,
+                    "scope": "offline_access docx:document:readonly im:message.group_msg:get_as_user im:message search:message",
+                    "token_type": "Bearer"
+                }));
+            }
+            if request.target.starts_with("/open-apis/authen/v1/user_info") {
+                return Some(identity());
+            }
+            if request.target == "/open-apis/docx/v1/documents/doc_only" {
+                assert_ne!(request.authorization, "Bearer private-tenant-probe-token");
+                return Some(
+                    json!({"code":0,"data":{"document":{"title":"设计稿","revision_id":1}}}),
+                );
+            }
+            if request.target == "/open-apis/docx/v1/documents/doc_only/raw_content" {
+                return Some(json!({"code":0,"data":{"content":"新版文档正文"}}));
+            }
+            if request
+                .target
+                .starts_with("/open-apis/im/v1/messages/search?")
+            {
+                return Some(json!({"code":0,"data":{"items":[],"has_more":false}}));
+            }
+            if request.target.starts_with("/open-apis/im/v1/messages?") {
+                return Some(json!({"code":0,"data":{"items":[message()],"has_more":false}}));
+            }
+            panic!("unexpected request {}", request.target)
+        });
+        let dir = tempfile::tempdir().unwrap();
+        let mut initial = saved();
+        initial.session.as_mut().unwrap().scope = "offline_access docx:document:readonly".into();
+        save_private(dir.path(), &initial).unwrap();
+        let c = Connector::create(
+            dir.path().into(),
+            Arc::new(|_, _| panic!("source sync must not reply")),
+            Arc::new(|_| Ok(())),
+            fixture.api(),
+            false,
+        )
+        .unwrap();
+        let captured = Arc::new(Mutex::new(Vec::<Value>::new()));
+        let sink = captured.clone();
+        c.set_ingest(Arc::new(move |p| {
+            sink.lock().unwrap().push(p.clone());
+            Ok(json!({"duplicate":false}))
+        }))
+        .unwrap();
+        c.inner
+            .save_knowledge(&json!({
+                "enabled": true,
+                "intervalSeconds": 60,
+                "sources": [
+                    {"kind":"document","target":"https://team.feishu.cn/docx/doc_only","projectId":"project-1","enabled":true,"historyDays":7},
+                    {"kind":"chat","target":"oc_project","projectId":"project-1","enabled":true,"historyDays":7}
+                ]
+            }))
+            .unwrap();
+
+        // Phase 1: Only docx permission granted -> docx imports, chat is gracefully paused without calling IM APIs.
+        let out = c.inner.sync_knowledge().unwrap();
+        assert_eq!(out["imported"], 1);
+        assert_eq!(out["failures"], 0);
+        assert_eq!(out["paused"], 1);
+        assert_eq!(captured.lock().unwrap().len(), 1);
+        assert!(fixture
+            .requests
+            .lock()
+            .unwrap()
+            .iter()
+            .all(|r| !r.target.starts_with("/open-apis/im/")));
+        let ks = c.inner.knowledge_status().unwrap();
+        assert_eq!(ks["pausedCount"], 1);
+
+        // Phase 2: Admin approves group sync scopes -> background/manual probe detects it and notifies user.
+        approved_group.store(true, Ordering::SeqCst);
+        let checked = c.inner.check_permissions_now().unwrap();
+        let caps = checked["permissions"]["capabilities"].as_array().unwrap();
+        assert_eq!(
+            caps.iter().find(|v| v["id"] == "group_sync").unwrap()["status"],
+            "ready_to_confirm"
+        );
+        assert_eq!(
+            checked["permissions"]["notifications"][0]["kind"],
+            "approval_ready"
+        );
+        assert!(c.pending_notification().is_some());
+
+        // Phase 3: User completes incremental OAuth -> group_sync unlocks, paused chat source auto-resumes!
+        let saved_now = lock(&c.inner.state).unwrap().saved.clone();
+        let approved_now = lock(&c.inner.state).unwrap().approved_app_scopes.clone();
+        let pending = new_authorization(&saved_now, approved_now.as_ref()).unwrap();
+        lock(&c.inner.state).unwrap().authorization = Some(pending.clone());
+        c.inner
+            .finish_authorization(&format!(
+                "/feishu/callback?code=upgrade_code&state={}",
+                pending.state
+            ))
+            .unwrap();
+        let after = c.inner.status().unwrap();
+        assert_eq!(
+            after["permissions"]["notifications"][0]["kind"],
+            "capabilities_unlocked"
+        );
+        assert!(after["permissions"]["notifications"][0]["message"]
+            .as_str()
+            .unwrap()
+            .contains("1 个资料同步来源"));
+        assert_eq!(
+            c.inner.metadata("knowledge-last").unwrap().as_deref(),
+            Some("0")
+        );
+
+        let out2 = c.inner.sync_knowledge().unwrap();
+        assert_eq!(out2["imported"], 1);
+        assert_eq!(out2["failures"], 0);
+        assert_eq!(out2["paused"], 0);
+        assert_eq!(captured.lock().unwrap().len(), 2);
+    }
+
+    #[test]
+    fn group_auto_reply_continues_working_when_p2p_permissions_are_missing() {
+        let fixture = Fixture::new(default_fixture);
+        let dir = tempfile::tempdir().unwrap();
+        let mut initial = saved();
+        initial.session.as_mut().unwrap().scope =
+            "offline_access search:message im:message.group_msg:get_as_user im:message im:message.send_as_user"
+                .into();
+        initial.bindings.push(private_binding());
+        save_private(dir.path(), &initial).unwrap();
+        let c = Connector::create(
+            dir.path().into(),
+            Arc::new(|_, _| Ok(answer())),
+            Arc::new(|_| Ok(())),
+            fixture.api(),
+            false,
+        )
+        .unwrap();
+        // Should not fail on P2P verify_private_bindings (lacks im:chat:read & p2p scope),
+        // and should still answer the group @mention!
+        c.inner.poll().unwrap();
+        assert_eq!(replies(&fixture), 1);
+        // list_chats and list_private_chats return descriptive permission errors without breaking session.
+        assert_eq!(c.inner.list_chats().unwrap_err().code, "FEISHU_PERMISSION");
+        assert_eq!(
+            c.inner.list_private_chats().unwrap_err().code,
+            "FEISHU_PERMISSION"
+        );
+        assert_eq!(
+            c.inner.status().unwrap()["authorization"]["status"],
+            "connected"
+        );
     }
 }

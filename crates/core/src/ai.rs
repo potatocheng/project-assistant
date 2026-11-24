@@ -1514,6 +1514,323 @@ pub(crate) fn test_connection(config: &AiConfig, api_key: Option<&str>) -> Resul
     Ok(json!({"ok":true,"message":"模型连接及 JSON 提取验证通过。","models":[config.model]}))
 }
 
+/// Stateless tool-calling completion turn for the frontend `pi-agent-core` Copilot.
+/// Keeps API credentials, TLS/loopback validation, and remote-consent checks strictly in Rust.
+pub(crate) fn complete_agent_turn(
+    config: &AiConfig,
+    api_key: Option<&str>,
+    messages: Value,
+    tools: Value,
+) -> Result<Value> {
+    if !messages.is_array() || messages.as_array().is_none_or(|items| items.is_empty()) {
+        return Err(AppError::new("VALIDATION", "缺少对话消息"));
+    }
+    let url = endpoint(config)?;
+    let http = client(config, &url)?;
+    let has_tools = tools.as_array().is_some_and(|items| !items.is_empty());
+
+    let mut body = if config.provider == "ollama" {
+        let mut payload = json!({
+            "model": config.model,
+            "messages": messages,
+            "stream": false,
+            "options": { "temperature": 0.2, "num_ctx": 16384, "num_predict": 4096 }
+        });
+        if has_tools {
+            payload["tools"] = tools;
+        }
+        payload
+    } else {
+        let mut payload = json!({
+            "model": config.model,
+            "messages": messages,
+            "stream": false,
+            "temperature": 0.2,
+            "max_tokens": 4096
+        });
+        if has_tools {
+            payload["tools"] = tools;
+            payload["tool_choice"] = json!("auto");
+        }
+        payload
+    };
+    if config.provider == "openai_compatible" && url.host_str() == Some("api.deepseek.com") {
+        body["thinking"] = json!({"type": "disabled"});
+    }
+
+    let mut request = http
+        .post(url.clone())
+        .timeout(Duration::from_secs(config.timeout_seconds))
+        .json(&body);
+    if config.provider == "openai_compatible" {
+        if let Some(key) = api_key.filter(|key| !key.is_empty()) {
+            let mut authorization = HeaderValue::from_str(&format!("Bearer {key}"))
+                .map_err(|_| configuration_error())?;
+            authorization.set_sensitive(true);
+            request = request.header(AUTHORIZATION, authorization);
+        }
+    }
+
+    let response = request.send().map_err(|error| network_error(&error))?;
+    if !response.status().is_success() {
+        return Err(status_error(response.status().as_u16()));
+    }
+    if response
+        .content_length()
+        .is_some_and(|size| size > MAX_RESPONSE_BYTES)
+    {
+        return Err(AppError::new(
+            "MODEL_RESPONSE_LIMIT",
+            "模型返回内容过大，未保存结果",
+        ));
+    }
+    let mut bytes = Vec::new();
+    response
+        .take(MAX_RESPONSE_BYTES + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|error| {
+            if error.kind() == std::io::ErrorKind::TimedOut
+                || error
+                    .get_ref()
+                    .and_then(|source| source.downcast_ref::<reqwest::Error>())
+                    .is_some_and(reqwest::Error::is_timeout)
+            {
+                AppError::new("MODEL_TIMEOUT", "模型响应超时，请检查服务后重试")
+            } else {
+                AppError::new("MODEL_NETWORK", "读取模型响应失败，请检查网络后重试")
+            }
+        })?;
+    if bytes.len() as u64 > MAX_RESPONSE_BYTES {
+        return Err(AppError::new(
+            "MODEL_RESPONSE_LIMIT",
+            "模型返回内容过大，未保存结果",
+        ));
+    }
+    let outer: Value = serde_json::from_slice(&bytes)
+        .map_err(|_| AppError::new("MODEL_RESPONSE", "模型服务返回了无效 JSON"))?;
+
+    let (message, raw_finish, usage) = if config.provider == "ollama" {
+        let input = outer["prompt_eval_count"].as_u64().unwrap_or(0);
+        let output = outer["eval_count"].as_u64().unwrap_or(0);
+        (
+            outer["message"].clone(),
+            outer["done_reason"].as_str().unwrap_or("stop").to_string(),
+            json!({"inputTokens": input, "outputTokens": output, "totalTokens": input + output}),
+        )
+    } else {
+        let choice = outer["choices"]
+            .get(0)
+            .ok_or_else(|| AppError::new("MODEL_RESPONSE", "模型未返回有效回复"))?;
+        let input = outer["usage"]["prompt_tokens"].as_u64().unwrap_or(0);
+        let output = outer["usage"]["completion_tokens"].as_u64().unwrap_or(0);
+        (
+            choice["message"].clone(),
+            choice["finish_reason"]
+                .as_str()
+                .unwrap_or("stop")
+                .to_string(),
+            json!({"inputTokens": input, "outputTokens": output, "totalTokens": input + output}),
+        )
+    };
+
+    let content = message["content"].as_str().unwrap_or("").to_string();
+    let mut tool_calls = Vec::new();
+    if let Some(calls) = message["tool_calls"].as_array() {
+        for (index, call) in calls.iter().enumerate() {
+            let func = &call["function"];
+            let name = func["name"].as_str().unwrap_or("").trim().to_string();
+            if name.is_empty() {
+                continue;
+            }
+            let call_id = call["id"]
+                .as_str()
+                .filter(|id| !id.is_empty())
+                .map(|id| id.to_string())
+                .unwrap_or_else(|| format!("call_{index}_{}", crate::id()));
+            let arguments = match &func["arguments"] {
+                Value::String(raw) => serde_json::from_str::<Value>(raw)
+                    .ok()
+                    .filter(|v| v.is_object())
+                    .unwrap_or_else(|| json!({})),
+                Value::Object(map) => Value::Object(map.clone()),
+                _ => json!({}),
+            };
+            tool_calls.push(json!({
+                "id": call_id,
+                "name": name,
+                "arguments": arguments
+            }));
+        }
+    }
+
+    let stop_reason = if !tool_calls.is_empty() || raw_finish == "tool_calls" {
+        "toolUse"
+    } else if raw_finish == "length" {
+        "length"
+    } else {
+        "stop"
+    };
+
+    Ok(json!({
+        "model": config.model,
+        "provider": config.provider,
+        "content": content,
+        "toolCalls": tool_calls,
+        "stopReason": stop_reason,
+        "usage": usage
+    }))
+}
+
+pub(crate) fn polish_report(
+    config: &AiConfig,
+    api_key: Option<&str>,
+    content: &str,
+    report_type: &str,
+    style: &str,
+    project_name: &str,
+    date_label: &str,
+) -> Result<Value> {
+    let trimmed = content.trim();
+    if trimmed.is_empty() || trimmed.chars().count() > 100_000 {
+        return Err(AppError::new(
+            "VALIDATION",
+            "报告正文不能为空且需在 10 万字以内",
+        ));
+    }
+    if !matches!(report_type, "daily" | "weekly") {
+        return Err(AppError::new("VALIDATION", "仅支持日报或周报润色"));
+    }
+    let audience_guide = match style {
+        "executive" => "面向【管理层 / 老板】的摘要版：\n\
+            1. 结论先行：首段用 2~3 句话概括整体交付状态、核心成果与是否偏离目标。\n\
+            2. 风险与拍板事项前置：单独列「需关注风险与待拍板」，写清影响与需要的支持。\n\
+            3. 关键进展与下步节点：提炼重要里程碑和关键成果，删去琐碎过程细节，使用清晰 Markdown 标题与列表。",
+        "team" => "面向【项目群 / 执行团队】的对齐版：\n\
+            1. 结构清晰：分「本期完成」「推进中与重点事项」「当前阻塞与协同配合（标注责任人/时间）」「后续计划」。\n\
+            2. 语言直接明确，适合直接发群内对齐进度与催办。",
+        "client" => "面向【客户 / 外部合作方】的专业汇报版：\n\
+            1. 措辞专业、克制、积极且客观。\n\
+            2. 分「阶段交付成果」「里程碑与进度说明」「需贵方确认 / 配合事项」「下一阶段工作安排」，避免暴露内部混乱或情绪化表达。",
+        _ => return Err(AppError::new("VALIDATION", "不支持的汇报风格")),
+    };
+    let kind_label = if report_type == "weekly" {
+        "项目周报"
+    } else {
+        "工作日报"
+    };
+    let system_prompt = format!(
+        "你是一位资深项目管理助理。请基于用户提供的「{kind_label}」原始记录草稿，在不改变任何客观事实的前提下，按以下要求改写为清晰可读的 Markdown 报告。\n\n\
+        目标风格：\n{audience_guide}\n\n\
+        严格事实红线：\n\
+        1. 严禁虚构或新增原稿中没有的任务名称、人名、日期、比例或已解决结论。\n\
+        2. 保持数值、日期与责任人准确；原稿中未说明的信息不要臆测补全。\n\
+        3. 直接输出整理后的 Markdown 正文，不要加开场寒暄或结尾解释。"
+    );
+    let user_prompt =
+        format!("项目范围：{project_name}\n报告周期：{date_label}\n\n原始报告草稿：\n{trimmed}");
+    let messages = json!([
+        { "role": "system", "content": system_prompt },
+        { "role": "user", "content": user_prompt }
+    ]);
+
+    let url = endpoint(config)?;
+    let http = client(config, &url)?;
+    let mut body = if config.provider == "ollama" {
+        json!({
+            "model": config.model,
+            "messages": messages,
+            "stream": false,
+            "options": { "temperature": 0.3, "num_ctx": 16384, "num_predict": 4096 }
+        })
+    } else {
+        json!({
+            "model": config.model,
+            "messages": messages,
+            "stream": false,
+            "temperature": 0.3,
+            "max_tokens": 4096
+        })
+    };
+    if config.provider == "openai_compatible" && url.host_str() == Some("api.deepseek.com") {
+        body["thinking"] = json!({"type": "disabled"});
+    }
+
+    let mut request = http
+        .post(url.clone())
+        .timeout(Duration::from_secs(config.timeout_seconds))
+        .json(&body);
+    if config.provider == "openai_compatible" {
+        if let Some(key) = api_key.filter(|k| !k.is_empty()) {
+            let mut authorization = HeaderValue::from_str(&format!("Bearer {key}"))
+                .map_err(|_| configuration_error())?;
+            authorization.set_sensitive(true);
+            request = request.header(AUTHORIZATION, authorization);
+        }
+    }
+
+    let response = request.send().map_err(|error| network_error(&error))?;
+    if !response.status().is_success() {
+        return Err(status_error(response.status().as_u16()));
+    }
+    if response
+        .content_length()
+        .is_some_and(|size| size > MAX_RESPONSE_BYTES)
+    {
+        return Err(AppError::new(
+            "MODEL_RESPONSE_LIMIT",
+            "模型返回内容过大，未保存结果",
+        ));
+    }
+    let mut bytes = Vec::new();
+    response
+        .take(MAX_RESPONSE_BYTES + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|_| AppError::new("MODEL_NETWORK", "读取模型响应失败，请检查网络后重试"))?;
+    if bytes.len() as u64 > MAX_RESPONSE_BYTES {
+        return Err(AppError::new(
+            "MODEL_RESPONSE_LIMIT",
+            "模型返回内容过大，未保存结果",
+        ));
+    }
+    let outer: Value = serde_json::from_slice(&bytes)
+        .map_err(|_| AppError::new("MODEL_RESPONSE", "模型服务返回了无效 JSON"))?;
+    let (polished, usage) = if config.provider == "ollama" {
+        let input = outer["prompt_eval_count"].as_u64().unwrap_or(0);
+        let output = outer["eval_count"].as_u64().unwrap_or(0);
+        (
+            outer["message"]["content"]
+                .as_str()
+                .unwrap_or("")
+                .trim()
+                .to_owned(),
+            json!({"inputTokens": input, "outputTokens": output, "totalTokens": input + output}),
+        )
+    } else {
+        let choice = outer["choices"]
+            .get(0)
+            .ok_or_else(|| AppError::new("MODEL_RESPONSE", "模型未返回有效回复"))?;
+        let input = outer["usage"]["prompt_tokens"].as_u64().unwrap_or(0);
+        let output = outer["usage"]["completion_tokens"].as_u64().unwrap_or(0);
+        (
+            choice["message"]["content"]
+                .as_str()
+                .unwrap_or("")
+                .trim()
+                .to_owned(),
+            json!({"inputTokens": input, "outputTokens": output, "totalTokens": input + output}),
+        )
+    };
+    if polished.is_empty() {
+        return Err(AppError::new("MODEL_RESPONSE", "模型未生成有效的报告正文"));
+    }
+    Ok(json!({
+        "content": polished,
+        "style": style,
+        "model": config.model,
+        "usage": usage
+    }))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

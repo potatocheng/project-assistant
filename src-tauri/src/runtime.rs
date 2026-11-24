@@ -24,6 +24,7 @@ fn show(app: &tauri::AppHandle) {
         let _ = window.show();
         let _ = window.unminimize();
         let _ = window.set_focus();
+        crate::ensure_normal_window_z_order(&window);
     }
 }
 pub fn setup(app: &mut tauri::App, engine: Engine) -> Result<(), Box<dyn std::error::Error>> {

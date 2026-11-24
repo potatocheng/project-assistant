@@ -1,15 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Check, CircleAlert, Copy, ExternalLink, Link2, MessageCircle, Plus, RefreshCw, Send, Trash2, Unplug } from 'lucide-react';
+import { Check, CircleAlert, Copy, ExternalLink, Link2, MessageCircle, Plus, RefreshCw, Send, ShieldCheck, Trash2, Unplug, X } from 'lucide-react';
 import { asError, execute } from '../api';
-import type { FeishuBinding, FeishuPrivateChat, FeishuEditableSettings, FeishuStatus, Project } from '../types';
+import type { FeishuBinding, FeishuCapabilityId, FeishuCapabilityState, FeishuPrivateChat, FeishuEditableSettings, FeishuStatus, Project } from '../types';
 import type { AssistantAnswer } from './delivery/types';
 import { CITATION_KIND, PROJECT_QUESTIONS } from '../assistant-labels';
 import { Dialog, Spinner } from './ui';
 
 type Tab = 'connection' | 'bindings' | 'preview';
 const AUTH_LABELS = { disconnected: '未连接账号', authorizing: '等待授权', connected: '账号已连接', expired: '授权已过期' };
+const CAP_STATE_LABELS: Record<FeishuCapabilityState, string> = {
+  enabled: '已开启',
+  ready_to_confirm: '已获批 · 待确认',
+  pending_approval: '待管理员审批',
+  unavailable: '未开启',
+};
 
 function displayTime(value: string | null | undefined) {
   if (!value) return '未记录';
@@ -61,6 +67,7 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
   const savedSettings = useRef<FeishuEditableSettings | null>(null);
   const settingsEpoch = useRef(0);
   const openedAuthorization = useRef('');
+  const sawPermissionsStage = useRef(false);
 
   const refresh = useCallback(async () => {
     const epoch = settingsEpoch.current;
@@ -71,8 +78,19 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
       savedSettings.current = currentSettings;
       setStatus(next);
       setForm((current) => !current || (previous && JSON.stringify(current) === JSON.stringify(previous)) ? currentSettings : current);
-      if (next.authorization.status !== 'authorizing') setAuthUrl('');
-      else if (next.authorization.authorizationUrl) setAuthUrl(authorizationUrl(next.authorization.authorizationUrl));
+      if (next.authorization.status !== 'authorizing') {
+        setAuthUrl('');
+        sawPermissionsStage.current = false;
+      } else {
+        if (next.authorization.stage === 'permissions') sawPermissionsStage.current = true;
+        if (next.authorization.authorizationUrl) {
+          const checked = authorizationUrl(next.authorization.authorizationUrl);
+          if (!sawPermissionsStage.current && !openedAuthorization.current) {
+            openedAuthorization.current = checked;
+          }
+          setAuthUrl(checked);
+        }
+      }
     }
     return next;
   }, []);
@@ -99,6 +117,16 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
     : form?.bindings.some((binding) => binding.chatType === 'p2p' && !/^ou[_-][A-Za-z0-9_-]+$/.test(binding.peerId ?? '')) ? '每个私聊都需要选择同事或填写有效的同事 Open ID。' : '';
   const intervalValid = !!form && Number.isInteger(form.pollIntervalSeconds) && form.pollIntervalSeconds >= 30 && form.pollIntervalSeconds <= 3600;
   const connected = status?.authorization.status === 'connected';
+  const permissions = status?.permissions;
+  const capabilities = permissions?.capabilities ?? [];
+  const cap = (id: FeishuCapabilityId) => capabilities.find((item) => item.id === id);
+  const enabledCapCount = capabilities.filter((item) => item.status === 'enabled').length;
+  const readyCapCount = capabilities.filter((item) => item.status === 'ready_to_confirm').length;
+  const pendingApprovalCount = capabilities.filter((item) => item.status === 'pending_approval').length;
+  const groupReplyCap = cap('group_reply');
+  const p2pReplyCap = cap('p2p_reply');
+  const chatListCap = cap('chat_list');
+  const notifications = permissions?.notifications ?? [];
   const savedBindings = status?.settings.bindings.filter((binding) => binding.enabled).length ?? 0;
   const savedGroups = status?.settings.bindings.filter((binding) => binding.enabled && binding.chatType !== 'p2p').length ?? 0;
   const savedPrivateChats = savedBindings - savedGroups;
@@ -142,6 +170,7 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
   const authorize = (accountOnly = false) => action('authorize', async () => {
     if (dirty) await saveSettings();
     if (!alive.current) return;
+    sawPermissionsStage.current = !accountOnly;
     const result = await execute<{ authorizationUrl: string }>(accountOnly ? 'begin_feishu_authorization' : 'begin_feishu_connection');
     const checked = authorizationUrl(result.authorizationUrl);
     if (!checked) throw new Error('飞书返回的授权地址无效。');
@@ -158,41 +187,81 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
     const result = await execute<AssistantAnswer>('ask_project_question', { projectId: previewProjectId, question: question.trim() });
     if (alive.current) setPreview(result);
   });
+  const checkPermissions = () => action('check-permissions', async () => {
+    if (dirty) await saveSettings();
+    if (!alive.current) return;
+    const next = await execute<FeishuStatus>('check_feishu_permissions');
+    if (!alive.current) return;
+    setStatus(next);
+    const ready = (next.permissions?.capabilities ?? []).filter((item) => item.status === 'ready_to_confirm');
+    setNotice(ready.length ? `检测到 ${ready.length} 项功能已获批，点击「确认已获批权限」即可开启。` : '已同步飞书最新审批状态。');
+  });
+  const dismissNotification = (id: string) => action(`dismiss-${id}`, async () => {
+    const next = await execute<FeishuStatus>('dismiss_feishu_notification', { id });
+    if (alive.current) setStatus(next);
+  });
 
   useEffect(() => {
     // App permission confirmation completes in the backend, even if this dialog
     // was closed. Open the personal consent page when that next stage is ready.
-    if (!authUrl || status?.authorization.stage !== 'account' || openedAuthorization.current === authUrl) return;
+    if (!sawPermissionsStage.current || !authUrl || status?.authorization.stage !== 'account' || openedAuthorization.current === authUrl) return;
     openedAuthorization.current = authUrl;
+    sawPermissionsStage.current = false;
     void openAuthorization(authUrl).catch((caught) => { if (alive.current) setError(asError(caught).message); });
   }, [authUrl, status?.authorization.stage]);
 
   return <Dialog title="飞书个人助理" subtitle="根据项目记录，替你回复群内 @提问和指定同事的私聊。" close={close} busy={!!busy} wide>
     {busy === 'load' ? <div className="dialog-body settings-loading"><Spinner />正在读取飞书连接…</div> : !form || !status ? <div className="dialog-body"><div className="form-error" role="alert"><CircleAlert size={17} /><p>{error || '暂时无法读取飞书设置。'}</p></div><button className="button secondary settings-reload" onClick={() => void action('reload', async () => { await refresh(); })}>{busy ? <Spinner /> : <RefreshCw size={15} />}重新读取</button></div> : <form onSubmit={save}>
-      <div className="feishu-overview"><div className="feishu-identity"><span className={`settings-status-dot ${connected ? 'ready' : ''}`} /><strong>{AUTH_LABELS[status.authorization.status]}</strong>{status.authorization.user && <span>{status.authorization.user.name || status.authorization.user.openId}</span>}</div><span className="feishu-run-status">{status.runtime.polling ? <><Spinner />正在检查消息</> : !status.settings.enabled ? '自动回复已关闭' : !connected ? '等待账号授权' : !savedBindings ? '等待绑定会话' : '自动回复已开启'}</span></div>
+      <div className="feishu-overview"><div className="feishu-identity"><span className={`settings-status-dot ${connected ? 'ready' : ''}`} /><strong>{AUTH_LABELS[status.authorization.status]}</strong>{status.authorization.user && <span>{status.authorization.user.name || status.authorization.user.openId}</span>}{connected && capabilities.length > 0 && <span>· 已开启 {enabledCapCount}/{capabilities.length} 项能力</span>}</div><span className="feishu-run-status">{status.runtime.polling ? <><Spinner />正在检查消息</> : readyCapCount > 0 ? `${readyCapCount} 项新权限已获批待确认` : !status.settings.enabled ? '自动回复已关闭' : !connected ? '等待账号授权' : !savedBindings ? '等待绑定会话' : '自动回复已开启'}</span></div>
       <div className="feishu-tabs" role="tablist" aria-label="飞书个人助理设置" onKeyDown={navigateTabs}>{([
         ['connection', '连接账号'], ['bindings', '自动回复'], ['preview', '回答预览'],
       ] as const).map(([value, label]) => <button type="button" key={value} role="tab" tabIndex={tab === value ? 0 : -1} aria-selected={tab === value} aria-controls={`feishu-panel-${value}`} id={`feishu-tab-${value}`} className={tab === value ? 'selected' : ''} onClick={() => setTab(value)}>{label}</button>)}</div>
       <div className="dialog-body feishu-body" role="tabpanel" id={`feishu-panel-${tab}`} aria-labelledby={`feishu-tab-${tab}`}>
+        {notifications.map((item) => <div key={item.id} className={`feishu-permission-notice ${item.kind === 'approval_ready' ? 'is-ready' : 'is-unlocked'}`} role="status">
+          <div className="feishu-permission-notice-body"><strong>{item.title}</strong><span>{item.message}</span></div>
+          <div className="feishu-permission-notice-actions">
+            {item.kind === 'approval_ready' && <button type="button" className="button primary compact" disabled={!!busy} onClick={() => void authorize(true)}>一键确认</button>}
+            <button type="button" className="icon-button small" aria-label="关闭通知" disabled={!!busy} onClick={() => void dismissNotification(item.id)}><X size={14} /></button>
+          </div>
+        </div>)}
         {tab === 'connection' && <>
           <div className="feishu-section-heading"><h3>1. 填写应用凭据</h3><a href="https://open.feishu.cn/app" target="_blank" rel="noreferrer">飞书开放平台 <ExternalLink size={12} /></a></div>
-          <p className="field-hint">首次连接需提供企业自建应用凭据并配置下方回调地址。所需权限由项目自动申请，无需在后台逐项查找或勾选。</p>
+          <p className="field-hint">首次连接仍会一次性申请全部 9 项权限，但支持按场景分级启用：已获批的权限立即开启对应功能，尚在审批中的功能暂时停用并在获批后自动提醒。</p>
           <label className="field-label spaced" htmlFor="feishu-app-id">App ID</label><input id="feishu-app-id" value={form.appId} onChange={(event) => patch({ appId: event.target.value })} placeholder="cli_…" spellCheck={false} autoComplete="off" disabled={!!busy} />
           <label className="field-label spaced" htmlFor="feishu-app-secret">App Secret <span>{status.settings.hasAppSecret && !appChanged ? '本机已保存' : '不随备份导出'}</span></label><input id="feishu-app-secret" type="password" value={secret} onChange={(event) => { setSecret(event.target.value); setError(''); setNotice(''); }} placeholder={status.settings.hasAppSecret && !appChanged ? '留空保留已保存的密钥' : '输入应用密钥'} autoComplete="new-password" spellCheck={false} disabled={!!busy} />
           {appChanged && <p className="field-hint">保存后会清除旧密钥与授权，请填写新密钥并重新授权。</p>}
           <label className="field-label spaced" htmlFor="feishu-redirect-uri">重定向地址</label><div className="feishu-copy-field"><input id="feishu-redirect-uri" readOnly value={status.settings.redirectUri} onFocus={(event) => event.target.select()} /><button type="button" className="icon-button" aria-label="复制重定向地址" title="复制重定向地址" disabled={!!busy} onClick={() => void copy(status.settings.redirectUri)}><Copy size={15} /></button></div>
           <p className="field-hint">复制到飞书应用的「安全设置 → 重定向 URL」。授权时保持本应用运行。</p>
-          <details className="feishu-permissions"><summary>将申请哪些权限</summary><p>搜索和读取群消息及私聊消息、读取群列表、以你的身份回复、读取文档与知识库，以及刷新个人授权。权限范围由项目维护，飞书确认页会展示本次申请。</p><p>涉及企业审批时，需由有权限的管理员确认。</p><button type="button" className="text-button tiny" disabled={!!busy || dirty || !status.settings.appId || !status.settings.hasAppSecret || status.authorization.stage === 'permissions'} onClick={() => void authorize(true)}>应用权限已开通，仅重新确认个人授权</button></details>
+          <details className="feishu-permissions"><summary>将申请哪些权限（共 9 项，按已获批项分级开启）</summary><p>搜索和读取群消息及私聊消息、读取群列表、以你的身份回复、读取文档与知识库，以及刷新个人授权。个人授权只会请求应用当前已获批的权限，避免因部分权限尚在审批而阻塞连接。</p><p>应用后台会每分钟检查一次只读审批状态（仅查询权限列表，不用于业务读写），新权限获批后立即通知你一键确认并自动恢复已配置的功能。</p><button type="button" className="text-button tiny" disabled={!!busy || dirty || !status.settings.appId || !status.settings.hasAppSecret || status.authorization.stage === 'permissions'} onClick={() => void authorize(true)}>仅按当前已获批权限进行个人授权</button></details>
           <div className="feishu-section-heading feishu-section-spaced"><h3>2. 连接个人账号</h3></div>
-          <p className="field-hint">点击连接后，在飞书确认应用权限；项目会自动继续个人账号授权，你只需选择同意或取消。授权时保持本应用运行。</p>
-          <div className="feishu-authorization-actions"><button type="button" className="button secondary" disabled={!!busy || !form.appId.trim() || (!secret.trim() && (!status.settings.hasAppSecret || appChanged)) || !!bindingError || !intervalValid} onClick={() => void authorize()}>{busy === 'authorize' ? <Spinner /> : <Link2 size={15} />}{status.authorization.status === 'authorizing' ? '继续飞书授权' : connected ? '补充权限并重新连接' : '自动申请权限并连接'}</button>{status.authorization.status !== 'disconnected' && <button type="button" className="text-button" disabled={!!busy} onClick={() => void action('disconnect', async () => { await execute('disconnect_feishu'); setAuthUrl(''); await refresh(); setNotice('个人授权已断开，自动回复已停止。'); })}><Unplug size={13} />断开授权</button>}</div>
+          <p className="field-hint">点击连接后，在飞书确认应用权限申请；项目会自动读取已生效权限并打开个人授权页。已获批能力立即生效，未获批能力暂缓并持续监测。</p>
+          <div className="feishu-authorization-actions">{readyCapCount > 0 && <button type="button" className="button primary" disabled={!!busy || !form.appId.trim() || (!secret.trim() && (!status.settings.hasAppSecret || appChanged))} onClick={() => void authorize(true)}>{busy === 'authorize' ? <Spinner /> : <ShieldCheck size={15} />}确认已获批权限并开启（{readyCapCount} 项）</button>}<button type="button" className="button secondary" disabled={!!busy || !form.appId.trim() || (!secret.trim() && (!status.settings.hasAppSecret || appChanged)) || !!bindingError || !intervalValid} onClick={() => void authorize()}>{busy === 'authorize' ? <Spinner /> : <Link2 size={15} />}{status.authorization.status === 'authorizing' ? '继续飞书授权' : connected ? (pendingApprovalCount > 0 ? '重新申请待批权限并连接' : '补充权限并重新连接') : '自动申请全部权限并连接'}</button>{status.authorization.status !== 'disconnected' && <button type="button" className="text-button" disabled={!!busy} onClick={() => void action('disconnect', async () => { await execute('disconnect_feishu'); setAuthUrl(''); await refresh(); setNotice('个人授权已断开，自动回复已停止。'); })}><Unplug size={13} />断开授权</button>}</div>
           {dirty && <p className="field-hint">点击连接会先保存当前设置。</p>}
           {status.authorization.stage === 'permissions' && <p className="field-hint" role="status">等待飞书权限确认，完成后会自动打开个人授权页面。</p>}
           {status.runtime.lastError && <div className="form-error" role="alert"><CircleAlert size={17} /><p>{status.runtime.lastError}</p></div>}
-          {authUrl && <div className="feishu-authorization-link"><label className="field-label" htmlFor="feishu-authorization-url">等待浏览器授权</label><div className="feishu-copy-field"><input id="feishu-authorization-url" readOnly value={authUrl} onFocus={(event) => event.target.select()} /><button type="button" className="icon-button" title="复制授权链接" aria-label="复制授权链接" disabled={!!busy} onClick={() => void copy(authUrl)}><Copy size={15} /></button></div><button type="button" className="text-button tiny" disabled={!!busy} onClick={() => void action('open', () => openAuthorization(authUrl))}>重新打开授权页面 <ExternalLink size={12} /></button><p className="field-hint">授权完成后，账号状态会自动更新。</p></div>}
+          {authUrl && <div className="feishu-authorization-link"><label className="field-label" htmlFor="feishu-authorization-url">等待浏览器授权</label><div className="feishu-copy-field"><input id="feishu-authorization-url" readOnly value={authUrl} onFocus={(event) => event.target.select()} /><button type="button" className="icon-button" title="复制授权链接" aria-label="复制授权链接" disabled={!!busy} onClick={() => void copy(authUrl)}><Copy size={15} /></button></div><button type="button" className="text-button tiny" disabled={!!busy} onClick={() => void action('open', () => openAuthorization(authUrl))}>重新打开授权页面 <ExternalLink size={12} /></button><p className="field-hint">授权完成后，账号状态和已开启功能会自动更新。</p></div>}
+          {capabilities.length > 0 && <>
+            <div className="feishu-section-heading feishu-section-spaced"><h3>3. 按权限分级开启的功能</h3><button type="button" className="text-button tiny" disabled={!!busy || !form.appId.trim() || (!secret.trim() && (!status.settings.hasAppSecret || appChanged))} onClick={() => void checkPermissions()}>{busy === 'check-permissions' ? <Spinner /> : <RefreshCw size={12} />}检查审批状态</button></div>
+            <p className="field-hint">{permissions?.lastCheckedAt ? `上次审批状态检查：${displayTime(permissions.lastCheckedAt)}。` : '尚未查询应用审批状态，点击「检查审批状态」可查看各功能当前获批进度。'}{permissions?.lastCheckError ? `（上次查询失败：${permissions.lastCheckError}）` : ''}</p>
+            <div className="feishu-cap-list">{capabilities.map((item) => <div key={item.id} className="feishu-cap-item">
+              <div className="feishu-cap-info">
+                <strong>{item.label}</strong>
+                <p>{item.description}</p>
+                {item.status === 'pending_approval' && item.pendingApprovalScopes.length > 0 && <p>等待企业审批：<code>{item.pendingApprovalScopes.join(', ')}</code></p>}
+                {item.status === 'ready_to_confirm' && <p>应用侧已获批，点击上方「确认已获批权限并开启」后立即可用。</p>}
+                {item.status === 'unavailable' && item.missingScopes.length > 0 && <p>所需权限：<code>{item.missingScopes.join(', ')}</code></p>}
+              </div>
+              <span className={`feishu-cap-badge ${item.status}`}>{CAP_STATE_LABELS[item.status]}</span>
+            </div>)}</div>
+          </>}
         </>}
         {tab === 'bindings' && <>
-          <div className="feishu-section-heading"><h3>选择回复的群与项目</h3><button type="button" className="text-button tiny" disabled={!!busy || !connected} onClick={() => void action('chats', async () => { const result = await execute<{ chats: Array<{ chatId: string; name: string }> }>('list_feishu_chats'); setChats(result.chats); setNotice(result.chats.length ? '已读取群列表，可选择或输入群 ID。' : '没有找到可用群，可手动输入群 ID。'); })}>{busy === 'chats' ? <Spinner /> : <RefreshCw size={12} />}读取群列表</button></div>
+          <div className="feishu-section-heading"><h3>选择回复的群与项目</h3><button type="button" className="text-button tiny" disabled={!!busy || !connected || (chatListCap && chatListCap.status !== 'enabled')} onClick={() => void action('chats', async () => { const result = await execute<{ chats: Array<{ chatId: string; name: string }> }>('list_feishu_chats'); setChats(result.chats); setNotice(result.chats.length ? '已读取群列表，可选择或输入群 ID。' : '没有找到可用群，可手动输入群 ID。'); })}>{busy === 'chats' ? <Spinner /> : <RefreshCw size={12} />}读取群列表</button></div>
+          {connected && groupReplyCap && groupReplyCap.status !== 'enabled' && <div className="feishu-permission-notice" role="status">
+            <div className="feishu-permission-notice-body"><strong>群聊自动代答暂未开启（{CAP_STATE_LABELS[groupReplyCap.status]}）</strong><span>缺少权限：{groupReplyCap.missingScopes.join('、')}。你可以先配置并勾选群绑定，权限获批并确认后会自动恢复运行。</span></div>
+            <div className="feishu-permission-notice-actions">{groupReplyCap.status === 'ready_to_confirm' ? <button type="button" className="button primary compact" disabled={!!busy} onClick={() => void authorize(true)}>一键确认</button> : <button type="button" className="text-button tiny" onClick={() => setTab('connection')}>查看权限</button>}</div>
+          </div>}
+          {connected && chatListCap && chatListCap.status !== 'enabled' && <p className="field-hint">尚未获得读取群列表权限（im:chat:read），暂无法拉取下拉列表，可直接手动输入群 ID（oc_…）。</p>}
           <p className="field-hint">仅回复启用后，指定群中 @你的新消息。项目中全部已确认记忆都可能用于回答，请选择可与群成员分享的项目。</p>
           <datalist id="feishu-chat-options">{chats.map((chat) => <option key={chat.chatId} value={chat.chatId}>{chat.name}</option>)}</datalist>
           <div className="feishu-bindings">{form.bindings.filter((binding) => binding.chatType !== 'p2p').length === 0 && <div className="feishu-empty"><MessageCircle size={25} strokeWidth={1.5} /><p>还没有绑定群</p><span>添加群并选择项目，助理就能根据任务、进展、风险和项目记忆回答。</span></div>}{form.bindings.map((binding, index) => binding.chatType !== 'p2p' && <div className="feishu-binding" key={index}>
@@ -200,12 +269,16 @@ export function FeishuSettingsDialog({ projects, close, onSaved }: {
             <div className="feishu-binding-actions"><label className="settings-check"><input type="checkbox" checked={binding.enabled} onChange={(event) => updateBinding(index, { enabled: event.target.checked })} disabled={!!busy} /><span>在此群回复</span></label><button type="button" className="icon-button small" title="移除群绑定" aria-label={`移除第 ${index + 1} 个群绑定`} disabled={!!busy} onClick={() => patch({ bindings: form.bindings.filter((_, position) => position !== index) })}><Trash2 size={14} /></button></div>
           </div>)}</div>
           <button type="button" className="button secondary compact" disabled={!!busy || !projects.length} onClick={() => patch({ bindings: [...form.bindings, { chatId: '', projectId: projects[0]?.id ?? '', enabled: true }] })}><Plus size={14} />添加群</button>
-          <div className="feishu-section-heading feishu-section-spaced"><h3>自动回复同事私聊</h3><button type="button" className="text-button tiny" disabled={!!busy || !connected || appChanged || !!secret.trim()} onClick={() => void action('private-chats', async () => {
+          <div className="feishu-section-heading feishu-section-spaced"><h3>自动回复同事私聊</h3><button type="button" className="text-button tiny" disabled={!!busy || !connected || appChanged || !!secret.trim() || (p2pReplyCap && p2pReplyCap.status !== 'enabled')} onClick={() => void action('private-chats', async () => {
             const result = await execute<{ chats: FeishuPrivateChat[]; hasMore: boolean }>('list_feishu_private_chats');
             setPrivateChats(result.chats);
             setNotice(result.chats.length ? `已读取 ${result.chats.length} 个最近私聊。${result.hasMore ? '仅展示最近 500 条消息涉及的会话，也可手动填写。' : ''}` : '最近 30 天没有可读取的私聊，可手动填写会话 ID 和同事 Open ID。');
           })}>{busy === 'private-chats' ? <Spinner /> : <RefreshCw size={12} />}读取最近私聊</button></div>
-          <p className="field-hint">仅回复已启用同事发来的新文字、富文本消息，无需 @你。每个私聊绑定一个项目，该项目的任务、进展、风险和已确认记忆都可能用于回答。首次使用请增加私聊读取权限并重新授权。</p>
+          {connected && p2pReplyCap && p2pReplyCap.status !== 'enabled' && <div className="feishu-permission-notice" role="status">
+            <div className="feishu-permission-notice-body"><strong>同事私聊自动代答暂未开启（{CAP_STATE_LABELS[p2pReplyCap.status]}）</strong><span>缺少权限：{p2pReplyCap.missingScopes.join('、')}。不影响已开启的群聊代答或文档同步，权限获批并确认后会自动恢复。</span></div>
+            <div className="feishu-permission-notice-actions">{p2pReplyCap.status === 'ready_to_confirm' ? <button type="button" className="button primary compact" disabled={!!busy} onClick={() => void authorize(true)}>一键确认</button> : <button type="button" className="text-button tiny" onClick={() => setTab('connection')}>查看权限</button>}</div>
+          </div>}
+          <p className="field-hint">仅回复已启用同事发来的新文字、富文本消息，无需 @你。每个私聊绑定一个项目，该项目的任务、进展、风险和已确认记忆都可能用于回答。首次使用请等待私聊读取权限获批并确认授权。</p>
           {(appChanged || !!secret.trim()) && <p className="field-hint">先保存应用凭据，再读取最近私聊。</p>}
           <div className="feishu-bindings">{!form.bindings.some((binding) => binding.chatType === 'p2p') && <div className="feishu-empty"><MessageCircle size={25} strokeWidth={1.5} /><p>还没有绑定同事私聊</p><span>添加同事并选择可用于回答的项目。</span></div>}{form.bindings.map((binding, index) => binding.chatType === 'p2p' && <div className="feishu-binding" key={index}>
             <div className="feishu-binding-fields"><label><span className="field-label">同事（最近 30 天的私聊）</span><select aria-label={`第 ${index + 1} 个私聊同事`} value={privateChats.some((chat) => chat.chatId === binding.chatId) ? binding.chatId : ''} disabled={!!busy} onChange={(event) => {

@@ -26,8 +26,8 @@ interface WorkbenchProps {
 }
 interface SyncStatus {
   settings: { enabled: boolean; sources: Array<{ enabled: boolean; projectId: string; target: string }> };
-  syncing: boolean; lastError?: string | null;
-  statuses: Array<{ target: string; projectId: string; at: string; imported: number; error: string | null }>;
+  syncing: boolean; lastError?: string | null; pausedCount?: number;
+  statuses: Array<{ target: string; projectId: string; at: string; imported: number; error: string | null; paused?: boolean; pauseReason?: string | null }>;
 }
 interface Maintenance {
   settings: { enabled: boolean; autoNew: boolean }; blockedReason?: string | null;
@@ -89,6 +89,7 @@ export function Workbench(props: WorkbenchProps) {
     && subscriptions.some(source => source.target === status.target && source.projectId === status.projectId));
   const latestSync = [...syncRecords].sort((a, b) => b.at.localeCompare(a.at))[0];
   const syncError = sync.data?.lastError || syncRecords.find(status => status.error)?.error;
+  const pausedSources = syncRecords.filter(status => status.paused);
   const running = state.jobs.filter(job => (job.status === 'queued' || job.status === 'running') && sources.some(source => source.id === job.sourceId));
   const queries = [delivery, followUps, governance, changes, sync, maintenance];
   const problems = queries.flatMap((query, index) => query.error || query.refreshError ? [{ label: ['项目进度', '跟进', '风险决策', '变更验收', '资料同步', '自动整理'][index], query, message: query.error || `更新失败，仍显示上次读取的内容。${query.refreshError}` }] : []);
@@ -148,8 +149,8 @@ export function Workbench(props: WorkbenchProps) {
           {drafts.length > 0 && <button className="ah-link" onClick={() => props.onSourceOpen(drafts[0].sourceId)}>澄清 {drafts.length} 条有歧义的内容<ArrowRight size={13}/></button>}
         </div></details>}
         {recent.length ? <div className="ah-update-list">{recent.map(entry => <button key={entry.key} onClick={entry.open}><span className="ah-update-dot"/><span><strong>{entry.label}</strong><small>{entry.caption} · {projectName(entry.projectId)}</small></span><time dateTime={entry.at}>{clock(entry.at)}</time></button>)}</div> : <p className="ah-quiet">连接项目群聊或导入资料后，提取和确认的变化会出现在这里。</p>}
-        <details className="ah-sync"><summary><span className={`ah-live-dot ${sync.error || syncError || maintenance.error || maintenance.data?.blockedReason ? 'warning' : sync.data?.settings.enabled && subscriptions.length ? 'connected' : ''}`}/><span>{sync.loading ? '正在检查资料来源' : sync.error ? '暂时无法读取同步状态' : syncError ? '资料同步遇到问题' : sync.data?.syncing ? '正在同步聊天和资料' : !sync.data?.settings.enabled || !subscriptions.length ? '尚未开启此范围的自动同步' : `自动同步已开启 · ${subscriptions.length} 个来源${latestSync ? ` · 最近检查 ${clock(latestSync.at)}` : ' · 等待首次同步'}`}{running.length ? ` · ${running.length} 份资料整理中` : ''}</span><ChevronDown size={12}/></summary><div>
-          <p>{latestSync ? `最近同步检查：${clock(latestSync.at)}` : '尚无此范围的同步检查记录。'}{syncError ? ` ${syncError}` : ''}</p>
+        <details className="ah-sync"><summary><span className={`ah-live-dot ${sync.error || syncError || maintenance.error || maintenance.data?.blockedReason ? 'warning' : sync.data?.settings.enabled && subscriptions.length ? 'connected' : ''}`}/><span>{sync.loading ? '正在检查资料来源' : sync.error ? '暂时无法读取同步状态' : syncError ? '资料同步遇到问题' : sync.data?.syncing ? '正在同步聊天和资料' : !sync.data?.settings.enabled || !subscriptions.length ? '尚未开启此范围的自动同步' : `自动同步已开启 · ${subscriptions.length} 个来源${pausedSources.length ? `（${pausedSources.length} 个等待飞书权限）` : ''}${latestSync ? ` · 最近检查 ${clock(latestSync.at)}` : ' · 等待首次同步'}`}{running.length ? ` · ${running.length} 份资料整理中` : ''}</span><ChevronDown size={12}/></summary><div>
+          <p>{latestSync ? `最近同步检查：${clock(latestSync.at)}` : '尚无此范围的同步检查记录。'}{syncError ? ` ${syncError}` : ''}{pausedSources.length > 0 ? ` 有 ${pausedSources.length} 个来源暂因缺少飞书权限暂停，获批并确认后将自动恢复。` : ''}</p>
           <p>{maintenance.error ? '自动整理状态暂未读取。' : maintenance.data?.blockedReason ? `整理已暂停：${maintenance.data.blockedReason}` : maintenance.data?.settings.enabled ? `空闲时自动整理资料，${maintenance.data.settings.autoNew ? '独立新事实按设置自动加入；冲突内容等待确认。' : '提取结果等待确认。'}` : '自动整理尚未开启。'}</p>
           <p>已确认的任务、记忆和进度变化会自动刷新到这里。{readAt && `项目状态读取于 ${readAt}。`}{loading && '部分信息仍在读取。'}</p><button className="ah-link" onClick={props.onConnect}><Link2 size={13}/>连接聊天与文档</button>
         </div></details>

@@ -15,6 +15,7 @@ mod coordination;
 mod daily_use;
 mod db;
 mod delivery;
+mod docx_export;
 mod evidence_pack;
 mod extraction_context;
 mod extraction_store;
@@ -105,6 +106,19 @@ pub fn encrypt_backup_bytes(
     password: &str,
 ) -> std::result::Result<Vec<u8>, AppError> {
     protection::encrypt_backup(bytes, password)
+}
+pub fn markdown_to_docx_bytes(
+    title: &str,
+    markdown: &str,
+) -> std::result::Result<Vec<u8>, AppError> {
+    docx_export::markdown_to_docx_bytes(title, markdown)
+}
+pub fn decode_base64_bytes(encoded: &str) -> std::result::Result<Vec<u8>, AppError> {
+    use base64::Engine as _;
+    let raw = encoded.split(',').next_back().unwrap_or(encoded).trim();
+    base64::engine::general_purpose::STANDARD
+        .decode(raw)
+        .map_err(|_| AppError::new("VALIDATION", "导出内容编码无效"))
 }
 
 pub(crate) type Result<T> = std::result::Result<T, AppError>;
@@ -549,6 +563,8 @@ impl Engine {
         if !matches!(
             request.command.as_str(),
             "get_state"
+                | "get_usage_summary"
+                | "get_diagnostics"
                 | "get_desktop_settings"
                 | "get_notification_digest"
                 | "ack_notification"
@@ -566,6 +582,8 @@ impl Engine {
                 | "get_memory_quality"
                 | "get_feishu_status"
                 | "get_feishu_sources"
+                | "check_feishu_permissions"
+                | "dismiss_feishu_notification"
                 | "get_daily_planning"
                 | "get_delivery_overview"
                 | "get_follow_up_center"
@@ -605,6 +623,31 @@ impl Engine {
             let settings = settings::load(&self.inner.root)?;
             settings.validate_credentials()?;
             return ai::test_connection(&settings.config(), settings.api_key.as_deref());
+        }
+        if request.command == "copilot_agent_turn" {
+            let settings = settings::load(&self.inner.root)?;
+            settings.validate_material_access()?;
+            return ai::complete_agent_turn(
+                &settings.config(),
+                settings.api_key.as_deref(),
+                request.payload["messages"].clone(),
+                request.payload["tools"].clone(),
+            );
+        }
+        if request.command == "polish_report" {
+            let settings = settings::load(&self.inner.root)?;
+            settings.validate_material_access()?;
+            return ai::polish_report(
+                &settings.config(),
+                settings.api_key.as_deref(),
+                required(&request.payload, "content")?,
+                required(&request.payload, "reportType")?,
+                required(&request.payload, "style")?,
+                request.payload["projectName"]
+                    .as_str()
+                    .unwrap_or("全部项目"),
+                request.payload["dateLabel"].as_str().unwrap_or(""),
+            );
         }
         if request.command == "ask_project" {
             return ask_project(&self.inner.sender, &self.inner.root, &request.payload);
@@ -663,6 +706,20 @@ impl Engine {
         }
         if request.command == "save_ai_settings" {
             self.inner.connector.invalidate()?;
+        }
+        if request.command == "get_notification_digest" {
+            let mut payload = request.payload.clone();
+            if let Some((title, body, signature)) = self.inner.connector.pending_notification() {
+                if !payload.is_object() {
+                    payload = json!({});
+                }
+                payload["feishuNotification"] =
+                    json!({"title": title, "body": body, "signature": signature});
+            }
+            return self.call(Request {
+                command: request.command,
+                payload,
+            });
         }
         if let Some(result) = self
             .inner

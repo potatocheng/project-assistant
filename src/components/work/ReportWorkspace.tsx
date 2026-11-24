@@ -4,8 +4,9 @@ import { readDraft, writeDraft, clearDraft } from '../../drafts';
 import { useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ArrowDownToLine, ArrowRight, Check, CircleAlert, Copy, FilePenLine, History } from 'lucide-react';
-import { asError, copyReport, execute, exportReport } from '../../api';
+import { ArrowDownToLine, ArrowRight, Check, CircleAlert, Copy, FilePenLine, FileText, History, Image as ImageIcon, Printer, Sparkles } from 'lucide-react';
+import { asError, copyReport, execute, exportDocument, exportReport } from '../../api';
+import { copyRichMarkdown, exportReportCardPng, printMarkdownAsPdf } from './report-export';
 import { TASK_CATEGORY, TASK_STATUS } from '../../types';
 import type { AppState, DailyReport, Evidence } from '../../types';
 import { Spinner } from '../ui';
@@ -56,6 +57,32 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, o
       await refreshAfter(); notify('修改已保存为新版本。');
     } catch (caught) { setError(asError(caught).message); } finally { setBusy(''); }
   };
+  const polish = async (style: 'executive' | 'team' | 'client') => {
+    if (!report || !content.trim() || historical) return;
+    if (!state.aiSettings.configured) {
+      notify('请先在左侧「工具与设置 → 模型设置」中配置并允许使用 AI 模型。', true);
+      return;
+    }
+    setBusy(`polish-${style}`); setError('');
+    try {
+      const res = await execute<{ content: string; model: string }>('polish_report', {
+        content: content.trim(),
+        reportType: 'daily',
+        style,
+        projectName: scopeName,
+        dateLabel: report.date,
+      });
+      setContent(res.content);
+      setEditing(false);
+      void writeDraft(`report:${report.id}`, res.content).catch(() => {});
+      saveId.current = crypto.randomUUID();
+      notify(`已切换为「${style === 'executive' ? '老板高管版' : style === 'team' ? '项目群对齐版' : '客户汇报版'}」，请核对后点击「保存修改」。`);
+    } catch (caught) {
+      setError(asError(caught).message);
+    } finally {
+      setBusy('');
+    }
+  };
 
   return <div className="work-page report-workspace"><div className="work-page-heading"><div><div className="eyebrow">工作记录</div><h2>日报</h2><p>将当天记录的进展整理成日报，编辑后即可复制或导出。</p></div><Button label={(summaries.length ? '重新生成' : '生成日报')} onClick={generate} isDisabled={!!busy || dirty} variant="primary" icon={busy === 'generate' ? <Spinner /> : <FilePenLine size={15} />} /></div>
     <WorkFilters day={day} onDayChange={setDay} projects={state.projects} projectId={projectId} onProjectChange={setProjectId} />
@@ -63,10 +90,16 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, o
     <div className="work-layout report-layout"><section className="report-editor-panel">{loading ? <div className="loading-view"><Spinner />正在加载日报…</div> : !report ? <WorkEmpty title="这一天还没有日报" action={<Button label="生成日报" isDisabled={!!busy} onClick={generate} variant="secondary" icon={<FilePenLine size={15} />} />}>{day} · {scopeName}。根据当天已记录的任务进展生成。</WorkEmpty> : <>
       <div className="report-editor-heading"><div><strong>{report.date} · {scopeName}</strong><span>v{report.version} · {report.edited ? '已编辑' : '自动整理'}</span></div><span className={dirty ? 'report-unsaved' : 'report-saved'}>{dirty ? '未保存' : '已保存'}</span></div>
       {historical && <div className="historical-banner"><History size={15} /><span>历史版本 · 只读</span><Button label="查看最新版" onClick={() => setSelectedId(summaries[0].id)} className="astryx-inline-action" variant="ghost" /></div>}
-      {!historical && <div className="report-view-controls" role="group" aria-label="日报显示方式"><Button label="阅读预览" aria-pressed={!editing} onClick={() => setEditing(false)} variant="secondary" size="sm" /><Button label="编辑 Markdown" aria-pressed={editing} onClick={() => setEditing(true)} variant="secondary" size="sm" /></div>}
+      {!historical && <div className="report-view-controls" role="group" aria-label="日报显示方式"><Button label="阅读预览" aria-pressed={!editing} onClick={() => setEditing(false)} variant="secondary" size="sm" /><Button label="编辑 Markdown" aria-pressed={editing} onClick={() => setEditing(true)} variant="secondary" size="sm" />
+        <span className="report-style-divider" />
+        <span className="report-style-label"><Sparkles size={12} />AI 切换风格：</span>
+        <button type="button" className="text-button tiny" disabled={!!busy} onClick={() => void polish('executive')}>{busy === 'polish-executive' ? <Spinner /> : null}老板高管版</button>
+        <button type="button" className="text-button tiny" disabled={!!busy} onClick={() => void polish('team')}>{busy === 'polish-team' ? <Spinner /> : null}项目群对齐版</button>
+        <button type="button" className="text-button tiny" disabled={!!busy} onClick={() => void polish('client')}>{busy === 'polish-client' ? <Spinner /> : null}客户汇报版</button>
+      </div>}
       {editing && !historical ? <TextArea label="日报正文" isLabelHidden containerClassName="astryx-report-editor" controlClassName="astryx-report-editor-control" isDisabled={!!busy} value={content} rows={22} onChange={value => { const next = value.slice(0, 100000); setContent(next); setDraftStatus('正在暂存…'); void writeDraft(`report:${report.id}`, next).then(() => setDraftStatus('草稿已暂存到本机')).catch(error => setDraftStatus(`暂存失败：${asError(error).message}`)); saveId.current = crypto.randomUUID(); }} hasSpellCheck={false} /> : <article className="report-markdown" aria-label="日报正文预览"><Markdown remarkPlugins={[remarkGfm]} components={{ table: ({ node, ...props }) => <div className="report-table-scroll"><table {...props} /></div> }}>{content}</Markdown></article>}
       <div className="report-editor-footer"><span>{editing && !historical ? '支持 Markdown · 保存时创建新版本' : dirty ? '正在预览未保存的修改' : 'Markdown 阅读预览'}</span><span>{content.length.toLocaleString()} 字符</span></div>
-      <div className="report-actions"><Button label="保存修改" isDisabled={!!busy || !dirty || historical || !content.trim()} onClick={save} variant="primary" icon={busy === 'save' ? <Spinner /> : <Check size={15} />} /><Button label="复制日报" isDisabled={!!busy || dirty} onClick={async () => { setBusy('copy'); try { await copyReport(report.id, report.content); notify('已复制此版本的日报。'); } catch (caught) { notify(asError(caught).message, true); } finally { setBusy(''); } }} variant="secondary" icon={busy === 'copy' ? <Spinner /> : <Copy size={15} />} /><Button label="导出 Markdown" isDisabled={!!busy || dirty} onClick={async () => { setBusy('export'); try { const exported = await exportReport(report.id, `${report.date}-日报-v${report.version}.md`); notify(exported ? '日报已导出。' : '已取消导出。'); } catch (caught) { notify(asError(caught).message, true); } finally { setBusy(''); } }} variant="secondary" icon={busy === 'export' ? <Spinner /> : <ArrowDownToLine size={15} />} /></div>
+      <div className="report-actions"><Button label="保存修改" isDisabled={!!busy || !dirty || historical || !content.trim()} onClick={save} variant="primary" icon={busy === 'save' ? <Spinner /> : <Check size={15} />} /><Button label="复制富文本" isDisabled={!!busy || !content.trim()} onClick={async () => { setBusy('copy-rich'); try { const kind = await copyRichMarkdown(`${scopeName} · 工作日报`, `${report.date} · v${report.version}`, content); notify(kind === 'rich' ? '已复制带格式正文，可直接粘贴进飞书/企微/Word。' : '已复制日报正文。'); } catch (caught) { notify(asError(caught).message, true); } finally { setBusy(''); } }} variant="secondary" icon={busy === 'copy-rich' ? <Spinner /> : <Copy size={15} />} /><Button label="复制日报" isDisabled={!!busy || dirty} onClick={async () => { setBusy('copy'); try { await copyReport(report.id, report.content); notify('已复制此版本的日报。'); } catch (caught) { notify(asError(caught).message, true); } finally { setBusy(''); } }} variant="secondary" icon={busy === 'copy' ? <Spinner /> : <Copy size={15} />} /><Button label="导出 Word" isDisabled={!!busy || !content.trim()} onClick={async () => { setBusy('export-docx'); try { const ok = await exportDocument({ title: `${scopeName} · 工作日报 (${report.date})`, content, format: 'docx', filename: `${report.date}-日报-v${report.version}.docx` }); notify(ok ? 'Word (.docx) 已导出。' : '已取消导出。'); } catch (caught) { notify(asError(caught).message, true); } finally { setBusy(''); } }} variant="secondary" icon={busy === 'export-docx' ? <Spinner /> : <FileText size={15} />} /><Button label="汇报长图" isDisabled={!!busy || !content.trim()} onClick={async () => { setBusy('export-png'); try { const ok = await exportReportCardPng({ title: `${scopeName} · 工作日报`, subtitle: `${report.date} · 版本 v${report.version}`, markdown: content, filename: `${report.date}-日报卡.png` }); notify(ok ? '汇报长图 (.png) 已导出。' : '已取消导出。'); } catch (caught) { notify(asError(caught).message, true); } finally { setBusy(''); } }} variant="secondary" icon={busy === 'export-png' ? <Spinner /> : <ImageIcon size={15} />} /><Button label="打印 / 存 PDF" isDisabled={!!busy || !content.trim()} onClick={() => printMarkdownAsPdf(`${scopeName} · 工作日报`, `${report.date} · v${report.version}`, content)} variant="secondary" icon={<Printer size={15} />} /><Button label="导出 Markdown" isDisabled={!!busy || dirty} onClick={async () => { setBusy('export'); try { const exported = await exportReport(report.id, `${report.date}-日报-v${report.version}.md`); notify(exported ? '日报已导出。' : '已取消导出。'); } catch (caught) { notify(asError(caught).message, true); } finally { setBusy(''); } }} variant="secondary" icon={busy === 'export' ? <Spinner /> : <ArrowDownToLine size={15} />} /></div>
       {dirty && <p className="report-edit-hint">{draftStatus || '编辑内容自动暂存；保存后创建正式日报版本。'}</p>}
     </>}</section><aside className="report-basis-panel"><div className="report-basis-heading"><h3>生成依据</h3><p>生成时的任务记录，可逐项核对。</p></div>{report ? <><div className="report-basis-summary"><span>{report.basis.events.length} 条进展记录</span><span>{report.basis.tasks.length} 项任务</span></div>{!report.basis.events.length && <p className="panel-hint report-no-events">这一天没有任务进展记录。</p>}{report.basis.events.map((event) => <div className="report-basis-event" key={event.id}><Button label={(event.after.title)} onClick={() => onTaskOpen(event.taskId, event.projectId)} className="astryx-inline-action" variant="ghost" endContent={<ArrowRight size={12} />} /><div className="task-event-change">{event.before ? `${TASK_STATUS[event.before.status]} → ` : '创建 → '}{TASK_STATUS[event.after.status]}</div><p>{event.note}</p><small>{TASK_CATEGORY[event.after.category]} · {event.after.assignee || '负责人待定'}</small>{event.evidence.map((evidence) => <Button label={[(evidence.sourceTitle),"·",(evidence.locator)].join('')} key={evidence.segmentId} onClick={() => onEvidence(evidence)} className="astryx-inline-action" variant="ghost" size="sm" endContent={<ArrowRight size={11} />} />)}</div>)}<div className="report-basis-timestamp">生成于 {formatMoment(report.basis.generatedAt)}</div></> : <p className="panel-hint report-no-events">生成后显示任务记录与原文来源。</p>}
       <div className="report-versions"><h3><History size={14} />版本历史</h3>{summaries.length ? summaries.map((summary) => <button key={summary.id} aria-pressed={selectedId === summary.id} className={selectedId === summary.id ? 'report-version selected' : 'report-version'} onClick={() => setSelectedId(summary.id)}><strong>v{summary.version}</strong><span>{summary.edited ? '已编辑' : '自动整理'}</span><small>{formatMoment(summary.createdAt)}</small></button>) : <p className="panel-hint">生成和保存后，可在这里回看历史版本。</p>}</div>

@@ -51,6 +51,7 @@ pub(crate) fn save_draft(conn: &Connection, p: &Value, remove: bool) -> Result<V
             "task:",
             "new-meeting:",
             "quality:",
+            "copilot:",
         ]
         .iter()
         .any(|prefix| key.starts_with(prefix))
@@ -294,6 +295,7 @@ pub(crate) fn validate_backup(conn: &Connection) -> Result<()> {
                 "task:",
                 "new-meeting:",
                 "quality:",
+                "copilot:",
             ]
             .iter()
             .any(|prefix| k.starts_with(prefix))
