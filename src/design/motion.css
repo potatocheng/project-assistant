@@ -1,0 +1,529 @@
+/* Unified Apple HIG-inspired Ledger Motion System ("Ink & Vermilion").
+ * Crisp initiation, calm settling, zero spring overshoot, GPU-composited properties only.
+ */
+
+.workspace-view {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Synchronous theme switch guard: prevents 140ms zebra-tear flicker across controls */
+:root.theme-switching *,
+:root.theme-switching *::before,
+:root.theme-switching *::after {
+  transition: none !important;
+}
+
+/* Global resize drag guard */
+.app-shell.is-resizing,
+.app-shell.is-resizing * {
+  user-select: none !important;
+  cursor: col-resize !important;
+}
+.app-shell.is-resizing .copilot-drawer,
+.app-shell.is-resizing .copilot-drawer-inner {
+  transition: none !important;
+}
+
+/* Unified interactive transitions (explicit properties, never transition: all) */
+button,
+summary,
+input,
+select,
+textarea:not(:where(.astryx-field *)) {
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard),
+    transform var(--dur-instant) var(--ease-standard);
+}
+
+.ledger-shell :is(
+  .stream-card,
+  .task-row,
+  .follow-up-row,
+  .record-item,
+  .project-item,
+  .delivery-project-row,
+  .delivery-followup-row,
+  .delivery-attention-row,
+  .gov-row,
+  .change-row,
+  .coord-list > button,
+  .global-search-results button,
+  .today-project-row,
+  .proactive-compact-row
+) {
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+/* Calibrated press feedback (tactile scale, zero bounce) */
+.ledger-shell :is(.button, .astryx-button):active:not(:disabled) {
+  transform: scale(0.98);
+}
+.ledger-shell .button.seal:active:not(:disabled) {
+  transform: scale(0.975);
+}
+.ledger-shell .icon-button:active:not(:disabled) {
+  transform: scale(0.94);
+}
+.ledger-shell :is(
+  .sidebar-link,
+  .sidebar-search-button,
+  .toolbar-copilot-toggle,
+  .stream-filter-btn,
+  .space-tab,
+  .onboarding-mode-card,
+  .today-compose-form button
+):active:not(:disabled) {
+  transform: scale(0.992);
+}
+.ledger-shell .today-compose-form button:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+/* Subtle forward nudge for navigation text links */
+.ledger-shell .text-button > svg:last-child {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.ledger-shell .text-button:hover:not(:disabled) > svg:last-child {
+  transform: translateX(2px);
+}
+
+/* Disclosure chevrons */
+details > summary > svg:last-child,
+.daily-focus-toggle > svg,
+.task-filter-toggle > svg:last-child {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+details[open] > summary > svg:last-child {
+  transform: rotate(180deg);
+}
+
+/* Animated Collapse (CSS Grid 0fr -> 1fr, interruptible, zero scrollHeight reflow) */
+.animated-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-standard);
+}
+.animated-collapse.is-active {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.animated-collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Sliding Indicators (pure GPU transform + size) */
+.sliding-indicator-container {
+  position: relative;
+}
+.sliding-indicator-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--ind-w, 0px);
+  height: var(--ind-h, 0px);
+  transform: translate3d(var(--ind-x, 0px), var(--ind-y, 0px), 0);
+  pointer-events: none;
+  opacity: 0;
+}
+.sliding-indicator-container[data-indicator-active='true'] .sliding-indicator-bar {
+  opacity: 1;
+}
+.sliding-indicator-container[data-indicator-ready='true'] .sliding-indicator-bar {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    width var(--dur-base) var(--ease-out),
+    height var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-standard);
+}
+
+/* Horizontal scroll edge fade hint (mobile/narrow tabs & timeline) */
+.scroll-fade-x {
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 100%);
+}
+.scroll-fade-x[data-fade-right='true']:not([data-fade-left='true']) {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+}
+.scroll-fade-x[data-fade-left='true']:not([data-fade-right='true']) {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 28px, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 28px, #000 100%);
+}
+.scroll-fade-x[data-fade-left='true'][data-fade-right='true'] {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+}
+
+/* Count micro-pulse (no marketing slot-machine roll; tabular-nums width stays fixed) */
+.count-pulse {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+.count-pulse.is-up {
+  animation: count-pulse-up 180ms var(--ease-out);
+}
+.count-pulse.is-down {
+  animation: count-pulse-down 180ms var(--ease-out);
+}
+@keyframes count-pulse-up {
+  0% { opacity: 0.55; transform: translateY(2.5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes count-pulse-down {
+  0% { opacity: 0.55; transform: translateY(-2.5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Theme Sun/Moon cross-fade */
+.theme-toggle-btn {
+  position: relative;
+}
+.theme-icon-stack {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+.theme-icon-stack > svg {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+.theme-icon-stack .theme-icon-inactive {
+  opacity: 0;
+  transform: rotate(-35deg) scale(0.6);
+}
+.theme-icon-stack .theme-icon-active {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* Copy Check stamp pop */
+.copy-check-icon {
+  color: var(--success-text);
+  animation: stamp-pop 160ms var(--ease-stamp);
+}
+@keyframes stamp-pop {
+  0% { opacity: 0.4; transform: scale(0.68); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* One-time locate pulse (evidence jump / undo restore / mobile return) */
+.is-pulse-focus {
+  animation: ledger-locate-pulse 650ms var(--ease-out);
+}
+.is-restored-highlight {
+  animation: ledger-restore-pulse 550ms var(--ease-out);
+}
+@keyframes ledger-locate-pulse {
+  0% { background-color: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  70% { background-color: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  100% { background-color: transparent; }
+}
+@keyframes ledger-restore-pulse {
+  0% { background-color: var(--success-soft); }
+  100% { background-color: transparent; }
+}
+
+/* Stream & Inbox two-phase stamp-then-collapse */
+.stream-card-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 180ms var(--ease-out),
+    opacity var(--dur-exit) var(--ease-exit);
+}
+.stream-card-collapse.is-collapsing {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+.stream-card-collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.stream-card.is-settling-done {
+  background: var(--success-soft);
+  border-color: var(--success-border);
+  transition: background-color 140ms var(--ease-stamp), opacity 140ms var(--ease-stamp);
+}
+.stream-card.is-settling-dismiss {
+  opacity: 0.52;
+  transition: opacity 140ms var(--ease-exit);
+}
+
+/* Task & segment SVG checkmark draw */
+.ledger-check-visual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface);
+  transition:
+    background-color var(--dur-fast) var(--ease-stamp),
+    border-color var(--dur-fast) var(--ease-stamp),
+    transform var(--dur-instant) var(--ease-standard);
+}
+.ledger-check-svg {
+  width: 11px;
+  height: 11px;
+  color: var(--on-accent);
+}
+.ledger-check-svg path {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  transition: stroke-dashoffset 160ms var(--ease-stamp);
+}
+.ledger-check-input:checked + .ledger-check-visual {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.ledger-check-input:checked + .ledger-check-visual .ledger-check-svg path {
+  stroke-dashoffset: 0;
+}
+.ledger-check-input:focus-visible + .ledger-check-visual {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Dialog overlay & panel (no backdrop-filter blur during opacity animation) */
+.dialog-overlay {
+  animation: workspace-fade-in var(--dur-fast) var(--ease-out);
+}
+.dialog {
+  animation: workspace-dialog-in var(--dur-base) var(--ease-out);
+}
+.dialog-overlay.is-leaving {
+  animation: workspace-fade-out var(--dur-exit) var(--ease-exit) forwards;
+}
+.dialog-overlay.is-leaving > .dialog {
+  animation: workspace-dialog-out var(--dur-exit) var(--ease-exit) forwards;
+}
+
+/* Global Drop Overlay (usePresence driven) */
+.global-drop-overlay {
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.global-drop-overlay.is-active {
+  opacity: 1;
+}
+.global-drop-overlay .global-drop-card {
+  transform: translate3d(0, 6px, 0) scale(0.975);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.global-drop-overlay.is-active .global-drop-card {
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* Toast */
+.feedback-toast {
+  animation: workspace-toast-in var(--dur-base) var(--ease-out);
+}
+.feedback-toast.is-leaving {
+  animation: workspace-toast-out var(--dur-exit) var(--ease-exit) forwards;
+}
+.feedback-toast.is-updated {
+  animation: workspace-toast-pulse var(--dur-fast) var(--ease-out);
+}
+
+/* Form error & notice gentle reveal */
+.form-error,
+.inline-error {
+  animation: workspace-gentle-in 160ms var(--ease-out);
+}
+
+/* GPU-composited Skeleton Shimmer (mineral sheen, zero paint thrashing) */
+.page-skeleton {
+  padding: 32px;
+  width: min(100%, 1160px);
+  margin-inline: auto;
+}
+.page-skeleton > span,
+.page-skeleton-row b,
+.page-skeleton-row > i {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+}
+.page-skeleton-title {
+  width: min(260px, 65%);
+  height: 27px;
+  margin-bottom: 24px;
+}
+.page-skeleton-summary {
+  height: 72px;
+  margin-bottom: 30px;
+}
+.page-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-block: 23px;
+  border-bottom: 1px solid var(--border);
+}
+.page-skeleton-row > i {
+  width: 24px;
+  height: 24px;
+}
+.page-skeleton-row > span {
+  flex: 1;
+  background: transparent;
+  overflow: visible;
+}
+.page-skeleton-row b {
+  width: 65%;
+  height: 12px;
+}
+.page-skeleton-row b + b {
+  width: 45%;
+  height: 9px;
+  margin-top: 12px;
+}
+.page-skeleton-row > svg {
+  color: var(--text-muted);
+}
+.page-skeleton-title::after,
+.page-skeleton-summary::after,
+.page-skeleton-row > i::after,
+.page-skeleton-row b::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translate3d(-100%, 0, 0);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--bg-surface) 58%, transparent) 50%,
+    transparent 100%
+  );
+  animation: workspace-shimmer 1.35s var(--ease-standard) infinite;
+}
+
+@keyframes workspace-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes workspace-fade-out {
+  to { opacity: 0; }
+}
+@keyframes workspace-dialog-in {
+  from { opacity: 0.4; transform: translate3d(0, 8px, 0) scale(0.99); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes workspace-dialog-out {
+  to { opacity: 0; transform: translate3d(0, 5px, 0) scale(0.985); }
+}
+@keyframes workspace-sheet-in {
+  from { opacity: 0.5; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes workspace-sheet-out {
+  to { opacity: 0; transform: translate3d(0, 14px, 0); }
+}
+@keyframes workspace-toast-in {
+  from { opacity: 0; transform: translate3d(-50%, 8px, 0) scale(0.98); }
+  to { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1); }
+}
+@keyframes workspace-toast-out {
+  to { opacity: 0; transform: translate3d(-50%, 6px, 0) scale(0.98); }
+}
+@keyframes workspace-toast-pulse {
+  0% { transform: translate3d(-50%, 0, 0) scale(0.985); }
+  100% { transform: translate3d(-50%, 0, 0) scale(1); }
+}
+@keyframes workspace-gentle-in {
+  from { opacity: 0; transform: translate3d(0, 3px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes workspace-shimmer {
+  100% { transform: translate3d(100%, 0, 0); }
+}
+@keyframes spinner-reduced {
+  0% { opacity: 0.45; transform: rotate(0deg); }
+  50% { opacity: 1; transform: rotate(180deg); }
+  100% { opacity: 0.45; transform: rotate(360deg); }
+}
+
+@media (max-width: 700px) {
+  .page-skeleton {
+    padding: 24px 20px;
+  }
+}
+@media (max-width: 640px) {
+  .dialog {
+    animation-name: workspace-sheet-in;
+  }
+  .dialog-overlay.is-leaving > .dialog {
+    animation-name: workspace-sheet-out;
+  }
+}
+
+/* Authoritative reduced-motion policy:
+ * Zero out spatial displacement and non-essential transitions, while explicitly
+ * preserving processing indicators (.spinner) so busy states stay perceivable.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  *:not(.spinner),
+  *:not(.spinner)::before,
+  *:not(.spinner)::after {
+    animation-duration: 0.01ms !important;
+  }
+  .spinner {
+    animation: spinner-reduced 1.6s steps(8) infinite !important;
+  }
+  .page-skeleton-title::after,
+  .page-skeleton-summary::after,
+  .page-skeleton-row > i::after,
+  .page-skeleton-row b::after {
+    animation: none !important;
+    display: none;
+  }
+  .ledger-shell :is(
+    .button,
+    .astryx-button,
+    .icon-button,
+    .sidebar-link,
+    .sidebar-search-button,
+    .toolbar-copilot-toggle,
+    .stream-filter-btn,
+    .space-tab,
+    .onboarding-mode-card,
+    .today-compose-form button
+  ):active:not(:disabled) {
+    transform: none;
+  }
+  .ledger-shell .text-button:hover:not(:disabled) > svg:last-child {
+    transform: none;
+  }
+}

@@ -28,4 +28,4 @@
 .coach-home-task > .ah-task { flex: 1; min-width: 0; }
 .coach-home-task > .text-button { flex-shrink: 0; }
 @media (max-width: 600px) { .coach-home-task { flex-wrap: wrap; } .coach-home-task > .text-button { margin: 0 0 14px 40px; } }
-@media (prefers-reduced-motion: no-preference) { .coach-guide { animation: coach-reveal .16s ease-out; } @keyframes coach-reveal { from { transform: translateY(3px); opacity: .6; } to { transform: translateY(0); opacity: 1; } } }
+.coach-guide { animation: workspace-gentle-in var(--dur-fast) var(--ease-out); }

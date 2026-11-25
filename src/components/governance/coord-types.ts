@@ -1,10 +1,11 @@
 import type { AppState, Evidence, Task, TaskEvent } from '../../types';
+import type { ToastAction } from '../interaction';
 
 export interface CoordinationProps {
   focusId?: string;
   state: AppState; projectId: string; date: string; onChanged: () => Promise<unknown>;
   onTaskOpen: (taskId: string, projectId: string) => void;
-  onEvidence?: (evidence: Evidence) => void; notify: (message: string, error?: boolean) => void;
+  onEvidence?: (evidence: Evidence) => void; notify: (message: string, error?: boolean, action?: ToastAction) => void;
 }
 export interface ReportBasis {
   generatedAt: string; startDate: string; endDate: string; projectId: string | null;

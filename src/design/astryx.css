@@ -7,8 +7,11 @@
 /* The root covers portals; the Theme boundary overrides Neutral's own tokens. */
 :root, [data-astryx-theme='neutral'] {
   --font-family-body: var(--font-sans);
-  --font-family-heading: var(--font-sans);
+  --font-family-heading: var(--font-display);
   --font-family-code: var(--font-mono);
+  --font-size-xs: var(--fs-xs);
+  --font-size-sm: var(--fs-sm);
+  --font-size-base: var(--fs-md);
   --color-background-body: var(--bg-canvas);
   --color-background-surface: var(--bg-surface);
   --color-background-card: var(--bg-surface);
@@ -39,6 +42,8 @@
   --color-text-error: var(--danger-text);
   --color-border-error: var(--danger-border);
   --radius-container: var(--radius-lg);
+  --radius-element: var(--radius-md);
+  --radius-inner: var(--radius-sm);
 }
 
 .astryx-form-dialog { border: 1px solid var(--border); box-shadow: var(--shadow-lg); }
@@ -73,7 +78,7 @@
 .astryx-inbox-tabs { flex-shrink: 0; padding-inline: 24px; }
 .chat-replies-filters .astryx-filter { width: auto; }
 .astryx-report-editor { margin-block: 16px; min-width: 0; }
-.astryx-report-editor textarea { font-family: var(--font-mono); font-size: var(--fs-sm); line-height: 1.8; }
+.astryx-report-editor textarea { font-family: var(--font-sans); font-size: var(--fs-sm); line-height: 1.8; }
 .astryx-report-editor-control { background: var(--bg-surface); }
 
 @media (max-width: 1100px) {

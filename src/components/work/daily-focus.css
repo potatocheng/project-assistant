@@ -16,6 +16,8 @@
 .daily-focus .planning-heading-actions { gap: 16px; }
 .daily-focus .daily-focus-toggle { color: var(--text-muted); }
 .daily-focus .planning-controls { margin-top: 20px; }
+.daily-capacity-presets { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; font-size: var(--fs-xs); color: var(--text-muted); }
+.daily-capacity-presets .button.is-selected { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 .daily-focus .planning-capacity { max-width: 660px; gap: 16px; }
 .daily-focus .planning-capacity label { font-size: var(--fs-xs); }
 .daily-focus .planning-capacity > div { padding-bottom: 0; font-size: var(--fs-xs); }
@@ -52,7 +54,7 @@
 .daily-focus-item-adjust { margin-top: 10px; }
 .daily-focus-item-adjust > summary, .daily-focus-commitments > summary { list-style: none; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; color: var(--text-muted); font-size: var(--fs-xs); min-height: 25px; }
 .daily-focus-item-adjust > summary::-webkit-details-marker, .daily-focus-commitments > summary::-webkit-details-marker, .daily-focus-deferred > summary::-webkit-details-marker { display: none; }
-.daily-focus-item-adjust > summary svg, .daily-focus-commitments > summary svg, .daily-focus-deferred > summary > svg { transition: transform .18s ease; }
+.daily-focus-item-adjust > summary svg, .daily-focus-commitments > summary svg, .daily-focus-deferred > summary > svg { transition: transform var(--dur-fast) var(--ease-out); }
 .daily-focus-item-adjust[open] > summary svg, .daily-focus-commitments[open] > summary svg, .daily-focus-deferred[open] > summary > svg { transform: rotate(180deg); }
 .daily-focus-item-adjust .planning-item-fields { padding-top: 12px; gap: 12px 22px; }
 .daily-focus-count { color: var(--text-muted); font-size: var(--fs-xs); font-weight: 400; margin-left: 6px; }
@@ -73,9 +75,4 @@
   .daily-focus-review .planning-budget.daily-focus-budget { gap: 18px 23px; }
   .daily-focus-budget-context { font-size: var(--fs-xs); }
   .daily-focus-review .planning-item-heading { gap: 9px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .daily-focus .planning-controls { animation: none; }
-  .daily-focus-item-adjust > summary svg, .daily-focus-commitments > summary svg, .daily-focus-deferred > summary > svg { transition: none; }
 }

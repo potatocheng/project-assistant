@@ -1,10 +1,11 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useRef } from 'react';
 import {
   CalendarDays, FileDiff, FilePlus2, FileText, LayoutGrid, Library,
   ListTodo, Plus, ShieldAlert, Users,
 } from 'lucide-react';
 import type { AppState, Evidence, ManagementKind, Page } from '../../types';
-import { PageLoading } from '../interaction';
+import { CountPulse, PageLoading, type ToastAction, usePageMotion, useScrollFade, useSlidingIndicator } from '../interaction';
+import './space.css';
 
 const DeliveryOverview = lazy(() => import('../delivery/DeliveryOverview').then(m => ({ default: m.DeliveryOverview })));
 const TaskWorkspace = lazy(() => import('../work/TaskWorkspace').then(m => ({ default: m.TaskWorkspace })));
@@ -33,71 +34,119 @@ interface Props {
   onCreateTaskConsumed: () => void;
   focusTaskId: string | null;
   managementFocusId?: string;
-  notify: (message: string, error?: boolean) => void;
+  onModelSettings?: () => void;
+  notify: (message: string, error?: boolean, action?: ToastAction) => void;
 }
 
 const TABS: Array<{ id: ProjectTab; label: string; icon: typeof LayoutGrid }> = [
   { id: 'overview', label: '项目总览', icon: LayoutGrid },
   { id: 'tasks', label: '任务清单', icon: ListTodo },
   { id: 'daily', label: '每日排期', icon: CalendarDays },
+  { id: 'sources', label: '原始资料', icon: FileText },
+  { id: 'memories', label: '已确认记录', icon: Library },
   { id: 'governance', label: '风险与决策', icon: ShieldAlert },
   { id: 'changes', label: '变更与验收', icon: FileDiff },
   { id: 'coordination', label: '周报与会议', icon: Users },
-  { id: 'sources', label: '原始资料', icon: FileText },
-  { id: 'memories', label: '项目记忆', icon: Library },
 ];
 
-export function ProjectSpace(props: Props) {
-  const { activeTab, state, projectId, date } = props;
-  const activeProject = state.projects.find(p => p.id === projectId);
-  const taskCount = state.tasks.filter(t => (!projectId || t.projectId === projectId) && ['todo', 'in_progress', 'blocked'].includes(t.status)).length;
+export function ProjectSpaceHeader({
+  activeTab,
+  state,
+  projectId,
+  onProjectChange,
+  onTabChange,
+  onImport,
+  onCreateTask,
+  allowAll = true,
+}: {
+  activeTab: ProjectTab;
+  state: AppState;
+  projectId: string;
+  onProjectChange: (id: string) => void;
+  onTabChange: (tab: Page) => void;
+  onImport: () => void;
+  onCreateTask: () => void;
+  allowAll?: boolean;
+}) {
+  const effectiveProjectId = allowAll ? projectId : (projectId || state.projects[0]?.id || '');
+  const taskCount = state.tasks.filter(t => (!effectiveProjectId || t.projectId === effectiveProjectId) && ['todo', 'in_progress', 'blocked'].includes(t.status)).length;
+  const showQuickCreateTask = activeTab !== 'tasks' && activeTab !== 'daily';
+  const tabsRef = useRef<HTMLElement>(null);
+  useSlidingIndicator(tabsRef, '.space-tab.is-active', [activeTab, taskCount]);
+  useScrollFade(tabsRef, [activeTab, taskCount]);
 
   return (
-    <div className="space-shell">
-      <header className="space-header">
-        <div className="space-header-top">
-          <div className="space-title-group">
-            <h2>{activeProject ? activeProject.name : '全部项目'}</h2>
-            <select
-              aria-label="切换项目"
-              className="today-scope-select"
-              value={projectId}
-              onChange={e => props.onProjectChange(e.target.value)}
-            >
-              <option value="">全部项目</option>
-              {state.projects.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="today-header-controls">
-            <button className="button secondary compact" onClick={props.onImport}>
-              <FilePlus2 size={14} />
-              导入资料
-            </button>
-            <button className="button primary compact" onClick={props.onCreateTask}>
+    <header className="space-header">
+      <div className="space-header-top">
+        <div className="space-title-group">
+          <select
+            aria-label="当前项目"
+            className="space-project-select"
+            value={effectiveProjectId}
+            onChange={e => onProjectChange(e.target.value)}
+          >
+            {allowAll && <option value="">全部项目</option>}
+            {state.projects.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="today-header-controls">
+          <button type="button" className="button secondary compact" onClick={onImport}>
+            <FilePlus2 size={14} />
+            导入资料
+          </button>
+          {showQuickCreateTask && (
+            <button type="button" className="button primary compact" onClick={onCreateTask}>
               <Plus size={14} />
               新建任务
             </button>
-          </div>
+          )}
         </div>
-        <nav className="space-tabs" aria-label="项目视图切换">
-          {TABS.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              className={`space-tab ${activeTab === id ? 'is-active' : ''}`}
-              aria-current={activeTab === id ? 'page' : undefined}
-              onClick={() => props.onTabChange(id)}
-            >
-              <Icon size={14} />
-              <span>{label}</span>
-              {id === 'tasks' && taskCount > 0 && <span className="space-tab-count">{taskCount}</span>}
-            </button>
-          ))}
-        </nav>
-      </header>
+      </div>
+      <nav className="space-tabs sliding-indicator-container scroll-fade-x" ref={tabsRef} aria-label="项目视图切换">
+        <span className="sliding-indicator-bar space-tab-indicator" aria-hidden="true" />
+        {TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            className={`space-tab ${activeTab === id ? 'is-active' : ''}`}
+            aria-current={activeTab === id ? 'page' : undefined}
+            onClick={() => onTabChange(id)}
+          >
+            <Icon size={14} />
+            <span>{label}</span>
+            {id === 'tasks' && taskCount > 0 && <span className="space-tab-count"><CountPulse value={taskCount} /></span>}
+          </button>
+        ))}
+      </nav>
+    </header>
+  );
+}
 
-      <div className="space-content">
+export function ProjectSpace(props: Props) {
+  const { activeTab, state, projectId, date } = props;
+  const contentRef = useRef<HTMLDivElement>(null);
+  const prevTabRef = useRef(activeTab);
+  const prevIdx = TABS.findIndex(t => t.id === prevTabRef.current);
+  const currIdx = TABS.findIndex(t => t.id === activeTab);
+  const direction: -1 | 0 | 1 = currIdx > prevIdx ? 1 : currIdx < prevIdx ? -1 : 0;
+  prevTabRef.current = activeTab;
+  usePageMotion(contentRef, activeTab, direction);
+
+  return (
+    <div className="space-shell">
+      <ProjectSpaceHeader
+        activeTab={activeTab}
+        state={state}
+        projectId={projectId}
+        onProjectChange={props.onProjectChange}
+        onTabChange={props.onTabChange}
+        onImport={props.onImport}
+        onCreateTask={props.onCreateTask}
+      />
+
+      <div className="space-content" ref={contentRef}>
         <Suspense fallback={<PageLoading label="正在加载项目视图" />}>
           {activeTab === 'overview' && (
             <DeliveryOverview
@@ -121,10 +170,12 @@ export function ProjectSpace(props: Props) {
               setDay={props.onDateChange}
               projectId={projectId}
               setProjectId={props.onProjectChange}
+              hideProjectFilter
               createTaskRequest={props.createTaskRequest}
               onCreateTaskConsumed={props.onCreateTaskConsumed}
               focusTaskId={props.focusTaskId}
               onChanged={props.onChanged}
+              onModelSettings={props.onModelSettings}
               notify={props.notify}
               onEvidence={props.onEvidence}
               onReport={() => props.onTabChange('reports')}

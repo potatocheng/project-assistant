@@ -18,6 +18,6 @@ export function RetentionFields({ value, onChange, disabled, draft = false }: { 
     </select></label>
     <label className="field-label">保留理由<textarea rows={2} maxLength={400} required value={value.reason} onChange={(event) => onChange({ ...value, reason: event.target.value })} /></label>
     {value.layer === 'working' && !draft && <label className="field-label">复核日期<input type="date" value={value.reviewAfter ?? ''} onChange={(event) => onChange({ ...value, reviewAfter: event.target.value || null })} /></label>}
-    <p className="field-hint">工作状态默认在确认后 7 天复核；到期退出默认问答，原文与历史保留。待澄清、仅存原文的内容不作为当前事实回答。</p>
+    <p className="field-hint">工作状态将在确认 7 天后提醒复核，过期后不再作为当前有效结论使用（原文与历史保留）；待澄清或仅存原文仅留档，不直接参与自动回答。</p>
   </fieldset>;
 }

@@ -91,3 +91,58 @@ fn empty_pdf_failure_is_persisted() {
     assert_eq!(source["source"]["status"], "failed");
     assert!(source["source"]["error"].as_str().unwrap().contains("PDF"));
 }
+
+#[test]
+fn reopen_proposal_and_public_command_allowlist_work() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = Engine::open(dir.path()).unwrap();
+    let project = call(&engine, "create_project", json!({"name":"撤销测试"}));
+    let source = call(
+        &engine,
+        "import_text",
+        json!({"projectId":project["id"],"title":"会议纪要","text":"系统本周五上线。"}),
+    );
+    let original = ready(&engine, &source["sourceId"]);
+    let p = call(
+        &engine,
+        "create_proposal",
+        json!({"projectId":project["id"],"sourceId":source["sourceId"],"segmentIds":[original["segments"][0]["id"]],"kind":"fact","content":"系统本周五上线"}),
+    );
+    let rejected = call(&engine, "reject_proposal", json!({"proposalId":p["id"]}));
+    assert_eq!(rejected["status"], "rejected");
+    let reopened = call(&engine, "reopen_proposal", json!({"proposalId":p["id"]}));
+    assert_eq!(reopened["status"], "pending");
+    let memory = call(&engine, "confirm_proposal", json!({"proposalId":p["id"]}));
+    assert_eq!(memory["content"], "系统本周五上线");
+
+    for cmd in [
+        "list_entity_aliases",
+        "save_entity_alias",
+        "delete_entity_alias",
+        "get_habits_center",
+        "resolve_habit_proposal",
+        "save_user_habit",
+        "update_habit_status",
+        "delete_user_habit",
+        "record_copilot_feedback",
+        "record_habit_outcome",
+        "get_memory_audits",
+        "run_memory_audit",
+        "resolve_memory_audit",
+        "get_semantic_search_status",
+        "save_semantic_search_settings",
+        "test_embedding_connection",
+        "rebuild_semantic_index",
+        "search_verified_memories",
+        "reopen_proposal",
+        "reopen_task_proposal",
+        "restore_task_relation",
+        "reopen_planning_draft",
+    ] {
+        assert!(
+            project_assistant_core::is_public_command(cmd),
+            "missing public command in allowlist: {cmd}"
+        );
+    }
+    assert!(!project_assistant_core::is_public_command("_internal"));
+}

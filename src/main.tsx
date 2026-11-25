@@ -1,13 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './design/index.css';
 import App from './App';
 import { UiProvider } from './design/UiProvider';
-import './design/astryx.css';
-import './design/tokens.css';
-import './styles.css';
-import './design/components.css';
-import './interactions.css';
-import './design/shell.css';
 
 interface ErrorBoundaryState {
   error: Error | null;
@@ -34,8 +29,8 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, Er
           display: 'grid',
           placeItems: 'center',
           padding: 24,
-          background: 'var(--bg-canvas, #f8f9fb)',
-          color: 'var(--text, #0f1115)',
+          background: 'var(--bg-canvas, #e9ecee)',
+          color: 'var(--text, #161a1e)',
           fontFamily: 'system-ui, -apple-system, sans-serif',
         }}
       >
@@ -45,12 +40,12 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, Er
             width: '100%',
             padding: 24,
             borderRadius: 12,
-            border: '1px solid var(--border, #e2e5ec)',
-            background: 'var(--bg-surface, #ffffff)',
+            border: '1px solid var(--border, #d5dade)',
+            background: 'var(--bg-surface, #f7f8f9)',
           }}
         >
           <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>界面发生意外错误</h2>
-          <p style={{ margin: '0 0 12px', fontSize: 14, color: 'var(--text-muted, #5b6474)' }}>
+          <p style={{ margin: '0 0 12px', fontSize: 14, color: 'var(--text-muted, #59626a)' }}>
             本机工作区数据未受影响，请重新加载界面。
           </p>
           <pre
@@ -58,8 +53,8 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, Er
               margin: '0 0 16px',
               padding: 10,
               borderRadius: 8,
-              background: 'var(--bg-subtle, #f3f4f7)',
-              fontSize: 12,
+              background: 'var(--bg-subtle, #f0f2f4)',
+              fontSize: 13,
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
             }}
@@ -73,8 +68,8 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, Er
               padding: '8px 16px',
               borderRadius: 8,
               border: 'none',
-              background: 'var(--accent, #4f46e5)',
-              color: '#ffffff',
+              background: 'var(--accent, #1d2733)',
+              color: 'var(--on-accent, #f7f8f9)',
               fontSize: 14,
               cursor: 'pointer',
             }}

@@ -285,9 +285,11 @@ impl Database {
             "save_daily_capacity" => self.save_planning_capacity(&p),
             "save_task_estimate" => self.save_task_estimate(&p),
             "remove_task_relation" => self.remove_task_relation(&p),
+            "restore_task_relation" => self.restore_task_relation(&p),
             "generate_daily_plan" => self.generate_daily_plan(&p),
             "confirm_planning_draft" => self.confirm_planning_draft(&p),
             "dismiss_planning_draft" => self.dismiss_planning_draft(&p),
+            "reopen_planning_draft" => self.reopen_planning_draft(&p),
             "recompare_memory_review" => self.recompare_memory_review(&p),
             "get_memory_maintenance" => self.memory_status(),
             "_memory_policy" => self.memory_policy(),
@@ -318,6 +320,7 @@ impl Database {
             "create_proposal" => self.create_proposal(&p),
             "confirm_proposal" => self.confirm(required(&p, "proposalId")?),
             "reject_proposal" => self.reject(required(&p, "proposalId")?),
+            "reopen_proposal" => self.reopen_proposal(required(&p, "proposalId")?),
             "get_memory" => self.memory_detail(required(&p, "memoryId")?),
             "revise_memory" => self.revise(&p),
             "get_ai_settings" => Ok(settings::load(&self.root)?.public()),
@@ -455,14 +458,7 @@ impl Database {
         let query = crate::search::Query::new_with_aliases(raw_query, &aliases);
         let semantic = crate::memory_query::parse_semantic(p);
         let selection = crate::memory_query::retrieve_with_semantic(
-            &self.conn,
-            scope,
-            &query,
-            limit,
-            2_000,
-            false,
-            as_of,
-            semantic,
+            &self.conn, scope, &query, limit, 2_000, false, as_of, semantic,
         )?;
         let mut memories = Vec::with_capacity(selection.records.len());
         for mut memory in selection.records {
@@ -941,6 +937,20 @@ impl Database {
                 None,
             );
         }
+        self.proposal(proposal)
+    }
+    fn reopen_proposal(&self, proposal: &str) -> Result<Value> {
+        let p = self.proposal(proposal)?;
+        if p["status"] == "confirmed" {
+            return Err(AppError::new("CONFLICT", "已确认的记忆无法恢复为待确认"));
+        }
+        if p["status"] == "pending" {
+            return Ok(p);
+        }
+        self.conn.execute(
+            "UPDATE proposals SET status='pending' WHERE id=? AND status='rejected'",
+            [proposal],
+        )?;
         self.proposal(proposal)
     }
     pub(crate) fn memory(&self, memory: &str) -> Result<Value> {

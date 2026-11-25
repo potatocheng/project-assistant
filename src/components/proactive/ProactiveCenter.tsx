@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { ArrowRight, Check, ChevronDown, CircleAlert, Clock3, Copy, Eye, History, Radar, RefreshCw, RotateCcw, Settings2, X } from 'lucide-react';
 import { asError, execute } from '../../api';
 import type { ManagementKind, Project } from '../../types';
+import type { ToastAction } from '../interaction';
 import { Dialog, Spinner } from '../ui';
 import { formatMoment, WorkEmpty } from '../work/shared';
 import { PROACTIVE_STATUS } from './types';
@@ -17,7 +18,7 @@ interface Props {
   onManagementOpen: (kind: ManagementKind, id: string, projectId: string) => void;
   onOverviewOpen: (projectId: string) => void;
   onMemoryReviewOpen: (projectId: string) => void;
-  notify: (message: string, error?: boolean) => void;
+  notify: (message: string, error?: boolean, action?: ToastAction) => void;
 }
 
 const STATUSES: ProactiveStatus[] = ['ready', 'watching', 'snoozed', 'resolved', 'dismissed'];
@@ -59,19 +60,23 @@ export function ProactiveCenter({ projects, projectId, onProjectChange, refreshR
     let active = true;
     let pending = false;
     const scope = projectId;
-    const read = async (showLoading = false) => {
+    const read = async () => {
       if (pending) return;
       pending = true;
-      if (showLoading) setQuery({ scope, data: null, loading: true, error: '' });
+      setQuery((prev) => prev.scope === scope && prev.data ? prev : { scope, data: null, loading: true, error: '' });
       try {
         const data = await execute<ProactiveCenterData>('get_proactive_center', scope ? { projectId: scope } : {});
         if (active && scopeRef.current === scope) setQuery({ scope, data, loading: false, error: '' });
       } catch (caught) {
-        if (active && scopeRef.current === scope) setQuery({ scope, data: null, loading: false, error: asError(caught).message });
+        if (active && scopeRef.current === scope) {
+          setQuery((prev) => prev.scope === scope && prev.data
+            ? { ...prev, loading: false, error: asError(caught).message }
+            : { scope, data: null, loading: false, error: asError(caught).message });
+        }
       } finally { pending = false; }
     };
-    void read(true);
-    const timer = window.setInterval(() => void read(), 60_000);
+    void read();
+    const timer = window.setInterval(() => { if (!document.hidden) void read(); }, 60_000);
     const focus = () => void read();
     window.addEventListener('focus', focus);
     return () => { active = false; window.clearInterval(timer); window.removeEventListener('focus', focus); };
@@ -118,7 +123,8 @@ export function ProactiveCenter({ projects, projectId, onProjectChange, refreshR
     <div className="proactive-scroll">
       <div className="proactive-mode-switch" aria-label="行动视图"><button aria-pressed={mode === 'work'} onClick={() => { setMode('work'); setOperation(null); }}>持续推进</button><button aria-pressed={mode === 'reminders'} onClick={() => setMode('reminders')}>巡检提醒</button></div>
       <div className="proactive-toolbar"><label className="proactive-scope"><span>项目</span><select aria-label="主动行动项目范围" value={projectId} disabled={!!busy} onChange={(event) => onProjectChange(event.target.value)}><option value="">全部项目</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>{mode === 'reminders' && <div className="proactive-toolbar-actions">{data && <span className={`proactive-run-state${data.settings.enabled ? ' is-running' : ''}`}><span />{data.settings.enabled ? '自动巡检中' : '巡检已暂停'}</span>}<button className="button secondary compact" disabled={!!busy || loading || !data?.settings.enabled} onClick={scan}>{busy === 'scan' ? <Spinner /> : <Radar size={14} />}立即巡检</button></div>}</div>
-      {mode === 'work' ? <AssistantWorkCenter key={projectId} projectId={projectId} refreshRevision={refreshRevision} onChanged={onChanged} onTaskOpen={onTaskOpen} onMemoryReviewOpen={onMemoryReviewOpen} notify={notify} /> : loading ? <div className="proactive-loading" role="status"><Spinner />正在读取主动行动…</div> : error ? <div className="proactive-load-error" role="alert"><CircleAlert size={18} /><div><strong>暂时无法读取主动行动</strong><p>{error}</p><button className="text-button" onClick={reread}>重新读取</button></div></div> : data && <>
+      {mode === 'work' ? <AssistantWorkCenter projectId={projectId} refreshRevision={refreshRevision} onChanged={onChanged} onTaskOpen={onTaskOpen} onMemoryReviewOpen={onMemoryReviewOpen} notify={notify} /> : loading ? <div className="proactive-loading" role="status"><Spinner />正在读取主动行动…</div> : error && !data ? <div className="proactive-load-error" role="alert"><CircleAlert size={18} /><div><strong>暂时无法读取主动行动</strong><p>{error}</p><button className="text-button" onClick={reread}>重新读取</button></div></div> : data && <>
+        {error && <div className="proactive-load-error" role="alert"><CircleAlert size={16} /><div><span>刷新失败，仍显示上次读取记录：{error}</span><button className="text-button" onClick={reread}>重新读取</button></div></div>}
         {!data.settings.enabled && <div className="proactive-paused"><span>巡检已暂停，已有跟进记录仍可处理。</span><button className="text-button" disabled={!!busy} onClick={() => void saveSettings(data.settings, true, data.settings.reviewMinutes)}>{busy === 'settings' && <Spinner />}启用巡检<ArrowRight size={12} /></button></div>}
         {data.lastError && <p className="proactive-runtime-error" role="alert"><CircleAlert size={13} />上次巡检未完成：{data.lastError}</p>}
         <nav className="proactive-tabs" aria-label="行动状态">{STATUSES.map((value) => <button key={value} aria-current={status === value ? 'page' : undefined} className={status === value ? 'active' : ''} onClick={() => chooseStatus(value)}>{PROACTIVE_STATUS[value]}<span>{data.counts[value]}</span></button>)}</nav>
@@ -131,7 +137,7 @@ export function ProactiveCenter({ projects, projectId, onProjectChange, refreshR
         <details className="proactive-history"><summary><History size={14} />最近活动<span>{data.history.length} 条</span><ChevronDown size={14} /></summary>{data.history.length ? data.history.map((event) => <HistoryItem key={event.id} event={event} title={actionNames.get(event.actionId)} />) : <p className="proactive-empty-note">巡检和跟进后的记录会显示在这里。</p>}</details>
       </>}
     </div>
-    {operation && <ActionDialog key={`${operation.action.id}:${operation.action.version}:${operation.kind}`} action={operation.action} kind={operation.kind} close={() => setOperation(null)} onSaved={() => { setOperation(null); changed(); notify('跟进记录已保存。'); }} onConflict={reread} />}
+    {operation && <ActionDialog key={`${operation.action.id}:${operation.action.version}:${operation.kind}`} action={operation.action} kind={operation.kind} close={() => setOperation(null)} onSaved={(updatedAction, kind) => { setOperation(null); changed(); if (kind === 'dismiss' && updatedAction) { notify('已忽略本次行动。', false, { label: '撤销', onClick: async () => { try { await execute('update_proactive_action', { actionId: updatedAction.id, baseVersion: updatedAction.version, operation: 'reopen', note: '用户撤销忽略' }); changed(); } catch (caught) { notify(asError(caught).message, true); } } }); } else { notify('跟进记录已保存。'); } }} onConflict={reread} />}
   </div>;
 }
 
@@ -158,7 +164,7 @@ function HistoryItem({ event, title }: { event: ProactiveHistory; title?: string
 }
 
 function ActionDialog({ action, kind, close, onSaved, onConflict }: {
-  action: ProactiveAction; kind: ProactiveOperation; close: () => void; onSaved: () => void; onConflict: () => void;
+  action: ProactiveAction; kind: ProactiveOperation; close: () => void; onSaved: (updated: ProactiveAction | null, kind: ProactiveOperation) => void; onConflict: () => void;
 }) {
   const needsTime = kind === 'watch' || kind === 'snooze';
   const [nextCheckAt, setNextCheckAt] = useState(() => nextTime(1));
@@ -175,8 +181,8 @@ function ActionDialog({ action, kind, close, onSaved, onConflict }: {
     if (needsTime && !note.trim()) { setError(kind === 'watch' ? '请记录这次跟进做了什么或对方的承诺。' : '请记录暂缓原因。'); return; }
     setBusy(true); setError('');
     try {
-      await execute('update_proactive_action', { actionId: action.id, baseVersion: action.version, operation: kind, ...(needsTime ? { nextCheckAt: next.toISOString() } : {}), note: note.trim() });
-      if (alive.current) onSaved();
+      const updated = await execute<ProactiveAction>('update_proactive_action', { actionId: action.id, baseVersion: action.version, operation: kind, ...(needsTime ? { nextCheckAt: next.toISOString() } : {}), note: note.trim() });
+      if (alive.current) onSaved(updated ?? null, kind);
     } catch (caught) {
       if (alive.current) {
         const failure = asError(caught);
@@ -186,5 +192,5 @@ function ActionDialog({ action, kind, close, onSaved, onConflict }: {
       }
     } finally { if (alive.current) setBusy(false); }
   };
-  return <Dialog title={OPERATION_LABELS[kind]} subtitle={action.title} close={close} busy={busy}><form onSubmit={submit}><div className="dialog-body proactive-form">{needsTime && <><label><span className="field-label">下次复查时间</span><input aria-label="下次复查时间" type="datetime-local" value={nextCheckAt} onChange={(event) => setNextCheckAt(event.target.value)} required disabled={busy} /></label><div className="proactive-quick-times">{([1, 4, 'tomorrow'] as const).map((value) => <button type="button" key={value} className="button secondary compact" disabled={busy} onClick={() => setNextCheckAt(nextTime(value))}>{value === 'tomorrow' ? '明日 09:00' : `${value} 小时后`}</button>)}</div></>}<label><span className="field-label">{kind === 'watch' ? '本次跟进与预期结果' : kind === 'snooze' ? '暂缓原因' : '备注'}{!needsTime && <span>可选</span>}</span><textarea aria-label={kind === 'watch' ? '本次跟进与预期结果' : kind === 'snooze' ? '暂缓原因' : '行动备注'} rows={4} value={note} maxLength={5000} required={needsTime} placeholder={kind === 'watch' ? '例如：已确认由小林今天下午提交联调结果，届时复查。' : kind === 'snooze' ? '说明为什么稍后再处理。' : '记录本次调整的原因。'} onChange={(event) => setNote(event.target.value)} disabled={busy} /></label><p className="proactive-form-hint">{kind === 'watch' ? '到时会检查最新记录；需要继续推进时，行动会回到“现在处理”。' : kind === 'snooze' ? '到期后恢复检查，暂缓期间保留已有跟进记录。' : kind === 'dismiss' ? '忽略后保留历史，可随时重新跟进。' : '重新纳入需要处理的行动，继续检查相关进展。'}</p>{error && <div className="form-error" role="alert"><CircleAlert size={15} />{error}</div>}</div><div className="dialog-footer"><button type="button" className="button secondary" disabled={busy} onClick={close}>取消</button><button className="button primary" disabled={busy || stale || needsTime && (!note.trim() || !nextCheckAt)}>{busy && <Spinner />}{OPERATION_LABELS[kind]}</button></div></form></Dialog>;
+  return <Dialog title={OPERATION_LABELS[kind]} subtitle={action.title} close={close} busy={busy} dirty={Boolean(note.trim())}><form onSubmit={submit}><div className="dialog-body proactive-form">{needsTime && <><label><span className="field-label">下次复查时间</span><input aria-label="下次复查时间" type="datetime-local" value={nextCheckAt} onChange={(event) => setNextCheckAt(event.target.value)} required disabled={busy} /></label><div className="proactive-quick-times">{([1, 4, 'tomorrow'] as const).map((value) => <button type="button" key={value} className="button secondary compact" disabled={busy} onClick={() => setNextCheckAt(nextTime(value))}>{value === 'tomorrow' ? '明日 09:00' : `${value} 小时后`}</button>)}</div></>}<label><span className="field-label">{kind === 'watch' ? '本次跟进与预期结果' : kind === 'snooze' ? '暂缓原因' : '备注'}{!needsTime && <span>可选</span>}</span><textarea aria-label={kind === 'watch' ? '本次跟进与预期结果' : kind === 'snooze' ? '暂缓原因' : '行动备注'} rows={4} value={note} maxLength={5000} required={needsTime} placeholder={kind === 'watch' ? '例如：已确认由小林今天下午提交联调结果，届时复查。' : kind === 'snooze' ? '说明为什么稍后再处理。' : '记录本次调整的原因。'} onChange={(event) => setNote(event.target.value)} disabled={busy} /></label><p className="proactive-form-hint">{kind === 'watch' ? '到时会检查最新记录；需要继续推进时，行动会回到“现在处理”。' : kind === 'snooze' ? '到期后恢复检查，暂缓期间保留已有跟进记录。' : kind === 'dismiss' ? '忽略后保留历史，可随时重新跟进。' : '重新纳入需要处理的行动，继续检查相关进展。'}</p>{error && <div className="form-error" role="alert"><CircleAlert size={15} />{error}</div>}</div><div className="dialog-footer"><button type="button" className="button secondary" disabled={busy} onClick={close}>取消</button><button className={`button ${kind === 'dismiss' || kind === 'watch' ? 'seal' : 'primary'}`} disabled={busy || stale || needsTime && (!note.trim() || !nextCheckAt)}>{busy && <Spinner />}{OPERATION_LABELS[kind]}</button></div></form></Dialog>;
 }

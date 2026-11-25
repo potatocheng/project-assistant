@@ -97,20 +97,20 @@ fn read_zip_text(
 fn decode_xml_text(e: &quick_xml::events::BytesText<'_>, err_code: &str) -> Result<String> {
     let decoded = e
         .decode()
-        .map_err(|err| AppError::new(err_code, err.to_string()))?;
+        .map_err(|_| AppError::new(err_code, "文档文字编码损坏，暂时无法解析"))?;
     quick_xml::escape::unescape(&decoded)
         .map(|s| s.into_owned())
-        .map_err(|err| AppError::new(err_code, err.to_string()))
+        .map_err(|_| AppError::new(err_code, "文档内容格式异常，暂时无法解析"))
 }
 
 fn decode_xml_ref(e: &quick_xml::events::BytesRef<'_>, err_code: &str) -> Result<String> {
     let name = e
         .decode()
-        .map_err(|err| AppError::new(err_code, err.to_string()))?;
+        .map_err(|_| AppError::new(err_code, "文档字符引用损坏，暂时无法解析"))?;
     let escaped = format!("&{name};");
     quick_xml::escape::unescape(&escaped)
         .map(|s| s.into_owned())
-        .map_err(|err| AppError::new(err_code, err.to_string()))
+        .map_err(|_| AppError::new(err_code, "文档字符引用异常，暂时无法解析"))
 }
 
 fn parse_docx(bytes: &[u8]) -> Result<Vec<ParsedSegment>> {
@@ -130,10 +130,12 @@ fn parse_docx(bytes: &[u8]) -> Result<Vec<ParsedSegment>> {
         (String::new(), 0, 0, 0, 0, false);
     let mut heading = false;
     loop {
-        match reader
-            .read_event()
-            .map_err(|e| AppError::new("INVALID_DOCX", e.to_string()))?
-        {
+        match reader.read_event().map_err(|_| {
+            AppError::new(
+                "INVALID_DOCX",
+                "Word 文档结构损坏或受密码保护，暂时无法解析",
+            )
+        })? {
             Event::Start(e) => match e.local_name().as_ref() {
                 b"tbl" => {
                     table += 1;
@@ -189,8 +191,12 @@ fn parse_docx(bytes: &[u8]) -> Result<Vec<ParsedSegment>> {
 }
 
 fn parse_pdf(bytes: &[u8]) -> Result<Vec<ParsedSegment>> {
-    let pages = pdf_extract::extract_text_from_mem_by_pages(bytes)
-        .map_err(|e| AppError::new("INVALID_PDF", format!("PDF 文字提取失败：{e}")))?;
+    let pages = pdf_extract::extract_text_from_mem_by_pages(bytes).map_err(|_| {
+        AppError::new(
+            "INVALID_PDF",
+            "PDF 暂时无法提取文字（可能为扫描件、已加密或文件损坏）",
+        )
+    })?;
     Ok(pages
         .into_iter()
         .enumerate()
@@ -340,10 +346,12 @@ fn parse_xlsx_shared_strings(xml: &str) -> Result<Vec<String>> {
     let mut in_si = false;
     let mut in_t = false;
     loop {
-        match reader
-            .read_event()
-            .map_err(|e| AppError::new("INVALID_XLSX", e.to_string()))?
-        {
+        match reader.read_event().map_err(|_| {
+            AppError::new(
+                "INVALID_XLSX",
+                "Excel 表格结构损坏或受密码保护，暂时无法解析",
+            )
+        })? {
             Event::Start(e) => match e.local_name().as_ref() {
                 b"si" => {
                     in_si = true;
@@ -386,10 +394,12 @@ fn parse_xlsx_sheets(
     )? {
         let mut reader = Reader::from_str(&rels_xml);
         loop {
-            match reader
-                .read_event()
-                .map_err(|e| AppError::new("INVALID_XLSX", e.to_string()))?
-            {
+            match reader.read_event().map_err(|_| {
+                AppError::new(
+                    "INVALID_XLSX",
+                    "XLSX 表格关系清单解析失败，请确认文件未损坏",
+                )
+            })? {
                 Event::Start(e) | Event::Empty(e) if e.local_name().as_ref() == b"Relationship" => {
                     let (mut id, mut target) = (String::new(), String::new());
                     for attr in e.attributes().flatten() {
@@ -420,10 +430,12 @@ fn parse_xlsx_sheets(
     if let Some(wb_xml) = read_zip_text(archive, "xl/workbook.xml", budget, "INVALID_XLSX")? {
         let mut reader = Reader::from_str(&wb_xml);
         loop {
-            match reader
-                .read_event()
-                .map_err(|e| AppError::new("INVALID_XLSX", e.to_string()))?
-            {
+            match reader.read_event().map_err(|_| {
+                AppError::new(
+                    "INVALID_XLSX",
+                    "XLSX 表格关系清单解析失败，请确认文件未损坏",
+                )
+            })? {
                 Event::Start(e) | Event::Empty(e) if e.local_name().as_ref() == b"sheet" => {
                     let (mut name, mut rid) = (String::new(), String::new());
                     for attr in e.attributes().flatten() {
@@ -502,10 +514,12 @@ fn parse_xlsx(bytes: &[u8]) -> Result<Vec<ParsedSegment>> {
         let mut cell_buf = String::new();
 
         loop {
-            match reader
-                .read_event()
-                .map_err(|e| AppError::new("INVALID_XLSX", e.to_string()))?
-            {
+            match reader.read_event().map_err(|_| {
+                AppError::new(
+                    "INVALID_XLSX",
+                    "XLSX 表格关系清单解析失败，请确认文件未损坏",
+                )
+            })? {
                 Event::Start(e) => match e.local_name().as_ref() {
                     b"row" => current_row.clear(),
                     b"c" => {
@@ -589,10 +603,12 @@ fn extract_pptx_xml_paragraphs(xml: &str) -> Result<Vec<String>> {
     let mut in_p = false;
     let mut in_t = false;
     loop {
-        match reader
-            .read_event()
-            .map_err(|e| AppError::new("INVALID_PPTX", e.to_string()))?
-        {
+        match reader.read_event().map_err(|_| {
+            AppError::new(
+                "INVALID_PPTX",
+                "PPT 演示文稿结构损坏或受密码保护，暂时无法解析",
+            )
+        })? {
             Event::Start(e) => match e.local_name().as_ref() {
                 b"p" => {
                     in_p = true;

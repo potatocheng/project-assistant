@@ -31,7 +31,10 @@ fn wait_ready(engine: &Engine, source_id: &str) {
         if ready {
             return;
         }
-        assert!(start.elapsed() < Duration::from_secs(10), "source parse timed out");
+        assert!(
+            start.elapsed() < Duration::from_secs(10),
+            "source parse timed out"
+        );
         thread::sleep(Duration::from_millis(20));
     }
 }
@@ -63,7 +66,11 @@ fn import_and_confirm(
             "segmentIds": [seg_id],
         }),
     );
-    let mem = call(engine, "confirm_proposal", json!({"proposalId": prop["id"]}));
+    let mem = call(
+        engine,
+        "confirm_proposal",
+        json!({"proposalId": prop["id"]}),
+    );
     mem["id"].as_str().unwrap().to_owned()
 }
 
@@ -95,7 +102,10 @@ fn prelude_report_edits_pahf_feedback_proactive_habits_and_reme_utility_loop() {
         }),
     );
 
-    for (idx, day) in ["2026-11-22", "2026-11-23", "2026-11-24"].iter().enumerate() {
+    for (idx, day) in ["2026-11-22", "2026-11-23", "2026-11-24"]
+        .iter()
+        .enumerate()
+    {
         let mut update = task.clone();
         update["taskId"] = task["id"].clone();
         update["baseVersion"] = task["version"].clone();
@@ -132,7 +142,11 @@ fn prelude_report_edits_pahf_feedback_proactive_habits_and_reme_utility_loop() {
         );
     }
 
-    let center = call(&engine, "get_habits_center", json!({"projectId": project_id}));
+    let center = call(
+        &engine,
+        "get_habits_center",
+        json!({"projectId": project_id}),
+    );
     // Nothing activates without explicit user confirmation
     assert_eq!(center["counts"]["activeHabits"], 0);
     let proposals = center["proposals"].as_array().unwrap();
@@ -166,7 +180,11 @@ fn prelude_report_edits_pahf_feedback_proactive_habits_and_reme_utility_loop() {
             json!({"habitIds": [habit_id], "outcome": "overridden"}),
         );
     }
-    let after_decay = call(&engine, "get_habits_center", json!({"projectId": project_id}));
+    let after_decay = call(
+        &engine,
+        "get_habits_center",
+        json!({"projectId": project_id}),
+    );
     let tracked = after_decay["habits"]
         .as_array()
         .unwrap()
@@ -199,7 +217,11 @@ fn prelude_report_edits_pahf_feedback_proactive_habits_and_reme_utility_loop() {
         }),
     );
     let saved_habits = pahf["savedHabits"].as_array().unwrap();
-    assert_eq!(saved_habits.len(), 2, "expected priority + assignee habits: {pahf}");
+    assert_eq!(
+        saved_habits.len(),
+        2,
+        "expected priority + assignee habits: {pahf}"
+    );
     assert!(saved_habits
         .iter()
         .any(|h| h["patternKey"] == "workflow:copilot:create_task:priority:high"));
@@ -225,13 +247,20 @@ fn prelude_report_edits_pahf_feedback_proactive_habits_and_reme_utility_loop() {
             }),
         );
     }
-    let scan1 = call(&engine, "run_proactive_scan", json!({"projectId": project_id}));
+    let scan1 = call(
+        &engine,
+        "run_proactive_scan",
+        json!({"projectId": project_id}),
+    );
     let actions1 = scan1["actions"].as_array().unwrap();
     let task_actions: Vec<&Value> = actions1
         .iter()
         .filter(|a| a["targetKind"] == "task" && a["status"] == "ready")
         .collect();
-    assert!(task_actions.len() >= 3, "expected >=3 overdue task proactive items: {scan1}");
+    assert!(
+        task_actions.len() >= 3,
+        "expected >=3 overdue task proactive items: {scan1}"
+    );
     let baseline_priority = task_actions[0]["priority"].as_i64().unwrap();
 
     for action in task_actions.iter().take(3) {
@@ -247,13 +276,19 @@ fn prelude_report_edits_pahf_feedback_proactive_habits_and_reme_utility_loop() {
         );
     }
 
-    let habits_after_dismiss = call(&engine, "get_habits_center", json!({"projectId": project_id}));
+    let habits_after_dismiss = call(
+        &engine,
+        "get_habits_center",
+        json!({"projectId": project_id}),
+    );
     let remind_prop = habits_after_dismiss["proposals"]
         .as_array()
         .unwrap()
         .iter()
         .find(|p| p["patternKey"] == "reminder:deprioritize:task")
-        .unwrap_or_else(|| panic!("expected reminder:deprioritize:task proposal: {habits_after_dismiss}"));
+        .unwrap_or_else(|| {
+            panic!("expected reminder:deprioritize:task proposal: {habits_after_dismiss}")
+        });
     call(
         &engine,
         "resolve_habit_proposal",
@@ -280,7 +315,11 @@ fn prelude_report_edits_pahf_feedback_proactive_habits_and_reme_utility_loop() {
         }),
     );
     let task4_id = task4["id"].as_str().unwrap();
-    let scan2 = call(&engine, "run_proactive_scan", json!({"projectId": project_id}));
+    let scan2 = call(
+        &engine,
+        "run_proactive_scan",
+        json!({"projectId": project_id}),
+    );
     let action4 = scan2["actions"]
         .as_array()
         .unwrap()
@@ -362,15 +401,31 @@ fn sleep_time_memory_audit_detects_resolves_and_survives_backup_restore() {
         }),
     );
 
-    let audit_res = call(&engine, "run_memory_audit", json!({"projectId": project_id}));
+    let audit_res = call(
+        &engine,
+        "run_memory_audit",
+        json!({"projectId": project_id}),
+    );
     let audits = audit_res["audits"].as_array().unwrap();
     let kinds: Vec<&str> = audits.iter().filter_map(|a| a["kind"].as_str()).collect();
-    assert!(kinds.contains(&"date_conflict"), "missing date_conflict in {audit_res}");
-    assert!(kinds.contains(&"owner_conflict"), "missing owner_conflict in {audit_res}");
-    assert!(kinds.contains(&"negation_conflict"), "missing negation_conflict in {audit_res}");
+    assert!(
+        kinds.contains(&"date_conflict"),
+        "missing date_conflict in {audit_res}"
+    );
+    assert!(
+        kinds.contains(&"owner_conflict"),
+        "missing owner_conflict in {audit_res}"
+    );
+    assert!(
+        kinds.contains(&"negation_conflict"),
+        "missing negation_conflict in {audit_res}"
+    );
 
     // Resolve date_conflict by keeping mem_new_date (2026-12-10) and archiving mem_old_date (2026-12-01)
-    let date_audit = audits.iter().find(|a| a["kind"] == "date_conflict").unwrap();
+    let date_audit = audits
+        .iter()
+        .find(|a| a["kind"] == "date_conflict")
+        .unwrap();
     let keep_action = if date_audit["memoryA"]["id"] == mem_new_date {
         "keep_a"
     } else {
@@ -402,11 +457,20 @@ fn sleep_time_memory_audit_detects_resolves_and_survives_backup_restore() {
         .iter()
         .filter_map(|m| m["id"].as_str())
         .collect();
-    assert!(ids.contains(&mem_new_date.as_str()), "kept memory missing: {search}");
-    assert!(!ids.contains(&mem_old_date.as_str()), "archived memory leaked: {search}");
+    assert!(
+        ids.contains(&mem_new_date.as_str()),
+        "kept memory missing: {search}"
+    );
+    assert!(
+        !ids.contains(&mem_old_date.as_str()),
+        "archived memory leaked: {search}"
+    );
 
     // Dismiss owner_conflict -> leaves both active
-    let owner_audit = audits.iter().find(|a| a["kind"] == "owner_conflict").unwrap();
+    let owner_audit = audits
+        .iter()
+        .find(|a| a["kind"] == "owner_conflict")
+        .unwrap();
     let dismissed = call(
         &engine,
         "resolve_memory_audit",
@@ -425,11 +489,19 @@ fn sleep_time_memory_audit_detects_resolves_and_survives_backup_restore() {
         json!({"filename": filename, "contentBase64": encoded, "confirmation": "RESTORE"}),
     );
 
-    let habits_restored = call(&engine, "get_habits_center", json!({"projectId": project_id}));
+    let habits_restored = call(
+        &engine,
+        "get_habits_center",
+        json!({"projectId": project_id}),
+    );
     assert_eq!(habits_restored["counts"]["activeHabits"], 1);
     assert_eq!(habits_restored["habits"][0]["title"], "周报先列阻塞风险");
 
-    let audits_restored = call(&engine, "get_memory_audits", json!({"projectId": project_id}));
+    let audits_restored = call(
+        &engine,
+        "get_memory_audits",
+        json!({"projectId": project_id}),
+    );
     assert_eq!(audits_restored["openCount"], 1);
     assert_eq!(audits_restored["audits"][0]["kind"], "negation_conflict");
 }

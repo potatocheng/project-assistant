@@ -260,7 +260,7 @@ export function buildSystemPrompt(
   const activeProject = state.projects.find(p => p.id === projectId);
   const projectList = state.projects.map(p => `- ${p.name} (id: ${p.id})`).join('\n') || '（暂无项目）';
   const lines = [
-    '你是「循序（Cadence）」内置的 AI 副驾驶（基于 Pi Agent 运行时），专门协助项目经理高效推进日常交付与项目管理。',
+    '你是「循序（Cadence）」内置的 AI 副驾驶，专门协助项目经理高效推进日常交付与项目管理。',
     `当前日期：${date}`,
     `当前页面：${contextLabel}`,
     `当前项目范围：${activeProject ? `${activeProject.name} (id: ${activeProject.id})` : '全部项目'}`,
@@ -332,20 +332,25 @@ export function buildSystemPrompt(
   return lines.join('\n');
 }
 
+const PRIORITY_ZH: Record<string, string> = { high: '高', medium: '中', low: '低' };
+const STATUS_ZH: Record<string, string> = { todo: '待办', in_progress: '进行中', blocked: '阻塞', done: '已完成', cancelled: '已取消' };
+const SEVERITY_ZH: Record<string, string> = { high: '高', medium: '中', low: '低' };
+
 function summarizeApproval(
   toolName: string,
   args: Record<string, unknown>,
   state: AppState,
+  defaultDate: string,
 ): { title: string; summary: string; details: string[] } {
   const projectName = (id: unknown) =>
-    state.projects.find(p => p.id === id)?.name || String(id || '默认项目');
+    state.projects.find(p => p.id === id)?.name || state.projects[0]?.name || '默认项目';
 
   if (toolName === 'create_task') {
     const details = [`项目：${projectName(args.projectId)}`];
     if (args.assignee) details.push(`负责人：${String(args.assignee)}`);
     if (args.dueDate) details.push(`截止日期：${String(args.dueDate)}`);
     if (args.plannedDate) details.push(`计划执行日：${String(args.plannedDate)}`);
-    if (args.priority) details.push(`优先级：${String(args.priority)}`);
+    if (args.priority) details.push(`优先级：${PRIORITY_ZH[String(args.priority)] ?? String(args.priority)}`);
     return {
       title: '新建项目任务',
       summary: `创建任务「${String(args.title ?? '')}」`,
@@ -357,7 +362,7 @@ function summarizeApproval(
     const existing = state.tasks.find(t => t.id === args.taskId);
     const details: string[] = [];
     if (args.status && existing && args.status !== existing.status) {
-      details.push(`状态：${existing.status} → ${String(args.status)}`);
+      details.push(`状态：${STATUS_ZH[existing.status] ?? existing.status} → ${STATUS_ZH[String(args.status)] ?? String(args.status)}`);
     }
     if (args.dueDate !== undefined && existing && args.dueDate !== existing.dueDate) {
       details.push(`截止日期：${existing.dueDate || '未设置'} → ${String(args.dueDate || '清除')}`);
@@ -382,7 +387,7 @@ function summarizeApproval(
       `项目：${projectName(args.projectId)}`,
       `类型：${isDecision ? '待拍板决策' : '项目风险'}`,
     ];
-    if (args.severity) details.push(`严重度：${String(args.severity)}`);
+    if (args.severity) details.push(`严重度：${SEVERITY_ZH[String(args.severity)] ?? String(args.severity)}`);
     if (args.dueDate) details.push(`期限：${String(args.dueDate)}`);
     return {
       title: isDecision ? '新增待决策事项' : '记录项目风险',
@@ -394,7 +399,7 @@ function summarizeApproval(
   if (toolName === 'generate_daily_report') {
     return {
       title: '生成工作日报',
-      summary: `生成 ${String(args.date || '今日')} 工作日报草稿并打开编辑页`,
+      summary: `生成 ${String(args.date || defaultDate)} 工作日报草稿`,
       details: [args.projectId ? `范围：${projectName(args.projectId)}` : '范围：全部项目'],
     };
   }
@@ -678,7 +683,9 @@ export function createPmAgentTools(deps: {
           progress: 0,
           dueDate: params.dueDate || null,
           plannedDate: params.plannedDate || null,
-          note: '通过 Pi AI 副驾驶创建',
+          workDate: getDate(),
+          clientRequestId: crypto.randomUUID(),
+          note: '通过 AI 副驾驶创建',
         });
         await onMutated();
         return {
@@ -725,7 +732,9 @@ export function createPmAgentTools(deps: {
           progress: nextProgress,
           dueDate: params.dueDate !== undefined ? params.dueDate : existing.dueDate,
           plannedDate: params.plannedDate !== undefined ? params.plannedDate : existing.plannedDate,
-          note: params.note?.trim() || '通过 Pi AI 副驾驶更新',
+          workDate: getDate(),
+          clientRequestId: crypto.randomUUID(),
+          note: params.note?.trim() || '通过 AI 副驾驶更新',
         });
         await onMutated();
         return {
@@ -770,7 +779,7 @@ export function createPmAgentTools(deps: {
           links: [],
           evidenceIds: [],
           workDate: getDate(),
-          note: '通过 Pi AI 副驾驶记录',
+          note: '通过 AI 副驾驶记录',
         });
         await onMutated();
         return {
@@ -782,7 +791,7 @@ export function createPmAgentTools(deps: {
     defineTool({
       name: 'generate_daily_report',
       label: '生成工作日报草稿',
-      description: '基于当日任务完成情况与项目进展生成工作日报草稿并打开编辑页（需用户确认）。',
+      description: '基于当日任务完成情况与项目进展生成工作日报草稿（需用户确认）。',
       parameters: Type.Object({
         date: Type.Optional(Type.String({ description: '日期 YYYY-MM-DD，默认今天' })),
         projectId: Type.Optional(Type.String({ description: '可选，限定单个项目，不填则汇总全部项目' })),
@@ -796,7 +805,6 @@ export function createPmAgentTools(deps: {
           clientRequestId: crypto.randomUUID(),
         });
         await onMutated();
-        onNavigate?.('reports');
         return {
           content: [{ type: 'text', text: JSON.stringify({ ok: true, report }) }],
           details: { kind: 'write', action: 'generate_daily_report' },
@@ -883,7 +891,7 @@ export function createPmCopilotAgent(deps: {
         return undefined;
       }
       const args = (ctx.args && typeof ctx.args === 'object' ? ctx.args : {}) as Record<string, unknown>;
-      const info = summarizeApproval(ctx.toolCall.name, args, getState());
+      const info = summarizeApproval(ctx.toolCall.name, args, getState(), getDate());
       const rawDecision = await requestApproval(
         {
           toolCallId: ctx.toolCall.id,

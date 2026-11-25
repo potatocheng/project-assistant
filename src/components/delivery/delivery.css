@@ -24,7 +24,7 @@
 .delivery-project-row:hover { background: var(--bg-subtle); }
 .delivery-project-row.selected { background: var(--accent-soft); }
 .delivery-project-row strong { font-size: var(--fs-sm); font-weight: 600; display: block; }
-.delivery-project-row small { margin-top: 5px; display: block; color: var(--text-muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 360px; }
+.delivery-project-row small { margin-top: 5px; display: block; font-size: var(--fs-xs); color: var(--text-muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 360px; }
 .delivery-health { display: inline-flex; gap: 5px; align-items: center; font-size: var(--fs-xs); white-space: nowrap; color: var(--success-text); }
 .delivery-health:before { content: ''; display: inline-block; width: 5px; height: 5px; background: currentColor; border-radius: 50%; }
 .delivery-health-at_risk { color: var(--warning-text); }
@@ -53,7 +53,7 @@
 .delivery-milestone-dates > span { font-size: var(--fs-xs); margin-left: auto; }
 .delivery-milestone-progress { display: flex; gap: 14px; align-items: center; }
 .delivery-milestone-progress > div { flex: 1; height: 4px; background: var(--border); overflow: hidden; border-radius: var(--radius-xs); }
-.delivery-milestone-progress i { display: block; height: 100%; background: var(--accent); }
+.delivery-milestone-progress i { display: block; height: 100%; background: var(--accent); transition: width var(--dur-slow) var(--ease-out); }
 .delivery-milestone-progress > span { color: var(--text-muted); font-size: var(--fs-xs); }
 .delivery-inline-hint { font-size: var(--fs-xs); line-height: 1.85; color: var(--text-muted); margin-top: 12px; }
 .delivery-task-links { margin-top: 14px; font-size: var(--fs-xs); }
@@ -209,7 +209,7 @@
   background: var(--bg-muted);
   gap: 2px;
 }
-.health-stacked-bar > i { display: block; height: 100%; }
+.health-stacked-bar > i { display: block; height: 100%; transition: width var(--dur-slow) var(--ease-out); }
 .health-stacked-bar > i.is-done, .health-legend b.is-done { background: var(--success); }
 .health-stacked-bar > i.is-progress, .health-legend b.is-progress { background: var(--accent); }
 .health-stacked-bar > i.is-blocked, .health-legend b.is-blocked { background: var(--danger); }
@@ -237,8 +237,13 @@
   margin-top: 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   background: var(--bg-subtle);
+  scrollbar-width: thin;
+}
+.gantt-inner {
+  min-width: 500px;
 }
 .gantt-axis,
 .gantt-row {
@@ -249,7 +254,7 @@
 }
 .gantt-axis {
   border-bottom: 1px solid var(--border);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   background: var(--bg-muted);
 }
@@ -294,6 +299,23 @@
 }
 .gantt-row:last-child { border-bottom: 0; }
 .gantt-row:hover { background: var(--bg-subtle); }
+.gantt-row .gantt-bar,
+.gantt-row .gantt-task-bar,
+.gantt-row .gantt-baseline-marker {
+  transition:
+    box-shadow var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-out);
+}
+.gantt-row:hover .gantt-bar,
+.gantt-row:hover .gantt-task-bar {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--accent);
+}
+.gantt-row:hover .gantt-baseline-marker {
+  border-color: var(--accent);
+  transform: translate(-50%, -50%) rotate(45deg) scale(1.18);
+}
 .gantt-row.is-subrow .gantt-label-col {
   padding-left: 22px;
   color: var(--text-secondary);
@@ -339,7 +361,7 @@
   display: flex;
   align-items: center;
   padding: 0 7px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -361,9 +383,9 @@
   border: 1px solid var(--success-border);
 }
 .gantt-task-bar {
-  height: 16px;
+  height: 20px;
   border-radius: var(--radius-full);
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
 }
 .gantt-task-bar.is-task {
   background: var(--bg-muted);
@@ -389,7 +411,7 @@
   flex-wrap: wrap;
   gap: 14px;
   padding: 7px 12px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   background: var(--bg-subtle);
   border-top: 1px solid var(--border);

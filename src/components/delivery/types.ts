@@ -1,4 +1,5 @@
 import type { AppState, Evidence, ManagementKind, Task, MemoryQueryTrace, MemoryQualityReview } from '../../types';
+import type { ToastAction } from '../interaction';
 
 export interface DeliveryProps {
   state: AppState;
@@ -6,7 +7,7 @@ export interface DeliveryProps {
   date: string;
   onChanged: () => Promise<unknown>;
   onTaskOpen: (taskId: string, projectId: string) => void;
-  notify: (message: string, error?: boolean) => void;
+  notify: (message: string, error?: boolean, action?: ToastAction) => void;
   onManagementOpen?: (kind: ManagementKind, id: string, projectId: string) => void;
   onMemoryOpen?: (memoryId: string, projectId: string) => void;
   onEvidence?: (evidence: Evidence) => void;

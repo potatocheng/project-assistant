@@ -239,6 +239,31 @@ impl Database {
         )?;
         Ok(json!({"dismissed":true}))
     }
+    pub(crate) fn reopen_planning_draft(&self, p: &Value) -> Result<Value> {
+        let draft_id = required(p, "draftId")?;
+        let row = self
+            .conn
+            .query_row(
+                "SELECT status,day FROM planning_drafts WHERE id=?",
+                [draft_id],
+                |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)),
+            )
+            .optional()?
+            .ok_or_else(|| invalid("排期草案不存在"))?;
+        if row.0 == "applied" {
+            return Err(invalid("已应用的排期无法恢复为草案"));
+        }
+        if row.1 < today() {
+            return Err(invalid("过去日期的草案无法恢复"));
+        }
+        if row.0 == "dismissed" {
+            self.conn.execute(
+                "UPDATE planning_drafts SET status='pending' WHERE id=? AND status='dismissed'",
+                [draft_id],
+            )?;
+        }
+        Ok(json!({"reopened":true}))
+    }
     pub(crate) fn confirm_planning_draft(&mut self, p: &Value) -> Result<Value> {
         let draft = required(p, "draftId")?;
         let row=self.conn.query_row("SELECT kind,status,snapshot_json,result_json,selected_json FROM planning_drafts WHERE id=?",[draft],|r|Ok((r.get::<_,String>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?,r.get::<_,String>(3)?,r.get::<_,String>(4)?))).optional()?.ok_or_else(||invalid("建议不存在"))?;
@@ -316,6 +341,22 @@ impl Database {
             return Err(stale());
         }
         Ok(json!({"removed":true}))
+    }
+    pub(crate) fn restore_task_relation(&self, p: &Value) -> Result<Value> {
+        let id = required(p, "relationId")?;
+        let exists: bool = self.conn.query_row(
+            "SELECT EXISTS(SELECT 1 FROM task_relations WHERE id=? AND kind IN ('dependency','blocker'))",
+            [id],
+            |r| r.get(0),
+        )?;
+        if !exists {
+            return Err(invalid("未找到对应依赖或阻塞记录"));
+        }
+        self.conn.execute(
+            "UPDATE task_relations SET active=1 WHERE id=? AND active=0 AND kind IN ('dependency','blocker')",
+            [id],
+        )?;
+        Ok(json!({"restored":true}))
     }
     pub(crate) fn preview_task_relation(&self, p: &Value) -> Result<Value> {
         let snapshot = self.planning_snapshot(p)?;

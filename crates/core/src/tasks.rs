@@ -448,6 +448,21 @@ fn reject_proposal(conn: &Connection, p: &Value) -> Result<Value> {
     )?;
     proposal(conn, id)
 }
+fn reopen_task_proposal(conn: &Connection, p: &Value) -> Result<Value> {
+    let id = required(p, "proposalId")?;
+    let current = proposal(conn, id)?;
+    if current["status"] == "confirmed" {
+        return Err(AppError::new("CONFLICT", "已确认的任务无法恢复为待确认"));
+    }
+    if current["status"] == "pending" {
+        return Ok(current);
+    }
+    conn.execute(
+        "UPDATE task_proposals SET status='pending' WHERE id=? AND status='rejected'",
+        [id],
+    )?;
+    proposal(conn, id)
+}
 pub(crate) fn confirm_proposal(conn: &Connection, p: &Value) -> Result<Value> {
     let id = required(p, "proposalId")?;
     let candidate = proposal(conn, id)?;
@@ -953,6 +968,7 @@ pub(crate) fn dispatch(conn: &mut Connection, command: &str, p: &Value) -> Resul
         "get_daily_report" => get_report(conn, required(p, "reportId")?),
         "update_task_proposal" => edit_proposal(conn, p),
         "reject_task_proposal" => reject_proposal(conn, p),
+        "reopen_task_proposal" => reopen_task_proposal(conn, p),
         _ => Err(AppError::new("UNKNOWN_COMMAND", "未知操作")),
     }
 }

@@ -33,9 +33,8 @@ pub(crate) fn ensure_sqlite_vec_registered() {
             *mut *mut std::ffi::c_char,
             *const rusqlite::ffi::sqlite3_api_routines,
         ) -> std::ffi::c_int;
-        let init_fn: AutoExt = std::mem::transmute::<*const (), AutoExt>(
-            sqlite_vec::sqlite3_vec_init as *const (),
-        );
+        let init_fn: AutoExt =
+            std::mem::transmute::<*const (), AutoExt>(sqlite_vec::sqlite3_vec_init as *const ());
         rusqlite::ffi::sqlite3_auto_extension(Some(init_fn));
     });
 }
@@ -251,9 +250,7 @@ pub(crate) fn save_settings(root: &Path, p: &Value) -> Result<Value> {
         .filter(|s| !s.is_empty())
         .unwrap_or(&old.model)
         .to_owned();
-    let timeout_seconds = p["timeoutSeconds"]
-        .as_u64()
-        .unwrap_or(old.timeout_seconds);
+    let timeout_seconds = p["timeoutSeconds"].as_u64().unwrap_or(old.timeout_seconds);
     let remote_consent = p["remoteConsent"].as_bool().unwrap_or(old.remote_consent);
     let api_key = match p.get("apiKey") {
         Some(Value::String(key)) => {
@@ -269,7 +266,12 @@ pub(crate) fn save_settings(root: &Path, p: &Value) -> Result<Value> {
         }
         None if provider == old.provider && base_url == old.base_url => old.api_key.clone(),
         None => None,
-        _ => return Err(AppError::new("EMBEDDING_CONFIG", "向量 API Key 必须是字符串")),
+        _ => {
+            return Err(AppError::new(
+                "EMBEDDING_CONFIG",
+                "向量 API Key 必须是字符串",
+            ))
+        }
     };
     let mut next = EmbeddingSettings {
         enabled,
@@ -380,7 +382,9 @@ impl VectorIndex {
     fn meta(&self, key: &str) -> Result<Option<String>> {
         Ok(self
             .conn
-            .query_row("SELECT value FROM vec_meta WHERE key=?", [key], |r| r.get(0))
+            .query_row("SELECT value FROM vec_meta WHERE key=?", [key], |r| {
+                r.get(0)
+            })
             .optional()?)
     }
 
@@ -896,7 +900,14 @@ pub(crate) fn query_hits(
         };
     }
 
-    match query_hits_inner(root, &config, inherited.as_deref(), question, memories, top_k) {
+    match query_hits_inner(
+        root,
+        &config,
+        inherited.as_deref(),
+        question,
+        memories,
+        top_k,
+    ) {
         Ok(outcome) => outcome,
         Err(error) => SemanticQueryOutcome {
             hits: Vec::new(),
@@ -996,7 +1007,9 @@ pub(crate) fn status(root: &Path, active_count: Option<i64>) -> Result<Value> {
     let stats = if root.join(CACHE_FILENAME).exists() {
         VectorIndex::open(root)
             .and_then(|idx| idx.stats())
-            .unwrap_or_else(|_| json!({"indexedCount": 0, "dimensions": null, "vecTableReady": false}))
+            .unwrap_or_else(
+                |_| json!({"indexedCount": 0, "dimensions": null, "vecTableReady": false}),
+            )
     } else {
         json!({"indexedCount": 0, "dimensions": null, "vecTableReady": false})
     };

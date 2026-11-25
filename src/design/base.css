@@ -1,0 +1,49 @@
+:root {
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg-canvas);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: var(--fs-md);
+  line-height: var(--lh-normal);
+  font-variant-numeric: tabular-nums;
+}
+
+@layer ledger-native {
+  * { box-sizing: border-box; }
+  body { margin: 0; min-width: 320px; }
+  button, input, select, textarea:not(:where(.astryx-field *)) { font: inherit; }
+  button, a, input, select, textarea:not(:where(.astryx-field *)) { -webkit-tap-highlight-color: transparent; }
+  button { cursor: pointer; color: inherit; }
+  button:disabled { cursor: not-allowed; opacity: .46; }
+  button, input, textarea, select { outline: none; }
+  button:not(.astryx-button):focus-visible, input:not(:where(.astryx-field *)):focus-visible, textarea:not(:where(.astryx-field *)):focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--text-secondary); outline-offset: 3px; }
+  button { -webkit-app-region: no-drag; }
+  input:not([type='checkbox']):not([type='file']):not(:where(.astryx-field *)), select, textarea:not(:where(.astryx-field *)) {
+    display: block; width: 100%; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text); border-radius: var(--radius-sm); padding: 10px 11px; font-size: var(--fs-md); line-height: 1.6;
+  }
+  input::placeholder, textarea::placeholder { color: var(--text-muted); }
+  textarea:not(:where(.astryx-field *)) { resize: vertical; min-height: 80px; }
+  input[type='checkbox'] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+  p, h1, h2, h3 { margin: 0; }
+  small { font-size: var(--fs-xs); }
+  svg { flex-shrink: 0; }
+}
+
+::selection { color: var(--accent-text); background: var(--accent-soft); }
+body { color: var(--text); background: var(--bg-canvas); }
+a { color: var(--accent-text); text-underline-offset: 3px; }
+
+@layer ledger-native {
+  button, input, select, textarea { caret-color: var(--accent); }
+  button:not(.astryx-button):focus-visible, input:not(:where(.astryx-field *)):focus-visible, textarea:not(:where(.astryx-field *)):focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 3px;
+  }
+  input:not([type='checkbox']):not([type='file']):not(:where(.astryx-field *)):focus, textarea:not(:where(.astryx-field *)):focus, select:focus {
+    border-color: var(--accent-border); box-shadow: var(--focus-ring);
+  }
+}
+
+:where(h1, h2) { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }

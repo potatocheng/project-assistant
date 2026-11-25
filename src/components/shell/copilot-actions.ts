@@ -95,8 +95,18 @@ export function parseRelativeDate(input: string, todayYmd: string): string | nul
 
   const cnDate = input.match(/(\d{1,2})月(\d{1,2})[日号]?/);
   if (cnDate) {
-    const year = todayYmd.slice(0, 4);
-    return `${year}-${cnDate[1].padStart(2, '0')}-${cnDate[2].padStart(2, '0')}`;
+    const month = Number(cnDate[1]);
+    const day = Number(cnDate[2]);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      let year = Number(todayYmd.slice(0, 4));
+      let candidate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      // Year rollover: e.g. asking in late December about "1月5日"
+      if (candidate < addDays(todayYmd, -30)) {
+        year += 1;
+        candidate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
+      return candidate;
+    }
   }
 
   if (/大后天/.test(input)) return addDays(todayYmd, 3);
@@ -259,6 +269,8 @@ export function planCopilotAction(
           : 'medium';
       const cleanedTitle = body
         .replace(/[，,]?\s*(?:负责人|指派给|交给|由)[：:\s]?[\u4e00-\u9fa5A-Za-z0-9_-]{2,12}/g, '')
+        .replace(/[，,]?\s*(?:高优|高优先级|低优|紧急|立刻|马上)\s*$/g, '')
+        .replace(/^[，,\s]+|[，,\s]+$/g, '')
         .trim();
       const title = (cleanedTitle || body).slice(0, 180);
       return {

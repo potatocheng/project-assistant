@@ -45,7 +45,7 @@ export function AssistanceMeta({ data }: { data: Assistance }) {
   const reused = data.cached || trace?.cacheHit;
   const hasReportedUsage = trace?.stages.some(stage => stage.usage != null);
   const reviewKinds = { fact: '事实', hypothesis: '推断', suggestion: '建议', unknown: '待核实信息' };
-  return <details className="ai-assistance-meta"><summary>AI 分析于 {new Date(data.generatedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}{data.cached ? ' · 已复用' : ''}<span> · 查看分析范围</span></summary>
+  return <details className="ai-assistance-meta"><summary>基于 {data.referenceCount} 条记录 · 更新于 {new Date(data.generatedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}{data.cached ? ' · 已复用' : ''}</summary>
     <p>{data.model} · 参考 {data.referenceCount} 条记录。风险判断与行动为建议，请结合实际情况核对。</p>
     {data.review && <div className="ai-assistance-review"><p><strong>事实与建议已完成模型复核。</strong>{data.review.limitation}</p>
       {data.review.unknowns.length > 0 && <div><p>仍需核实：</p><ul>{data.review.unknowns.map((unknown, index) => <li key={index}>{unknown}</li>)}</ul></div>}

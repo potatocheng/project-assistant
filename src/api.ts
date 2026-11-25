@@ -9,17 +9,84 @@ export class AppError extends Error {
   constructor(message: string, code = 'UNKNOWN') { super(message); this.name = 'AppError'; this.code = code; }
 }
 
+function humanizeMessage(raw: string, code = 'UNKNOWN'): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return '操作未完成，请重试。';
+  if (/failed to fetch|networkerror|load failed|err_connection|econnrefused/i.test(trimmed)) {
+    return '暂时无法连接本机服务，请稍候重试或重启应用。';
+  }
+  if (/unexpected token|is not valid json|json\.parse/i.test(trimmed)) {
+    return '本地服务返回格式异常，请刷新后重试。';
+  }
+  if (/aborterror|aborted/i.test(trimmed)) {
+    return '操作已取消。';
+  }
+  if (/quotaexceeded|storage.*full/i.test(trimmed)) {
+    return '本地缓存空间不足，请清理后重试。';
+  }
+  if (/clipboard|writeText/i.test(trimmed) && /[a-z]{4,}/i.test(trimmed)) {
+    return '未能自动写入剪贴板，请手动选中复制。';
+  }
+  if (/database is locked|sqlite/i.test(trimmed)) {
+    return '本机工作区正忙，请稍候重试。';
+  }
+  if (/permission denied/i.test(trimmed)) {
+    return '没有文件读写权限，请检查目录权限或更换保存位置。';
+  }
+  if (/no such file or directory/i.test(trimmed)) {
+    return '找不到目标文件，请确认文件未被移动或删除。';
+  }
+  if (code === 'HOST_UNAVAILABLE' || /rust host exited/i.test(trimmed)) {
+    return '本机核心服务已断开，请刷新页面或重启应用。';
+  }
+  return trimmed;
+}
+
 export function asError(error: unknown): AppError {
-  if (error instanceof AppError) return error;
-  if (error instanceof Error) return new AppError(error.message);
+  if (error instanceof AppError) return new AppError(humanizeMessage(error.message, error.code), error.code);
+  if (error instanceof Error) {
+    const msg = error.message.trim();
+    if (msg.startsWith('{') && msg.endsWith('}')) {
+      try { return asError(JSON.parse(msg)); } catch {}
+    }
+    return new AppError(humanizeMessage(msg));
+  }
   if (typeof error === 'string') {
-    try { return asError(JSON.parse(error)); } catch { return new AppError(error); }
+    const msg = error.trim();
+    if (msg.startsWith('{')) {
+      try { return asError(JSON.parse(msg)); } catch {}
+    }
+    return new AppError(humanizeMessage(msg));
   }
   if (typeof error === 'object' && error !== null && 'message' in error) {
     const value = error as { message: unknown; code?: unknown };
-    return new AppError(String(value.message), String(value.code ?? 'UNKNOWN'));
+    const code = String(value.code ?? 'UNKNOWN');
+    return new AppError(humanizeMessage(String(value.message), code), code);
   }
   return new AppError('操作未完成，请重试。');
+}
+
+async function parseJsonResponse(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new AppError(response.ok ? '本地服务返回格式异常，请刷新后重试。' : '本地服务暂时不可用，请稍后重试。', 'INVALID_RESPONSE');
+  }
+}
+
+export async function openExternalUrl(url: string): Promise<void> {
+  if (!/^https:\/\//i.test(url)) return;
+  try {
+    if ('__TAURI_INTERNALS__' in window) {
+      await invoke('open_external_url', { url });
+      return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  } catch (error) {
+    throw asError(error);
+  }
 }
 
 function checkedBridge(): string {
@@ -40,16 +107,16 @@ export async function execute<T>(command: string, payload: Record<string, unknow
       const response = await fetch(`${checkedBridge()}/execute`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command, payload }),
       });
-      const data: unknown = await response.json();
+      const data: unknown = await parseJsonResponse(response);
       if (!response.ok) throw asError(data);
       return data as T;
     }
-    throw new AppError('请从桌面应用打开工作区。浏览器预览需要连接本机开发适配器。', 'DESKTOP_REQUIRED');
+    throw new AppError('请从桌面应用打开工作区。', 'DESKTOP_REQUIRED');
   } catch (error) { throw asError(error); }
 }
 
-export async function readFile(file: File, limitMiB = 10): Promise<FileInput> {
-  if (file.size > limitMiB * 1024 * 1024) throw new AppError(`文件超过 ${limitMiB} MiB，请选择较小的文件。`, 'FILE_TOO_LARGE');
+export async function readFile(file: File, limitMB = 10): Promise<FileInput> {
+  if (file.size > limitMB * 1024 * 1024) throw new AppError(`文件超过 ${limitMB} MB，请选择较小的文件。`, 'FILE_TOO_LARGE');
   if (!file.size) throw new AppError('文件为空，请重新选择。', 'EMPTY_FILE');
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -71,14 +138,14 @@ export async function exportBackup(backupId: string, filename: string, password?
     if (password) throw new AppError('请在桌面应用中加密导出。');
     if (import.meta.env.DEV && bridge) {
       const response = await fetch(`${checkedBridge()}/backups/${encodeURIComponent(backupId)}/download`);
-      if (!response.ok) throw asError(await response.json());
+      if (!response.ok) throw asError(await parseJsonResponse(response));
       const objectUrl = URL.createObjectURL(await response.blob());
       const anchor = document.createElement('a');
       anchor.href = objectUrl; anchor.download = filename; anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
       return true;
     }
-    throw new AppError('请从桌面应用打开备份中心。浏览器导出仅在本机开发预览中可用。', 'DESKTOP_REQUIRED');
+    throw new AppError('请从桌面应用打开备份中心进行导出。', 'DESKTOP_REQUIRED');
   } catch (error) { throw asError(error); }
 }
 
@@ -90,7 +157,7 @@ export async function exportReport(reportId: string, filename: string): Promise<
     }
     if (import.meta.env.DEV && bridge) {
       const response = await fetch(`${checkedBridge()}/reports/${encodeURIComponent(reportId)}/download`);
-      if (!response.ok) throw asError(await response.json());
+      if (!response.ok) throw asError(await parseJsonResponse(response));
       const objectUrl = URL.createObjectURL(await response.blob());
       const anchor = document.createElement('a'); anchor.href = objectUrl; anchor.download = filename; anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000); return true;
@@ -159,7 +226,8 @@ export async function exportDocument(params: {
     } else if (params.format === 'docx') {
       throw new AppError('原生 Word (.docx) 导出请在桌面端应用中使用，或在当前界面使用「复制富文本 / 存 PDF」。', 'DESKTOP_REQUIRED');
     } else if (params.format === 'csv') {
-      blob = new Blob([`\uFEFF${params.content}`], { type: 'text/csv;charset=utf-8' });
+      const payload = params.content.startsWith('\uFEFF') ? params.content : `\uFEFF${params.content}`;
+      blob = new Blob([payload], { type: 'text/csv;charset=utf-8' });
     } else if (params.format === 'json') {
       blob = new Blob([params.content], { type: 'application/json;charset=utf-8' });
     } else if (params.format === 'html') {

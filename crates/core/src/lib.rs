@@ -92,17 +92,42 @@ impl fmt::Display for AppError {
 impl std::error::Error for AppError {}
 impl From<rusqlite::Error> for AppError {
     fn from(e: rusqlite::Error) -> Self {
-        Self::new("DATABASE", e.to_string())
+        if let rusqlite::Error::SqliteFailure(err, Some(ref msg)) = e {
+            if err.extended_code == rusqlite::ffi::SQLITE_CONSTRAINT_TRIGGER {
+                return Self::new("DATABASE", msg.clone());
+            }
+        }
+        let message = match &e {
+            rusqlite::Error::SqliteFailure(err, _) => match err.code {
+                rusqlite::ErrorCode::DatabaseBusy | rusqlite::ErrorCode::DatabaseLocked => {
+                    "本机工作区正忙，请稍后重试"
+                }
+                rusqlite::ErrorCode::ConstraintViolation => "数据存在重复或冲突，请刷新后重试",
+                rusqlite::ErrorCode::ReadOnly => "当前工作区只读，无法写入数据",
+                rusqlite::ErrorCode::DiskFull => "磁盘空间不足，无法写入本机数据",
+                _ => "本机数据读写出错，请稍后重试",
+            },
+            _ => "本机数据读写出错，请稍后重试",
+        };
+        Self::new("DATABASE", message)
     }
 }
 impl From<std::io::Error> for AppError {
     fn from(e: std::io::Error) -> Self {
-        Self::new("IO", e.to_string())
+        let message = match e.kind() {
+            std::io::ErrorKind::PermissionDenied => {
+                "没有该位置的读写权限，请换一个目录或检查系统权限"
+            }
+            std::io::ErrorKind::NotFound => "找不到目标文件或目录",
+            std::io::ErrorKind::AlreadyExists => "目标文件已存在，请更换名称或位置",
+            _ => "本地文件读写失败，请检查文件是否被占用或磁盘空间是否充足",
+        };
+        Self::new("IO", message)
     }
 }
 impl From<zip::result::ZipError> for AppError {
-    fn from(e: zip::result::ZipError) -> Self {
-        Self::new("ARCHIVE", e.to_string())
+    fn from(_: zip::result::ZipError) -> Self {
+        Self::new("ARCHIVE", "压缩包或办公文档结构损坏，无法读取")
     }
 }
 pub fn encrypt_backup_bytes(
@@ -157,11 +182,37 @@ pub(crate) fn sync_file(path: &Path) -> Result<()> {
         .sync_all()?;
     Ok(())
 }
+pub(crate) fn field_label(key: &str) -> &str {
+    match key {
+        "title" => "标题",
+        "content" => "内容",
+        "note" => "说明",
+        "reason" => "原因",
+        "projectId" => "所属项目",
+        "sourceId" => "所属资料",
+        "taskId" => "任务",
+        "workDate" | "date" => "日期",
+        "proposalId" => "候选项",
+        "memoryId" => "记忆",
+        "question" => "问题",
+        "name" => "名称",
+        "provider" => "模型服务类型",
+        "baseUrl" => "模型服务地址",
+        "model" => "模型名称",
+        "outputFormat" => "输出格式",
+        "reportId" => "报告",
+        "draftId" => "草案",
+        "relationId" => "关系记录",
+        "clientRequestId" => "请求标识",
+        "id" => "记录标识",
+        _ => key,
+    }
+}
 pub(crate) fn required<'a>(p: &'a Value, key: &str) -> Result<&'a str> {
     p.get(key)
         .and_then(Value::as_str)
         .filter(|v| !v.trim().is_empty())
-        .ok_or_else(|| AppError::new("VALIDATION", format!("缺少有效字段：{key}")))
+        .ok_or_else(|| AppError::new("VALIDATION", format!("缺少有效{}", field_label(key))))
 }
 
 enum Message {
@@ -629,7 +680,7 @@ impl Engine {
             return Ok(json!({"enabled":true}));
         }
         if request.command == "test_ai_connection" {
-            let settings = settings::load(&self.inner.root)?;
+            let settings = settings::preview_for_test(&self.inner.root, &request.payload)?;
             settings.validate_credentials()?;
             return ai::test_connection(&settings.config(), settings.api_key.as_deref());
         }
@@ -704,7 +755,10 @@ impl Engine {
                 payload: request.payload.clone(),
             })?;
             let inputs = semantic::ActiveMemoryInput::from_values(
-                active["memories"].as_array().map(Vec::as_slice).unwrap_or(&[]),
+                active["memories"]
+                    .as_array()
+                    .map(Vec::as_slice)
+                    .unwrap_or(&[]),
             );
             return semantic::rebuild_index(&self.inner.root, &inputs);
         }
@@ -854,6 +908,8 @@ fn affects_proactive_actions(command: &str) -> bool {
         "revise_",
         "record_",
         "remove_",
+        "reopen_",
+        "restore_",
         "transition_",
         "review_",
         "delete_",
@@ -862,6 +918,171 @@ fn affects_proactive_actions(command: &str) -> bool {
     ]
     .iter()
     .any(|prefix| command.starts_with(prefix))
+}
+
+pub fn is_public_command(command: &str) -> bool {
+    matches!(
+        command,
+        "get_state"
+            | "get_usage_summary"
+            | "get_diagnostics"
+            | "ask_conversation"
+            | "list_conversations"
+            | "create_conversation"
+            | "get_conversation"
+            | "favorite_answer"
+            | "search_workspace"
+            | "get_credential_protection"
+            | "enable_credential_protection"
+            | "get_desktop_settings"
+            | "save_desktop_settings"
+            | "get_backup_policy"
+            | "save_backup_policy"
+            | "run_automatic_backup"
+            | "get_workspace_revision"
+            | "get_draft"
+            | "save_draft"
+            | "delete_draft"
+            | "get_retention_reviews"
+            | "review_retention"
+            | "lifecycle_impact"
+            | "set_lifecycle"
+            | "create_project"
+            | "import_text"
+            | "import_file"
+            | "get_source"
+            | "create_proposal"
+            | "confirm_proposal"
+            | "reject_proposal"
+            | "reopen_proposal"
+            | "get_memory"
+            | "revise_memory"
+            | "create_backup"
+            | "inspect_backup"
+            | "restore_backup"
+            | "get_ai_settings"
+            | "save_ai_settings"
+            | "test_ai_connection"
+            | "start_extraction"
+            | "retry_extraction"
+            | "review_extraction_draft"
+            | "cancel_extraction"
+            | "update_proposal"
+            | "batch_schedule_tasks"
+            | "create_task"
+            | "update_task"
+            | "get_task"
+            | "get_daily_list"
+            | "get_daily_planning"
+            | "preview_task_relation"
+            | "save_daily_capacity"
+            | "save_task_estimate"
+            | "remove_task_relation"
+            | "restore_task_relation"
+            | "analyze_task_workload"
+            | "generate_daily_plan"
+            | "confirm_planning_draft"
+            | "dismiss_planning_draft"
+            | "reopen_planning_draft"
+            | "update_task_proposal"
+            | "confirm_task_proposal"
+            | "reject_task_proposal"
+            | "reopen_task_proposal"
+            | "generate_daily_report"
+            | "get_daily_report"
+            | "save_daily_report"
+            | "ask_project"
+            | "ask_project_question"
+            | "ask_assistant"
+            | "generate_today_brief"
+            | "generate_task_coaching"
+            | "get_assistant_preferences"
+            | "save_assistant_preferences"
+            | "clear_assistant_preferences"
+            | "get_project_brief"
+            | "generate_project_brief"
+            | "get_memory_quality"
+            | "check_memory_quality"
+            | "assess_extraction"
+            | "get_management_attention"
+            | "get_governance_workspace"
+            | "get_governance_item"
+            | "save_governance_item"
+            | "record_governance_progress"
+            | "get_change_acceptance"
+            | "save_change_request"
+            | "transition_change_request"
+            | "save_deliverable"
+            | "review_deliverable"
+            | "delete_change_request"
+            | "delete_deliverable"
+            | "coordination_list"
+            | "coordination_generate_report"
+            | "coordination_get_report"
+            | "coordination_save_report"
+            | "coordination_save_meeting"
+            | "coordination_prepare_meeting"
+            | "coordination_get_meeting"
+            | "coordination_save_action"
+            | "coordination_confirm_action"
+            | "get_delivery_overview"
+            | "save_project_profile"
+            | "save_milestone"
+            | "get_follow_up_center"
+            | "get_proactive_center"
+            | "get_assistant_work"
+            | "get_action_proposal"
+            | "decide_action_proposal"
+            | "pause_assistant_work"
+            | "save_assistant_work_settings"
+            | "run_assistant_work"
+            | "get_assistance_runs"
+            | "run_proactive_scan"
+            | "save_proactive_settings"
+            | "update_proactive_action"
+            | "record_follow_up"
+            | "snooze_follow_up"
+            | "get_feishu_status"
+            | "save_feishu_settings"
+            | "begin_feishu_authorization"
+            | "begin_feishu_connection"
+            | "check_feishu_permissions"
+            | "dismiss_feishu_notification"
+            | "disconnect_feishu"
+            | "poll_feishu_now"
+            | "list_feishu_chats"
+            | "list_feishu_private_chats"
+            | "get_feishu_sources"
+            | "save_feishu_sources"
+            | "sync_feishu_sources"
+            | "get_memory_maintenance"
+            | "save_memory_maintenance"
+            | "resolve_memory_review"
+            | "recompare_memory_review"
+            | "retry_memory_maintenance"
+            | "run_memory_maintenance"
+            | "memory_activity"
+            | "copilot_agent_turn"
+            | "polish_report"
+            | "list_entity_aliases"
+            | "save_entity_alias"
+            | "delete_entity_alias"
+            | "get_habits_center"
+            | "resolve_habit_proposal"
+            | "save_user_habit"
+            | "update_habit_status"
+            | "delete_user_habit"
+            | "record_copilot_feedback"
+            | "record_habit_outcome"
+            | "get_memory_audits"
+            | "run_memory_audit"
+            | "resolve_memory_audit"
+            | "get_semantic_search_status"
+            | "save_semantic_search_settings"
+            | "test_embedding_connection"
+            | "rebuild_semantic_index"
+            | "search_verified_memories"
+    )
 }
 
 pub(crate) fn enrich_payload_with_semantic(
@@ -884,7 +1105,8 @@ pub(crate) fn enrich_payload_with_semantic(
     if query_text.is_empty() {
         return payload;
     }
-    let scope_payload = json!({"projectId": payload.get("projectId").cloned().unwrap_or(Value::Null)});
+    let scope_payload =
+        json!({"projectId": payload.get("projectId").cloned().unwrap_or(Value::Null)});
     let Ok(active) = actor_call(
         sender,
         Request {
@@ -895,7 +1117,10 @@ pub(crate) fn enrich_payload_with_semantic(
         return payload;
     };
     let inputs = semantic::ActiveMemoryInput::from_values(
-        active["memories"].as_array().map(Vec::as_slice).unwrap_or(&[]),
+        active["memories"]
+            .as_array()
+            .map(Vec::as_slice)
+            .unwrap_or(&[]),
     );
     let outcome = semantic::query_hits(root, &query_text, &inputs, 64);
     if let Some(obj) = payload.as_object_mut() {

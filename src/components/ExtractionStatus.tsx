@@ -28,10 +28,21 @@ export function ExtractionStatus({ source, job, settings, busy, onStart, onRetry
     <div className="extraction-steps"><span className={source.status === 'processing' ? 'step-active' : source.status === 'ready' ? 'step-done' : ''}>1 解析原文</span><i /><span className={active ? 'step-active' : complete ? 'step-done' : ''}>2 提取候选</span><i /><span>3 人工确认</span></div>
     <div className="extraction-status-title">{active || source.status === 'processing' ? <Spinner /> : failed || source.status === 'failed' ? <CircleAlert size={16} /> : complete ? <Check size={16} /> : cancelled ? <Pause size={16} /> : <Globe2 size={16} />}<h3>{title}</h3></div>
     <p className="extraction-status-note" role={failed ? 'alert' : 'status'}>{note}</p>
-    {active && !!job.totalBatches && <progress className="extraction-progress" value={job.completedBatches} max={job.totalBatches} aria-label="提取批次进度" />}
+    {active && !!job.totalBatches && (
+      <div
+        className="extraction-progress"
+        role="progressbar"
+        aria-label="提取批次进度"
+        aria-valuemin={0}
+        aria-valuemax={job.totalBatches}
+        aria-valuenow={job.completedBatches}
+      >
+        <i style={{ transform: `scaleX(${Math.min(1, Math.max(0, job.completedBatches / job.totalBatches))})` }} />
+      </div>
+    )}
     {(active || complete || failed || cancelled) && job?.model && <div className="extraction-meta"><span>{job.model}</span>{job.attempts > 1 && <span>第 {job.attempts} 次尝试</span>}</div>}
-    {!!job?.discardedCount && <p className="discarded-note">{job.discardedCount} 项未通过原文校验，未加入候选。</p>}
-    {failed && job?.errorCode && <details className="extraction-error-details"><summary>查看错误代码</summary><code>{job.errorCode}</code></details>}
+    {!!job?.discardedCount && <p className="discarded-note">{job.discardedCount} 项未在原文中找到直接依据，已自动过滤。</p>}
+    {failed && job?.errorCode && <details className="extraction-error-details"><summary>技术排查信息</summary><code>{job.errorCode}</code></details>}
     {source.status === 'ready' && <div className="extraction-actions">{active ? <button className="button secondary compact" disabled={!!busy} onClick={onCancel}>{busy === 'cancel-extraction' ? <Spinner /> : <Square size={11} />}取消提取</button> : !canRun ? <button className="button secondary compact" disabled={!!busy} onClick={onSettings}><Settings2 size={13} />配置模型</button> : failed || cancelled ? <button className="button secondary compact" disabled={!!busy} onClick={onRetry}>{busy === 'retry-extraction' ? <Spinner /> : <RefreshCw size={13} />}重新提取</button> : <button className="button secondary compact" disabled={!!busy} onClick={onStart}>{busy === 'start-extraction' ? <Spinner /> : complete ? <RefreshCw size={13} /> : <Play size={12} />}{complete ? '再次提取' : '提取候选'}</button>}{!active && (failed || canRun) && <button className="text-button tiny" disabled={!!busy} onClick={onSettings}>模型设置</button>}</div>}
     {source.status === 'ready' && !active && canRun && <p className="extraction-destination">发送至 {target.host} · 仅生成待确认候选</p>}
   </section>;

@@ -64,9 +64,17 @@ fn extract_iso_dates(text: &str) -> BTreeSet<String> {
     dates
 }
 
-fn extract_owner(content: &str, facets: &Value, alias_map: &HashMap<String, String>) -> Option<String> {
+fn extract_owner(
+    content: &str,
+    facets: &Value,
+    alias_map: &HashMap<String, String>,
+) -> Option<String> {
     if facets["role"].as_str() == Some("owner") {
-        if let Some(entity) = facets["entity"].as_str().map(str::trim).filter(|s| !s.is_empty()) {
+        if let Some(entity) = facets["entity"]
+            .as_str()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+        {
             return Some(canonicalize(entity, alias_map));
         }
     }
@@ -89,7 +97,12 @@ fn extract_owner(content: &str, facets: &Value, alias_map: &HashMap<String, Stri
             let rest = content[start + prefix.len()..].trim_start();
             let candidate: String = rest
                 .chars()
-                .take_while(|c| !matches!(c, '，' | '。' | '、' | ',' | '.' | '；' | ';' | '\n' | ' ' | '（' | '('))
+                .take_while(|c| {
+                    !matches!(
+                        c,
+                        '，' | '。' | '、' | ',' | '.' | '；' | ';' | '\n' | ' ' | '（' | '('
+                    )
+                })
                 .collect();
             let char_len = candidate.chars().count();
             if (1..=12).contains(&char_len) {
@@ -316,7 +329,8 @@ pub(crate) fn scan(conn: &Connection, scope: Option<&str>) -> Result<Value> {
                 {
                     continue;
                 }
-                let shared_entity = matches!((&a.entity, &b.entity), (Some(ea), Some(eb)) if ea == eb);
+                let shared_entity =
+                    matches!((&a.entity, &b.entity), (Some(ea), Some(eb)) if ea == eb);
                 let sim = jaccard(&a.tokens, &b.tokens);
                 if sim < 0.30 && !shared_entity {
                     continue;
@@ -329,7 +343,8 @@ pub(crate) fn scan(conn: &Connection, scope: Option<&str>) -> Result<Value> {
                 {
                     Some((
                         "duplicate_overlap",
-                        "两条活跃记忆表述高度重复，建议保留更完整的一条，将另一条归档为仅存原文。".into(),
+                        "两条活跃记忆表述高度重复，建议保留更完整的一条，将另一条归档为仅存原文。"
+                            .into(),
                     ))
                 } else if (sim >= 0.35 || shared_entity)
                     && !a.dates.is_empty()
@@ -615,7 +630,12 @@ mod tests {
         insert_active(&db.conn, "m3", "p1", "登录审计模块由王明负责。");
         insert_active(&db.conn, "m4", "p1", "登录审计模块由李静负责。");
         insert_active(&db.conn, "m5", "p1", "灰度切换方案需要提前通知客服团队。");
-        insert_active(&db.conn, "m6", "p1", "灰度切换方案已取消，不再通知客服团队。");
+        insert_active(
+            &db.conn,
+            "m6",
+            "p1",
+            "灰度切换方案已取消，不再通知客服团队。",
+        );
 
         let summary = scan(&db.conn, Some("p1")).unwrap();
         assert!(summary["newFindings"].as_u64().unwrap() >= 3);
@@ -626,7 +646,10 @@ mod tests {
         assert!(audits.iter().any(|a| a["kind"] == "owner_conflict"));
         assert!(audits.iter().any(|a| a["kind"] == "negation_conflict"));
 
-        let date_audit = audits.iter().find(|a| a["kind"] == "date_conflict").unwrap();
+        let date_audit = audits
+            .iter()
+            .find(|a| a["kind"] == "date_conflict")
+            .unwrap();
         let audit_id = date_audit["id"].as_str().unwrap();
         let superseded_id = date_audit["memoryA"]["id"].as_str().unwrap().to_owned();
         resolve(
@@ -638,7 +661,11 @@ mod tests {
         // Superseded memory moved to revision 2 with retention layer = archive
         let rev: i64 = db
             .conn
-            .query_row("SELECT revision FROM memories WHERE id=?", [&superseded_id], |r| r.get(0))
+            .query_row(
+                "SELECT revision FROM memories WHERE id=?",
+                [&superseded_id],
+                |r| r.get(0),
+            )
             .unwrap();
         assert_eq!(rev, 2);
         let rev_id: String = db

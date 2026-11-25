@@ -44,7 +44,7 @@
 @media (max-width: 760px) {
   .chat-replies-toolbar { align-items: flex-start; flex-wrap: wrap; padding: 18px 19px; }
   .chat-replies-filters { padding-left: 19px; padding-right: 19px; gap: 8px; }
-  .chat-replies-filters select { padding: 9px 7px; font-size: var(--fs-xs); }
+  .chat-replies-filters select { padding: 0 28px 0 8px; font-size: var(--fs-xs); }
   .chat-replies-caption, .chat-replies-list { padding-left: 19px; padding-right: 19px; }
   .chat-reply-content { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .chat-reply-answer { padding-left: 14px; }

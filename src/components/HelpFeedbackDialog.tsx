@@ -3,9 +3,11 @@ import {
   Activity, BookOpen, CircleAlert, Download, ExternalLink,
   HardDrive, ShieldCheck, Sparkles, TerminalSquare,
 } from 'lucide-react';
-import { asError, execute, exportDocument } from '../api';
+import { asError, execute, exportDocument, openExternalUrl } from '../api';
 import type { AppState } from '../types';
+import { AssistanceRunRecords } from './proactive/AssistanceRunRecords';
 import { Dialog, Spinner } from './ui';
+import './help-feedback.css';
 
 type Tab = 'guide' | 'usage' | 'feedback' | 'about';
 
@@ -197,9 +199,9 @@ export function HelpFeedbackDialog({
             <div className="help-privacy-list">
               <h4><ShieldCheck size={15} /> 本地数据隐私与安全边界</h4>
               <ul>
-                <li><strong>100% 本地存储</strong>：所有项目、资料、记忆、任务、日报与备份均保存在本机 SQLite 工作区，应用无中央服务器、无账号体系、无埋点遥测。</li>
-                <li><strong>凭据不进备份</strong>：模型 API Key 与飞书令牌独立存放于 `secrets/`，支持启用 macOS / Windows 系统凭据 AES-256-GCM 加密，导出备份（`.zip` / `.pabackup`）绝不包含任何密钥。</li>
-                <li><strong>显式授权外发</strong>：未开启远程模型授权前，不会向外发送任何项目文字；如公司要求绝对内网，使用本机 Ollama 即可零外发。</li>
+                <li><strong>100% 本地存储</strong>：所有项目、资料、记忆、任务与日报均保存在本机设备中，应用无云端服务器、无账号体系、无遥测上报。</li>
+                <li><strong>密钥隔离与加密保护</strong>：模型 API Key 与飞书凭据独立保存，支持系统钥匙串加密；导出的备份文件绝不包含任何密钥。</li>
+                <li><strong>显式授权才外发</strong>：未开启远程模型发送授权前，不会向外发送任何项目文字；连接本机 Ollama 可完全离线运行。</li>
               </ul>
               {state?.workspace.dataDir && (
                 <div className="storage-note" style={{ marginTop: 8 }}>
@@ -209,6 +211,7 @@ export function HelpFeedbackDialog({
                 </div>
               )}
             </div>
+            <AssistanceRunRecords projectId="" revision={String(usage?.totalCalls ?? state?.workspace.schemaVersion ?? 0)} />
           </div>
         )}
 
@@ -224,8 +227,8 @@ export function HelpFeedbackDialog({
             <div className="help-privacy-list">
               <h4>脱敏诊断报告包含什么（以及绝不包含什么）</h4>
               <ul>
-                <li><strong>仅包含</strong>：应用版本号、系统架构、各模块记录数量统计、AI 服务类型/模型名（无 Key）、最近失败任务的错误码与阶段。</li>
-                <li><strong>绝不包含</strong>：任何项目名称、资料原文、任务内容、记忆文本、API Key、飞书 Secret、飞书消息或本地用户名路径。</li>
+                <li><strong>仅包含</strong>：应用版本号、系统环境、各模块记录数量统计、AI 服务类型/模型名（不含密钥）、最近失败任务的错误阶段。</li>
+                <li><strong>绝不包含</strong>：任何项目名称、资料原文、任务内容、记忆文本、API 密钥、飞书 Secret、聊天消息或本机用户名路径。</li>
               </ul>
             </div>
             <div className="help-actions-row">
@@ -238,15 +241,14 @@ export function HelpFeedbackDialog({
                 {exporting ? <Spinner /> : <Download size={15} />}
                 一键导出脱敏诊断报告 (.json)
               </button>
-              <a
+              <button
+                type="button"
                 className="button secondary"
-                href="https://github.com/potatocheng/project-assistant/issues"
-                target="_blank"
-                rel="noreferrer"
+                onClick={() => void openExternalUrl('https://github.com/potatocheng/project-assistant/issues')}
               >
                 前往 GitHub Issues 反馈
                 <ExternalLink size={14} />
-              </a>
+              </button>
             </div>
           </div>
         )}
@@ -256,7 +258,7 @@ export function HelpFeedbackDialog({
             <div className="help-about-head">
               <div>
                 <h3>循序 · Cadence（本地 AI 交付工作台）</h3>
-                <p>当前版本：v0.3.0 · 本地数据格式 v{state?.workspace.schemaVersion ?? 14} · MIT 开源协议</p>
+                <p>当前版本：v0.3.0 · MIT 开源协议</p>
               </div>
             </div>
             <div className="help-changelog">

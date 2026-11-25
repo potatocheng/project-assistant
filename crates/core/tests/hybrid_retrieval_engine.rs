@@ -32,12 +32,21 @@ fn wait_ready(engine: &Engine, source_id: &str) {
         if ready {
             return;
         }
-        assert!(start.elapsed() < Duration::from_secs(10), "source parse timed out");
+        assert!(
+            start.elapsed() < Duration::from_secs(10),
+            "source parse timed out"
+        );
         thread::sleep(Duration::from_millis(20));
     }
 }
 
-fn import_and_confirm(engine: &Engine, project_id: &str, title: &str, text: &str, content: &str) -> (String, String) {
+fn import_and_confirm(
+    engine: &Engine,
+    project_id: &str,
+    title: &str,
+    text: &str,
+    content: &str,
+) -> (String, String) {
     let imported = call(
         engine,
         "import_text",
@@ -52,7 +61,11 @@ fn import_and_confirm(engine: &Engine, project_id: &str, title: &str, text: &str
         "create_proposal",
         json!({"projectId": project_id, "sourceId": source_id, "kind": "fact", "content": content, "segmentIds": [seg_id]}),
     );
-    let mem = call(engine, "confirm_proposal", json!({"proposalId": prop["id"]}));
+    let mem = call(
+        engine,
+        "confirm_proposal",
+        json!({"proposalId": prop["id"]}),
+    );
     (source_id, mem["id"].as_str().unwrap().to_owned())
 }
 
@@ -117,8 +130,14 @@ fn verified_memory_search_respects_aliases_lifecycle_and_hybrid_sqlite_vec() {
         .iter()
         .filter_map(|m| m["id"].as_str())
         .collect();
-    assert!(ids.contains(&mem_owner.as_str()), "expected alias match: {res}");
-    assert!(!ids.contains(&mem_archived.as_str()), "archived memory leaked: {res}");
+    assert!(
+        ids.contains(&mem_owner.as_str()),
+        "expected alias match: {res}"
+    );
+    assert!(
+        !ids.contains(&mem_archived.as_str()),
+        "archived memory leaked: {res}"
+    );
     assert_eq!(res["searchTrace"]["jieba"], true);
     assert!(res["searchTrace"]["aliasGroupsApplied"].as_u64().unwrap() >= 1);
 
@@ -227,7 +246,10 @@ fn verified_memory_search_respects_aliases_lifecycle_and_hybrid_sqlite_vec() {
     assert_eq!(hybrid_ids, vec![mem_delay.as_str()]);
     assert!(!hybrid_ids.contains(&mem_archived.as_str()));
     assert_eq!(hybrid["searchTrace"]["hybridRetrieval"]["fusion"], "rrf");
-    assert_eq!(hybrid["searchTrace"]["hybridRetrieval"]["eligibleVecHits"], 1);
+    assert_eq!(
+        hybrid["searchTrace"]["hybridRetrieval"]["eligibleVecHits"],
+        1
+    );
 
     // Backup & restore preserves entity_aliases and clears derived semantic-index.sqlite
     let backup = call(&engine, "create_backup", json!({}));
@@ -241,7 +263,11 @@ fn verified_memory_search_respects_aliases_lifecycle_and_hybrid_sqlite_vec() {
         json!({"filename": filename, "contentBase64": encoded, "confirmation": "RESTORE"}),
     );
     assert!(!dir.path().join("semantic-index.sqlite").exists());
-    let aliases_after = call(&engine, "list_entity_aliases", json!({"projectId": project_id}));
+    let aliases_after = call(
+        &engine,
+        "list_entity_aliases",
+        json!({"projectId": project_id}),
+    );
     assert_eq!(aliases_after["count"], 1);
     assert_eq!(aliases_after["aliases"][0]["canonical"], "王明");
 

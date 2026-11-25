@@ -252,6 +252,81 @@ pub(crate) fn save(root: &Path, p: &Value) -> Result<(SavedSettings, bool)> {
     Ok((next, true))
 }
 
+pub(crate) fn preview_for_test(root: &Path, p: &Value) -> Result<SavedSettings> {
+    let saved = load(root)?;
+    let has_preview = [
+        "provider",
+        "baseUrl",
+        "model",
+        "outputFormat",
+        "timeoutSeconds",
+        "apiKey",
+    ]
+    .iter()
+    .any(|key| p.get(*key).is_some());
+    if !has_preview {
+        return Ok(saved);
+    }
+    let provider = match p.get("provider").and_then(Value::as_str).map(str::trim) {
+        Some(v) if !v.is_empty() => v.to_owned(),
+        _ => saved.provider.clone(),
+    };
+    let raw_url = match p.get("baseUrl").and_then(Value::as_str).map(str::trim) {
+        Some(v) if !v.is_empty() => v,
+        _ => saved.base_url.as_str(),
+    };
+    let url =
+        reqwest::Url::parse(raw_url).map_err(|_| AppError::new("AI_CONFIG", "模型服务地址无效"))?;
+    let base_url = url.as_str().trim_end_matches('/').to_owned();
+    let model = match p.get("model").and_then(Value::as_str).map(str::trim) {
+        Some(v) if !v.is_empty() => v.to_owned(),
+        _ => saved.model.clone(),
+    };
+    let output_format = match p.get("outputFormat").and_then(Value::as_str).map(str::trim) {
+        Some(v) if !v.is_empty() => v.to_owned(),
+        _ => saved.output_format.clone(),
+    };
+    let timeout_seconds = match p.get("timeoutSeconds").and_then(Value::as_u64) {
+        Some(v) if (1..=300).contains(&v) => v,
+        Some(_) => return Err(AppError::new("AI_CONFIG", "请求超时需在 1 到 300 秒之间")),
+        None => saved.timeout_seconds,
+    };
+    let api_key = match p.get("apiKey") {
+        Some(Value::String(key)) => {
+            if key.len() > 16 * 1024 || key.contains(['\r', '\n']) {
+                return Err(AppError::new("AI_CONFIG", "API Key 格式无效"));
+            }
+            let key = key.trim();
+            if key.is_empty() {
+                if provider == saved.provider && base_url == saved.base_url {
+                    saved.api_key.clone()
+                } else {
+                    None
+                }
+            } else {
+                Some(key.to_owned())
+            }
+        }
+        None | Some(Value::Null) if provider == saved.provider && base_url == saved.base_url => {
+            saved.api_key.clone()
+        }
+        None | Some(Value::Null) => None,
+        _ => return Err(AppError::new("AI_CONFIG", "API Key 格式无效")),
+    };
+    let api_key = if provider == "ollama" { None } else { api_key };
+    Ok(SavedSettings {
+        provider,
+        base_url,
+        model,
+        output_format,
+        timeout_seconds,
+        auto_extract: saved.auto_extract,
+        remote_consent: saved.remote_consent,
+        api_key,
+        revision: saved.revision,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

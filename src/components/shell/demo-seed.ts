@@ -1,7 +1,12 @@
 import { execute } from '../../api';
 import type { AppState, ImportResult, Project, SourceDetail, Task } from '../../types';
 
-export const DEMO_STORAGE_KEY = 'pa:demo-project-ids';
+const DEMO_STORAGE_PREFIX = 'pa:demo-project-ids';
+export const DEMO_STORAGE_KEY = DEMO_STORAGE_PREFIX;
+
+function demoStorageKey(workspaceKey?: string): string {
+  return workspaceKey ? `${DEMO_STORAGE_PREFIX}:${workspaceKey}` : DEMO_STORAGE_PREFIX;
+}
 
 function formatYmd(date: Date): string {
   const y = date.getFullYear();
@@ -16,9 +21,10 @@ export function offsetDay(days: number, baseYmd?: string): string {
   return formatYmd(base);
 }
 
-export function getStoredDemoProjectIds(): string[] {
+export function getStoredDemoProjectIds(workspaceKey?: string): string[] {
   try {
-    const raw = localStorage.getItem(DEMO_STORAGE_KEY);
+    const raw = localStorage.getItem(demoStorageKey(workspaceKey))
+      ?? (workspaceKey ? null : localStorage.getItem(DEMO_STORAGE_PREFIX));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
@@ -27,8 +33,22 @@ export function getStoredDemoProjectIds(): string[] {
   }
 }
 
+export function storeDemoProjectIds(ids: string[], workspaceKey?: string): void {
+  try {
+    const key = demoStorageKey(workspaceKey);
+    if (ids.length === 0) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(ids));
+    }
+  } catch {
+    // Ignore storage quota issues.
+  }
+}
+
 export function getDemoProjectIds(state: AppState): string[] {
-  const stored = getStoredDemoProjectIds();
+  const workspaceKey = state.workspace?.dataDir;
+  const stored = getStoredDemoProjectIds(workspaceKey);
   if (!stored.length) return [];
   const activeIds = new Set(state.projects.map(p => p.id));
   return stored.filter(id => activeIds.has(id));
@@ -100,7 +120,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
       { title: '灰度放量与全量上线', description: '完成 10%→100% 放量监控，发布公告与复盘。', baselineOffset: 21, forecastOffset: 21, status: 'planned' },
     ],
     tasks: [
-      { title: '组织 PRD 与接口契约终审会', description: '对齐前后端字段定义与异常兜底逻辑。', category: 'action', assignee: '我', priority: 'high', status: 'in_progress', progress: 40, plannedOffset: 0, dueOffset: 2, milestoneIndex: 0 },
+      { title: '组织 PRD 与接口契约终审会', description: '对齐前后端字段定义与异常兜底逻辑。', category: 'action', assignee: '我', priority: 'high', status: 'in_progress', progress: 40, plannedOffset: 0, dueOffset: 1, milestoneIndex: 0 },
       { title: '跟进设计交付全量交互终稿', description: '重点核对空态、异常提示与移动端适配。', category: 'follow_up', assignee: '设计负责人', priority: 'high', status: 'todo', progress: 0, plannedOffset: 1, dueOffset: 3, milestoneIndex: 0 },
       { title: '协调测试账号与联调沙箱环境', description: '避免进入联调期因权限和环境阻塞进度。', category: 'follow_up', assignee: '运维/测试', priority: 'medium', status: 'todo', progress: 0, plannedOffset: 4, dueOffset: 7, milestoneIndex: 1 },
       { title: '制定灰度发布检查清单与回滚预案', description: '明确监控指标、值班人与回滚触发条件。', category: 'action', assignee: '我', priority: 'medium', status: 'todo', progress: 0, plannedOffset: 15, dueOffset: 19, milestoneIndex: 2 },
@@ -127,7 +147,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
       { title: '客户终验报告签署', description: '清零遗留问题并取得客户正式验收签章。', baselineOffset: 28, forecastOffset: 28, status: 'planned' },
     ],
     tasks: [
-      { title: '输出《实施方案与范围边界确认单》', description: '明确一期范围与二期需求边界，防止范围蔓延。', category: 'action', assignee: '我', priority: 'high', status: 'in_progress', progress: 50, plannedOffset: 0, dueOffset: 3, milestoneIndex: 0 },
+      { title: '输出《实施方案与范围边界确认单》', description: '明确一期范围与二期需求边界，防止范围蔓延。', category: 'action', assignee: '我', priority: 'high', status: 'in_progress', progress: 50, plannedOffset: 0, dueOffset: 1, milestoneIndex: 0 },
       { title: '跟进客户侧提供内网服务器与防火墙开通', description: '需要客户 IT 审批端口与堡垒机账号。', category: 'follow_up', assignee: '客户 IT 对接人', priority: 'high', status: 'todo', progress: 0, plannedOffset: 2, dueOffset: 6, milestoneIndex: 1 },
       { title: '整理历史数据清洗与迁移核对表', description: '请客户业务方签字确认字段映射口径。', category: 'follow_up', assignee: '客户业务负责人', priority: 'medium', status: 'todo', progress: 0, plannedOffset: 8, dueOffset: 14, milestoneIndex: 1 },
       { title: '准备 UAT 验收测试用例与培训手册', description: '提前 3 天发给关键用户预习。', category: 'action', assignee: '我', priority: 'medium', status: 'todo', progress: 0, plannedOffset: 18, dueOffset: 25, milestoneIndex: 2 },
@@ -171,6 +191,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
       { title: '活动正式上线与首日监控', description: '全量开闸并实时盯盘转化与异常工单。', baselineOffset: 18, forecastOffset: 18, status: 'planned' },
     ],
     tasks: [
+      { title: '确认活动主方案、预算上限与上线时间表', description: '对齐活动玩法、目标指标与关键里程碑节点，锁定责任人。', category: 'action', assignee: '我', priority: 'high', status: 'in_progress', progress: 35, plannedOffset: 0, dueOffset: 1, milestoneIndex: 0 },
       { title: '提交活动规则法务与财务合规审核', description: '确保抽奖/优惠规则无合规风险。', category: 'follow_up', assignee: '法务/财务', priority: 'high', status: 'in_progress', progress: 30, plannedOffset: 0, dueOffset: 3, milestoneIndex: 0 },
       { title: '跟进设计输出主视觉 KV 与裂变海报', description: '需同步交付公众号头图、社群长图与小红书封面。', category: 'follow_up', assignee: '视觉设计', priority: 'high', status: 'todo', progress: 0, plannedOffset: 5, dueOffset: 10, milestoneIndex: 1 },
       { title: '组织客服团队同步活动 FAQ 与客诉预案', description: '避免活动上线后客诉响应口径不一致。', category: 'action', assignee: '我', priority: 'medium', status: 'todo', progress: 0, plannedOffset: 13, dueOffset: 16, milestoneIndex: 2 },
@@ -253,7 +274,7 @@ export async function applyProjectTemplate(projectId: string, templateId: string
   }
 }
 
-export async function seedDemoWorkspace(): Promise<string> {
+export async function seedDemoWorkspace(workspaceKey?: string): Promise<string> {
   const today = formatYmd(new Date());
   const yesterday = offsetDay(-1, today);
   const twoDaysAgo = offsetDay(-2, today);
@@ -272,11 +293,7 @@ export async function seedDemoWorkspace(): Promise<string> {
     description: '将旧版销售与运营日报迁移到新指标口径与实时看板。',
   });
 
-  try {
-    localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify([p1.id, p2.id]));
-  } catch {
-    // Ignore storage quota issues.
-  }
+  storeDemoProjectIds([p1.id, p2.id], workspaceKey);
 
   await execute('save_project_profile', {
     projectId: p1.id,
@@ -470,7 +487,6 @@ export async function seedDemoWorkspace(): Promise<string> {
 
   await execute('generate_daily_report', {
     date: today,
-    projectId: p1.id,
     clientRequestId: crypto.randomUUID(),
   }).catch(() => undefined);
 
@@ -490,9 +506,19 @@ export async function seedDemoWorkspace(): Promise<string> {
   return p1.id;
 }
 
-export async function archiveDemoProjects(state: AppState): Promise<number> {
+export interface ArchiveDemoResult {
+  archived: number;
+  skippedRunning: number;
+  archivedIds: string[];
+}
+
+export async function archiveDemoProjects(state: AppState): Promise<ArchiveDemoResult> {
+  const workspaceKey = state.workspace?.dataDir;
   const demoIds = getDemoProjectIds(state);
-  let archived = 0;
+  const archivedIds: string[] = [];
+  const keptIds: string[] = [];
+  let skippedRunning = 0;
+
   for (const id of demoIds) {
     const impact = await execute<{
       kind: 'project';
@@ -503,19 +529,22 @@ export async function archiveDemoProjects(state: AppState): Promise<number> {
       version: number;
       fingerprint: string;
     }>('lifecycle_impact', { kind: 'project', id });
-    if (impact.runningJobs > 0) continue;
+    if (impact.runningJobs > 0) {
+      skippedRunning++;
+      keptIds.push(id);
+      continue;
+    }
     await execute('set_lifecycle', {
       ...impact,
       archived: true,
       replacementId: null,
       reason: '结束示例体验，归档示例项目并开始正式项目',
     });
-    archived++;
+    archivedIds.push(id);
   }
-  try {
-    localStorage.removeItem(DEMO_STORAGE_KEY);
-  } catch {
-    // Ignore
+  storeDemoProjectIds(keptIds, workspaceKey);
+  if (workspaceKey && keptIds.length === 0) {
+    storeDemoProjectIds([], undefined);
   }
-  return archived;
+  return { archived: archivedIds.length, skippedRunning, archivedIds };
 }

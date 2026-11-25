@@ -24,152 +24,13 @@ fn app_error(code: &str, message: impl Into<String>) -> AppError {
 
 #[tauri::command]
 async fn execute(request: Request, state: State<'_, DesktopState>) -> Result<Value, AppError> {
-    if !matches!(
-        request.command.as_str(),
-        "get_state"
-            | "get_usage_summary"
-            | "get_diagnostics"
-            | "ask_conversation"
-            | "list_conversations"
-            | "create_conversation"
-            | "get_conversation"
-            | "favorite_answer"
-            | "search_workspace"
-            | "get_credential_protection"
-            | "enable_credential_protection"
-            | "get_desktop_settings"
-            | "save_desktop_settings"
-            | "get_backup_policy"
-            | "save_backup_policy"
-            | "run_automatic_backup"
-            | "get_workspace_revision"
-            | "get_draft"
-            | "save_draft"
-            | "delete_draft"
-            | "get_retention_reviews"
-            | "review_retention"
-            | "lifecycle_impact"
-            | "set_lifecycle"
-            | "create_project"
-            | "import_text"
-            | "import_file"
-            | "get_source"
-            | "create_proposal"
-            | "confirm_proposal"
-            | "reject_proposal"
-            | "get_memory"
-            | "revise_memory"
-            | "create_backup"
-            | "inspect_backup"
-            | "restore_backup"
-            | "get_ai_settings"
-            | "save_ai_settings"
-            | "test_ai_connection"
-            | "start_extraction"
-            | "retry_extraction"
-            | "review_extraction_draft"
-            | "cancel_extraction"
-            | "update_proposal"
-            | "batch_schedule_tasks"
-            | "create_task"
-            | "update_task"
-            | "get_task"
-            | "get_daily_list"
-            | "get_daily_planning"
-            | "preview_task_relation"
-            | "save_daily_capacity"
-            | "save_task_estimate"
-            | "remove_task_relation"
-            | "analyze_task_workload"
-            | "generate_daily_plan"
-            | "confirm_planning_draft"
-            | "dismiss_planning_draft"
-            | "update_task_proposal"
-            | "confirm_task_proposal"
-            | "reject_task_proposal"
-            | "generate_daily_report"
-            | "get_daily_report"
-            | "save_daily_report"
-            | "ask_project"
-            | "ask_project_question"
-            | "ask_assistant"
-            | "generate_today_brief"
-            | "generate_task_coaching"
-            | "get_assistant_preferences"
-            | "save_assistant_preferences"
-            | "clear_assistant_preferences"
-            | "get_project_brief"
-            | "generate_project_brief"
-            | "get_memory_quality"
-            | "check_memory_quality"
-            | "assess_extraction"
-            | "get_management_attention"
-            | "get_governance_workspace"
-            | "get_governance_item"
-            | "save_governance_item"
-            | "record_governance_progress"
-            | "get_change_acceptance"
-            | "save_change_request"
-            | "transition_change_request"
-            | "save_deliverable"
-            | "review_deliverable"
-            | "delete_change_request"
-            | "delete_deliverable"
-            | "coordination_list"
-            | "coordination_generate_report"
-            | "coordination_get_report"
-            | "coordination_save_report"
-            | "coordination_save_meeting"
-            | "coordination_prepare_meeting"
-            | "coordination_get_meeting"
-            | "coordination_save_action"
-            | "coordination_confirm_action"
-            | "get_delivery_overview"
-            | "save_project_profile"
-            | "save_milestone"
-            | "get_follow_up_center"
-            | "get_proactive_center"
-            | "get_assistant_work"
-            | "get_action_proposal"
-            | "decide_action_proposal"
-            | "pause_assistant_work"
-            | "save_assistant_work_settings"
-            | "run_assistant_work"
-            | "get_assistance_runs"
-            | "run_proactive_scan"
-            | "save_proactive_settings"
-            | "update_proactive_action"
-            | "record_follow_up"
-            | "snooze_follow_up"
-            | "get_feishu_status"
-            | "save_feishu_settings"
-            | "begin_feishu_authorization"
-            | "begin_feishu_connection"
-            | "check_feishu_permissions"
-            | "dismiss_feishu_notification"
-            | "disconnect_feishu"
-            | "poll_feishu_now"
-            | "list_feishu_chats"
-            | "list_feishu_private_chats"
-            | "get_feishu_sources"
-            | "save_feishu_sources"
-            | "sync_feishu_sources"
-            | "get_memory_maintenance"
-            | "save_memory_maintenance"
-            | "resolve_memory_review"
-            | "recompare_memory_review"
-            | "retry_memory_maintenance"
-            | "run_memory_maintenance"
-            | "memory_activity"
-            | "copilot_agent_turn"
-            | "polish_report"
-    ) {
+    if !project_assistant_core::is_public_command(request.command.as_str()) {
         return Err(app_error("INVALID_COMMAND", "不支持这项操作。"));
     }
     let engine = state.engine.clone();
     tauri::async_runtime::spawn_blocking(move || engine.execute(request))
         .await
-        .map_err(|e| app_error("EXECUTION_FAILED", format!("本地操作未完成：{e}")))?
+        .map_err(|_| app_error("EXECUTION_FAILED", "本地操作未能完成，请重试。"))?
 }
 
 #[tauri::command]
@@ -205,11 +66,11 @@ async fn export_backup(
         let backup_dir = root
             .join("backups")
             .canonicalize()
-            .map_err(|e| app_error("IO_ERROR", format!("无法读取备份目录：{e}")))?;
+            .map_err(|_| app_error("IO_ERROR", "无法读取本机备份目录，请检查目录权限。"))?;
         let source = backup_dir
             .join(filename)
             .canonicalize()
-            .map_err(|e| app_error("IO_ERROR", format!("无法读取备份文件：{e}")))?;
+            .map_err(|_| app_error("IO_ERROR", "找不到这份备份文件，请刷新后重试。"))?;
         if !source.starts_with(&backup_dir) || !source.is_file() {
             return Err(app_error("INVALID_BACKUP", "备份文件不在工作空间内。"));
         }
@@ -241,16 +102,24 @@ async fn export_backup(
             ));
         }
         if let Some(bytes) = encrypted {
-            std::fs::write(&target, bytes)
-                .map_err(|e| app_error("IO_ERROR", format!("导出失败：{e}")))?;
+            std::fs::write(&target, bytes).map_err(|_| {
+                app_error(
+                    "IO_ERROR",
+                    "写入导出文件失败，请检查保存位置权限与磁盘空间。",
+                )
+            })?;
         } else if target != source {
-            std::fs::copy(&source, &target)
-                .map_err(|e| app_error("IO_ERROR", format!("导出失败：{e}")))?;
+            std::fs::copy(&source, &target).map_err(|_| {
+                app_error(
+                    "IO_ERROR",
+                    "复制导出文件失败，请检查保存位置权限与磁盘空间。",
+                )
+            })?;
         }
         Ok(json!({ "cancelled": false, "path": target.to_string_lossy() }))
     })
     .await
-    .map_err(|e| app_error("EXECUTION_FAILED", format!("导出未完成：{e}")))?
+    .map_err(|_| app_error("EXECUTION_FAILED", "备份导出未能完成，请重试。"))?
 }
 
 #[tauri::command]
@@ -288,12 +157,16 @@ async fn export_report(
         let target = chosen
             .into_path()
             .map_err(|_| app_error("INVALID_PATH", "请选择本地保存位置。"))?;
-        std::fs::write(&target, content)
-            .map_err(|e| app_error("IO_ERROR", format!("导出失败：{e}")))?;
+        std::fs::write(&target, content).map_err(|_| {
+            app_error(
+                "IO_ERROR",
+                "写入导出文件失败，请检查保存位置权限与磁盘空间。",
+            )
+        })?;
         Ok(json!({"cancelled":false,"path":target.to_string_lossy()}))
     })
     .await
-    .map_err(|e| app_error("EXECUTION_FAILED", format!("导出未完成：{e}")))?
+    .map_err(|_| app_error("EXECUTION_FAILED", "日报导出未能完成，请重试。"))?
 }
 
 #[tauri::command]
@@ -317,7 +190,7 @@ async fn copy_report(
         Ok(json!({"copied":true}))
     })
     .await
-    .map_err(|e| app_error("EXECUTION_FAILED", format!("复制未完成：{e}")))?
+    .map_err(|_| app_error("EXECUTION_FAILED", "复制未能完成，请重试。"))?
 }
 
 #[tauri::command]
@@ -351,12 +224,16 @@ async fn export_coordination_report(
         let target = chosen
             .into_path()
             .map_err(|_| app_error("INVALID_PATH", "请选择本地保存位置。"))?;
-        std::fs::write(&target, content)
-            .map_err(|e| app_error("IO_ERROR", format!("导出失败：{e}")))?;
+        std::fs::write(&target, content).map_err(|_| {
+            app_error(
+                "IO_ERROR",
+                "写入导出文件失败，请检查保存位置权限与磁盘空间。",
+            )
+        })?;
         Ok(json!({"cancelled":false,"path":target.to_string_lossy()}))
     })
     .await
-    .map_err(|e| app_error("EXECUTION_FAILED", format!("导出未完成：{e}")))?
+    .map_err(|_| app_error("EXECUTION_FAILED", "周报导出未能完成，请重试。"))?
 }
 
 #[tauri::command]
@@ -381,7 +258,7 @@ async fn copy_coordination_report(
         Ok(json!({"copied":true}))
     })
     .await
-    .map_err(|e| app_error("EXECUTION_FAILED", format!("复制未完成：{e}")))?
+    .map_err(|_| app_error("EXECUTION_FAILED", "复制未能完成，请重试。"))?
 }
 
 #[tauri::command]
@@ -434,12 +311,16 @@ async fn export_document(
         let target = chosen
             .into_path()
             .map_err(|_| app_error("INVALID_PATH", "请选择本地保存位置。"))?;
-        std::fs::write(&target, bytes)
-            .map_err(|e| app_error("IO_ERROR", format!("导出失败：{e}")))?;
+        std::fs::write(&target, bytes).map_err(|_| {
+            app_error(
+                "IO_ERROR",
+                "写入导出文件失败，请检查保存位置权限与磁盘空间。",
+            )
+        })?;
         Ok(json!({ "cancelled": false, "path": target.to_string_lossy() }))
     })
     .await
-    .map_err(|e| app_error("EXECUTION_FAILED", format!("导出未完成：{e}")))?
+    .map_err(|_| app_error("EXECUTION_FAILED", "文档导出未能完成，请重试。"))?
 }
 
 pub(crate) fn ensure_normal_window_z_order(window: &tauri::WebviewWindow) {
@@ -486,25 +367,7 @@ pub(crate) fn ensure_normal_window_z_order(window: &tauri::WebviewWindow) {
     }
 }
 
-#[tauri::command]
-async fn open_feishu_authorization(app: tauri::AppHandle, url: String) -> Result<(), AppError> {
-    let parsed = tauri::Url::parse(&url)
-        .map_err(|_| app_error("INVALID_AUTHORIZATION_URL", "飞书授权地址无效。"))?;
-    if parsed.scheme() != "https"
-        || parsed.host_str() != Some("accounts.feishu.cn")
-        || !parsed.username().is_empty()
-        || parsed.password().is_some()
-        || parsed.port().is_some()
-    {
-        return Err(app_error(
-            "INVALID_AUTHORIZATION_URL",
-            "仅允许打开飞书官方授权地址。",
-        ));
-    }
-    if let Some(window) = app.get_webview_window("main") {
-        ensure_normal_window_z_order(&window);
-    }
-    let target = parsed.as_str();
+fn launch_system_browser(target: &str) -> Result<(), AppError> {
     #[cfg(target_os = "windows")]
     {
         use std::os::windows::ffi::OsStrExt;
@@ -540,7 +403,7 @@ async fn open_feishu_authorization(app: tauri::AppHandle, url: String) -> Result
         if result <= 32 {
             return Err(app_error(
                 "OPEN_BROWSER_FAILED",
-                "无法打开浏览器，请复制授权链接后手动打开。",
+                "无法打开系统浏览器，请复制链接后手动打开。",
             ));
         }
     }
@@ -551,7 +414,7 @@ async fn open_feishu_authorization(app: tauri::AppHandle, url: String) -> Result
         command.spawn().map_err(|_| {
             app_error(
                 "OPEN_BROWSER_FAILED",
-                "无法打开浏览器，请复制授权链接后手动打开。",
+                "无法打开系统浏览器，请复制链接后手动打开。",
             )
         })?;
     }
@@ -562,15 +425,53 @@ async fn open_feishu_authorization(app: tauri::AppHandle, url: String) -> Result
         command.spawn().map_err(|_| {
             app_error(
                 "OPEN_BROWSER_FAILED",
-                "无法打开浏览器，请复制授权链接后手动打开。",
+                "无法打开系统浏览器，请复制链接后手动打开。",
             )
         })?;
     }
     Ok(())
 }
 
+#[tauri::command]
+async fn open_feishu_authorization(app: tauri::AppHandle, url: String) -> Result<(), AppError> {
+    let parsed = tauri::Url::parse(&url)
+        .map_err(|_| app_error("INVALID_AUTHORIZATION_URL", "飞书授权地址无效。"))?;
+    if parsed.scheme() != "https"
+        || parsed.host_str() != Some("accounts.feishu.cn")
+        || !parsed.username().is_empty()
+        || parsed.password().is_some()
+        || parsed.port().is_some()
+    {
+        return Err(app_error(
+            "INVALID_AUTHORIZATION_URL",
+            "仅允许打开飞书官方授权地址。",
+        ));
+    }
+    if let Some(window) = app.get_webview_window("main") {
+        ensure_normal_window_z_order(&window);
+    }
+    launch_system_browser(parsed.as_str())
+}
+
+#[tauri::command]
+async fn open_external_url(url: String) -> Result<(), AppError> {
+    let parsed =
+        tauri::Url::parse(&url).map_err(|_| app_error("INVALID_URL", "外部链接格式无效。"))?;
+    if parsed.scheme() != "https"
+        || !parsed.username().is_empty()
+        || parsed.password().is_some()
+        || parsed.host_str().is_none_or(str::is_empty)
+    {
+        return Err(app_error(
+            "INVALID_URL",
+            "仅支持在浏览器中打开安全的 HTTPS 链接。",
+        ));
+    }
+    launch_system_browser(parsed.as_str())
+}
+
 fn main() {
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
@@ -603,7 +504,7 @@ fn main() {
                         ))
                         .title("无法打开项目工作区")
                         .blocking_show();
-                    return Err(std::io::Error::other(error.message).into());
+                    std::process::exit(1);
                 }
             };
             runtime::setup(app, engine.clone())?;
@@ -611,27 +512,17 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| match event {
-            tauri::WindowEvent::Focused(_) => {
+            tauri::WindowEvent::Focused(true) => {
                 if let Some(webview) = window.app_handle().get_webview_window(window.label()) {
                     ensure_normal_window_z_order(&webview);
                 }
             }
             tauri::WindowEvent::CloseRequested { api, .. } => {
-                if let Some(state) = window.app_handle().try_state::<DesktopState>() {
-                    if state
-                        .engine
-                        .execute(Request {
-                            command: "get_desktop_settings".into(),
-                            payload: json!({}),
-                        })
-                        .is_ok_and(|v| v["background"] == true)
-                    {
-                        api.prevent_close();
-                        let _ = window.hide();
-                    } else {
-                        api.prevent_close();
-                        runtime::request_quit(window.app_handle());
-                    }
+                api.prevent_close();
+                if runtime::background_mode() {
+                    let _ = window.hide();
+                } else {
+                    runtime::request_quit(window.app_handle());
                 }
             }
             _ => {}
@@ -649,8 +540,27 @@ fn main() {
             export_coordination_report,
             copy_coordination_report,
             export_document,
-            open_feishu_authorization
+            open_feishu_authorization,
+            open_external_url
         ])
-        .run(tauri::generate_context!())
+        .build(tauri::generate_context!())
         .expect("无法启动循序");
+    app.run(|app, event| match event {
+        #[cfg(target_os = "macos")]
+        tauri::RunEvent::Reopen { .. } => {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.unminimize();
+                let _ = window.set_focus();
+                ensure_normal_window_z_order(&window);
+            }
+        }
+        tauri::RunEvent::ExitRequested { api, .. } => {
+            if !runtime::is_quit_allowed() {
+                api.prevent_exit();
+                runtime::request_quit(app);
+            }
+        }
+        _ => {}
+    });
 }

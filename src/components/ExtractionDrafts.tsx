@@ -6,6 +6,7 @@ import { asError, execute } from '../api';
 function DraftReview({ draft, onChanged, notify, onEvidence }: { draft: ExtractionDraft; onChanged: () => Promise<unknown>; notify: (message: string, error?: boolean) => void; onEvidence: (ids: string[]) => void }) {
   const [content, setContent] = useState(draft.candidate.content);
   const [facets, setFacets] = useState<MemoryFacets>(draft.candidate.facets);
+  const [conditionsText, setConditionsText] = useState(draft.candidate.facets.conditions.join('\n'));
   const [reason, setReason] = useState('');
   const [retention, setRetention] = useState(draft.candidate.retention ?? defaultRetention);
   const [checked, setChecked] = useState(false);
@@ -13,13 +14,14 @@ function DraftReview({ draft, onChanged, notify, onEvidence }: { draft: Extracti
   async function review(action: 'approve' | 'reject') {
     setBusy(true);
     try {
-      await execute('review_extraction_draft', { draftId: draft.id, action, reason, ...(action === 'approve' ? { content, facets, retention } : {}) });
+      const normalizedFacets: MemoryFacets = { ...facets, conditions: conditionsText.split('\n').map(item => item.trim()).filter(Boolean) };
+      await execute('review_extraction_draft', { draftId: draft.id, action, reason, ...(action === 'approve' ? { content, facets: normalizedFacets, retention } : {}) });
       await onChanged();
       notify(action === 'approve' ? '草稿已审核并生成待确认候选。' : '草稿已忽略，原始输出和原因已保留。');
     } catch (error) { notify(asError(error).message, true); } finally { setBusy(false); }
   }
   return <details className="candidate"><summary>{draft.status === 'retained' ? '仅存原文' : '保留内容与范围审核'} · {draft.candidate.content.slice(0, 60)}</summary>
-    <p className="field-hint">此草稿未进入正式记忆。请核对主体、角色、否定、条件与日期，逐字引文匹配不代表语义完整。</p>
+    <p className="field-hint">此草稿尚未进入正式记忆。请核对人物、角色、条件与日期；即使原文引文无误，也需确认含义准确完整。</p>
     {draft.issues.map((issue, index) => <p className="field-hint" key={index}>{issue.field}：{issue.reason}</p>)}
     <button className="text-button tiny" onClick={() => onEvidence(draft.candidate.evidence.map((e) => e.segmentId))}>定位原文</button>
     {draft.candidate.evidence.map((e, i) => <blockquote key={i}>{e.quote}</blockquote>)}
@@ -28,13 +30,13 @@ function DraftReview({ draft, onChanged, notify, onEvidence }: { draft: Extracti
     <label className="field-label">主体<input value={facets.entity} onChange={(e) => setFacets({ ...facets, entity: e.target.value })} disabled={busy} /></label>
     <label className="field-label">主题<input value={facets.topic} onChange={(e) => setFacets({ ...facets, topic: e.target.value })} disabled={busy} /></label>
     <label className="field-label">角色<select value={facets.role} onChange={(e) => setFacets({ ...facets, role: e.target.value as MemoryFacets['role'] })} disabled={busy}><option value="">未明确</option><option value="owner">负责人</option><option value="approver">审批人</option><option value="contact">联系人</option></select></label>
-    <label className="field-label">适用条件（每行一条）<textarea rows={3} value={facets.conditions.join('\n')} onChange={(e) => setFacets({ ...facets, conditions: e.target.value.split('\n').filter(Boolean) })} disabled={busy} /></label>
+    <label className="field-label">适用条件（每行一条）<textarea rows={3} value={conditionsText} onChange={(e) => setConditionsText(e.target.value)} disabled={busy} /></label>
     <label className="field-label">生效日期<input type="date" value={facets.validFrom ?? ''} onChange={(e) => setFacets({ ...facets, validFrom: e.target.value || null })} disabled={busy} /></label>
     <label className="field-label">失效日期<input type="date" value={facets.validUntil ?? ''} onChange={(e) => setFacets({ ...facets, validUntil: e.target.value || null })} disabled={busy} /></label>
     <p className="field-hint">保留原文明确的适用范围；修改字段须同时与正文、引文一致。</p>
     <label className="field-label">审核原因<textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={1000} disabled={busy} /></label>
     <label><input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} disabled={busy} />我已核对事实依据与适用范围</label>
-    <div className="candidate-actions"><button className="button secondary compact" disabled={busy || !checked || !reason.trim() || !content.trim() || !["durable", "working"].includes(retention.layer) || !retention.reason.trim()} onClick={() => void review('approve')}>审核并生成候选</button><button className="text-button" disabled={busy || !reason.trim()} onClick={() => void review('reject')}>忽略草稿</button></div>
+    <div className="candidate-actions"><button className="button seal compact" disabled={busy || !checked || !reason.trim() || !content.trim() || !["durable", "working"].includes(retention.layer) || !retention.reason.trim()} onClick={() => void review('approve')}>审核并生成候选</button><button className="text-button" disabled={busy || !reason.trim()} onClick={() => void review('reject')}>忽略草稿</button></div>
   </details>;
 }
 

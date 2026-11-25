@@ -22,7 +22,7 @@ export function projectHealth(project: ProjectDelivery) {
   const hasSchedule = project.milestones.some(item => item.status !== 'cancelled' && !!(item.baselineDate || item.forecastDate));
   if (!project.profile.goal.trim() || !(project.profile.targetDate || hasSchedule)
     || !(project.taskCounts.total - project.taskCounts.cancelled > 0 || hasSchedule)) {
-    return { state: 'unknown', label: '资料不足，暂无法判断' };
+    return { state: 'unknown', label: '需补充目标与排期' };
   }
-  return { state: 'on_track', label: '当前记录未见交付偏差' };
+  return { state: 'on_track', label: '按计划推进中' };
 }

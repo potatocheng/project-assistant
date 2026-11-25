@@ -51,7 +51,7 @@ export function useDeliveryQuery<T>(command: string, date: string, projectId: st
   }, [command, date, projectId, version, tick]);
   useEffect(() => {
     if (!poll) return;
-    const timer = window.setInterval(refresh, 60_000);
+    const timer = window.setInterval(() => { if (!document.hidden) refresh(); }, 60_000);
     window.addEventListener('focus', refresh);
     return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
   }, [poll, refresh]);

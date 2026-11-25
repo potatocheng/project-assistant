@@ -112,9 +112,9 @@ fn clip(s: &str, max_chars: usize) -> String {
 
 fn has_percentage(text: &str) -> bool {
     let chars: Vec<char> = text.chars().collect();
-    chars.windows(2).any(|w| {
-        w[0].is_ascii_digit() && (w[1] == '%' || w[1] == '％')
-    })
+    chars
+        .windows(2)
+        .any(|w| w[0].is_ascii_digit() && (w[1] == '%' || w[1] == '％'))
 }
 
 fn first_marker_pos(text: &str, markers: &[&str]) -> Option<usize> {
@@ -531,8 +531,15 @@ pub(crate) fn synthesize_proposals(conn: &Connection) -> Result<usize> {
             .as_str()
             .filter(|s| !s.trim().is_empty())
             .unwrap_or(title);
-        let rule = latest_detail.get("rule").cloned().unwrap_or_else(|| json!({}));
-        let sample_ids: Vec<&str> = samples.iter().take(10).map(|(id, _, _)| id.as_str()).collect();
+        let rule = latest_detail
+            .get("rule")
+            .cloned()
+            .unwrap_or_else(|| json!({}));
+        let sample_ids: Vec<&str> = samples
+            .iter()
+            .take(10)
+            .map(|(id, _, _)| id.as_str())
+            .collect();
         let confidence = (0.55 + 0.08 * (count as f64)).min(0.95);
 
         let existing_pending: Option<String> = conn
@@ -551,7 +558,13 @@ pub(crate) fn synthesize_proposals(conn: &Connection) -> Result<usize> {
                 "UPDATE habit_proposals
                  SET evidence_count=?1, confidence=?2, sample_ids_json=?3, updated_at=?4
                  WHERE id=?5",
-                params![count, confidence, json!(sample_ids).to_string(), at, prop_id],
+                params![
+                    count,
+                    confidence,
+                    json!(sample_ids).to_string(),
+                    at,
+                    prop_id
+                ],
             )?;
         } else {
             conn.execute(
@@ -585,7 +598,8 @@ fn read_habit_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Value> {
     let accepted = row.get::<_, i64>(10)?;
     let overridden = row.get::<_, i64>(11)?;
     let utility = (accepted as f64 + 1.0) / ((accepted + overridden) as f64 + 2.0);
-    let low_utility = (accepted + overridden) >= 5 && (overridden as f64 / (accepted + overridden) as f64) >= 0.7;
+    let low_utility =
+        (accepted + overridden) >= 5 && (overridden as f64 / (accepted + overridden) as f64) >= 0.7;
     let rule: Value = serde_json::from_str(&row.get::<_, String>(6)?).unwrap_or_else(|_| json!({}));
     Ok(json!({
         "id": row.get::<_, String>(0)?,
@@ -861,14 +875,20 @@ fn save_habit(conn: &Connection, p: &Value) -> Result<Value> {
     let project = scope_project(conn, p)?;
     let category = p["category"].as_str().unwrap_or("workflow").trim();
     if !valid_category(category) {
-        return Err(invalid("习惯类别无效，仅支持 writing / reminder / workflow / filtering"));
+        return Err(invalid(
+            "习惯类别无效，仅支持 writing / reminder / workflow / filtering",
+        ));
     }
     let title = required(p, "title")?.trim();
     let instruction = required(p, "instruction")?.trim();
     if title.chars().count() > 160 || instruction.chars().count() > 600 {
         return Err(invalid("标题最多 160 字，规则说明最多 600 字"));
     }
-    let rule = p.get("rule").filter(|v| v.is_object()).cloned().unwrap_or_else(|| json!({}));
+    let rule = p
+        .get("rule")
+        .filter(|v| v.is_object())
+        .cloned()
+        .unwrap_or_else(|| json!({}));
     let existing_id = p["id"].as_str().map(str::trim).filter(|s| !s.is_empty());
     let at = now();
     let habit_id = if let Some(hid) = existing_id {
@@ -881,10 +901,22 @@ fn save_habit(conn: &Connection, p: &Value) -> Result<Value> {
              SET project_id=?1, category=?2, title=?3, instruction=?4, rule_json=?5,
                  version=version+1, updated_at=?6
              WHERE id=?7 AND version=?8",
-            params![project, category, title, instruction, rule.to_string(), at, hid, base],
+            params![
+                project,
+                category,
+                title,
+                instruction,
+                rule.to_string(),
+                at,
+                hid,
+                base
+            ],
         )?;
         if changed == 0 {
-            return Err(AppError::new("REVISION_CONFLICT", "习惯已更新，请刷新后重试"));
+            return Err(AppError::new(
+                "REVISION_CONFLICT",
+                "习惯已更新，请刷新后重试",
+            ));
         }
         hid.to_owned()
     } else {
@@ -933,7 +965,10 @@ fn update_status(conn: &Connection, p: &Value) -> Result<Value> {
         params![status, now(), hid, base],
     )?;
     if changed == 0 {
-        return Err(AppError::new("REVISION_CONFLICT", "习惯状态已变化，请刷新后重试"));
+        return Err(AppError::new(
+            "REVISION_CONFLICT",
+            "习惯状态已变化，请刷新后重试",
+        ));
     }
     conn.query_row(
         "SELECT id,project_id,pattern_key,category,title,instruction,rule_json,status,
@@ -963,19 +998,32 @@ fn record_copilot_feedback(conn: &Connection, p: &Value) -> Result<Value> {
     let tool = required(p, "toolName")?.trim();
     let decision = required(p, "decision")?.trim();
     if !matches!(decision, "approved" | "edited_and_approved" | "rejected") {
-        return Err(invalid("反馈决定仅支持 approved / edited_and_approved / rejected"));
+        return Err(invalid(
+            "反馈决定仅支持 approved / edited_and_approved / rejected",
+        ));
     }
     let remember = p["rememberAsHabit"].as_bool().unwrap_or(false);
     let original = p.get("originalArgs").cloned().unwrap_or_else(|| json!({}));
-    let final_args = p.get("finalArgs").cloned().unwrap_or_else(|| original.clone());
+    let final_args = p
+        .get("finalArgs")
+        .cloned()
+        .unwrap_or_else(|| original.clone());
 
     let mut created_habits = Vec::new();
     let mut diffs: Vec<(String, String, String, Value)> = Vec::new();
     if decision == "edited_and_approved" {
         if let (Some(old_obj), Some(new_obj)) = (original.as_object(), final_args.as_object()) {
             for field in ["priority", "severity", "assignee"] {
-                let old_val = old_obj.get(field).and_then(Value::as_str).unwrap_or("").trim();
-                let new_val = new_obj.get(field).and_then(Value::as_str).unwrap_or("").trim();
+                let old_val = old_obj
+                    .get(field)
+                    .and_then(Value::as_str)
+                    .unwrap_or("")
+                    .trim();
+                let new_val = new_obj
+                    .get(field)
+                    .and_then(Value::as_str)
+                    .unwrap_or("")
+                    .trim();
                 if !new_val.is_empty() && new_val != old_val {
                     let (title, instruction) = match (tool, field) {
                         ("create_task" | "update_task", "priority") => {
@@ -1181,7 +1229,11 @@ pub(crate) fn select_for_context(
             } else {
                 0.0
             };
-            let penalty = if h["lowUtilityWarning"] == true { -0.4 } else { 0.0 };
+            let penalty = if h["lowUtilityWarning"] == true {
+                -0.4
+            } else {
+                0.0
+            };
             (conf * utility + scope_bonus + rel + penalty, h)
         })
         .collect();
@@ -1295,8 +1347,12 @@ mod tests {
         observe_report_edit(&db.conn, Some("p1"), "日报", draft, edited).unwrap();
         let after = center(&db.conn, &json!({"projectId": "p1"})).unwrap();
         let props = after["proposals"].as_array().unwrap();
-        assert!(props.iter().any(|p| p["patternKey"] == "writing:drop_percentages"));
-        assert!(props.iter().any(|p| p["patternKey"] == "writing:risks_first"));
+        assert!(props
+            .iter()
+            .any(|p| p["patternKey"] == "writing:drop_percentages"));
+        assert!(props
+            .iter()
+            .any(|p| p["patternKey"] == "writing:risks_first"));
 
         // Confirming promotes into active user_habits; rejecting suppresses re-proposal
         let target = props
@@ -1310,7 +1366,8 @@ mod tests {
         .unwrap();
         assert_eq!(confirmed["habit"]["status"], "active");
 
-        let selected = select_for_context(&db.conn, Some("p1"), &["writing"], "周报润色", 5).unwrap();
+        let selected =
+            select_for_context(&db.conn, Some("p1"), &["writing"], "周报润色", 5).unwrap();
         assert_eq!(selected.len(), 1);
         assert_eq!(selected[0]["patternKey"], "writing:risks_first");
 

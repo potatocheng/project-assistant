@@ -375,10 +375,8 @@ pub(crate) fn retrieve_with_semantic(
         if !signals.hits.is_empty() && !corpus.is_empty() {
             const RRF_K: f64 = 60.0;
             const MAX_COSINE_DISTANCE: f64 = 0.65;
-            let corpus_ids: std::collections::HashSet<&str> = corpus
-                .iter()
-                .filter_map(|m| m["id"].as_str())
-                .collect();
+            let corpus_ids: std::collections::HashSet<&str> =
+                corpus.iter().filter_map(|m| m["id"].as_str()).collect();
             // Vectors NEVER bypass eligibility: filter strictly to active, non-conflicted,
             // non-archived, retention-valid, entity/date-applicable memories in `corpus`.
             let mut vec_ranks = std::collections::HashMap::<&str, usize>::new();
@@ -396,7 +394,11 @@ pub(crate) fn retrieve_with_semantic(
                 bm25_order.sort_by(|&a, &b| {
                     bm25_scores[b]
                         .total_cmp(&bm25_scores[a])
-                        .then_with(|| corpus[b]["updatedAt"].as_str().cmp(&corpus[a]["updatedAt"].as_str()))
+                        .then_with(|| {
+                            corpus[b]["updatedAt"]
+                                .as_str()
+                                .cmp(&corpus[a]["updatedAt"].as_str())
+                        })
                         .then_with(|| corpus[a]["id"].as_str().cmp(&corpus[b]["id"].as_str()))
                 });
                 let mut bm25_ranks = std::collections::HashMap::<usize, usize>::new();
@@ -2026,12 +2028,27 @@ mod tests {
              INSERT OR IGNORE INTO sources VALUES('src','p','记录','text','a.txt',NULL,'now','h','ready',1,NULL,'originals/a');",
         )
         .unwrap();
-        add_memory(&conn, "eligible-vec", "p", "网关发版计划后移至下周三。", json!({}));
-        add_memory(&conn, "conflicted-vec", "p", "旧版上线时间已推迟。", json!({}));
+        add_memory(
+            &conn,
+            "eligible-vec",
+            "p",
+            "网关发版计划后移至下周三。",
+            json!({}),
+        );
+        add_memory(
+            &conn,
+            "conflicted-vec",
+            "p",
+            "旧版上线时间已推迟。",
+            json!({}),
+        );
         add_memory(&conn, "expired-working", "p", "临时延期观察项。", json!({}));
         add_memory(&conn, "archived-vec", "p", "已归档的延期历史。", json!({}));
-        conn.execute("UPDATE memories SET state='archived' WHERE id='archived-vec'", [])
-            .unwrap();
+        conn.execute(
+            "UPDATE memories SET state='archived' WHERE id='archived-vec'",
+            [],
+        )
+        .unwrap();
         conn.execute(
             "INSERT INTO proposals(id,project_id,source_id,kind,content,status,created_at,memory_id)
              VALUES('prop-c','p','src','fact','新上线时间','pending','now',NULL)",

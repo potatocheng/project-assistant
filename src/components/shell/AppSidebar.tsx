@@ -1,9 +1,11 @@
-import type { ReactNode, RefObject } from 'react';
+import { useRef, type ReactNode, type RefObject } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
-  FolderKanban, MessageSquareText, Plus, Search, Sparkles, Sun, X,
+  FolderKanban, MessageSquareText, Plus, Search, Sun, X,
 } from 'lucide-react';
 import type { Page, Project } from '../../types';
+import { shortcutLabel } from '../../design/motion';
+import { CountPulse, useSlidingIndicator, useSwipeDismiss } from '../interaction';
 import { Spinner } from '../ui';
 import { BrandMark } from './BrandMark';
 
@@ -35,7 +37,7 @@ const PAGE_LABELS: Record<Page, string> = {
   changes: '变更与验收',
   coordination: '周报与会议',
   sources: '原始资料',
-  memories: '项目记忆',
+  memories: '已确认记录',
   reports: '工作日报',
   'chat-replies': '飞书自动回复',
   proactive: '主动推进与巡检',
@@ -45,9 +47,7 @@ const PAGE_LABELS: Record<Page, string> = {
   backups: '备份与恢复',
 };
 
-const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
-const searchShortcut = isMac ? '⌘K' : 'Ctrl K';
-const copilotShortcut = isMac ? '⌘J' : 'Ctrl J';
+const searchShortcut = shortcutLabel('K');
 
 export function pageLabel(page: Page) {
   return PAGE_LABELS[page] ?? '工作区';
@@ -62,11 +62,13 @@ export function AppSidebar({
   badges,
   runningJobs,
   drawer,
+  drawerActive,
   drawerLeaving,
-  copilotOpen,
+  showArchived,
+  archivedProjectCount = 0,
+  onToggleArchived,
   onNavigate,
   onSelectProject,
-  onToggleCopilot,
   onSearch,
   onClose,
   onCreateProject,
@@ -81,25 +83,40 @@ export function AppSidebar({
   badges: NavBadges;
   runningJobs: number;
   drawer: boolean;
+  drawerActive: boolean;
   drawerLeaving: boolean;
-  copilotOpen: boolean;
+  showArchived: boolean;
+  archivedProjectCount?: number;
+  onToggleArchived: (show: boolean) => void;
   onNavigate: (page: Page) => void;
   onSelectProject: (projectId: string) => void;
-  onToggleCopilot: () => void;
   onSearch: () => void;
   onClose: () => void;
   onCreateProject: () => void;
   createProjectDisabled: boolean;
   footer: ReactNode;
 }) {
-  const todayAttention = badges.proactive + badges.followups + badges.pending;
-  const commsAttention = badges.proactive + badges.pending;
+  const commsAttention = badges.proactive + badges.followups + badges.pending;
+  const workspaceGroupRef = useRef<HTMLDivElement>(null);
+  const projectsGroupRef = useRef<HTMLDivElement>(null);
+
+  useSlidingIndicator(workspaceGroupRef, ".sidebar-link[aria-current='page']", [page, drawer]);
+  useSlidingIndicator(projectsGroupRef, ".sidebar-link[aria-current='page']", [page, activeProjectId, projects.length, drawer]);
+
+  useSwipeDismiss({
+    ref: sidebarRef,
+    open: drawer,
+    enabled: drawer,
+    direction: 'left',
+    onClose,
+    scrimSelector: '.nav-scrim',
+  });
 
   return (
     <aside
       id={id}
       ref={sidebarRef}
-      className={`app-sidebar ${drawer ? 'is-drawer' : ''} ${drawerLeaving ? 'is-leaving' : ''}`}
+      className={`app-sidebar ${drawer ? 'is-drawer' : ''} ${drawerActive ? 'is-active' : ''} ${drawerLeaving ? 'is-leaving' : ''}`}
       role={drawer ? 'dialog' : undefined}
       aria-modal={drawer || undefined}
       aria-label="工作区导航"
@@ -107,13 +124,13 @@ export function AppSidebar({
     >
       <div className="sidebar-brand">
         <button className="sidebar-brand-button" onClick={() => onNavigate('workbench')} aria-label="循序 Cadence · 今日行动流">
-          <BrandMark size={22} />
+          <BrandMark size={24} />
           <span>循序</span>
         </button>
         {runningJobs > 0 && (
           <span className="sidebar-processing" role="status" title={`${runningJobs} 项处理中`}>
             <Spinner />
-            <span>{runningJobs}</span>
+            <CountPulse value={runningJobs} />
           </span>
         )}
         {drawer && (
@@ -130,15 +147,16 @@ export function AppSidebar({
       </button>
 
       <nav className="sidebar-nav" aria-label="主导航">
-        <div className="sidebar-group">
+        <div className="sidebar-group sliding-indicator-container" ref={workspaceGroupRef}>
+          <span className="sliding-indicator-bar sidebar-active-bar" aria-hidden="true" />
           <span className="sidebar-group-label">工作区</span>
           {PRIMARY_NAV.map(({ id: navId, page: destination, label, icon: Icon, matches }) => {
             const active = matches(page);
             const count =
-              navId === 'today' ? todayAttention
+              navId === 'today' ? 0
                 : navId === 'projects' ? badges.tasks
                   : commsAttention;
-            const attention = navId !== 'projects' && count > 0;
+            const attention = navId === 'comms' && count > 0;
             return (
               <button
                 key={navId}
@@ -150,7 +168,7 @@ export function AppSidebar({
                 <span>{label}</span>
                 {count > 0 && (
                   <small className={`sidebar-count ${attention ? 'is-attention' : ''}`}>
-                    {count > 99 ? '99+' : count}
+                    <CountPulse value={count} display={count > 99 ? '99+' : count} />
                   </small>
                 )}
               </button>
@@ -158,7 +176,8 @@ export function AppSidebar({
           })}
         </div>
 
-        <div className="sidebar-group">
+        <div className="sidebar-group sliding-indicator-container" ref={projectsGroupRef}>
+          <span className="sliding-indicator-bar sidebar-active-bar" aria-hidden="true" />
           <div className="sidebar-group-header">
             <span className="sidebar-group-label">我的项目</span>
             <button
@@ -174,7 +193,7 @@ export function AppSidebar({
           {projects.length === 0 ? (
             <p className="sidebar-empty-projects">暂无项目</p>
           ) : (
-            projects.slice(0, 10).map(project => {
+            projects.map(project => {
               const selected = PROJECT_PAGES.has(page) && activeProjectId === project.id;
               return (
                 <button
@@ -189,19 +208,20 @@ export function AppSidebar({
               );
             })
           )}
+          {(archivedProjectCount > 0 || showArchived) && (
+            <label className="sidebar-archive-toggle">
+              <input
+                type="checkbox"
+                checked={showArchived}
+                onChange={e => onToggleArchived(e.target.checked)}
+              />
+              <span>显示已归档{archivedProjectCount > 0 ? ` (${archivedProjectCount})` : ''}</span>
+            </label>
+          )}
         </div>
       </nav>
 
       <div className="sidebar-footer">
-        <button
-          className="sidebar-copilot-btn"
-          aria-pressed={copilotOpen}
-          onClick={onToggleCopilot}
-        >
-          <Sparkles size={15} />
-          <span>AI 副驾驶</span>
-          <kbd>{copilotShortcut}</kbd>
-        </button>
         {footer}
       </div>
     </aside>

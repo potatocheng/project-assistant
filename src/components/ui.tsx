@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { LoaderCircle, X } from 'lucide-react';
+import { MOTION, prefersReducedMotion } from '../design/motion';
 
 export function Spinner() { return <LoaderCircle size={15} className="spinner" aria-hidden="true" />; }
 
@@ -14,7 +15,7 @@ export function useModalLayer(ref: RefObject<HTMLElement | null>, active = true)
   useEffect(() => {
     const layer = ref.current;
     if (!active || !layer) return;
-    const siblings = Array.from(layer.parentElement?.children ?? []).filter((element): element is HTMLElement => element instanceof HTMLElement && element !== layer && !element.matches('.toast, .nav-scrim'));
+    const siblings = Array.from(layer.parentElement?.children ?? []).filter((element): element is HTMLElement => element instanceof HTMLElement && element !== layer && !element.matches('.toast, .nav-scrim, .copilot-scrim'));
     for (const element of siblings) {
       const lock = dialogLocks.get(element) ?? { count: 0, previous: element.inert };
       lock.count += 1; dialogLocks.set(element, lock); element.inert = true;
@@ -30,29 +31,49 @@ export function useModalLayer(ref: RefObject<HTMLElement | null>, active = true)
   }, [ref, active]);
 }
 
-export function Dialog({ title, subtitle, children, close, busy, wide = false }: {
-  title: string; subtitle?: string; children: ReactNode; close: () => void; busy?: boolean; wide?: boolean;
+export function Dialog({ title, subtitle, children, close, busy, wide = false, dirty = false }: {
+  title: string; subtitle?: string; children: ReactNode; close: () => void; busy?: boolean; wide?: boolean; dirty?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const overlay = useRef<HTMLDivElement>(null);
+  const continueEditRef = useRef<HTMLButtonElement>(null);
   const returnFocus = useRef(document.activeElement as HTMLElement | null);
   const backdropPressed = useRef(false);
   const closing = useRef(false);
   const [exiting, setExiting] = useState(false);
-  const latest = useRef({ busy, close });
-  latest.current = { busy, close };
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const latest = useRef({ busy, close, dirty, confirmDiscard });
+  latest.current = { busy, close, dirty, confirmDiscard };
   const id = useId();
   const titleId = `${id}-title`;
   const subtitleId = `${id}-subtitle`;
   useModalLayer(overlay);
-  const requestClose = useCallback(() => {
+  useEffect(() => {
+    if (!dirty) setConfirmDiscard(false);
+  }, [dirty]);
+  useEffect(() => {
+    if (!confirmDiscard) return;
+    const raf = window.requestAnimationFrame(() => {
+      continueEditRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [confirmDiscard]);
+  const performClose = useCallback(() => {
     if (latest.current.busy || closing.current) return;
     closing.current = true;
     setExiting(true);
   }, []);
+  const requestClose = useCallback(() => {
+    if (latest.current.busy || closing.current) return;
+    if (latest.current.dirty) {
+      setConfirmDiscard(true);
+      return;
+    }
+    performClose();
+  }, [performClose]);
   useEffect(() => {
     if (!exiting) return;
-    const timer = window.setTimeout(() => latest.current.close(), window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 150);
+    const timer = window.setTimeout(() => latest.current.close(), prefersReducedMotion() ? 0 : MOTION.exit);
     return () => window.clearTimeout(timer);
   }, [exiting]);
   useEffect(() => {
@@ -78,7 +99,11 @@ export function Dialog({ title, subtitle, children, close, busy, wide = false }:
       if (event.key === 'Escape') {
         if (!latest.current.busy) {
           event.preventDefault();
-          requestClose();
+          if (latest.current.confirmDiscard) {
+            setConfirmDiscard(false);
+          } else {
+            requestClose();
+          }
         }
         return;
       }
@@ -99,7 +124,20 @@ export function Dialog({ title, subtitle, children, close, busy, wide = false }:
     };
   }, [requestClose]);
   return createPortal(<div className={`dialog-overlay ${exiting ? 'is-leaving' : ''}`} ref={overlay} onPointerDown={event => { backdropPressed.current = event.target === event.currentTarget; }} onPointerUp={event => { if (backdropPressed.current && event.target === event.currentTarget) requestClose(); backdropPressed.current = false; }} onPointerCancel={() => { backdropPressed.current = false; }}><div className={`dialog ${wide ? 'dialog-wide' : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={subtitle ? subtitleId : undefined} aria-busy={Boolean(busy)} tabIndex={-1} ref={ref}>
-    <div className="dialog-header"><div><h2 id={titleId}>{title}</h2>{subtitle && <p id={subtitleId}>{subtitle}</p>}{busy && <span className="dialog-busy" role="status"><Spinner />正在处理，请稍候…</span>}</div><button className="icon-button" aria-label="关闭对话框" onClick={requestClose} disabled={busy || exiting}><X size={19} /></button></div>
+    <div className="dialog-sticky-top">
+      <div className="dialog-header"><div><h2 id={titleId}>{title}</h2>{subtitle && <p id={subtitleId}>{subtitle}</p>}{busy && <span className="dialog-busy" role="status"><Spinner />处理中…</span>}</div><button type="button" className="icon-button" aria-label="关闭对话框" onClick={requestClose} disabled={busy || exiting}><X size={19} /></button></div>
+      <div className={`dialog-dirty-collapse ${confirmDiscard ? 'is-open' : ''}`} aria-hidden={!confirmDiscard}>
+        <div className="dialog-dirty-collapse-inner">
+          <div className="dialog-dirty-guard" role="alert">
+            <span>有尚未保存的修改，确定要放弃吗？</span>
+            <div className="dialog-dirty-guard-actions">
+              <button ref={continueEditRef} type="button" className="button secondary compact" tabIndex={confirmDiscard ? 0 : -1} onClick={() => setConfirmDiscard(false)}>继续编辑</button>
+              <button type="button" className="button danger compact" tabIndex={confirmDiscard ? 0 : -1} onClick={performClose}>放弃修改</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     {children}
   </div></div>, document.querySelector('.app-shell') ?? document.body);
 }

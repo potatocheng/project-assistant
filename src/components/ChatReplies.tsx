@@ -57,9 +57,17 @@ export function ChatReplies({ projects, projectId, onProjectChange, openSettings
   useEffect(() => {
     alive.current = true;
     void refresh();
-    const timer = window.setInterval(() => { void refresh(); }, 5000);
+    const timer = window.setInterval(() => { if (!document.hidden) void refresh(); }, 5000);
     return () => { alive.current = false; window.clearInterval(timer); };
   }, [refresh, refreshKey]);
+
+  const chatNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const binding of status?.settings.bindings ?? []) {
+      if (binding.chatId && binding.name) map.set(binding.chatId, binding.name);
+    }
+    return map;
+  }, [status?.settings.bindings]);
 
   const messages = useMemo(() => {
     const search = query.trim().toLocaleLowerCase();
@@ -136,7 +144,7 @@ export function ChatReplies({ projects, projectId, onProjectChange, openSettings
           </div> : messages.map((message) => <article className="chat-reply" key={message.id} aria-label={`${message.chatType === 'p2p' ? '私聊' : '群聊'}：${message.question || '无文本提问'}`}>
             <header className="chat-reply-heading">
               <div><span className="chat-reply-channel">{message.chatType === 'p2p' ? '私聊' : '群聊'}</span>
-                <strong>{message.chatType === 'p2p' ? message.peerName || message.peerId || message.chatId : message.chatId}</strong>
+                <strong>{message.chatType === 'p2p' ? (message.peerName || chatNameById.get(message.chatId) || '同事私聊') : (chatNameById.get(message.chatId) || '飞书群聊')}</strong>
                 <span>{projects.find((project) => project.id === message.projectId)?.name ?? '项目已移除'}</span>
               </div>
               <div><span className={`chat-reply-outcome chat-reply-${outcome(message)}`}>{MESSAGE_LABELS[message.status] ?? message.status}</span>

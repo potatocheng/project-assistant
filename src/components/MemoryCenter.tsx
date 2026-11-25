@@ -20,7 +20,6 @@ import type {
   UserHabit,
 } from '../types';
 import { Dialog, Spinner } from './ui';
-import { MemoryQualityPanel } from './MemoryWorkbench';
 
 interface Policy { enabled: boolean; idleSeconds: number; dailyCalls: number; autoNew: boolean }
 interface Subscription { kind: 'chat' | 'document'; target: string; projectId: string; enabled: boolean; historyDays: number }
@@ -50,21 +49,29 @@ function navigateTabs(event: KeyboardEvent<HTMLDivElement>) {
 }
 
 function ReviewCard({ review, projects, disabled, resolve, recompare }: { review: Review; projects: Project[]; disabled: boolean; resolve: (review: Review, action: string, content?: string) => void; recompare: (review: Review) => void }) {
-  const [evidence, setEvidence] = useState<string[] | null>(null);
+  const [evidence, setEvidence] = useState<{ focused: string[]; all: string[] } | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const [error, setError] = useState('');
   const [content, setContent] = useState(review.content);
   const [loading, setLoading] = useState(false);
   const stale = review.targetId !== null && review.targetRevision !== review.currentTargetRevision;
   const inspect = async () => {
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setShowAll(false);
     try {
       const source = await execute<SourceDetail>('get_source', { sourceId: review.sourceId });
-      const items = source.segments.map((s) => `新资料 · ${s.locator}\n${s.text}`);
+      const matchedIds = new Set(review.quotes.map((q) => q.segmentId));
+      const matchedSegments = matchedIds.size > 0
+        ? source.segments.filter((s) => matchedIds.has(s.id))
+        : source.segments.slice(0, 3);
+      const focused = (matchedSegments.length ? matchedSegments : source.segments.slice(0, 3)).map((s) => `新资料 · ${s.locator}\n${s.text}`);
+      const all = source.segments.map((s) => `新资料 · ${s.locator}\n${s.text}`);
       if (review.targetId) {
         const old = await execute<MemoryDetail>('get_memory', { memoryId: review.targetId });
-        items.unshift(...(old.revisions.find((r) => r.number === old.memory.revision)?.evidence ?? []).map((e) => `当前记忆 · ${e.sourceTitle} · ${e.locator}\n${e.text}`));
+        const currentItems = (old.revisions.find((r) => r.number === old.memory.revision)?.evidence ?? []).map((e) => `当前记忆 · ${e.sourceTitle} · ${e.locator}\n${e.text}`);
+        focused.unshift(...currentItems);
+        all.unshift(...currentItems);
       }
-      setEvidence(items);
+      setEvidence({ focused, all });
     } catch (caught) { setError(asError(caught).message); } finally { setLoading(false); }
   };
   return <article className="memory-review">
@@ -76,14 +83,14 @@ function ReviewCard({ review, projects, disabled, resolve, recompare }: { review
     {error && <p className="inline-error" role="alert">{error}</p>}
     <div className="memory-review-actions">
       {stale ? <button className="button secondary compact" disabled={disabled} onClick={() => recompare(review)}>重新比较</button> : <>
-        {review.targetId && <button className="button primary compact" disabled={disabled || !content.trim()} onClick={() => resolve(review, 'replace', content)}>更新当前记忆</button>}
-        <button className={`button ${review.targetId ? 'secondary' : 'primary'} compact`} disabled={disabled || !content.trim()} onClick={() => resolve(review, 'new', content)}>{review.targetId ? '另存一条记忆' : '确认新增'}</button>
+        {review.targetId && <button className="button seal compact" disabled={disabled || !content.trim()} onClick={() => resolve(review, 'replace', content)}>更新当前记忆</button>}
+        <button className={`button ${review.targetId ? 'secondary' : 'seal'} compact`} disabled={disabled || !content.trim()} onClick={() => resolve(review, 'new', content)}>{review.targetId ? '另存一条记忆' : '确认新增'}</button>
         {review.targetId && review.disposition === 'duplicate' && <button className="button secondary compact" disabled={disabled} onClick={() => resolve(review, 'mergeEvidence')}>仅合并依据</button>}
       </>}
       <button className="button secondary compact" disabled={disabled} onClick={() => resolve(review, 'ignore')}>忽略新内容</button>
       <button className="text-button tiny" disabled={loading} onClick={() => evidence ? setEvidence(null) : void inspect()}>{loading ? <Spinner /> : evidence ? '收起原文' : '查看原文依据'}</button>
     </div>
-    {evidence && <div className="memory-evidence">{evidence.map((text, i) => <pre key={i}>{text}</pre>)}</div>}
+    {evidence && <div className="memory-evidence">{(showAll ? evidence.all : evidence.focused).map((text, i) => <pre key={i}>{text}</pre>)}{evidence.all.length > evidence.focused.length && <button type="button" className="text-button tiny" onClick={() => setShowAll((v) => !v)}>{showAll ? '仅看匹配依据段落' : `展开整份资料原文（共 ${evidence.all.length} 段）`}</button>}</div>}
   </article>;
 }
 
@@ -754,7 +761,7 @@ function MemoryAuditsSection({
             <div className="memory-review-actions">
               <button
                 type="button"
-                className="button primary compact"
+                className="button seal compact"
                 disabled={disabled || busy}
                 onClick={() => void resolveAudit(audit, 'keep_a')}
               >
@@ -762,7 +769,7 @@ function MemoryAuditsSection({
               </button>
               <button
                 type="button"
-                className="button primary compact"
+                className="button seal compact"
                 disabled={disabled || busy}
                 onClick={() => void resolveAudit(audit, 'keep_b')}
               >
@@ -788,7 +795,7 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
   projects: Project[]; close: () => void; onSaved: () => Promise<unknown>;
   initialTab?: 'sources' | 'reviews' | 'aliases' | 'habits'; initialReviewProjectId?: string; onAccount?: () => void; onModelSettings?: () => void;
 }) {
-  const [tab, setTab] = useState<'sources' | 'policy' | 'reviews' | 'aliases' | 'habits' | 'history' | 'quality'>(initialTab);
+  const [tab, setTab] = useState<'sources' | 'policy' | 'reviews' | 'aliases' | 'habits' | 'history'>(initialTab);
   const [reviewProjectId, setReviewProjectId] = useState(initialReviewProjectId);
   const [data, setData] = useState<Maintenance | null>(null);
   const [sync, setSync] = useState<SyncStatus | null>(null);
@@ -798,6 +805,7 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
   const [openAuditCount, setOpenAuditCount] = useState(0);
   const [pendingHabitCount, setPendingHabitCount] = useState(0);
   const [busy, setBusy] = useState('');
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const initialized = useRef(false);
@@ -817,16 +825,20 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
     if (habitsRes) setPendingHabitCount(habitsRes.counts.pendingProposals ?? 0);
     if (!initialized.current) { setPolicy(a.settings); setForm(b.settings); initialized.current = true; }
   }, []);
+  const reloadInitial = useCallback(() => {
+    setLoading(true); setError('');
+    void refresh().catch((e) => { if (alive.current) setError(asError(e).message); }).finally(() => { if (alive.current) setLoading(false); });
+  }, [refresh]);
   useEffect(() => {
     alive.current = true;
-    void refresh().catch((e) => { if (alive.current) setError(asError(e).message); });
+    reloadInitial();
     const timer = window.setInterval(() => {
-      if (refreshing.current) return;
+      if (document.hidden || refreshing.current) return;
       refreshing.current = true;
       void refresh().catch((e) => { if (alive.current) setError(asError(e).message); }).finally(() => { refreshing.current = false; });
     }, 4000);
     return () => { alive.current = false; window.clearInterval(timer); };
-  }, [refresh]);
+  }, [refresh, reloadInitial]);
   const action = async (name: string, op: () => Promise<void>) => {
     if (busy) return;
     setBusy(name); setError(''); setNotice('');
@@ -839,7 +851,7 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
   const totalReviewBadge = (data?.reviews.length ?? 0) + openAuditCount;
   const patchSource = (index: number, patch: Partial<Subscription>) => setForm((old) => old ? { ...old, sources: old.sources.map((s, i) => i === index ? { ...s, ...patch } : s) } : old);
   const resolve = (review: Review, kind: string, content?: string) => void action(review.id, async () => { await execute('resolve_memory_review', { reviewId: review.id, action: kind, baseRevision: review.targetRevision, content }); setNotice('已处理，记忆历史与原文依据已保留。'); });
-  return <Dialog title="记忆中心" subtitle="同步飞书资料，整理项目记忆，确认内容变化与个人习惯。" wide close={close} busy={!!busy}>
+  return <Dialog title="记忆中心" subtitle="同步飞书资料，整理项目记忆，确认内容变化与个人习惯。" wide close={close} busy={!!busy} dirty={dirty || policyDirty}>
     <div className="dialog-body memory-center">
       <div className="segmented-control" role="tablist" aria-label="记忆中心" onKeyDown={navigateTabs}>{([
         ['sources', '资料来源'],
@@ -850,7 +862,7 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
         ['history', '整理记录'],
       ] as const).map(([id, label]) => <button type="button" role="tab" tabIndex={tab === id ? 0 : -1} aria-selected={tab === id} aria-controls={`memory-panel-${id}`} id={`memory-tab-${id}`} key={id} className={tab === id ? 'selected' : ''} onClick={() => setTab(id)}>{label}</button>)}</div>
       {error && <p className="inline-error" role="alert">{error}</p>}{notice && <p className="inline-success" role="status">{notice}</p>}
-      {tab === 'quality' ? <div role="tabpanel" id="memory-panel-quality" aria-labelledby="memory-tab-quality"><MemoryQualityPanel projects={projects} /></div> : tab === 'aliases' ? <div role="tabpanel" id="memory-panel-aliases" aria-labelledby="memory-tab-aliases"><EntityAliasesPanel projects={projects} onSaved={onSaved} /></div> : tab === 'habits' ? <div role="tabpanel" id="memory-panel-habits" aria-labelledby="memory-tab-habits"><HabitsPanel projects={projects} onSaved={async () => { await refresh(); await onSaved(); }} onPendingCount={setPendingHabitCount} /></div> : !data || !form || !policy ? <p className="field-hint"><Spinner /> 正在读取记忆设置…</p> : <div role="tabpanel" id={`memory-panel-${tab}`} aria-labelledby={`memory-tab-${tab}`}>
+      {tab === 'aliases' ? <div role="tabpanel" id="memory-panel-aliases" aria-labelledby="memory-tab-aliases"><EntityAliasesPanel projects={projects} onSaved={onSaved} /></div> : tab === 'habits' ? <div role="tabpanel" id="memory-panel-habits" aria-labelledby="memory-tab-habits"><HabitsPanel projects={projects} onSaved={async () => { await refresh(); await onSaved(); }} onPendingCount={setPendingHabitCount} /></div> : loading || !data || !form || !policy ? (error ? <div className="memory-review-actions"><button type="button" className="button secondary compact" onClick={reloadInitial}>重试加载</button></div> : <p className="field-hint"><Spinner /> 正在读取记忆设置…</p>) : <div role="tabpanel" id={`memory-panel-${tab}`} aria-labelledby={`memory-tab-${tab}`}>
         {tab === 'sources' && <>
           <p className="field-hint">选择项目群聊或文档，已获批权限的来源会自动同步，未获批的来源暂缓并在权限通过后自动恢复。{onAccount ? <button className="text-button tiny" disabled={!!busy || dirty || policyDirty} onClick={onAccount}>管理飞书账号与权限<ChevronRight size={12}/></button> : '请先在「飞书助理」中连接账号。'}</p>
           {sync?.permissions && <div className="feishu-cap-chips" aria-label="飞书采集权限状态">

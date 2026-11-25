@@ -21,9 +21,9 @@ export function formatMoment(value: string | null | undefined, time = true): str
   return new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', ...(time ? { hour: '2-digit', minute: '2-digit' } as const : {}) }).format(parsed);
 }
 
-export function WorkFilters({ day, onDayChange, projects, projectId, onProjectChange, children, showDate = true }: {
+export function WorkFilters({ day, onDayChange, projects, projectId, onProjectChange, children, showDate = true, showProject = true }: {
   day: string; onDayChange: (day: string) => void; projects: Project[];
-  projectId: string; onProjectChange: (projectId: string) => void; children?: ReactNode; showDate?: boolean;
+  projectId: string; onProjectChange: (projectId: string) => void; children?: ReactNode; showDate?: boolean; showProject?: boolean;
 }) {
   return <div className="work-filters">
     {showDate && <div className="work-date-controls">
@@ -32,8 +32,8 @@ export function WorkFilters({ day, onDayChange, projects, projectId, onProjectCh
       <Button label="后一天" tooltip="后一天" variant="ghost" size="sm" isIconOnly icon={<ChevronRight size={17} />} onClick={() => onDayChange(shiftDay(day, 1))} />
       <Button label="回到今天" variant="ghost" size="sm" isDisabled={day === localDay()} onClick={() => onDayChange(localDay())}>今天</Button>
     </div>}
-    <Selector label="筛选项目" isLabelHidden value={projectId} onChange={onProjectChange}
-      containerClassName="astryx-project-filter" options={[{ value: '', label: '全部项目' }, ...projects.map(project => ({ value: project.id, label: project.name }))]} />
+    {showProject && <Selector label="筛选项目" isLabelHidden value={projectId} onChange={onProjectChange}
+      containerClassName="astryx-project-filter" options={[{ value: '', label: '全部项目' }, ...projects.map(project => ({ value: project.id, label: project.name }))]} />}
     {children}
   </div>;
 }

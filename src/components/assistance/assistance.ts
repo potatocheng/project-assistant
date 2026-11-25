@@ -26,11 +26,19 @@ export interface Assistance {
   runId?: string; review?: AssistanceReview; queryTrace?: AssistanceQueryTrace;
 }
 
-// Ignore polling object identities and draft saves; regenerate when project evidence changes.
-export function assistanceRevision(state: AppState) {
-  return JSON.stringify([state.tasks.map(t => [t.id, t.version]), state.memories.map(m => [m.id, m.revision]),
-    state.sources.map(s => [s.id, s.sha256, s.status]), state.projects, state.managementRevision,
-    state.assistantPreferenceVersion, state.lifecycle, state.assistanceRevision]);
+// Ignore polling object identities and draft saves; regenerate when project evidence in scope changes.
+export function assistanceRevision(state: AppState, projectId = '') {
+  const inScope = (pid: string) => !projectId || pid === projectId;
+  return JSON.stringify([
+    state.tasks.filter(t => inScope(t.projectId)).map(t => [t.id, t.version]),
+    state.memories.filter(m => inScope(m.projectId)).map(m => [m.id, m.revision]),
+    state.sources.filter(s => inScope(s.projectId)).map(s => [s.id, s.sha256, s.status]),
+    projectId ? state.projects.filter(p => p.id === projectId) : state.projects,
+    state.managementRevision,
+    state.assistantPreferenceVersion,
+    state.lifecycle,
+    state.assistanceRevision,
+  ]);
 }
 const pending = new Map<string, Promise<Assistance>>();
 function request(command: string, payload: Record<string, unknown>, key: string) {

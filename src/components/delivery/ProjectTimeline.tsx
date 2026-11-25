@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { CalendarRange, Flag } from 'lucide-react';
 import type { Task } from '../../types';
+import { useScrollFade } from '../interaction';
 import type { Milestone, ProjectDelivery } from './types';
 
 function toDayMs(ymd: string): number {
@@ -45,7 +47,8 @@ export function ProjectTimeline({
 
   // Collect date anchors for the timeline
   const datedMilestones = project.milestones.filter(m => m.baselineDate || m.forecastDate);
-  const datedTasks = activeTasks.filter(t => t.dueDate || t.plannedDate).slice(0, 8);
+  const allDatedTasks = activeTasks.filter(t => t.dueDate || t.plannedDate);
+  const datedTasks = allDatedTasks.slice(0, 8);
 
   const allDates: string[] = [date];
   if (project.profile.targetDate) allDates.push(project.profile.targetDate);
@@ -75,6 +78,8 @@ export function ProjectTimeline({
   const minLabel = new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric' }).format(new Date(minMs));
   const midLabel = new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric' }).format(new Date(minMs + span / 2));
   const maxLabel = new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric' }).format(new Date(maxMs));
+  const chartRef = useRef<HTMLDivElement>(null);
+  useScrollFade(chartRef, [datedMilestones.length, datedTasks.length]);
 
   return (
     <section className="delivery-timeline-panel" aria-label="交付健康度与里程碑时间轴">
@@ -108,7 +113,8 @@ export function ProjectTimeline({
       {datedMilestones.length === 0 && datedTasks.length === 0 ? (
         <p className="delivery-inline-hint">为里程碑或任务设置计划/截止日期后，此处将自动渲染甘特时间轴。</p>
       ) : (
-        <div className="gantt-chart">
+        <div className="gantt-chart scroll-fade-x" ref={chartRef}>
+          <div className="gantt-inner">
           <div className="gantt-axis">
             <div className="gantt-label-col">节点 / 关键任务</div>
             <div className="gantt-track-col gantt-scale">
@@ -122,8 +128,11 @@ export function ProjectTimeline({
             {datedMilestones.map(m => {
               const base = m.baselineDate || m.forecastDate!;
               const forecast = m.forecastDate || m.baselineDate!;
-              const left = Math.min(pos(base), pos(forecast));
-              const right = Math.max(pos(base), pos(forecast));
+              const rawLeft = Math.min(pos(base), pos(forecast));
+              const rawRight = Math.max(pos(base), pos(forecast));
+              const msLabel = `${shortDay(forecast)}${m.slipDays && m.slipDays > 0 ? ` (+${m.slipDays}天)` : ''}`;
+              const pillWidth = Math.max(Math.min(34, Math.max(12, Math.ceil(msLabel.length * 1.9))), rawRight - rawLeft);
+              const left = Math.min(rawLeft, 100 - pillWidth);
               const slipped = (m.slipDays ?? 0) > 0 || m.isOverdue;
               const done = m.status === 'completed';
               const tone = done ? 'is-done' : slipped ? 'is-risk' : 'is-ontrack';
@@ -152,13 +161,10 @@ export function ProjectTimeline({
                       className={`gantt-bar ${tone}`}
                       style={{
                         left: `${left}%`,
-                        width: `${Math.max(4, right - left)}%`,
+                        width: `${pillWidth}%`,
                       }}
                     >
-                      <span className="gantt-bar-label">
-                        {shortDay(forecast)}
-                        {m.slipDays && m.slipDays > 0 ? ` (+${m.slipDays}天)` : ''}
-                      </span>
+                      <span className="gantt-bar-label">{msLabel}</span>
                     </div>
                   </div>
                 </button>
@@ -168,8 +174,11 @@ export function ProjectTimeline({
             {datedTasks.map(t => {
               const start = t.plannedDate || t.dueDate!;
               const end = t.dueDate || t.plannedDate!;
-              const left = Math.min(pos(start), pos(end));
-              const right = Math.max(pos(start), pos(end));
+              const rawLeft = Math.min(pos(start), pos(end));
+              const rawRight = Math.max(pos(start), pos(end));
+              const taskLabel = `${t.assignee || '待定'} · ${shortDay(end)}`;
+              const pillWidth = Math.max(Math.min(34, Math.max(14, Math.ceil(taskLabel.length * 1.9))), rawRight - rawLeft);
+              const left = Math.min(rawLeft, 100 - pillWidth);
               const overdue = !!t.dueDate && t.dueDate < date && t.status !== 'done';
               const tone = t.status === 'done' ? 'is-done' : t.status === 'blocked' || overdue ? 'is-risk' : 'is-task';
               return (
@@ -178,6 +187,7 @@ export function ProjectTimeline({
                   type="button"
                   className="gantt-row is-subrow"
                   onClick={() => onTaskOpen(t.id, t.projectId)}
+                  title={`${t.title}：${start} → ${end}（${t.assignee || '负责人待定'}）`}
                 >
                   <div className="gantt-label-col">
                     <span className="gantt-task-dot" />
@@ -189,10 +199,10 @@ export function ProjectTimeline({
                       className={`gantt-task-bar ${tone}`}
                       style={{
                         left: `${left}%`,
-                        width: `${Math.max(3, right - left)}%`,
+                        width: `${pillWidth}%`,
                       }}
                     >
-                      <span className="gantt-bar-label">{t.assignee || '待定'} · {shortDay(end)}</span>
+                      <span className="gantt-bar-label">{taskLabel}</span>
                     </div>
                   </div>
                 </button>
@@ -202,6 +212,8 @@ export function ProjectTimeline({
           <div className="gantt-footnote">
             <span><i className="gantt-today-legend" />虚线为今日（{date}）</span>
             <span>◆ 菱形为原定基准日 · 实条为预计/任务跨度（点击即可编辑或查看详情）</span>
+            {allDatedTasks.length > datedTasks.length && <span>仅展示前 {datedTasks.length} 项带日期任务（共 {allDatedTasks.length} 项），完整列表见「任务清单」</span>}
+          </div>
           </div>
         </div>
       )}

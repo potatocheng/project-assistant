@@ -819,10 +819,8 @@ impl Query {
         payload: &Value,
         alias_groups: &[Vec<String>],
     ) -> Result<Self> {
-        let mut query = Self::new_with_aliases(
-            payload["question"].as_str().unwrap_or(""),
-            alias_groups,
-        );
+        let mut query =
+            Self::new_with_aliases(payload["question"].as_str().unwrap_or(""), alias_groups);
         if let Some(values) = payload.get("searchQueries") {
             let values = values
                 .as_array()
@@ -1493,10 +1491,7 @@ mod tests {
         let aliased = Query::new_with_aliases("老王负责二期哪个模块？", &aliases);
         assert!(aliased.names_entity("王明"));
         assert!(aliased.names_entity("支付重构"));
-        let rank = aliased.rank(&[
-            "支付重构核心模块由王明负责。",
-            "前端视觉走查由李静负责。",
-        ]);
+        let rank = aliased.rank(&["支付重构核心模块由王明负责。", "前端视觉走查由李静负责。"]);
         assert!(rank[0] > rank[1]);
         assert!(index_tokens("支付重构方案").contains("重构"));
     }

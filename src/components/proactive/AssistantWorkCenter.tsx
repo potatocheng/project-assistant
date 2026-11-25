@@ -5,7 +5,6 @@ import { asError, execute } from '../../api';
 import { Spinner } from '../ui';
 import { formatMoment, WorkEmpty } from '../work/shared';
 import { WORK_STATUS } from './work-types';
-import { AssistanceRunRecords } from './AssistanceRunRecords';
 import type { AssistantWork, AssistantWorkChoiceId, AssistantWorkData, AssistantWorkProposal, AssistantWorkStatus } from './work-types';
 import './assistant-work.css';
 
@@ -138,7 +137,6 @@ export function AssistantWorkCenter({ projectId, refreshRevision, onChanged, onT
       {workItems.length > 5 && <button className="text-button proactive-show-all" disabled={!!busy} onClick={() => setExpanded(value => !value)}>{expanded ? '收起其余事项' : `展开其余 ${workItems.length - 5} 项`}</button>}
       <details className="proactive-history assistant-work-history"><summary><History size={14} />处理记录<span>{data.history.length} 条</span></summary>{data.history.length ? data.history.map(item => <article key={item.id}><div><strong>{HISTORY[item.kind] || '推进记录已更新'}</strong><time dateTime={item.createdAt}>{formatMoment(item.createdAt)}</time></div>{data.works.find(work => work.id === item.workId)?.title && <small>{data.works.find(work => work.id === item.workId)?.title}</small>}{item.note && <p>{item.note}</p>}</article>) : <p className="proactive-empty-note">发现事项、确认处理与复查后，记录会显示在这里。</p>}</details>
     </>}
-    <AssistanceRunRecords key={projectId} projectId={projectId} revision={`${refreshRevision}:${reload}`} />
   </section>;
 }
 

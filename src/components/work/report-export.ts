@@ -13,7 +13,7 @@ function escapeHtml(text: string): string {
 function inlineMarkdownToHtml(text: string): string {
   return escapeHtml(text)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`([^`]+)`/g, '<code style="background:#f3f4f6;padding:1px 4px;border-radius:3px;">$1</code>');
+    .replace(/`([^`]+)`/g, '<code style="background:#f0f2f4;color:#1d2733;padding:1px 4px;border-radius:3px;">$1</code>');
 }
 
 export function markdownToCleanHtml(title: string, subtitle: string, markdown: string): string {
@@ -47,7 +47,7 @@ export function markdownToCleanHtml(title: string, subtitle: string, markdown: s
       const headers = trimmed.replace(/^\||\|$/g, '').split('|').map(c => c.trim());
       parts.push('<table style="border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;"><thead><tr>');
       headers.forEach(h => {
-        parts.push(`<th style="border:1px solid #d1d5db;background:#eef2ff;padding:6px 10px;text-align:left;color:#3730a3;">${inlineMarkdownToHtml(h)}</th>`);
+        parts.push(`<th style="border:1px solid #d5dade;background:#e1e6ec;padding:6px 10px;text-align:left;color:#1d2733;">${inlineMarkdownToHtml(h)}</th>`);
       });
       parts.push('</tr></thead><tbody>');
       inTable = true;
@@ -58,7 +58,7 @@ export function markdownToCleanHtml(title: string, subtitle: string, markdown: s
       const cells = trimmed.replace(/^\||\|$/g, '').split('|').map(c => c.trim());
       parts.push('<tr>');
       cells.forEach(c => {
-        parts.push(`<td style="border:1px solid #e5e7eb;padding:6px 10px;">${inlineMarkdownToHtml(c)}</td>`);
+        parts.push(`<td style="border:1px solid #d5dade;padding:6px 10px;color:#161a1e;">${inlineMarkdownToHtml(c)}</td>`);
       });
       parts.push('</tr>');
       continue;
@@ -67,13 +67,13 @@ export function markdownToCleanHtml(title: string, subtitle: string, markdown: s
 
     if (trimmed.startsWith('### ')) {
       closeList();
-      parts.push(`<h3 style="margin:14px 0 6px;font-size:15px;color:#111827;">${inlineMarkdownToHtml(trimmed.slice(4))}</h3>`);
+      parts.push(`<h3 style="margin:14px 0 6px;font-size:15px;color:#161a1e;">${inlineMarkdownToHtml(trimmed.slice(4))}</h3>`);
     } else if (trimmed.startsWith('## ')) {
       closeList();
-      parts.push(`<h2 style="margin:18px 0 8px;font-size:17px;color:#3730a3;border-bottom:1px solid #e5e7eb;padding-bottom:4px;">${inlineMarkdownToHtml(trimmed.slice(3))}</h2>`);
+      parts.push(`<h2 style="margin:18px 0 8px;font-size:17px;color:#1d2733;border-bottom:1px solid #d5dade;padding-bottom:4px;">${inlineMarkdownToHtml(trimmed.slice(3))}</h2>`);
     } else if (trimmed.startsWith('# ')) {
       closeList();
-      parts.push(`<h1 style="margin:20px 0 10px;font-size:20px;color:#111827;">${inlineMarkdownToHtml(trimmed.slice(2))}</h1>`);
+      parts.push(`<h1 style="margin:20px 0 10px;font-size:20px;color:#161a1e;">${inlineMarkdownToHtml(trimmed.slice(2))}</h1>`);
     } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       if (!inList) {
         parts.push('<ul style="margin:6px 0;padding-left:20px;">');
@@ -82,18 +82,18 @@ export function markdownToCleanHtml(title: string, subtitle: string, markdown: s
       parts.push(`<li style="margin:4px 0;line-height:1.6;">${inlineMarkdownToHtml(trimmed.slice(2))}</li>`);
     } else if (trimmed.startsWith('> ')) {
       closeList();
-      parts.push(`<blockquote style="margin:8px 0;padding:6px 12px;border-left:3px solid #6366f1;color:#4b5563;background:#f9fafb;">${inlineMarkdownToHtml(trimmed.slice(2))}</blockquote>`);
+      parts.push(`<blockquote style="margin:8px 0;padding:6px 12px;border-left:3px solid #c23a22;color:#3b434a;background:#f0f2f4;">${inlineMarkdownToHtml(trimmed.slice(2))}</blockquote>`);
     } else {
       closeList();
-      parts.push(`<p style="margin:6px 0;line-height:1.65;color:#1f2937;">${inlineMarkdownToHtml(trimmed)}</p>`);
+      parts.push(`<p style="margin:6px 0;line-height:1.65;color:#161a1e;">${inlineMarkdownToHtml(trimmed)}</p>`);
     }
   }
   closeList();
   closeTable();
 
-  return `<div style="font-family:'PingFang SC','Microsoft YaHei',sans-serif;color:#111827;font-size:14px;">
-    <h1 style="margin:0 0 4px;font-size:21px;">${escapeHtml(title)}</h1>
-    <p style="margin:0 0 16px;font-size:12px;color:#6b7280;">${escapeHtml(subtitle)}</p>
+  return `<div style="font-family:'PingFang SC','Microsoft YaHei',sans-serif;color:#161a1e;font-size:14px;">
+    <h1 style="margin:0 0 4px;font-size:21px;color:#1d2733;">${escapeHtml(title)}</h1>
+    <p style="margin:0 0 16px;font-size:13px;color:#59626a;">${escapeHtml(subtitle)}</p>
     ${parts.join('\n')}
   </div>`;
 }
@@ -225,7 +225,8 @@ export async function exportReportCardPng(opts: {
   const parsed = parseCardLines(opts.markdown);
   const renderList: Array<{ kind: CardLine['kind']; text: string; y: number }> = [];
   let y = 166;
-  const maxContentY = 4800;
+  // Cap only near browser 2D canvas max height (~16000px at 2x DPR = 32000px)
+  const maxContentY = 14000;
 
   for (const item of parsed) {
     if (y > maxContentY) break;
@@ -251,7 +252,7 @@ export async function exportReportCardPng(opts: {
     }
   }
 
-  const totalHeight = Math.max(420, y + 72);
+  const totalHeight = Math.max(380, y + 44);
   const canvas = document.createElement('canvas');
   canvas.width = width * dpr;
   canvas.height = totalHeight * dpr;
@@ -259,77 +260,62 @@ export async function exportReportCardPng(opts: {
   if (!ctx) throw new Error('无法初始化图片画布。');
   ctx.scale(dpr, dpr);
 
-  // Outer canvas background
-  ctx.fillStyle = '#f4f6fb';
+  // Outer mineral stone canvas
+  ctx.fillStyle = '#e9ecee';
   ctx.fillRect(0, 0, width, totalHeight);
 
-  // Main white card
-  ctx.fillStyle = '#ffffff';
-  ctx.strokeStyle = '#e2e5ec';
+  // Main paper card
+  ctx.fillStyle = '#f7f8f9';
+  ctx.strokeStyle = '#d5dade';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.roundRect(20, 20, width - 40, totalHeight - 40, 14);
+  ctx.roundRect(20, 20, width - 40, totalHeight - 40, 12);
   ctx.fill();
   ctx.stroke();
 
-  // Indigo header banner
-  const grad = ctx.createLinearGradient(20, 20, width - 20, 132);
-  grad.addColorStop(0, '#3730a3');
-  grad.addColorStop(1, '#6d28d9');
-  ctx.fillStyle = grad;
+  // Ink header banner with subtle vermilion seal hairline
+  ctx.fillStyle = '#1d2733';
   ctx.beginPath();
-  ctx.roundRect(20, 20, width - 40, 114, [14, 14, 0, 0]);
+  ctx.roundRect(20, 20, width - 40, 108, [12, 12, 0, 0]);
   ctx.fill();
 
-  ctx.fillStyle = 'rgba(255,255,255,0.78)';
-  ctx.font = '500 12px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.fillText('循序 Cadence · 本地智能汇报卡', padX, 54);
+  ctx.fillStyle = '#c23a22';
+  ctx.fillRect(20, 126, width - 40, 3);
 
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = '#f7f8f9';
   ctx.font = '700 22px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.fillText(opts.title.slice(0, 40), padX, 88);
+  ctx.fillText(opts.title.slice(0, 40), padX, 70);
 
-  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillStyle = 'rgba(247,248,249,0.78)';
   ctx.font = '400 13px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.fillText(opts.subtitle.slice(0, 64), padX, 114);
+  ctx.fillText(opts.subtitle.slice(0, 64), padX, 100);
 
   // Body lines
   for (const line of renderList) {
     if (line.kind === 'h1') {
-      ctx.fillStyle = '#0f1115';
+      ctx.fillStyle = '#161a1e';
       ctx.font = '700 18px "PingFang SC","Microsoft YaHei",sans-serif';
       ctx.fillText(line.text, padX, line.y);
     } else if (line.kind === 'h2') {
-      ctx.fillStyle = '#3730a3';
+      ctx.fillStyle = '#1d2733';
       ctx.font = '600 16px "PingFang SC","Microsoft YaHei",sans-serif';
       ctx.fillText(line.text, padX, line.y);
     } else if (line.kind === 'quote') {
-      ctx.fillStyle = '#4f46e5';
+      ctx.fillStyle = '#c23a22';
       ctx.fillRect(padX, line.y - 13, 3, 17);
-      ctx.fillStyle = '#4b5563';
+      ctx.fillStyle = '#3b434a';
       ctx.font = '400 14px "PingFang SC","Microsoft YaHei",sans-serif';
       ctx.fillText(line.text, padX + 12, line.y);
     } else if (line.kind === 'bullet') {
-      ctx.fillStyle = '#1f2937';
+      ctx.fillStyle = '#161a1e';
       ctx.font = '400 14px "PingFang SC","Microsoft YaHei",sans-serif';
       ctx.fillText(line.text, padX + 8, line.y);
     } else {
-      ctx.fillStyle = '#1f2937';
+      ctx.fillStyle = '#3b434a';
       ctx.font = '400 14px "PingFang SC","Microsoft YaHei",sans-serif';
       ctx.fillText(line.text, padX, line.y);
     }
   }
-
-  // Footer
-  ctx.strokeStyle = '#edf0f4';
-  ctx.beginPath();
-  ctx.moveTo(padX, totalHeight - 58);
-  ctx.lineTo(width - padX, totalHeight - 58);
-  ctx.stroke();
-
-  ctx.fillStyle = '#8690a0';
-  ctx.font = '400 12px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.fillText('由「循序 Cadence」基于本机真实记录生成 · 数据全程留存本地', padX, totalHeight - 36);
 
   const dataUrl = canvas.toDataURL('image/png');
   return exportDocument({
@@ -341,7 +327,9 @@ export async function exportReportCardPng(opts: {
 }
 
 function csvCell(val: string | number | null | undefined): string {
-  const s = val == null ? '' : String(val);
+  const raw = val == null ? '' : String(val);
+  // Prevent spreadsheet formula injection on opening in Excel/WPS
+  const s = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
   if (/[",\r\n]/.test(s)) {
     return `"${s.replace(/"/g, '""')}"`;
   }
@@ -370,5 +358,5 @@ export function buildTasksCsv(tasks: Task[], projects: Project[]): string {
         .join(','),
     );
   }
-  return rows.join('\r\n');
+  return `\uFEFF${rows.join('\r\n')}`;
 }

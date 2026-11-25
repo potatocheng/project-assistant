@@ -1723,12 +1723,18 @@ pub(crate) fn polish_report(
     };
     let mut pref_lines = Vec::new();
     if let Some(prefs) = preferences {
-        if let Some(role) = prefs["role"].as_str().map(str::trim).filter(|s| !s.is_empty()) {
+        if let Some(role) = prefs["role"]
+            .as_str()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+        {
             pref_lines.push(format!("- 用户角色与关注重点：{role}"));
         }
         match prefs["answerStyle"].as_str() {
             Some("concise") => pref_lines.push("- 表达详略偏好：偏简洁，优先要点式表达。".into()),
-            Some("detailed") => pref_lines.push("- 表达详略偏好：偏详细，保留原稿关键背景与条件。".into()),
+            Some("detailed") => {
+                pref_lines.push("- 表达详略偏好：偏详细，保留原稿关键背景与条件。".into())
+            }
             _ => {}
         }
         match prefs["reportFormat"].as_str() {

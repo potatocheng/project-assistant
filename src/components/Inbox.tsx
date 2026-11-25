@@ -3,9 +3,11 @@ import { TextArea } from '@astryxdesign/core/TextArea';
 import { TabList, Tab } from '@astryxdesign/core/TabList';
 import { FormDialog } from './astryx/FormDialog';
 import { Button } from '@astryxdesign/core/Button';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { asError, execute } from '../api';
 import type { AppState, MemoryDetail, RetentionPolicy } from '../types';
+import { MOTION, prefersReducedMotion } from '../design/motion';
+import type { ToastAction } from './interaction';
 import { localDay } from './work/shared';
 import { Spinner } from './ui';
 import { RetentionFields } from './RetentionFields';
@@ -13,10 +15,11 @@ import { ListPager } from './ListPager';
 import { pendingContent } from './workspace-model';
 
 type Review = { id: string; projectId: string; content: string; revision: number; sourceTitle: string; retention: RetentionPolicy };
-export function Inbox({ state, projectId: project, onProjectChange: setProject, onChanged, onMemory, onSource, onConflicts }: {
+export function Inbox({ state, projectId: project, onProjectChange: setProject, onChanged, onMemory, onSource, onConflicts, notify }: {
   projectId: string; onProjectChange: (id: string) => void;
   state: AppState; onChanged: () => Promise<unknown>; onMemory: (id: string, project: string) => void;
   onSource: (id: string) => void; onConflicts: () => void;
+  notify?: (message: string, error?: boolean, action?: ToastAction) => void;
 }) {
   const [source, setSource] = useState('');
   const [candidatePage, setCandidatePage] = useState(0);
@@ -24,9 +27,69 @@ export function Inbox({ state, projectId: project, onProjectChange: setProject, 
   const [queue, setQueue] = useState<{ items: Review[]; total: number }>({ items: [], total: 0 });
   const [selected, setSelected] = useState<Review | null>(null);
   const [tick, setTick] = useState(0); const [loading, setLoading] = useState(false);
+  const [busyId, setBusyId] = useState('');
+  const [settlingItems, setSettlingItems] = useState<Record<string, 'done' | 'dismiss' | 'collapsing'>>({});
   const [error, setError] = useState('');
+  const aliveRef = useRef(true);
+  const timersRef = useRef<number[]>([]);
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+      for (const timer of timersRef.current) window.clearTimeout(timer);
+      timersRef.current = [];
+    };
+  }, []);
+  const wait = (ms: number) =>
+    new Promise<void>(resolve => {
+      const id = window.setTimeout(resolve, ms);
+      timersRef.current.push(id);
+    });
   useEffect(() => { let active = true; setLoading(true); void execute<typeof queue>('get_retention_reviews', { date: localDay(), projectId: project, sourceId:source, offset }).then(value => { if (active) { setQueue(value); setError(''); if (offset && offset >= value.total) setOffset(Math.max(0, Math.floor((value.total - 1) / 50) * 50)); } }).catch(e => { if (active) setError(asError(e).message); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [project, source, offset, tick, state.workspace.revision]);
   useEffect(() => { setSource(''); setOffset(0); setSelected(null); }, [project]);
+  const runInline = async (key: string, kind: 'done' | 'dismiss', op: () => Promise<void>, successMessage: string, undo?: () => Promise<void>, undoDoneMessage?: string) => {
+    if (busyId || settlingItems[key]) return;
+    setBusyId(key); setError('');
+    try {
+      await op();
+      notify?.(successMessage, false, undo ? {
+        label: '撤销',
+        onClick: async () => {
+          try {
+            await undo();
+            await onChanged();
+            if (undoDoneMessage) notify?.(undoDoneMessage);
+          } catch (caught) {
+            notify?.(asError(caught).message, true);
+          }
+        },
+      } : undefined);
+      if (!prefersReducedMotion()) {
+        if (!aliveRef.current) return;
+        setSettlingItems(prev => ({ ...prev, [key]: kind }));
+        await wait(MOTION.stampHold);
+        if (!aliveRef.current) return;
+        setSettlingItems(prev => ({ ...prev, [key]: 'collapsing' }));
+        await wait(MOTION.collapse);
+        if (!aliveRef.current) return;
+      }
+      await onChanged();
+    } catch (caught) {
+      const msg = asError(caught).message;
+      if (aliveRef.current) setError(msg);
+      notify?.(msg, true);
+    } finally {
+      if (aliveRef.current) {
+        setSettlingItems(prev => {
+          if (!prev[key]) return prev;
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        });
+        setBusyId('');
+      }
+    }
+  };
   const { tasks: taskCandidates, memories: candidates, drafts } = pendingContent(state, project, source);
   const candidateTotal = tab === 'tasks' ? taskCandidates.length : tab === 'candidates' ? candidates.length : drafts.length;
   const page = Math.min(candidatePage, Math.max(0, Math.ceil(candidateTotal / 50) - 1));
@@ -42,9 +105,19 @@ export function Inbox({ state, projectId: project, onProjectChange: setProject, 
     <div className="astryx-inbox-tabs"><TabList value={tab} onChange={setTab} aria-label="待处理类型" hasDivider>
       {[['review', `到期复核 ${loading ? '…' : queue.total}`], ['tasks', `任务候选 ${taskCandidates.length}`], ['candidates', `记忆候选 ${candidates.length}`], ['drafts', `需澄清 ${drafts.length}`]].map(([value, label]) => <Tab key={value} value={value} label={label} />)}
     </TabList></div>
-    {tab === 'tasks' && <div className="inbox-list">{taskCandidates.length === 0 ? <p>当前没有待确认任务。</p> : taskCandidates.slice(page * 50, (page + 1) * 50).map(item => <article key={item.id}><div><small>{state.projects.find(project => project.id === item.projectId)?.name} · {state.sources.find(source => source.id === item.sourceId)?.title}</small><p>{item.title}</p><span className="field-hint">核对原文后，可创建任务或更新已有进展。</span></div><Button label="核对并确认" onClick={() => onSource(item.sourceId)} variant="secondary" size="sm" /></article>)}</div>}
+    {tab === 'tasks' && <div className="inbox-list">{taskCandidates.length === 0 ? <p>当前没有待确认任务。</p> : taskCandidates.slice(page * 50, (page + 1) * 50).map(item => {
+      const cKey = `task-confirm:${item.id}`;
+      const rKey = `task-reject:${item.id}`;
+      const settle = settlingItems[cKey] || settlingItems[rKey];
+      return <div key={item.id} className={`stream-card-collapse ${settle === 'collapsing' ? 'is-collapsing' : ''}`}><div className="stream-card-collapse-inner"><article className={settle === 'done' ? 'is-settling-done' : settle === 'dismiss' ? 'is-settling-dismiss' : ''}><div><small>{state.projects.find(project => project.id === item.projectId)?.name} · {state.sources.find(source => source.id === item.sourceId)?.title}</small><p>{item.title}</p><span className="field-hint">{item.assignee ? `负责人：${item.assignee} · ` : ''}{item.dueDate ? `截止 ${item.dueDate}` : '可直接创建任务或核对原文。'}</span></div><div className="inbox-actions"><button type="button" className="button seal compact" disabled={!!busyId || !!settle} onClick={() => void runInline(cKey, 'done', () => execute('confirm_task_proposal', { proposalId: item.id, mode: 'create', category: 'follow_up', priority: 'medium', plannedDate: null, workDate: localDay(), note: `依据待处理确认：${item.title}`, clientRequestId: crypto.randomUUID() }).then(() => {}), '已确认并创建任务。')}>{busyId === cKey ? <Spinner /> : null}确认任务</button><button type="button" className="button secondary compact" disabled={!!busyId || !!settle} onClick={() => void runInline(rKey, 'dismiss', () => execute('reject_task_proposal', { proposalId: item.id }).then(() => {}), '已忽略该任务候选。', () => execute('reopen_task_proposal', { proposalId: item.id }).then(() => {}), '已恢复为待确认任务。')}>{busyId === rKey ? <Spinner /> : null}忽略</button><button type="button" className="text-button" disabled={!!busyId || !!settle} onClick={() => onSource(item.sourceId)}>核对原文</button></div></article></div></div>;
+    })}</div>}
     {error && <p className="inline-error" role="alert">{error}</p>}
-    {tab !== 'tasks' && <div className="inbox-list">{tab === 'review' ? loading ? <Spinner /> : <>{queue.items.length === 0 && <p>当前没有到期的工作记忆。</p>}{queue.items.map(item => <article key={item.id}><div><small>{state.projects.find(p => p.id === item.projectId)?.name} · 复核日 {item.retention.reviewAfter} · v{item.revision}</small><p>{item.content}</p><span className="field-hint">已退出默认问答；关联原文也不会绕过复核用于回答。</span></div><div className="inbox-actions"><Button label="复核处理" onClick={() => setSelected(item)} variant="primary" size="sm" /><Button label="原文与历史" onClick={() => onMemory(item.id, item.projectId)} className="astryx-inline-action" variant="ghost" /></div></article>)}<ListPager page={Math.floor(offset / 50)} total={queue.total} onChange={page => setOffset(page * 50)} /></> : tab === 'candidates' ? <>{candidates.length === 0 && <p>当前没有待确认记忆。</p>}{candidates.slice(page * 50, (page + 1) * 50).map(p => <article key={p.id}><div><small>{state.projects.find(x => x.id === p.projectId)?.name} · {state.sources.find(s => s.id === p.sourceId)?.title}</small><p>{p.content}</p></div><Button label="核对并确认" onClick={() => onSource(p.sourceId)} variant="secondary" size="sm" /></article>)}</> : <>{drafts.length === 0 && <p>当前没有需要澄清的提取内容。</p>}{drafts.slice(page * 50, (page + 1) * 50).map(d => <article key={d.id}><div><p>{d.candidate.content}</p><small>{d.issues.map(i => i.reason).join('；')}</small></div><Button label="查看并澄清" onClick={() => onSource(d.sourceId)} variant="secondary" size="sm" /></article>)}</>}</div>}
+    {tab !== 'tasks' && <div className="inbox-list">{tab === 'review' ? loading ? <Spinner /> : <>{queue.items.length === 0 && <p>当前没有到期的工作记忆。</p>}{queue.items.map(item => <article key={item.id}><div><small>{state.projects.find(p => p.id === item.projectId)?.name} · 复核日 {item.retention.reviewAfter} · v{item.revision}</small><p>{item.content}</p><span className="field-hint">已退出默认问答；关联原文也不会绕过复核用于回答。</span></div><div className="inbox-actions"><Button label="复核处理" onClick={() => setSelected(item)} variant="primary" size="sm" /><Button label="原文与历史" onClick={() => onMemory(item.id, item.projectId)} className="astryx-inline-action" variant="ghost" /></div></article>)}<ListPager page={Math.floor(offset / 50)} total={queue.total} onChange={page => setOffset(page * 50)} /></> : tab === 'candidates' ? <>{candidates.length === 0 && <p>当前没有待确认记录。</p>}{candidates.slice(page * 50, (page + 1) * 50).map(p => {
+      const cKey = `mem-confirm:${p.id}`;
+      const rKey = `mem-reject:${p.id}`;
+      const settle = settlingItems[cKey] || settlingItems[rKey];
+      return <div key={p.id} className={`stream-card-collapse ${settle === 'collapsing' ? 'is-collapsing' : ''}`}><div className="stream-card-collapse-inner"><article className={settle === 'done' ? 'is-settling-done' : settle === 'dismiss' ? 'is-settling-dismiss' : ''}><div><small>{state.projects.find(x => x.id === p.projectId)?.name} · {state.sources.find(s => s.id === p.sourceId)?.title}</small><p>{p.content}</p></div><div className="inbox-actions"><button type="button" className="button seal compact" disabled={!!busyId || !!settle} onClick={() => void runInline(cKey, 'done', () => execute('confirm_proposal', { proposalId: p.id }).then(() => {}), '已确认并存入项目记录。')}>{busyId === cKey ? <Spinner /> : null}确认记录</button><button type="button" className="button secondary compact" disabled={!!busyId || !!settle} onClick={() => void runInline(rKey, 'dismiss', () => execute('reject_proposal', { proposalId: p.id }).then(() => {}), '记忆候选已忽略。', () => execute('reopen_proposal', { proposalId: p.id }).then(() => {}), '已恢复为待确认记录。')}>{busyId === rKey ? <Spinner /> : null}忽略</button><button type="button" className="text-button" disabled={!!busyId || !!settle} onClick={() => onSource(p.sourceId)}>查看原文</button></div></article></div></div>;
+    })}</> : <>{drafts.length === 0 && <p>当前没有需要澄清的提取内容。</p>}{drafts.slice(page * 50, (page + 1) * 50).map(d => <article key={d.id}><div><p>{d.candidate.content}</p><small>{d.issues.map(i => i.reason).join('；')}</small></div><Button label="查看并澄清" onClick={() => onSource(d.sourceId)} variant="secondary" size="sm" /></article>)}</>}</div>}
     {tab !== 'review' && <ListPager page={page} total={candidateTotal} size={50} onChange={setCandidatePage}/>}
     {selected && <ReviewDialog item={selected} close={() => setSelected(null)} saved={async () => { setSelected(null); setTick(v => v + 1); await onChanged(); }} />}
   </div>;
@@ -54,5 +127,6 @@ function ReviewDialog({ item, close, saved }: { item: Review; close: () => void;
   const [policy, setPolicy] = useState<RetentionPolicy>({ ...item.retention, reviewAfter: new Date(Date.now() + 7 * 86400000).toLocaleDateString('sv-SE') });
   const [detail, setDetail] = useState<MemoryDetail | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState('');
   useEffect(() => { let active = true; void execute<MemoryDetail>('get_memory', { memoryId: item.id }).then(v => { if (active) setDetail(v); }).catch(e => { if (active) setError(asError(e).message); }); return () => { active = false; }; }, [item.id]);
-  return <FormDialog title="复核工作记忆" subtitle="确认当前内容和适用时间，保存后生成新的记忆修订。" close={close} busy={busy} wide><form onSubmit={async e => { e.preventDefault(); if (busy || !detail || !content.trim() || !reason.trim() || !policy.reason.trim()) return; setBusy(true); setError(''); try { await execute('review_retention', { memoryId: item.id, baseRevision: item.revision, date: localDay(), content, reason, retention: policy }); await saved(); } catch (e) { setError(asError(e).message); } finally { setBusy(false); } }}><div className="dialog-body astryx-form-fields"><TextArea label="当前事实" rows={4} isRequired value={content} onChange={setContent} isDisabled={busy} /><RetentionFields value={policy} onChange={setPolicy} disabled={busy} /><TextArea label="复核理由" isRequired rows={2} value={reason} onChange={value => setReason(value.slice(0, 1000))} isDisabled={busy} /><details><summary>本次修订沿用的原文依据</summary>{detail?.revisions.find(r => r.number === item.revision)?.evidence.map(e => <blockquote key={e.segmentId}><small>{e.sourceTitle} · {e.locator}</small><p>{e.text}</p></blockquote>)}</details><p className="field-hint">继续保留需填写未来复核日；长期记忆恢复默认问答；仅存原文或待澄清继续退出问答。</p>{error && <p className="inline-error" role="alert">{error}</p>}</div><div className="dialog-footer"><Button label="取消" type="button" onClick={close} isDisabled={busy} variant="secondary" /><Button label="保存复核" isDisabled={busy || !detail || !reason.trim() || !content.trim()} type="submit" variant="primary" icon={busy && <Spinner />} /></div></form></FormDialog>;
+  const dirty = content !== item.content || Boolean(reason.trim());
+  return <FormDialog title="复核工作记忆" subtitle="确认当前内容和适用时间，保存后生成新的记忆修订。" close={close} busy={busy} dirty={dirty} wide><form onSubmit={async e => { e.preventDefault(); if (busy || !detail || !content.trim() || !reason.trim() || !policy.reason.trim()) return; setBusy(true); setError(''); try { await execute('review_retention', { memoryId: item.id, baseRevision: item.revision, date: localDay(), content, reason, retention: policy }); await saved(); } catch (e) { setError(asError(e).message); } finally { setBusy(false); } }}><div className="dialog-body astryx-form-fields"><TextArea label="当前事实" rows={4} isRequired value={content} onChange={setContent} isDisabled={busy} /><RetentionFields value={policy} onChange={setPolicy} disabled={busy} /><TextArea label="复核理由" isRequired rows={2} value={reason} onChange={value => setReason(value.slice(0, 1000))} isDisabled={busy} /><details><summary>本次修订沿用的原文依据</summary>{detail?.revisions.find(r => r.number === item.revision)?.evidence.map(e => <blockquote key={e.segmentId}><small>{e.sourceTitle} · {e.locator}</small><p>{e.text}</p></blockquote>)}</details><p className="field-hint">继续保留需填写未来复核日；长期记忆恢复默认问答；仅存原文或待澄清继续退出问答。</p>{error && <p className="inline-error" role="alert">{error}</p>}</div><div className="dialog-footer"><Button label="取消" type="button" onClick={close} isDisabled={busy} variant="secondary" /><button type="submit" className="button seal" disabled={busy || !detail || !reason.trim() || !content.trim()}>{busy && <Spinner />}保存复核</button></div></form></FormDialog>;
 }

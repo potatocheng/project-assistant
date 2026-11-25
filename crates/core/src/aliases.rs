@@ -239,7 +239,9 @@ pub(crate) fn load_groups(conn: &Connection, scope: Option<&str>) -> Result<Vec<
          LIMIT 500",
     )?;
     let rows = stmt
-        .query_map([scope], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?
+        .query_map([scope], |r| {
+            Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
+        })?
         .collect::<std::result::Result<Vec<_>, _>>()?;
     let mut groups = Vec::with_capacity(rows.len());
     for (canonical, raw) in rows {
@@ -300,7 +302,10 @@ pub(crate) fn validate_backup(conn: &Connection) -> Result<()> {
                 |r| r.get(0),
             )?;
             if !exists {
-                return Err(AppError::new("INVALID_BACKUP", "备份术语别名引用了不存在的项目"));
+                return Err(AppError::new(
+                    "INVALID_BACKUP",
+                    "备份术语别名引用了不存在的项目",
+                ));
             }
         }
         let parsed: Value = serde_json::from_str(&aliases_raw)

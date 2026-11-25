@@ -1,0 +1,8 @@
+/* Global design system entry. Component-specific CSS stays next to its component. */
+@import './astryx.css';
+@import './tokens.css';
+@import './base.css';
+@import './pages.css';
+@import './components.css';
+@import './motion.css';
+@import './shell.css';

@@ -49,7 +49,7 @@ export function FollowUpCenter({ state, projectId, date, onChanged, onTaskOpen, 
         draftRef.current?.focus(); draftRef.current?.select();
         let copied = false;
         try { copied = document.execCommand('copy'); } catch { /* The selected draft remains available for manual copying. */ }
-        setCopyMessage(copied ? '催办草稿已复制' : '已选中草稿，请按 Ctrl+C 复制');
+        setCopyMessage(copied ? '催办草稿已复制' : '已选中草稿，请按 ⌘C / Ctrl+C 复制');
       }
     } finally { if (alive.current && requestId === copyRequest.current) setCopying(false); }
   };
@@ -89,7 +89,8 @@ export function FollowUpCenter({ state, projectId, date, onChanged, onTaskOpen, 
 }
 
 function SnoozeDialog({ item, date, close, onSaved }: { item: FollowUpItem; date: string; close: () => void; onSaved: () => Promise<void> }) {
-  const [until, setUntil] = useState(item.snoozedUntil && item.snoozedUntil > date ? item.snoozedUntil : shiftDay(date, 1));
+  const initialUntil = item.snoozedUntil && item.snoozedUntil > date ? item.snoozedUntil : shiftDay(date, 1);
+  const [until, setUntil] = useState(initialUntil);
   const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const alive = useAlive();
   const save = async (value: string | null) => {
     setBusy(true); setError('');
@@ -97,5 +98,5 @@ function SnoozeDialog({ item, date, close, onSaved }: { item: FollowUpItem; date
     catch (caught) { if (alive.current) setError(asError(caught).message); }
     finally { if (alive.current) setBusy(false); }
   };
-  return <FormDialog title="暂缓提醒" subtitle={item.task.title} close={close} busy={busy}><form onSubmit={(event) => { event.preventDefault(); if (!busy && until > date) void save(until); }}><div className="dialog-body delivery-form"><p className="delivery-description">暂缓期间从待跟进列表中收起，到指定日期恢复提醒。</p><label><span className="field-label">恢复提醒日期</span><input aria-label="恢复提醒日期" type="date" min={shiftDay(date, 1)} value={until} onChange={(event) => setUntil(event.target.value)} required disabled={busy} /></label><div className="delivery-quick-dates">{[1, 3, 7].map((days) => <Button label={`${days} 天后`} type="button" key={days} onClick={() => setUntil(shiftDay(date, days))} isDisabled={busy} variant="secondary" size="sm" />)}</div><DeliveryError message={error} /></div><div className="dialog-footer">{item.snoozedUntil && <Button label="立即恢复提醒" type="button" isDisabled={busy} onClick={() => void save(null)} className="astryx-inline-action" variant="ghost" />}<Button label="取消" type="button" isDisabled={busy} onClick={close} variant="secondary" /><Button label="保存暂缓" isDisabled={busy || !until || until <= date} type="submit" variant="primary" icon={busy && <Spinner />} /></div></form></FormDialog>;
+  return <FormDialog title="暂缓提醒" subtitle={item.task.title} close={close} busy={busy} dirty={until !== initialUntil}><form onSubmit={(event) => { event.preventDefault(); if (!busy && until > date) void save(until); }}><div className="dialog-body delivery-form"><p className="delivery-description">暂缓期间从待跟进列表中收起，到指定日期恢复提醒。</p><label><span className="field-label">恢复提醒日期</span><input aria-label="恢复提醒日期" type="date" min={shiftDay(date, 1)} value={until} onChange={(event) => setUntil(event.target.value)} required disabled={busy} /></label><div className="delivery-quick-dates">{[1, 3, 7].map((days) => <Button label={`${days} 天后`} type="button" key={days} onClick={() => setUntil(shiftDay(date, days))} isDisabled={busy} variant="secondary" size="sm" />)}</div><DeliveryError message={error} /></div><div className="dialog-footer">{item.snoozedUntil && <Button label="立即恢复提醒" type="button" isDisabled={busy} onClick={() => void save(null)} className="astryx-inline-action" variant="ghost" />}<Button label="取消" type="button" isDisabled={busy} onClick={close} variant="secondary" /><Button label="保存暂缓" isDisabled={busy || !until || until <= date} type="submit" variant="primary" icon={busy && <Spinner />} /></div></form></FormDialog>;
 }

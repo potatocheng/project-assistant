@@ -31,141 +31,145 @@ impl Worker {
             .spawn(move || {
                 let mut last_sleep_gen = u64::MAX;
                 loop {
-                thread::sleep(Duration::from_secs(2));
-                let Some(state) = weak.upgrade() else { return };
-                if state.stopped.load(Ordering::SeqCst) {
-                    return;
-                }
-                let call = |command: &str, payload| {
-                    actor_call(
-                        &sender,
-                        Request {
-                            command: command.into(),
-                            payload,
-                        },
-                    )
-                };
-                let Ok(status) = call("_memory_policy", json!({})) else {
-                    return;
-                };
-                let force = state.force.swap(false, Ordering::SeqCst);
-                let idle = state.last.lock().is_ok_and(|t| {
-                    t.elapsed().as_secs()
-                        >= status["settings"]["idleSeconds"].as_u64().unwrap_or(120)
-                });
-                let activity = state.generation.load(Ordering::SeqCst);
-                // Zero-token Sleep-time Compute: once per idle cycle, run local habit synthesis
-                // and active-memory contradiction audit without consuming LLM daily budget.
-                if (idle || force) && last_sleep_gen != activity {
-                    let _ = call("_sleep_time_maintenance", json!({}));
-                    last_sleep_gen = activity;
-                }
-                if (!force && (status["settings"]["enabled"] != true || !idle))
-                    || status["callsToday"].as_i64().unwrap_or(0)
-                        >= status["settings"]["dailyCalls"].as_i64().unwrap_or(100)
-                {
-                    continue;
-                }
-                let (tx, rx) = mpsc::channel();
-                if sender.send(Message::ClaimMaintenance(tx)).is_err() {
-                    return;
-                }
-                let task = match rx.recv() {
-                    Ok(Ok(Some(task))) => task,
-                    _ => continue,
-                };
-                let (run, guard, job) = match &task {
-                    memory::Task::Extract {
-                        run, guard, job, ..
-                    } => (run.clone(), guard.clone(), Some(job.clone())),
-                    memory::Task::Compare { run, guard, .. } => (run.clone(), guard.clone(), None),
-                };
-                let alive = || {
-                    !state.stopped.load(Ordering::SeqCst)
-                        && state.generation.load(Ordering::SeqCst) == activity
-                        && call("_memory_alive", guard.clone()).is_ok_and(|v| v == true)
-                };
-                let reserve =
-                    || alive() && call("_memory_reserve", guard.clone()).is_ok_and(|v| v == true);
-                let output = match task {
-                    memory::Task::Extract {
-                        job, epoch, task, ..
-                    } => {
-                        let result = ai::extract_with_context(
-                            &task.settings.config(),
-                            task.settings.api_key.as_deref(),
-                            &task.segments,
-                            &task.checkpoints,
-                            &task.project_context,
-                            |done, total| {
-                                if !alive() {
-                                    return false;
-                                }
-                                let (tx, rx) = mpsc::channel();
-                                if sender
-                                    .send(Message::ProgressExtract(
-                                        job.clone(),
-                                        epoch,
-                                        task.generation,
-                                        done,
-                                        total,
-                                        tx,
-                                    ))
-                                    .is_err()
-                                    || !rx.recv().unwrap_or(false)
-                                {
-                                    return false;
-                                }
-                                true
-                            },
-                            |checkpoint| {
-                                if !alive() || (checkpoint.status == "started" && !reserve()) {
-                                    return false;
-                                }
-                                let (tx, rx) = mpsc::channel();
-                                if sender
-                                    .send(Message::CheckpointExtract(
-                                        job.clone(),
-                                        epoch,
-                                        task.generation,
-                                        checkpoint.clone(),
-                                        tx,
-                                    ))
-                                    .is_err()
-                                {
-                                    return false;
-                                }
-                                rx.recv().unwrap_or(false)
-                            },
-                        );
-                        memory::Output::Extract(job, epoch, task.generation, result)
+                    thread::sleep(Duration::from_secs(2));
+                    let Some(state) = weak.upgrade() else { return };
+                    if state.stopped.load(Ordering::SeqCst) {
+                        return;
                     }
-                    memory::Task::Compare { snapshot, .. } => {
-                        let result = if let Ok(Some(local)) = memory::compare_locally(&snapshot) {
-                            Ok(local)
-                        } else if reserve() {
-                            settings::load(&root)
-                                .and_then(|config| memory::compare(&config, &snapshot))
-                        } else {
-                            Err(crate::AppError::new(
-                                "IDLE_INTERRUPTED",
-                                "整理暂停或已达调用上限",
-                            ))
-                        };
-                        memory::Output::Compare(snapshot, result)
+                    let call = |command: &str, payload| {
+                        actor_call(
+                            &sender,
+                            Request {
+                                command: command.into(),
+                                payload,
+                            },
+                        )
+                    };
+                    let Ok(status) = call("_memory_policy", json!({})) else {
+                        return;
+                    };
+                    let force = state.force.swap(false, Ordering::SeqCst);
+                    let idle = state.last.lock().is_ok_and(|t| {
+                        t.elapsed().as_secs()
+                            >= status["settings"]["idleSeconds"].as_u64().unwrap_or(120)
+                    });
+                    let activity = state.generation.load(Ordering::SeqCst);
+                    // Zero-token Sleep-time Compute: once per idle cycle, run local habit synthesis
+                    // and active-memory contradiction audit without consuming LLM daily budget.
+                    if (idle || force) && last_sleep_gen != activity {
+                        let _ = call("_sleep_time_maintenance", json!({}));
+                        last_sleep_gen = activity;
                     }
-                };
-                if alive() {
-                    let _ = sender.send(Message::CompleteMaintenance(
-                        run,
-                        guard,
-                        output,
-                        state.clone(),
-                        activity,
-                    ));
-                } else {
-                    let _ = call("_memory_cancel", json!({"run":run,"job":job}));
-                }
+                    if (!force && (status["settings"]["enabled"] != true || !idle))
+                        || status["callsToday"].as_i64().unwrap_or(0)
+                            >= status["settings"]["dailyCalls"].as_i64().unwrap_or(100)
+                    {
+                        continue;
+                    }
+                    let (tx, rx) = mpsc::channel();
+                    if sender.send(Message::ClaimMaintenance(tx)).is_err() {
+                        return;
+                    }
+                    let task = match rx.recv() {
+                        Ok(Ok(Some(task))) => task,
+                        _ => continue,
+                    };
+                    let (run, guard, job) = match &task {
+                        memory::Task::Extract {
+                            run, guard, job, ..
+                        } => (run.clone(), guard.clone(), Some(job.clone())),
+                        memory::Task::Compare { run, guard, .. } => {
+                            (run.clone(), guard.clone(), None)
+                        }
+                    };
+                    let alive = || {
+                        !state.stopped.load(Ordering::SeqCst)
+                            && state.generation.load(Ordering::SeqCst) == activity
+                            && call("_memory_alive", guard.clone()).is_ok_and(|v| v == true)
+                    };
+                    let reserve = || {
+                        alive() && call("_memory_reserve", guard.clone()).is_ok_and(|v| v == true)
+                    };
+                    let output = match task {
+                        memory::Task::Extract {
+                            job, epoch, task, ..
+                        } => {
+                            let result = ai::extract_with_context(
+                                &task.settings.config(),
+                                task.settings.api_key.as_deref(),
+                                &task.segments,
+                                &task.checkpoints,
+                                &task.project_context,
+                                |done, total| {
+                                    if !alive() {
+                                        return false;
+                                    }
+                                    let (tx, rx) = mpsc::channel();
+                                    if sender
+                                        .send(Message::ProgressExtract(
+                                            job.clone(),
+                                            epoch,
+                                            task.generation,
+                                            done,
+                                            total,
+                                            tx,
+                                        ))
+                                        .is_err()
+                                        || !rx.recv().unwrap_or(false)
+                                    {
+                                        return false;
+                                    }
+                                    true
+                                },
+                                |checkpoint| {
+                                    if !alive() || (checkpoint.status == "started" && !reserve()) {
+                                        return false;
+                                    }
+                                    let (tx, rx) = mpsc::channel();
+                                    if sender
+                                        .send(Message::CheckpointExtract(
+                                            job.clone(),
+                                            epoch,
+                                            task.generation,
+                                            checkpoint.clone(),
+                                            tx,
+                                        ))
+                                        .is_err()
+                                    {
+                                        return false;
+                                    }
+                                    rx.recv().unwrap_or(false)
+                                },
+                            );
+                            memory::Output::Extract(job, epoch, task.generation, result)
+                        }
+                        memory::Task::Compare { snapshot, .. } => {
+                            let result = if let Ok(Some(local)) = memory::compare_locally(&snapshot)
+                            {
+                                Ok(local)
+                            } else if reserve() {
+                                settings::load(&root)
+                                    .and_then(|config| memory::compare(&config, &snapshot))
+                            } else {
+                                Err(crate::AppError::new(
+                                    "IDLE_INTERRUPTED",
+                                    "整理暂停或已达调用上限",
+                                ))
+                            };
+                            memory::Output::Compare(snapshot, result)
+                        }
+                    };
+                    if alive() {
+                        let _ = sender.send(Message::CompleteMaintenance(
+                            run,
+                            guard,
+                            output,
+                            state.clone(),
+                            activity,
+                        ));
+                    } else {
+                        let _ = call("_memory_cancel", json!({"run":run,"job":job}));
+                    }
                 }
             })?;
         Ok(state)
