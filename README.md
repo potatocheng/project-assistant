@@ -1,14 +1,66 @@
-# 循序（Cadence）· 为项目经理打造的本地 AI 交付工作台
+<div align="center">
 
-> **循原文之据，理交付之序 · 资料全存本机不泄密 · 杂乱纪要/Excel/群聊秒变清晰行动 · 每句结论都能溯源到原文第几页第几行 · 一键出老板版周报**
+# 循序 · Cadence
 
-基于 **Tauri 2 + Rust + React + SQLite** 构建。没有云端账号、没有订阅费、没有后台埋点——你的会议纪要、客户合同、群聊同步和排期台账全部留在本机设备里；配合自带的国产大模型（DeepSeek / 通义千问 / 豆包 / Kimi / 智谱 / 本机 Ollama），把琐碎的信息整理、卡点催办和汇报写作交给 AI 副驾驶。
+**为项目经理打造的 Local-First（本地优先）AI 交付工作台**
+
+*循原文之据，理交付之序 · 资料全存本机不泄密 · 每句结论溯源原文 · 写入必经你拍板*
+
+<p>
+  <a href="README.md"><strong>简体中文</strong></a> ·
+  <a href="README_EN.md">English</a> ·
+  <a href="https://github.com/potatocheng/project-assistant/releases">下载安装包</a> ·
+  <a href="https://potatocheng.github.io/project-assistant/">产品介绍页</a> ·
+  <a href="PRIVACY.md">隐私与安全白皮书</a>
+</p>
+
+<p>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-1d2733.svg" alt="MIT License" /></a>
+  <a href="https://github.com/potatocheng/project-assistant/releases"><img src="https://img.shields.io/github/v/release/potatocheng/project-assistant?label=Release&color=c23a22" alt="Latest Release" /></a>
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS-2b5f86.svg" alt="Platform Windows and macOS" />
+  <img src="https://img.shields.io/badge/Stack-Tauri%202%20%2B%20Rust%20%2B%20React%20%2B%20SQLite-2e6a4f.svg" alt="Tech Stack" />
+</p>
+
+</div>
+
+基于 **Tauri 2 + Rust + React + SQLite** 构建。**没有云端账号、没有订阅费、没有后台埋点**——你的会议纪要、客户合同、群聊同步和排期台账全部留在本机设备里；配合自带的国产大模型（DeepSeek / 通义千问 / 豆包 / Kimi / 智谱 / 本机 Ollama），把琐碎的信息整理、卡点催办和汇报写作交给 AI 副驾驶。
+
+<p align="center">
+  <img src="docs/assets/copilot-drawer.png" alt="循序（Cadence）今日行动流与 AI 副驾驶" width="100%" />
+</p>
+
+---
+
+## 界面一览
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/assets/today-stream.png" alt="今日行动流" />
+      <p align="center"><strong>今日行动流</strong>：逾期优先、阻塞协调、AI 主动建议一屏收拢</p>
+    </td>
+    <td width="50%">
+      <img src="docs/assets/project-timeline.png" alt="项目总览与里程碑甘特时间轴" />
+      <p align="center"><strong>里程碑甘特时间轴</strong>：同屏对比原定基准日与当前预计偏差</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/assets/task-kanban.png" alt="4 列拖拽任务看板" />
+      <p align="center"><strong>4 列拖拽看板 + 详情抽屉</strong>：待办 / 进行中 / 阻塞 / 已完成</p>
+    </td>
+    <td width="50%">
+      <img src="docs/assets/copilot-drawer.png" alt="AI 副驾驶（Ctrl+J / ⌘J）" />
+      <p align="center"><strong>AI 副驾驶（⌘J / Ctrl+J）</strong>：可查、可改，写入必弹人工确认卡</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
 ## 为什么做给项目经理？
 
-| 传统痛点 | 传统表格 / 云协同工具 | 循序 · Cadence（本地工作台） |
+| 传统痛点 | 传统表格 / 云协同工具 / 网页 AI | 循序 · Cadence（本地工作台） |
 | --- | --- | --- |
 | **信息散落在十几个地方** | 微信群聊、Excel 排期表、PPT 周会、邮件各放各的 | **全格式拖入统一归档**：Word / Excel / PPT / PDF / CSV / EML / 微信聊天粘贴 |
 | **通用大模型爱胡说、不保密** | 把公司机密直接喂给网页版 AI，回答还不给依据 | **数据全在本地 + 逐句原文溯源**：每条记忆和回答精准定位到原文页码/段落/表格行 |
@@ -17,7 +69,7 @@
 
 ---
 
-## 核心功能一览
+## 核心功能
 
 ### 1. 今日行动流 + 早中晚节奏条
 打开应用默认进入「今日行动流」，直接回答项目经理每天最关心的 4 件事：
@@ -52,18 +104,29 @@
 
 ---
 
-## 3 分钟极速上手
+## 下载与 3 分钟上手
 
-1. **下载安装或本地体验**：首次启动进入 3 步引导页，支持 **4 套开箱即用行业模板**（互联网版本交付 / 乙方客户实施 / 敏捷双周迭代 / 市场活动筹备）或 **「一键体验示例」**（3 秒生成完整双项目、里程碑时间轴与任务看板，**无需配置任何 API Key**）。
-2. **连接国产大模型（推荐，2 分钟）**：打开「工具与设置 → 模型设置」，一键选择 **DeepSeek / 通义千问（百炼）/ 豆包（火山方舟）/ Kimi / 智谱 GLM / 硅基流动** 预设并填入自己的 API Key；如要求完全离线，可选择 **本机 Ollama**。
-3. **日常跑起来**：把今天的会议纪要、Excel 排期或群聊记录拖进窗口 → 确认提取出的待办与风险 → 在「今日行动流」推进工作 → 下班前一键切换老板版风格导出周报/日报。
+### 下载桌面客户端
+前往 **[GitHub Releases](https://github.com/potatocheng/project-assistant/releases)** 下载对应安装包（附 `SHA256SUMS.txt` 校验）：
+- **Windows (64-bit)**：下载 `.exe` 安装包（当前用户目录安装，无需管理员权限）。
+- **macOS (Apple Silicon)**：下载 `.dmg` 拖入「应用程序」文件夹。
+
+> **关于开源未签名提示**：社区开源版暂未配置商业代码签名证书。
+> - **Windows**：如遇 Microsoft Defender SmartScreen 提示，点击 **「更多信息」→「仍要运行」**。
+> - **macOS**：首次打开请右键点击应用选 **「打开」**；如仍提示无法验证或已损坏，可在终端执行 `xattr -cr /Applications/循序.app`。
+> - 你也可以拉取源码运行 `npm ci && npm run desktop:build` 在本机自行构建。
+
+### 3 步快速跑起来
+1. **一键体验示例（零配置）**：首次启动进入引导页，支持 **4 套开箱即用 PM 行业模板**（互联网版本交付 / 乙方客户实施 / 敏捷双周迭代 / 市场活动筹备）或 **「载入示例项目体验」**（3 秒生成完整双项目、里程碑时间轴与任务看板，**无需任何 API Key**）。
+2. **连接国产大模型或本机 Ollama（可选，2 分钟）**：打开「工具与设置 → 模型设置」，选择 **DeepSeek / 通义千问（百炼）/ 豆包（火山方舟）/ Kimi / 智谱 GLM / 硅基流动** 预设并填入自己的 API Key；如要求完全断网离线，选择 **本机 Ollama**。
+3. **日常跑起来**：拖入今天的会议纪要、Excel 排期或粘贴群聊记录 → 确认提取出的待办与风险 → 在「今日行动流」推进工作 → 下班前一键导出老板版周报或汇报长图。
 
 ---
 
 ## 隐私与数据安全承诺
 
-- **本地数据归属你**：所有项目资料与数据库均保存在你的电脑硬盘（[查看完整隐私与安全白皮书](PRIVACY.md)）。
-- **密钥隔离加密**：API Key 与飞书令牌单独存放于 `secrets/`，支持 macOS / Windows 系统凭据 AES-256-GCM 加密，**绝不写入导出备份**。
+- **本地数据归属你**：所有项目资料与 SQLite 数据库均保存在你的电脑硬盘（查看完整 **[隐私与安全白皮书](PRIVACY.md)**）。
+- **密钥隔离加密**：API Key 与飞书令牌单独存放于 `secrets/`，支持 macOS Keychain / Windows Credential Manager AES-256-GCM 加密，**绝不写入导出备份**。
 - **可控的加密备份**：支持设置定时自动备份，以及使用至少 12 位密码导出 AES-256-GCM 加密的 `.pabackup` 迁移文件。
 - **脱敏问题反馈**：应用内「帮助、隐私与反馈」提供一键导出脱敏诊断报告功能，仅含版本号、计数与错误码，绝不泄露项目正文。
 
@@ -80,8 +143,9 @@
 
 ---
 
-## 开发者与架构文档
+## 开发者、评测与社区
 
-- 网站展示落地页源码位于 [`website/index.html`](website/index.html)（单文件零构建，可直接部署 GitHub Pages / Cloudflare Pages / Vercel）。
-- 完整开发启动、测试验证命令、代码结构与 QASPER 公开记忆基准测试归档见 **[开发与评测文档](docs/benchmarks-and-dev.md)**。
-- 桌面安装包签名、公证、更新与回滚指引见 **[桌面发布说明](docs/desktop-release.md)**。
+- **参与贡献**：本地启动、测试清单与架构红线见 **[CONTRIBUTING.md](CONTRIBUTING.md)**。
+- **开发与记忆评测归档**：架构文档、Rust/Node 测试套件与 QASPER 公开记忆基准归档见 **[docs/benchmarks-and-dev.md](docs/benchmarks-and-dev.md)**。
+- **桌面签名发布与回滚**：企业级证书签名、公证、更新清单与回滚指引见 **[docs/desktop-release.md](docs/desktop-release.md)**。
+- **更新日志与安全政策**：**[CHANGELOG.md](CHANGELOG.md)** · **[SECURITY.md](SECURITY.md)** · 落地页源码 [`website/index.html`](website/index.html)。

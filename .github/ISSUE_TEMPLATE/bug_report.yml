@@ -1,0 +1,62 @@
+name: Bug 反馈 / Bug Report
+description: 反馈安装、导入解析、AI 副驾驶、看板/时间轴或导出中的异常问题
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！**安全提醒：切勿在 Issue 中粘贴真实 API Key、飞书 Token 或包含公司机密的原始文档。**
+        可以在应用内「帮助、隐私与反馈」中一键导出**脱敏诊断报告**附在下方。
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统 / OS
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - 从源码构建 / Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 应用版本 / App Version
+      placeholder: "例如：v0.3.0 或 main 分支 commit"
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: 涉及模块 / Module
+      options:
+        - 安装与启动（含未签名放行）
+        - 今日行动流 / 每日排期
+        - 资料导入与解析（Excel / Word / PPT / PDF / 聊天记录）
+        - 任务看板 / 里程碑甘特时间轴
+        - AI 副驾驶 / 模型设置（含 Ollama）
+        - 日报与周报导出（Word / 长图 / PDF / 富文本）
+        - 飞书个人助理
+        - 备份恢复 / 隐私安全
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述与复现步骤 / Description & Steps to Reproduce
+      placeholder: |
+        1. 打开 ...
+        2. 点击 / 拖入 ...
+        3. 预期结果：...
+        4. 实际结果：...
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 脱敏诊断报告或报错信息（可选）/ Sanitized Diagnostics (Optional)
+      description: 确认不含密钥与公司真实项目内容后再粘贴。
+      render: text

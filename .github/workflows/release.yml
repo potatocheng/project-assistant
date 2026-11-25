@@ -1,0 +1,154 @@
+name: Open-source desktop release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v0.3.0)'
+        required: true
+        default: 'v0.3.0'
+      draft:
+        description: 'Publish as draft release for review first'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows-x64
+          - os: macos-latest
+            platform: macos-apple-silicon
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Use locked Rust toolchain
+        run: rustup show active-toolchain
+      - name: Install dependencies
+        run: npm ci
+      - name: Build desktop installer
+        run: npm run desktop:build -- --ci
+      - name: Collect release installers & checksums (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+          $files = @(Get-ChildItem -Path target/release/bundle/nsis -Filter *.exe)
+          if ($files.Count -eq 0) { throw 'No Windows NSIS installer found.' }
+          foreach ($f in $files) {
+            Copy-Item -LiteralPath $f.FullName -Destination "release-assets/$($f.Name)"
+            $hash = (Get-FileHash -LiteralPath $f.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($f.Name)" | Out-File -FilePath release-assets/SHA256SUMS-windows.txt -Append -Encoding utf8
+          }
+      - name: Collect release installers & checksums (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          shopt -s nullglob
+          dmgs=(target/release/bundle/dmg/*.dmg)
+          if [ ${#dmgs[@]} -eq 0 ]; then
+            echo "No macOS DMG installer found." >&2
+            exit 1
+          fi
+          for f in "${dmgs[@]}"; do
+            name="$(basename "$f")"
+            cp "$f" "release-assets/$name"
+            shasum -a 256 "$f" | awk -v n="$name" '{print $1 "  " n}' >> release-assets/SHA256SUMS-macos.txt
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}
+          path: release-assets/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: dist-release
+          merge-multiple: true
+      - name: Combine SHA256 checksums
+        run: |
+          cat dist-release/SHA256SUMS-*.txt > dist-release/SHA256SUMS.txt
+          rm -f dist-release/SHA256SUMS-windows.txt dist-release/SHA256SUMS-macos.txt
+          ls -lh dist-release
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          IS_DRAFT: ${{ github.event_name == 'workflow_dispatch' && inputs.draft || false }}
+        run: |
+          cat <<'EOF' > release-notes.md
+          ## 循序 · Cadence 桌面端发布
+
+          > **循原文之据，理交付之序** · 为项目经理打造的 Local-First AI 交付工作台。资料 100% 留存本机 SQLite，无需账号与订阅。
+
+          ### 下载说明 / Downloads
+          - **Windows (64-bit)**：下载 `.exe` 安装包（当前用户范围安装，无需管理员权限）。
+          - **macOS (Apple Silicon)**：下载 `.dmg` 镜像并拖入「应用程序」文件夹。
+          - **文件校验**：所有安装包均附带 `SHA256SUMS.txt` 校验和。
+
+          ### 首次打开提示（开源未签名构建）
+          社区开源版暂未购买商业代码签名证书，系统首次拦截属正常现象：
+          - **Windows**：如弹出 Microsoft Defender SmartScreen 提示，请点击 **「更多信息」→「仍要运行」**。
+          - **macOS**：首次打开如提示「无法验证开发者」或「已损坏」，请在「应用程序」中 **右键点击「循序」→「打开」**；若系统仍拦截，可在终端运行：
+            ```bash
+            xattr -cr /Applications/循序.app
+            ```
+          - 对安全性有严格审计要求的用户，也可直接克隆仓库运行 `npm ci && npm run desktop:build` 本地自行构建。
+
+          ### 核心亮点
+          - **今日行动流 + 早中晚节奏条**：自动归集逾期阻塞、高优任务与催办草稿。
+          - **全格式资料直读 + 原文坐标溯源**：支持 Excel / Word / PPT / PDF / CSV / EML 及微信/企微聊天粘贴，每条结论精准锚定原文位置。
+          - **AI 副驾驶（⌘J / Ctrl+J）与人工拍板红线**：写入任务、改排期、记录风险必须弹出确认卡由你点击生效。
+          - **一键切换老板版 / 客户版周报**：支持复制富文本、原生 Word (`.docx`)、2x 高清汇报长图 (`.png`) 与 PDF。
+          - **内置零 API Key 一键体验示例**：打开即用，3 秒看全套看板与里程碑甘特时间轴。
+
+          完整变更记录请查看 [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)。
+          EOF
+
+          DRAFT_FLAG=""
+          if [ "$IS_DRAFT" = "true" ]; then
+            DRAFT_FLAG="--draft"
+          fi
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" dist-release/* --clobber
+            gh release edit "$TAG_NAME" --notes-file release-notes.md
+          else
+            gh release create "$TAG_NAME" dist-release/* \
+              --title "循序 · Cadence ${TAG_NAME}" \
+              --notes-file release-notes.md \
+              $DRAFT_FLAG
+          fi

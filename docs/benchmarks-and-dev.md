@@ -112,6 +112,9 @@ npm run score:memory:public:live -- docs/memory-public-live-optimized-developmen
 ```
 
 历史阶段报告归档：
+
+> 说明：为避免仓库体积膨胀影响开源用户克隆，77 份历史多兆字节原始评测输出 JSON（约 207 MB）已从主仓库工作区归档移出（本地压缩归档于 `.local-data/`，可按需附挂至 GitHub Release）；所有 Markdown 评测总结报告、公开题集清单与预算回归测试夹具均完整保留。
+
 - 评估维度与方法：[memory-evaluation.md](memory-evaluation.md) / [memory-evaluation-report.md](memory-evaluation-report.md)
 - 公开数据集说明：[memory-public-datasets.md](memory-public-datasets.md)
 - 提取优化复测报告：[memory-extraction-optimized-report.md](memory-extraction-optimized-report.md)

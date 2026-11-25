@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 本地数据隐私与安全白皮书 / Privacy Whitepaper
+    url: https://github.com/potatocheng/project-assistant/blob/main/PRIVACY.md
+    about: 了解数据存储边界、AES-256-GCM 密钥保护与 100% 离线 Ollama 方案
+  - name: 安全漏洞私密报告 / Security Vulnerability
+    url: https://github.com/potatocheng/project-assistant/security/advisories/new
+    about: 请勿在公开 Issue 中披露安全漏洞，通过 Security Advisory 私密上报
