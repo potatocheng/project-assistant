@@ -19,6 +19,7 @@ export interface ProactiveHistory {
 export interface ProactiveCenterData {
   settings: ProactiveSettings; lastRunAt: string | null; lastError: string | null;
   counts: Record<ProactiveStatus | 'total', number>; actions: ProactiveAction[]; history: ProactiveHistory[];
+  defaultSnoozeDays?: number | null;
 }
 
 export const PROACTIVE_STATUS: Record<ProactiveStatus, string> = {

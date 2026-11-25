@@ -646,7 +646,7 @@ fn schema_five_workspace_migrates_without_changing_existing_projects_and_tasks()
     drop(conn);
     let engine = Engine::open(dir.path()).unwrap();
     let state = call(&engine, "get_state", json!({}));
-    assert_eq!(state["workspace"]["schemaVersion"], 16);
+    assert_eq!(state["workspace"]["schemaVersion"], 17);
     assert_eq!(state["tasks"][0], task);
     let overview = call(
         &engine,

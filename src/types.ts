@@ -155,7 +155,7 @@ export interface HabitsCenter {
 export interface MemoryAuditItem {
   id: string;
   projectId: string;
-  kind: 'date_conflict' | 'owner_conflict' | 'negation_conflict' | 'duplicate_overlap';
+  kind: 'date_conflict' | 'owner_conflict' | 'negation_conflict' | 'numeric_conflict' | 'duplicate_overlap';
   reason: string;
   status: 'open' | 'dismissed' | 'resolved';
   createdAt: string;
@@ -167,6 +167,31 @@ export interface MemoryAuditsResponse {
   audits: MemoryAuditItem[];
   openCount: number;
   scan?: { scannedProjects: number; newFindings: number; autoResolved: number };
+}
+export interface MemoryConsolidationItem {
+  id: string;
+  projectId: string;
+  topicKey: string;
+  title: string;
+  proposedContent: string;
+  reason: string;
+  status: 'pending' | 'confirmed' | 'dismissed';
+  sourceMemories: Array<{
+    id: string;
+    revision: number;
+    kind: string;
+    content: string;
+    sourceTitle: string;
+    layer: string;
+    updatedAt: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface MemoryConsolidationsResponse {
+  consolidations: MemoryConsolidationItem[];
+  pendingCount: number;
+  scan?: { scannedProjects: number; newProposals: number; autoDismissed: number };
 }
 export interface Counts { projects: number; sources: number; memories: number; tasks?: number; reports?: number }
 export interface Backup {

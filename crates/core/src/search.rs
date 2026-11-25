@@ -232,6 +232,35 @@ fn english_stopword(run: &str) -> bool {
             | "status"
             | "progress"
             | "due"
+            | "am"
+            | "me"
+            | "him"
+            | "us"
+            | "you"
+            | "if"
+            | "so"
+            | "but"
+            | "than"
+            | "then"
+            | "very"
+            | "just"
+            | "now"
+            | "doing"
+            | "done"
+            | "having"
+            | "don"
+            | "doesn"
+            | "didn"
+            | "isn"
+            | "aren"
+            | "wasn"
+            | "weren"
+            | "won"
+            | "haven"
+            | "hasn"
+            | "couldn"
+            | "wouldn"
+            | "shouldn"
     )
 }
 
@@ -1083,8 +1112,19 @@ impl Query {
                     weight * idf * tf * 2.2 / (tf + 1.2 * (0.25 + 0.75 * length / average));
             }
         }
+        let concept_count = self.concepts.len() as f64;
         for (index, text) in texts.iter().enumerate() {
-            scores[index] *= 0.25 + 0.75 * self.coverage("", &text.text).powi(2);
+            let cov = if self.concepts.is_empty() {
+                1.0
+            } else {
+                let matched = self
+                    .concepts
+                    .iter()
+                    .filter(|aliases| aliases.iter().any(|term| text.frequency(term) > 0.0))
+                    .count();
+                matched as f64 / concept_count
+            };
+            scores[index] *= 0.25 + 0.75 * cov.powi(2);
             scores[index] *= self.field_bonus(&text.text);
         }
         for rewrite in &self.rewrites {
@@ -1494,5 +1534,31 @@ mod tests {
         let rank = aliased.rank(&["支付重构核心模块由王明负责。", "前端视觉走查由李静负责。"]);
         assert!(rank[0] > rank[1]);
         assert!(index_tokens("支付重构方案").contains("重构"));
+    }
+
+    #[test]
+    fn bm25_and_fast_coverage_prioritize_rare_concept_over_ubiquitous_entity_name() {
+        let mut docs = vec!["Alice configured kubernetes ingress on Tuesday."];
+        docs.extend(std::iter::repeat_n(
+            "Alice discussed general setup checklist during standup.",
+            20,
+        ));
+        let query = Query::new("Alice kubernetes setup");
+        let scores = query.rank(&docs);
+        assert!(
+            scores[0] > scores[1] * 1.5,
+            "scores: {} vs {}",
+            scores[0],
+            scores[1]
+        );
+    }
+
+    #[test]
+    fn english_contraction_fragments_do_not_pollute_query_concepts() {
+        let query = Query::new("What didn't Alice finish?");
+        assert!(!query.terms.contains_key("didn"));
+        assert!(!query.concepts.iter().flatten().any(|term| term == "didn"));
+        assert!(query.terms.contains_key("alice"));
+        assert!(query.terms.contains_key("finish"));
     }
 }

@@ -30,6 +30,7 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, h
   const [draftStatus, setDraftStatus] = useState('');
   const [factWarnings, setFactWarnings] = useState<string[]>([]);
   const prePolishContent = useRef<string | null>(null);
+  const lastPolishMeta = useRef<{ audience: string; polishedContent: string; appliedHabitIds: string[] } | null>(null);
   const exportMenuRef = useRef<HTMLDetailsElement>(null);
   const copyFeedback = useCopyFeedback();
 
@@ -57,7 +58,7 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, h
 
   useEffect(() => { setSelectedId((current) => summaries.some((item) => item.id === current) ? current : summaries[0]?.id ?? null); generateId.current = crypto.randomUUID(); }, [day, projectId, summaries.map((item) => item.id).join(',')]);
   useEffect(() => {
-    setEditing(false); setFactWarnings([]); prePolishContent.current = null;
+    setEditing(false); setFactWarnings([]); prePolishContent.current = null; lastPolishMeta.current = null;
     if (!selectedId) { setReport(null); setContent(''); setError(''); return; }
     let cancelled = false; setLoading(true); setError('');
     execute<DailyReport>('get_daily_report', { reportId: selectedId }).then(async (result) => { const saved = await readDraft<string>(`report:${result.id}`); if (!cancelled) { setReport(result); setContent(saved ?? result.content); setDraftStatus(saved !== null ? '已恢复本机草稿' : ''); saveId.current = crypto.randomUUID(); } })
@@ -74,7 +75,7 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, h
   const refreshAfter = async () => { try { await onChanged(); } catch { notify('已保存，但版本列表暂未同步。', true); } };
   const closeExportMenu = () => { if (exportMenuRef.current) exportMenuRef.current.open = false; };
   const generate = async () => {
-    setBusy('generate'); setError(''); setFactWarnings([]); prePolishContent.current = null;
+    setBusy('generate'); setError(''); setFactWarnings([]); prePolishContent.current = null; lastPolishMeta.current = null;
     try {
       const result = await execute<DailyReport>('generate_daily_report', { date: day, ...(projectId ? { projectId } : {}), clientRequestId: generateId.current });
       setReport(result); setSelectedId(result.id); setContent(result.content); generateId.current = crypto.randomUUID();
@@ -84,15 +85,21 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, h
   const save = async () => {
     if (!report || !content.trim()) return; setBusy('save'); setError('');
     try {
-      const result = await execute<DailyReport>('save_daily_report', { reportId: report.id, baseVersion: report.version, content: content.trim(), clientRequestId: saveId.current });
-      await clearDraft(`report:${report.id}`); setDraftStatus(''); setFactWarnings([]); prePolishContent.current = null; setReport(result); setSelectedId(result.id); setContent(result.content); saveId.current = crypto.randomUUID();
+      const result = await execute<DailyReport>('save_daily_report', {
+        reportId: report.id,
+        baseVersion: report.version,
+        content: content.trim(),
+        clientRequestId: saveId.current,
+        ...(lastPolishMeta.current ? { polishMeta: lastPolishMeta.current } : {}),
+      });
+      await clearDraft(`report:${report.id}`); setDraftStatus(''); setFactWarnings([]); prePolishContent.current = null; lastPolishMeta.current = null; setReport(result); setSelectedId(result.id); setContent(result.content); saveId.current = crypto.randomUUID();
       await refreshAfter(); notify('修改已保存为新版本。');
     } catch (caught) { setError(asError(caught).message); } finally { setBusy(''); }
   };
   const restoreSaved = async () => {
     if (!report) return;
     await clearDraft(`report:${report.id}`);
-    setContent(report.content); setDraftStatus(''); setFactWarnings([]); prePolishContent.current = null;
+    setContent(report.content); setDraftStatus(''); setFactWarnings([]); prePolishContent.current = null; lastPolishMeta.current = null;
     saveId.current = crypto.randomUUID();
     notify('已恢复到当前已保存版本。');
   };
@@ -104,7 +111,7 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, h
     }
     setBusy(`polish-${style}`); setError('');
     try {
-      const res = await execute<{ content: string; model: string; factWarnings?: string[] }>('polish_report', {
+      const res = await execute<{ content: string; model: string; factWarnings?: string[]; appliedHabitIds?: string[] }>('polish_report', {
         content: content.trim(),
         reportType: 'daily',
         style,
@@ -115,6 +122,11 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, h
       const previous = content;
       const targetReport = report;
       prePolishContent.current = previous;
+      lastPolishMeta.current = {
+        audience: style,
+        polishedContent: res.content,
+        appliedHabitIds: res.appliedHabitIds ?? [],
+      };
       setContent(res.content);
       setEditing(false);
       setFactWarnings(res.factWarnings ?? []);
@@ -132,6 +144,7 @@ export function ReportWorkspace({ state, day, setDay, projectId, setProjectId, h
             if (prePolishContent.current === null) return;
             const rollback = prePolishContent.current;
             prePolishContent.current = null;
+            lastPolishMeta.current = null;
             setContent(rollback);
             setFactWarnings([]);
             if (rollback === targetReport.content) {

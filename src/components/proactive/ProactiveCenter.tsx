@@ -37,9 +37,10 @@ function localDateTime(value: Date): string {
   const local = new Date(value.getTime() - value.getTimezoneOffset() * 60_000);
   return local.toISOString().slice(0, 16);
 }
-function nextTime(hours: number | 'tomorrow'): string {
+function nextTime(hours: number | 'tomorrow' | { days: number }): string {
   const value = new Date();
   if (hours === 'tomorrow') { value.setDate(value.getDate() + 1); value.setHours(9, 0, 0, 0); }
+  else if (typeof hours === 'object') { value.setDate(value.getDate() + hours.days); value.setHours(9, 0, 0, 0); }
   else value.setTime(value.getTime() + hours * 3_600_000);
   return localDateTime(value);
 }
@@ -137,7 +138,7 @@ export function ProactiveCenter({ projects, projectId, onProjectChange, refreshR
         <details className="proactive-history"><summary><History size={14} />最近活动<span>{data.history.length} 条</span><ChevronDown size={14} /></summary>{data.history.length ? data.history.map((event) => <HistoryItem key={event.id} event={event} title={actionNames.get(event.actionId)} />) : <p className="proactive-empty-note">巡检和跟进后的记录会显示在这里。</p>}</details>
       </>}
     </div>
-    {operation && <ActionDialog key={`${operation.action.id}:${operation.action.version}:${operation.kind}`} action={operation.action} kind={operation.kind} close={() => setOperation(null)} onSaved={(updatedAction, kind) => { setOperation(null); changed(); if (kind === 'dismiss' && updatedAction) { notify('已忽略本次行动。', false, { label: '撤销', onClick: async () => { try { await execute('update_proactive_action', { actionId: updatedAction.id, baseVersion: updatedAction.version, operation: 'reopen', note: '用户撤销忽略' }); changed(); } catch (caught) { notify(asError(caught).message, true); } } }); } else { notify('跟进记录已保存。'); } }} onConflict={reread} />}
+    {operation && <ActionDialog key={`${operation.action.id}:${operation.action.version}:${operation.kind}`} action={operation.action} kind={operation.kind} defaultSnoozeDays={data?.defaultSnoozeDays ?? null} close={() => setOperation(null)} onSaved={(updatedAction, kind) => { setOperation(null); changed(); if (kind === 'dismiss' && updatedAction) { notify('已忽略本次行动。', false, { label: '撤销', onClick: async () => { try { await execute('update_proactive_action', { actionId: updatedAction.id, baseVersion: updatedAction.version, operation: 'reopen', note: '用户撤销忽略' }); changed(); } catch (caught) { notify(asError(caught).message, true); } } }); } else { notify('跟进记录已保存。'); } }} onConflict={reread} />}
   </div>;
 }
 
@@ -163,11 +164,12 @@ function HistoryItem({ event, title }: { event: ProactiveHistory; title?: string
   return <article><div><strong>{HISTORY_LABELS[event.kind] || '行动记录已更新'}</strong><time dateTime={event.createdAt}>{formatMoment(event.createdAt)}</time></div>{title && <small>{title}</small>}{event.note && <p>{event.note}</p>}</article>;
 }
 
-function ActionDialog({ action, kind, close, onSaved, onConflict }: {
-  action: ProactiveAction; kind: ProactiveOperation; close: () => void; onSaved: (updated: ProactiveAction | null, kind: ProactiveOperation) => void; onConflict: () => void;
+function ActionDialog({ action, kind, defaultSnoozeDays, close, onSaved, onConflict }: {
+  action: ProactiveAction; kind: ProactiveOperation; defaultSnoozeDays?: number | null; close: () => void; onSaved: (updated: ProactiveAction | null, kind: ProactiveOperation) => void; onConflict: () => void;
 }) {
   const needsTime = kind === 'watch' || kind === 'snooze';
-  const [nextCheckAt, setNextCheckAt] = useState(() => nextTime(1));
+  const habitSnoozeDays = kind === 'snooze' && defaultSnoozeDays && defaultSnoozeDays > 0 ? defaultSnoozeDays : null;
+  const [nextCheckAt, setNextCheckAt] = useState(() => (habitSnoozeDays ? nextTime({ days: habitSnoozeDays }) : nextTime(1)));
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -192,5 +194,5 @@ function ActionDialog({ action, kind, close, onSaved, onConflict }: {
       }
     } finally { if (alive.current) setBusy(false); }
   };
-  return <Dialog title={OPERATION_LABELS[kind]} subtitle={action.title} close={close} busy={busy} dirty={Boolean(note.trim())}><form onSubmit={submit}><div className="dialog-body proactive-form">{needsTime && <><label><span className="field-label">下次复查时间</span><input aria-label="下次复查时间" type="datetime-local" value={nextCheckAt} onChange={(event) => setNextCheckAt(event.target.value)} required disabled={busy} /></label><div className="proactive-quick-times">{([1, 4, 'tomorrow'] as const).map((value) => <button type="button" key={value} className="button secondary compact" disabled={busy} onClick={() => setNextCheckAt(nextTime(value))}>{value === 'tomorrow' ? '明日 09:00' : `${value} 小时后`}</button>)}</div></>}<label><span className="field-label">{kind === 'watch' ? '本次跟进与预期结果' : kind === 'snooze' ? '暂缓原因' : '备注'}{!needsTime && <span>可选</span>}</span><textarea aria-label={kind === 'watch' ? '本次跟进与预期结果' : kind === 'snooze' ? '暂缓原因' : '行动备注'} rows={4} value={note} maxLength={5000} required={needsTime} placeholder={kind === 'watch' ? '例如：已确认由小林今天下午提交联调结果，届时复查。' : kind === 'snooze' ? '说明为什么稍后再处理。' : '记录本次调整的原因。'} onChange={(event) => setNote(event.target.value)} disabled={busy} /></label><p className="proactive-form-hint">{kind === 'watch' ? '到时会检查最新记录；需要继续推进时，行动会回到“现在处理”。' : kind === 'snooze' ? '到期后恢复检查，暂缓期间保留已有跟进记录。' : kind === 'dismiss' ? '忽略后保留历史，可随时重新跟进。' : '重新纳入需要处理的行动，继续检查相关进展。'}</p>{error && <div className="form-error" role="alert"><CircleAlert size={15} />{error}</div>}</div><div className="dialog-footer"><button type="button" className="button secondary" disabled={busy} onClick={close}>取消</button><button className={`button ${kind === 'dismiss' || kind === 'watch' ? 'seal' : 'primary'}`} disabled={busy || stale || needsTime && (!note.trim() || !nextCheckAt)}>{busy && <Spinner />}{OPERATION_LABELS[kind]}</button></div></form></Dialog>;
+  return <Dialog title={OPERATION_LABELS[kind]} subtitle={action.title} close={close} busy={busy} dirty={Boolean(note.trim())}><form onSubmit={submit}><div className="dialog-body proactive-form">{needsTime && <><label><span className="field-label">下次复查时间</span><input aria-label="下次复查时间" type="datetime-local" value={nextCheckAt} onChange={(event) => setNextCheckAt(event.target.value)} required disabled={busy} /></label><div className="proactive-quick-times">{habitSnoozeDays && <button type="button" className="button secondary compact" disabled={busy} onClick={() => setNextCheckAt(nextTime({ days: habitSnoozeDays }))}>按习惯 {habitSnoozeDays} 天后</button>}{([1, 4, 'tomorrow'] as const).map((value) => <button type="button" key={value} className="button secondary compact" disabled={busy} onClick={() => setNextCheckAt(nextTime(value))}>{value === 'tomorrow' ? '明日 09:00' : `${value} 小时后`}</button>)}</div></>}<label><span className="field-label">{kind === 'watch' ? '本次跟进与预期结果' : kind === 'snooze' ? '暂缓原因' : '备注'}{!needsTime && <span>可选</span>}</span><textarea aria-label={kind === 'watch' ? '本次跟进与预期结果' : kind === 'snooze' ? '暂缓原因' : '行动备注'} rows={4} value={note} maxLength={5000} required={needsTime} placeholder={kind === 'watch' ? '例如：已确认由小林今天下午提交联调结果，届时复查。' : kind === 'snooze' ? '说明为什么稍后再处理。' : '记录本次调整的原因。'} onChange={(event) => setNote(event.target.value)} disabled={busy} /></label><p className="proactive-form-hint">{kind === 'watch' ? '到时会检查最新记录；需要继续推进时，行动会回到“现在处理”。' : kind === 'snooze' ? '到期后恢复检查，暂缓期间保留已有跟进记录。' : kind === 'dismiss' ? '忽略后保留历史，可随时重新跟进。' : '重新纳入需要处理的行动，继续检查相关进展。'}</p>{error && <div className="form-error" role="alert"><CircleAlert size={15} />{error}</div>}</div><div className="dialog-footer"><button type="button" className="button secondary" disabled={busy} onClick={close}>取消</button><button className={`button ${kind === 'dismiss' || kind === 'watch' ? 'seal' : 'primary'}`} disabled={busy || stale || needsTime && (!note.trim() || !nextCheckAt)}>{busy && <Spinner />}{OPERATION_LABELS[kind]}</button></div></form></Dialog>;
 }

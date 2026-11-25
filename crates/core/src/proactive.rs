@@ -98,8 +98,9 @@ fn center(conn: &Connection, project: Option<&str>) -> Result<Value> {
     )?;
     let mut s = conn.prepare("SELECT id,action_id,kind,note,created_at FROM proactive_history WHERE (?1 IS NULL OR project_id=?1) ORDER BY created_at DESC,rowid DESC LIMIT 200")?;
     let history = s.query_map([project], |r| Ok(json!({"id":r.get::<_,String>(0)?,"actionId":r.get::<_,String>(1)?,"kind":r.get::<_,String>(2)?,"note":r.get::<_,String>(3)?,"createdAt":r.get::<_,String>(4)?})))?.collect::<std::result::Result<Vec<_>,_>>()?;
+    let default_snooze_days = crate::habits::default_snooze_days(conn, project).unwrap_or(None);
     Ok(
-        json!({"settings":settings(conn)?,"lastRunAt":last_run,"lastError":last_error,"counts":counts,"actions":actions,"history":history}),
+        json!({"settings":settings(conn)?,"lastRunAt":last_run,"lastError":last_error,"counts":counts,"actions":actions,"history":history,"defaultSnoozeDays":default_snooze_days}),
     )
 }
 
@@ -805,7 +806,14 @@ fn update_action(conn: &Connection, p: &Value, at: &DateTime<FixedOffset>) -> Re
         let snooze_days = if operation == "snooze" {
             next.as_deref()
                 .and_then(|ts| parse_stamp(ts).ok())
-                .map(|target| (target - *at).num_days().max(1))
+                .and_then(|target| {
+                    let hours = (target - *at).num_hours();
+                    if hours < 20 {
+                        None
+                    } else {
+                        Some(((hours + 12) / 24).max(1))
+                    }
+                })
         } else {
             None
         };
@@ -1532,5 +1540,69 @@ mod tests {
             .as_str()
             .unwrap()
             .contains("fixture fault"));
+    }
+
+    #[test]
+    fn snooze_habit_ignores_short_hours_and_exposes_default_snooze_days() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut db = Database::open(dir.path().into()).unwrap();
+        let p = project(&mut db);
+        let pid = p["id"].as_str().unwrap();
+        task(&mut db, &p, "联调卡点", "blocked", None, "high");
+        let start = at("2026-10-19T10:00:00+08:00");
+        scan(&mut db, &start, false);
+        let first = actions(&db)[0].clone();
+
+        // Short 2-hour snooze (< 20h) must not create a day-cadence habit observation.
+        let snoozed_short = update(
+            &mut db,
+            &first,
+            "snooze",
+            Some("2026-10-19T12:00:00+08:00"),
+            &(start + Duration::minutes(1)),
+        );
+        let obs_short: i64 = db
+            .conn
+            .query_row(
+                "SELECT count(*) FROM habit_observations WHERE pattern_key LIKE 'reminder:snooze_days:%'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(obs_short, 0);
+
+        // Multi-day snooze (3 days) records the expected bucket.
+        update(
+            &mut db,
+            &snoozed_short,
+            "snooze",
+            Some("2026-10-22T10:00:00+08:00"),
+            &(start + Duration::minutes(2)),
+        );
+        let obs_day: String = db
+            .conn
+            .query_row(
+                "SELECT pattern_key FROM habit_observations WHERE pattern_key LIKE 'reminder:snooze_days:%' LIMIT 1",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(obs_day, "reminder:snooze_days:3");
+
+        assert!(center(&db.conn, Some(pid)).unwrap()["defaultSnoozeDays"].is_null());
+        crate::habits::dispatch(
+            &db.conn,
+            "save_user_habit",
+            &json!({
+                "projectId": pid,
+                "category": "reminder",
+                "patternKey": "reminder:snooze_days:7",
+                "title": "默认暂缓 7 天",
+                "instruction": "暂缓默认 7 天后复查",
+                "rule": {"action": "default_snooze_days", "days": 7}
+            }),
+        )
+        .unwrap();
+        assert_eq!(center(&db.conn, Some(pid)).unwrap()["defaultSnoozeDays"], 7);
     }
 }

@@ -48,6 +48,7 @@ function Reports({ list, changed, ...props }: ContentProps) {
   const [loading, setLoading] = useState(false); const [tick, setTick] = useState(0); const [viewVersion, setViewVersion] = useState<number | undefined>();
   const [factWarnings, setFactWarnings] = useState<string[]>([]);
   const prePolishContent = useRef<string | null>(null);
+  const lastPolishMeta = useRef<{ audience: string; polishedContent: string; appliedHabitIds: string[] } | null>(null);
   const exportMenuRef = useRef<HTMLDetailsElement>(null);
   const sequence = useRef(0);
   const dirty = !!report && report.content !== content; const historical = !!report && report.version !== report.latestVersion;
@@ -56,7 +57,7 @@ function Reports({ list, changed, ...props }: ContentProps) {
   useEffect(() => { if (!selected && list.reports.length) setSelected(list.reports[0].id); }, [list.reports, selected]);
   useEffect(() => { if (props.focusId && list.reports.some((r) => r.id === props.focusId)) { setSelected(props.focusId); setViewVersion(undefined); } }, [props.focusId]);
   useEffect(() => {
-    const run = ++sequence.current; setFactWarnings([]); prePolishContent.current = null;
+    const run = ++sequence.current; setFactWarnings([]); prePolishContent.current = null; lastPolishMeta.current = null;
     if (!selected) { setReport(null); setContent(''); setLoading(false); return; }
     setLoading(true); setError(''); setEditing(false);
     execute<WeeklyReport>('coordination_get_report', { reportId: selected, ...(viewVersion ? { version: viewVersion } : {}) })
@@ -72,13 +73,13 @@ function Reports({ list, changed, ...props }: ContentProps) {
   }, [dirty]);
   const run = async (name: string, command: string, payload: Record<string, unknown>, message: string) => {
     setBusy(name); setError('');
-    try { const result = await execute<WeeklyReport>(command, payload); if (report) await clearDraft(`weekly:${report.id}:${report.version}`); setFactWarnings([]); prePolishContent.current = null; setReport(result); setContent(result.content); setSelected(result.id); setViewVersion(undefined); setEditing(false); await changed(); props.notify(message); }
+    try { const result = await execute<WeeklyReport>(command, payload); if (report) await clearDraft(`weekly:${report.id}:${report.version}`); setFactWarnings([]); prePolishContent.current = null; lastPolishMeta.current = null; setReport(result); setContent(result.content); setSelected(result.id); setViewVersion(undefined); setEditing(false); await changed(); props.notify(message); }
     catch (caught) { setError(asError(caught).message); } finally { setBusy(''); }
   };
   const restoreSaved = async () => {
     if (!report) return;
     await clearDraft(`weekly:${report.id}:${report.version}`);
-    setContent(report.content); setFactWarnings([]); prePolishContent.current = null;
+    setContent(report.content); setFactWarnings([]); prePolishContent.current = null; lastPolishMeta.current = null;
     props.notify('已恢复到当前已保存版本。');
   };
   const scopeTitle = report ? (props.state.projects.find((p) => p.id === report.projectId)?.name || '全部项目') : '全部项目';
@@ -90,7 +91,7 @@ function Reports({ list, changed, ...props }: ContentProps) {
     }
     setBusy(`polish-${style}`); setError('');
     try {
-      const res = await execute<{ content: string; factWarnings?: string[] }>('polish_report', {
+      const res = await execute<{ content: string; factWarnings?: string[]; appliedHabitIds?: string[] }>('polish_report', {
         content: content.trim(),
         reportType: 'weekly',
         style,
@@ -101,6 +102,11 @@ function Reports({ list, changed, ...props }: ContentProps) {
       const previous = content;
       const targetReport = report;
       prePolishContent.current = previous;
+      lastPolishMeta.current = {
+        audience: style,
+        polishedContent: res.content,
+        appliedHabitIds: res.appliedHabitIds ?? [],
+      };
       setContent(res.content);
       setEditing(false);
       setFactWarnings(res.factWarnings ?? []);
@@ -117,6 +123,7 @@ function Reports({ list, changed, ...props }: ContentProps) {
             if (prePolishContent.current === null) return;
             const rollback = prePolishContent.current;
             prePolishContent.current = null;
+            lastPolishMeta.current = null;
             setContent(rollback);
             setFactWarnings([]);
             if (rollback === targetReport.content) {
@@ -148,7 +155,7 @@ function Reports({ list, changed, ...props }: ContentProps) {
         {factWarnings.length > 0 && <div className="work-inline-error" role="alert"><CircleAlert size={17} /><p><strong>AI 润色事实核对提示：</strong>{factWarnings.join(' ')}</p><button type="button" className="text-button" onClick={() => setFactWarnings([])}>忽略提示</button></div>}
         {editing && !historical ? <textarea className="coord-report-editor" aria-label="周报正文 Markdown" disabled={!!busy} value={content} maxLength={200000} onChange={(e) => { setContent(e.target.value); void writeDraft(`weekly:${report.id}:${report.version}`, e.target.value).catch(e => setError(`草稿暂存失败：${asError(e).message}`)); }} /> : <article className="report-markdown coord-markdown"><Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown></article>}
         <div className="coord-report-actions">
-          <button className="button primary" disabled={!!busy || !dirty || historical || !content.trim()} onClick={() => run('save', 'coordination_save_report', { reportId: report.id, baseVersion: report.version, content }, '周报修改已保存为新版本。')}>{busy === 'save' ? <Spinner /> : <Check size={14} />}保存新版本</button>
+          <button className="button primary" disabled={!!busy || !dirty || historical || !content.trim()} onClick={() => run('save', 'coordination_save_report', { reportId: report.id, baseVersion: report.version, content, ...(lastPolishMeta.current ? { polishMeta: lastPolishMeta.current } : {}) }, '周报修改已保存为新版本。')}>{busy === 'save' ? <Spinner /> : <Check size={14} />}保存新版本</button>
           <button className="button secondary" disabled={!!busy || !content.trim()} onClick={async () => { setBusy('copy-rich'); try { const kind = await copyRichMarkdown(`${scopeTitle} · 项目周报`, `${report.startDate} 至 ${report.endDate} · v${report.version}`, content); props.notify(kind === 'rich' ? '已复制带格式周报，可直接粘贴到飞书/企微/Word。' : '已复制周报正文。'); } catch (caught) { props.notify(asError(caught).message, true); } finally { setBusy(''); } }}><Copy size={14} />复制正文</button>
           <details className="export-menu" ref={exportMenuRef}>
             <summary className="button secondary">导出<ChevronDown size={14} /></summary>

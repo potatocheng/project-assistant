@@ -15,7 +15,10 @@ import { type ToastAction, usePresence, useSwipeDismiss } from '../interaction';
 import { Spinner, useModalLayer } from '../ui';
 import { planCopilotAction } from './copilot-actions';
 import {
+  attributeCopilotHabitFeedback,
   createPmCopilotAgent,
+  formatPrefillDetail,
+  prefillArgsFromHabits,
   type ToolApprovalDecision,
   type ToolApprovalRequest,
 } from './pi-copilot-agent';
@@ -422,20 +425,22 @@ export function CopilotDrawer({
       let initialArgs: Record<string, unknown>;
       if (plan.kind === 'create_task') {
         const pName = stateRef.current.projects.find(p => p.id === plan.projectId)?.name ?? '当前项目';
-        initialArgs = {
+        const prefill = prefillArgsFromHabits(habitsRef.current, plan.projectId || projectIdRef.current || null, 'create_task', {
           projectId: plan.projectId,
           title: plan.title,
           assignee: plan.assignee,
           priority: plan.priority,
           dueDate: plan.dueDate,
           plannedDate: plan.plannedDate,
-        };
+        });
+        initialArgs = prefill.args;
+        const prefillLine = formatPrefillDetail(prefill.filled);
         request = {
           toolCallId,
           toolName: 'create_task',
           title: '新建项目任务',
           summary: plan.summary,
-          details: [`项目：${pName}`],
+          details: prefillLine ? [`项目：${pName}`, prefillLine] : [`项目：${pName}`],
           args: initialArgs,
         };
       } else if (plan.kind === 'reschedule_task') {
@@ -473,19 +478,21 @@ export function CopilotDrawer({
         };
       } else if (plan.kind === 'create_governance') {
         const pName = stateRef.current.projects.find(p => p.id === plan.projectId)?.name ?? '当前项目';
-        initialArgs = {
+        const prefill = prefillArgsFromHabits(habitsRef.current, plan.projectId || projectIdRef.current || null, 'create_risk_or_decision', {
           projectId: plan.projectId,
           kind: plan.govKind,
           title: plan.title,
           severity: plan.severity,
           dueDate: plan.dueDate,
-        };
+        });
+        initialArgs = prefill.args;
+        const prefillLine = formatPrefillDetail(prefill.filled);
         request = {
           toolCallId,
           toolName: 'create_risk_or_decision',
           title: plan.govKind === 'decision' ? '新增待决策事项' : '记录项目风险',
           summary: plan.summary,
-          details: [`项目：${pName}`],
+          details: prefillLine ? [`项目：${pName}`, prefillLine] : [`项目：${pName}`],
           args: initialArgs,
         };
       } else {
@@ -510,8 +517,43 @@ export function CopilotDrawer({
         resolve: async (rawDecision) => {
           setApproval(null);
           const decision = typeof rawDecision === 'boolean'
-            ? { approved: rawDecision, overrideArgs: undefined }
+            ? { approved: rawDecision, overrideArgs: undefined, rememberAsHabit: false }
             : rawDecision;
+          const args = { ...initialArgs, ...(decision.overrideArgs ?? {}) };
+          const edited =
+            !!decision.overrideArgs &&
+            Object.keys(decision.overrideArgs).some(k => decision.overrideArgs![k] !== initialArgs[k]);
+          const decisionKind: 'approved' | 'edited_and_approved' | 'rejected' = !decision.approved
+            ? 'rejected'
+            : edited
+              ? 'edited_and_approved'
+              : 'approved';
+          const pid = typeof args.projectId === 'string' && args.projectId
+            ? args.projectId
+            : projectIdRef.current || null;
+          const { appliedHabitIds, acceptedHabitIds } = attributeCopilotHabitFeedback(
+            habitsRef.current,
+            pid,
+            request.toolName,
+            decisionKind,
+            initialArgs,
+            args,
+          );
+          void execute('record_copilot_feedback', {
+            projectId: pid,
+            toolName: request.toolName,
+            decision: decisionKind,
+            originalArgs: initialArgs,
+            finalArgs: args,
+            rememberAsHabit: !!decision.rememberAsHabit,
+            appliedHabitIds,
+          }).catch(() => {});
+          if (acceptedHabitIds.length > 0) {
+            void execute('record_habit_outcome', {
+              habitIds: acceptedHabitIds,
+              outcome: 'accepted',
+            }).catch(() => {});
+          }
           if (!decision.approved) {
             setTimeline(prev => [
               ...prev,
@@ -519,7 +561,6 @@ export function CopilotDrawer({
             ]);
             return;
           }
-          const args = { ...initialArgs, ...(decision.overrideArgs ?? {}) };
           setRunning(true);
           try {
             if (plan.kind === 'create_task') {

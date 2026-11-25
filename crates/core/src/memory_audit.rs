@@ -7,7 +7,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{json, Value};
 use std::collections::{BTreeSet, HashMap, HashSet};
 
-const MAX_SCAN_PER_PROJECT: usize = 400;
+const MAX_SCAN_PER_PROJECT: usize = 2_000;
 
 pub(crate) fn migrate(conn: &Connection) -> Result<()> {
     conn.execute_batch(
@@ -18,7 +18,7 @@ pub(crate) fn migrate(conn: &Connection) -> Result<()> {
             memory_a_revision INTEGER NOT NULL CHECK(memory_a_revision>=1),
             memory_b_id TEXT NOT NULL REFERENCES memories(id),
             memory_b_revision INTEGER NOT NULL CHECK(memory_b_revision>=1),
-            kind TEXT NOT NULL CHECK(kind IN ('date_conflict','owner_conflict','negation_conflict','duplicate_overlap')),
+            kind TEXT NOT NULL CHECK(kind IN ('date_conflict','owner_conflict','negation_conflict','numeric_conflict','duplicate_overlap')),
             reason TEXT NOT NULL,
             status TEXT NOT NULL CHECK(status IN ('open','dismissed','resolved')),
             created_at TEXT NOT NULL,
@@ -26,6 +26,45 @@ pub(crate) fn migrate(conn: &Connection) -> Result<()> {
             UNIQUE(memory_a_id, memory_a_revision, memory_b_id, memory_b_revision, kind)
         );
         CREATE INDEX IF NOT EXISTS memory_audits_status ON memory_audits(status, project_id, updated_at);",
+    )?;
+    Ok(())
+}
+
+pub(crate) fn migrate_v17(conn: &Connection) -> Result<()> {
+    let sql: Option<String> = conn
+        .query_row(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='memory_audits'",
+            [],
+            |r| r.get(0),
+        )
+        .optional()?;
+    let Some(table_sql) = sql else {
+        return migrate(conn);
+    };
+    if table_sql.contains("'numeric_conflict'") {
+        return Ok(());
+    }
+    conn.execute_batch(
+        "ALTER TABLE memory_audits RENAME TO memory_audits_v16;
+         CREATE TABLE memory_audits(
+             id TEXT PRIMARY KEY,
+             project_id TEXT NOT NULL REFERENCES projects(id),
+             memory_a_id TEXT NOT NULL REFERENCES memories(id),
+             memory_a_revision INTEGER NOT NULL CHECK(memory_a_revision>=1),
+             memory_b_id TEXT NOT NULL REFERENCES memories(id),
+             memory_b_revision INTEGER NOT NULL CHECK(memory_b_revision>=1),
+             kind TEXT NOT NULL CHECK(kind IN ('date_conflict','owner_conflict','negation_conflict','numeric_conflict','duplicate_overlap')),
+             reason TEXT NOT NULL,
+             status TEXT NOT NULL CHECK(status IN ('open','dismissed','resolved')),
+             created_at TEXT NOT NULL,
+             updated_at TEXT NOT NULL,
+             UNIQUE(memory_a_id, memory_a_revision, memory_b_id, memory_b_revision, kind)
+         );
+         INSERT INTO memory_audits(id,project_id,memory_a_id,memory_a_revision,memory_b_id,memory_b_revision,kind,reason,status,created_at,updated_at)
+         SELECT id,project_id,memory_a_id,memory_a_revision,memory_b_id,memory_b_revision,kind,reason,status,created_at,updated_at
+         FROM memory_audits_v16;
+         DROP TABLE memory_audits_v16;
+         CREATE INDEX IF NOT EXISTS memory_audits_status ON memory_audits(status, project_id, updated_at);",
     )?;
     Ok(())
 }
@@ -742,6 +781,145 @@ fn extract_numbers(text: &str) -> BTreeSet<String> {
     nums
 }
 
+#[derive(Clone, Debug)]
+struct MetricToken {
+    value: f64,
+    unit: &'static str,
+    display: String,
+}
+
+fn parse_metric_unit(rest: &str) -> Option<(f64, &'static str, usize)> {
+    const CJK_UNITS: &[(&str, f64, &str)] = &[
+        ("工作日", 1.0, "day"),
+        ("毫秒", 1.0, "ms"),
+        ("分钟", 1.0, "min"),
+        ("小时", 1.0, "hour"),
+        ("次/秒", 1.0, "qps"),
+        ("万元", 1.0, "wan"),
+        ("美元", 1.0, "usd"),
+        ("秒", 1000.0, "ms"),
+        ("天", 1.0, "day"),
+        ("万", 1.0, "wan"),
+        ("元", 1.0, "yuan"),
+        ("人", 1.0, "headcount"),
+        ("名", 1.0, "headcount"),
+        ("%", 1.0, "percent"),
+        ("％", 1.0, "percent"),
+    ];
+    for &(u, factor, canonical) in CJK_UNITS {
+        if rest.starts_with(u) {
+            return Some((factor, canonical, u.len()));
+        }
+    }
+    let lower_prefix: String = rest
+        .chars()
+        .take(6)
+        .collect::<String>()
+        .to_ascii_lowercase();
+    const ASCII_UNITS: &[(&str, f64, &str)] = &[
+        ("days", 1.0, "day"),
+        ("day", 1.0, "day"),
+        ("min", 1.0, "min"),
+        ("tps", 1.0, "tps"),
+        ("qps", 1.0, "qps"),
+        ("rps", 1.0, "rps"),
+        ("usd", 1.0, "usd"),
+        ("ms", 1.0, "ms"),
+        ("kb", 1.0 / 1024.0, "mb"),
+        ("mb", 1.0, "mb"),
+        ("gb", 1024.0, "mb"),
+        ("s", 1000.0, "ms"),
+        ("h", 1.0, "hour"),
+    ];
+    for &(u, factor, canonical) in ASCII_UNITS {
+        if lower_prefix.starts_with(u) {
+            let end = rest
+                .char_indices()
+                .nth(u.chars().count())
+                .map_or(rest.len(), |(idx, _)| idx);
+            let next_char = rest[end..].chars().next();
+            if !next_char.is_some_and(|c| c.is_ascii_alphabetic()) {
+                return Some((factor, canonical, end));
+            }
+        }
+    }
+    None
+}
+
+fn extract_metrics(text: &str) -> Vec<MetricToken> {
+    let bytes = text.as_bytes();
+    let mut metrics = Vec::new();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if !bytes[i].is_ascii_digit() {
+            i += 1;
+            continue;
+        }
+        let prev = text[..i].chars().next_back();
+        if matches!(prev, Some('v' | 'V' | '第' | '-' | '/' | '.'))
+            || prev.is_some_and(|c| c.is_ascii_alphanumeric())
+        {
+            while i < bytes.len() && (bytes[i].is_ascii_digit() || bytes[i] == b'.') {
+                i += 1;
+            }
+            continue;
+        }
+        let mut end = i;
+        let mut seen_dot = false;
+        while end < bytes.len() {
+            if bytes[end].is_ascii_digit() {
+                end += 1;
+            } else if bytes[end] == b'.'
+                && !seen_dot
+                && end + 1 < bytes.len()
+                && bytes[end + 1].is_ascii_digit()
+            {
+                seen_dot = true;
+                end += 1;
+            } else {
+                break;
+            }
+        }
+        let Ok(num) = text[i..end].parse::<f64>() else {
+            i = end;
+            continue;
+        };
+        let unit_start = if bytes.get(end) == Some(&b' ') {
+            end + 1
+        } else {
+            end
+        };
+        if let Some((factor, canonical, unit_bytes)) = parse_metric_unit(&text[unit_start..]) {
+            metrics.push(MetricToken {
+                value: num * factor,
+                unit: canonical,
+                display: text[i..unit_start + unit_bytes].to_owned(),
+            });
+            i = unit_start + unit_bytes;
+        } else {
+            i = end;
+        }
+    }
+    metrics
+}
+
+fn numeric_metric_conflict(a: &[MetricToken], b: &[MetricToken]) -> Option<(String, String)> {
+    let approx_eq = |x: f64, y: f64| -> bool {
+        let scale = x.abs().max(y.abs()).max(1e-9);
+        (x - y).abs() <= scale * 0.01
+    };
+    for ma in a {
+        let same_unit_b: Vec<&MetricToken> = b.iter().filter(|mb| mb.unit == ma.unit).collect();
+        if same_unit_b.is_empty() {
+            continue;
+        }
+        if !same_unit_b.iter().any(|mb| approx_eq(ma.value, mb.value)) {
+            return Some((ma.display.clone(), same_unit_b[0].display.clone()));
+        }
+    }
+    None
+}
+
 fn common_prefix_chars(a: &str, b: &str) -> usize {
     a.chars()
         .filter(|c| !c.is_whitespace())
@@ -973,6 +1151,7 @@ struct ActiveMemory {
     tokens: HashSet<String>,
     subject_tokens: HashSet<String>,
     numbers: BTreeSet<String>,
+    metrics: Vec<MetricToken>,
     dates: BTreeSet<DateToken>,
     stages: BTreeSet<&'static str>,
     owner: Option<String>,
@@ -1056,6 +1235,7 @@ pub(crate) fn scan(conn: &Connection, scope: Option<&str>) -> Result<Value> {
                 let text = content.to_lowercase();
                 let tokens = canonical_tokens(&content, &alias_map);
                 let numbers = extract_numbers(&content);
+                let metrics = extract_metrics(&content);
                 let dates = extract_dates(&content);
                 let stages = extract_stages(&content);
                 let raw_text_owner = extract_owner_raw(&content);
@@ -1127,6 +1307,7 @@ pub(crate) fn scan(conn: &Connection, scope: Option<&str>) -> Result<Value> {
                     tokens,
                     subject_tokens,
                     numbers,
+                    metrics,
                     dates,
                     stages,
                     owner,
@@ -1138,144 +1319,211 @@ pub(crate) fn scan(conn: &Connection, scope: Option<&str>) -> Result<Value> {
             .collect();
         drop(stmt);
 
-        for i in 0..items.len() {
-            for j in (i + 1)..items.len() {
-                let (a, b) = if items[i].id < items[j].id {
-                    (&items[i], &items[j])
-                } else {
-                    (&items[j], &items[i])
-                };
-                if non_overlapping_validity(&a.facets, &b.facets)
-                    || disjoint_explicit_conditions(&a.facets, &b.facets)
-                {
+        let candidate_pairs: Vec<(usize, usize)> = if items.len() <= 200 {
+            let mut pairs = Vec::with_capacity(items.len() * items.len().saturating_sub(1) / 2);
+            for i in 0..items.len() {
+                for j in (i + 1)..items.len() {
+                    pairs.push((i, j));
+                }
+            }
+            pairs
+        } else {
+            let mut buckets: HashMap<String, Vec<usize>> = HashMap::new();
+            for (idx, item) in items.iter().enumerate() {
+                for tok in &item.tokens {
+                    buckets.entry(format!("t:{tok}")).or_default().push(idx);
+                }
+                if let Some(ent) = &item.entity {
+                    buckets.entry(format!("e:{ent}")).or_default().push(idx);
+                }
+                if let Some(sub) = &item.owner_subject {
+                    buckets.entry(format!("o:{sub}")).or_default().push(idx);
+                }
+                let p4: String = item
+                    .text
+                    .chars()
+                    .filter(|c| !c.is_whitespace())
+                    .take(4)
+                    .collect();
+                if p4.chars().count() >= 4 {
+                    buckets.entry(format!("p:{p4}")).or_default().push(idx);
+                }
+            }
+            let mut seen_pairs: BTreeSet<(usize, usize)> = BTreeSet::new();
+            for indices in buckets.values() {
+                if !(2..=50).contains(&indices.len()) {
                     continue;
                 }
-                let shared_entity =
-                    matches!((&a.entity, &b.entity), (Some(ea), Some(eb)) if ea == eb);
-                let sim = jaccard(&a.tokens, &b.tokens);
-                let subject_sim = jaccard(&a.subject_tokens, &b.subject_tokens);
-                let shared_stage = !a.stages.is_disjoint(&b.stages);
-                let prefix = shared_subject_prefix(&a.text, &b.text);
-                let same_owner_subject =
-                    matches!((&a.owner_subject, &b.owner_subject), (Some(x), Some(y)) if x == y);
-                let implicit = implicit_exclusive(&a.text, &b.text);
-                let contained = {
-                    let pair = if a.tokens.len() < b.tokens.len() && a.tokens.is_subset(&b.tokens) {
-                        Some((&a.tokens, &b.tokens))
-                    } else if b.tokens.len() < a.tokens.len() && b.tokens.is_subset(&a.tokens) {
-                        Some((&b.tokens, &a.tokens))
-                    } else {
-                        None
-                    };
-                    pair.is_some_and(|(small, big)| {
-                        small.len() >= 4
-                            && small.len() * 10 >= big.len() * 7
-                            && a.numbers == b.numbers
-                            && !big
-                                .difference(small)
-                                .any(|t| t.contains(['不', '未', '无', '非', '没']))
-                    })
-                };
-                if sim < 0.30
-                    && !shared_entity
-                    && subject_sim < 0.45
-                    && !(shared_stage && prefix)
-                    && !same_owner_subject
-                    && !(implicit.is_some() && prefix)
-                    && !contained
-                {
-                    continue;
+                for a_i in 0..indices.len() {
+                    for b_i in (a_i + 1)..indices.len() {
+                        let pair = (
+                            indices[a_i].min(indices[b_i]),
+                            indices[a_i].max(indices[b_i]),
+                        );
+                        seen_pairs.insert(pair);
+                        if seen_pairs.len() >= 20_000 {
+                            break;
+                        }
+                    }
+                    if seen_pairs.len() >= 20_000 {
+                        break;
+                    }
                 }
-                let stage_compatible = a.stages.is_empty() || b.stages.is_empty() || shared_stage;
+                if seen_pairs.len() >= 20_000 {
+                    break;
+                }
+            }
+            seen_pairs.into_iter().collect()
+        };
 
-                let finding: Option<(&str, String)> = if (sim >= 0.85 || contained)
-                    && stage_compatible
-                    && dates_match(&a.dates, &b.dates)
-                    && a.numbers == b.numbers
-                    && a.negated == b.negated
-                    && a.owner == b.owner
-                {
-                    Some((
-                        "duplicate_overlap",
-                        "两条活跃记忆表述高度重复，建议保留更完整的一条，将另一条归档为仅存原文。"
-                            .into(),
-                    ))
-                } else if (sim >= 0.35 || shared_entity || (shared_stage && prefix))
-                    && stage_compatible
-                    && !a.dates.is_empty()
-                    && !b.dates.is_empty()
-                    && !a
-                        .dates
-                        .iter()
-                        .any(|da| b.dates.iter().any(|db| da.matches(*db)))
-                {
-                    let da = a
-                        .dates
-                        .iter()
-                        .map(|d| d.format())
-                        .collect::<Vec<_>>()
-                        .join("、");
-                    let db = b
-                        .dates
-                        .iter()
-                        .map(|d| d.format())
-                        .collect::<Vec<_>>()
-                        .join("、");
-                    Some((
-                        "date_conflict",
-                        format!("两条相关活跃记忆记录了不同日期（{da} vs {db}），可能存在排期变更后旧记忆未更新。"),
-                    ))
-                } else if (same_owner_subject
-                    || ((sim >= 0.35 || shared_entity || subject_sim >= 0.50)
-                        && subject_sim >= 0.25))
-                    && matches!((&a.owner, &b.owner), (Some(oa), Some(ob)) if oa != ob)
-                {
-                    let oa = a.owner.as_deref().unwrap_or("");
-                    let ob = b.owner.as_deref().unwrap_or("");
-                    Some((
-                        "owner_conflict",
-                        format!("两条相关活跃记忆记录了不同负责人（{oa} vs {ob}），请核对最新责任归属。"),
-                    ))
-                } else if (sim >= 0.45 || (shared_entity && sim >= 0.30)) && a.negated != b.negated
-                {
-                    Some((
-                        "negation_conflict",
-                        "两条相关活跃记忆存在肯定与取消/否决表述矛盾，请确认当前有效结论。".into(),
-                    ))
-                } else if a.negated == b.negated
-                    && matches!(implicit, Some((_, count)) if count >= 2 || has_change_cue(&a.text) || has_change_cue(&b.text))
-                    && (prefix || sim >= 0.30 || shared_entity)
-                {
-                    let ((x, y), _) = implicit.unwrap();
-                    Some((
-                        "negation_conflict",
-                        format!("两条相关活跃记忆对同一事项记录了互斥做法（{x} vs {y}），可能是方案变更后旧记忆未更新。"),
-                    ))
+        for (i, j) in candidate_pairs {
+            let (a, b) = if items[i].id < items[j].id {
+                (&items[i], &items[j])
+            } else {
+                (&items[j], &items[i])
+            };
+            if non_overlapping_validity(&a.facets, &b.facets)
+                || disjoint_explicit_conditions(&a.facets, &b.facets)
+            {
+                continue;
+            }
+            let shared_entity = matches!((&a.entity, &b.entity), (Some(ea), Some(eb)) if ea == eb);
+            let sim = jaccard(&a.tokens, &b.tokens);
+            let subject_sim = jaccard(&a.subject_tokens, &b.subject_tokens);
+            let shared_stage = !a.stages.is_disjoint(&b.stages);
+            let prefix = shared_subject_prefix(&a.text, &b.text);
+            let same_owner_subject =
+                matches!((&a.owner_subject, &b.owner_subject), (Some(x), Some(y)) if x == y);
+            let implicit = implicit_exclusive(&a.text, &b.text);
+            let has_metrics_pair = !a.metrics.is_empty() && !b.metrics.is_empty();
+            let contained = {
+                let pair = if a.tokens.len() < b.tokens.len() && a.tokens.is_subset(&b.tokens) {
+                    Some((&a.tokens, &b.tokens))
+                } else if b.tokens.len() < a.tokens.len() && b.tokens.is_subset(&a.tokens) {
+                    Some((&b.tokens, &a.tokens))
                 } else {
                     None
                 };
+                pair.is_some_and(|(small, big)| {
+                    small.len() >= 4
+                        && small.len() * 10 >= big.len() * 7
+                        && a.numbers == b.numbers
+                        && !big
+                            .difference(small)
+                            .any(|t| t.contains(['不', '未', '无', '非', '没']))
+                })
+            };
+            if sim < 0.30
+                && !shared_entity
+                && subject_sim < 0.45
+                && !(shared_stage && prefix)
+                && !same_owner_subject
+                && !(implicit.is_some() && prefix)
+                && !(prefix && has_metrics_pair)
+                && !contained
+            {
+                continue;
+            }
+            let stage_compatible = a.stages.is_empty() || b.stages.is_empty() || shared_stage;
+            let num_conflict = numeric_metric_conflict(&a.metrics, &b.metrics);
 
-                if let Some((kind, reason)) = finding {
-                    let inserted = conn.execute(
-                        "INSERT OR IGNORE INTO memory_audits(
-                            id,project_id,memory_a_id,memory_a_revision,memory_b_id,memory_b_revision,
-                            kind,reason,status,created_at,updated_at
-                         ) VALUES(?,?,?,?,?,?,?,?,'open',?,?)",
-                        params![
-                            id(),
-                            project_id,
-                            a.id,
-                            a.revision,
-                            b.id,
-                            b.revision,
-                            kind,
-                            reason,
-                            at,
-                            at,
-                        ],
-                    )?;
-                    new_findings += inserted;
-                }
+            let finding: Option<(&str, String)> = if (sim >= 0.85 || contained)
+                && stage_compatible
+                && dates_match(&a.dates, &b.dates)
+                && a.numbers == b.numbers
+                && a.negated == b.negated
+                && a.owner == b.owner
+            {
+                Some((
+                    "duplicate_overlap",
+                    "两条活跃记忆表述高度重复，建议保留更完整的一条，将另一条归档为仅存原文。"
+                        .into(),
+                ))
+            } else if (sim >= 0.35 || shared_entity || (shared_stage && prefix))
+                && stage_compatible
+                && !a.dates.is_empty()
+                && !b.dates.is_empty()
+                && !a
+                    .dates
+                    .iter()
+                    .any(|da| b.dates.iter().any(|db| da.matches(*db)))
+            {
+                let da = a
+                    .dates
+                    .iter()
+                    .map(|d| d.format())
+                    .collect::<Vec<_>>()
+                    .join("、");
+                let db = b
+                    .dates
+                    .iter()
+                    .map(|d| d.format())
+                    .collect::<Vec<_>>()
+                    .join("、");
+                Some((
+                    "date_conflict",
+                    format!("两条相关活跃记忆记录了不同日期（{da} vs {db}），可能存在排期变更后旧记忆未更新。"),
+                ))
+            } else if (same_owner_subject
+                || ((sim >= 0.35 || shared_entity || subject_sim >= 0.50) && subject_sim >= 0.25))
+                && matches!((&a.owner, &b.owner), (Some(oa), Some(ob)) if oa != ob)
+            {
+                let oa = a.owner.as_deref().unwrap_or("");
+                let ob = b.owner.as_deref().unwrap_or("");
+                Some((
+                    "owner_conflict",
+                    format!(
+                        "两条相关活跃记忆记录了不同负责人（{oa} vs {ob}），请核对最新责任归属。"
+                    ),
+                ))
+            } else if (sim >= 0.45 || (shared_entity && sim >= 0.30)) && a.negated != b.negated {
+                Some((
+                    "negation_conflict",
+                    "两条相关活跃记忆存在肯定与取消/否决表述矛盾，请确认当前有效结论。".into(),
+                ))
+            } else if a.negated == b.negated
+                && matches!(implicit, Some((_, count)) if count >= 2 || has_change_cue(&a.text) || has_change_cue(&b.text))
+                && (prefix || sim >= 0.30 || shared_entity)
+            {
+                let ((x, y), _) = implicit.unwrap();
+                Some((
+                    "negation_conflict",
+                    format!("两条相关活跃记忆对同一事项记录了互斥做法（{x} vs {y}），可能是方案变更后旧记忆未更新。"),
+                ))
+            } else if (sim >= 0.35 || shared_entity || prefix)
+                && stage_compatible
+                && dates_match(&a.dates, &b.dates)
+                && num_conflict.is_some()
+            {
+                let (va, vb) = num_conflict.unwrap();
+                Some((
+                    "numeric_conflict",
+                    format!("两条相关活跃记忆记录了不同数值指标（{va} vs {vb}），请核对最新标准或阈值。"),
+                ))
+            } else {
+                None
+            };
+
+            if let Some((kind, reason)) = finding {
+                let inserted = conn.execute(
+                    "INSERT OR IGNORE INTO memory_audits(
+                        id,project_id,memory_a_id,memory_a_revision,memory_b_id,memory_b_revision,
+                        kind,reason,status,created_at,updated_at
+                     ) VALUES(?,?,?,?,?,?,?,?,'open',?,?)",
+                    params![
+                        id(),
+                        project_id,
+                        a.id,
+                        a.revision,
+                        b.id,
+                        b.revision,
+                        kind,
+                        reason,
+                        at,
+                        at,
+                    ],
+                )?;
+                new_findings += inserted;
             }
         }
     }
@@ -1393,11 +1641,78 @@ fn archive_superseded_memory(
     Ok(())
 }
 
+fn merge_memories_in_tx(
+    tx: &Connection,
+    keep_id: &str,
+    keep_rev: i64,
+    drop_id: &str,
+    drop_rev: i64,
+    merged_content: &str,
+    reason: &str,
+) -> Result<()> {
+    let keep_cur: Option<i64> = tx
+        .query_row(
+            "SELECT revision FROM memories WHERE id=? AND state='active'",
+            [keep_id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    let drop_cur: Option<i64> = tx
+        .query_row(
+            "SELECT revision FROM memories WHERE id=? AND state='active'",
+            [drop_id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    if keep_cur != Some(keep_rev) || drop_cur != Some(drop_rev) {
+        return Err(AppError::new(
+            "REVISION_CONFLICT",
+            "相关记忆已被修订，请重新运行巡检后再处理",
+        ));
+    }
+    let keep_old_rev_id: String = tx.query_row(
+        "SELECT id FROM revisions WHERE memory_id=? AND number=?",
+        params![keep_id, keep_rev],
+        |r| r.get(0),
+    )?;
+    let drop_old_rev_id: String = tx.query_row(
+        "SELECT id FROM revisions WHERE memory_id=? AND number=?",
+        params![drop_id, drop_rev],
+        |r| r.get(0),
+    )?;
+    let next_rev = keep_rev + 1;
+    let new_rev_id = id();
+    let at = now();
+    tx.execute(
+        "UPDATE memories SET content=?, revision=?, updated_at=? WHERE id=?",
+        params![merged_content, next_rev, at, keep_id],
+    )?;
+    tx.execute(
+        "INSERT INTO revisions VALUES(?,?,?,?,?,'user_correction',?)",
+        params![new_rev_id, keep_id, next_rev, merged_content, reason, at],
+    )?;
+    tx.execute(
+        "INSERT OR IGNORE INTO revision_facets SELECT ?, facets FROM revision_facets WHERE revision_id=?",
+        params![new_rev_id, keep_old_rev_id],
+    )?;
+    tx.execute(
+        "INSERT OR IGNORE INTO revision_evidence SELECT ?, segment_id FROM revision_evidence WHERE revision_id IN (?,?)",
+        params![new_rev_id, keep_old_rev_id, drop_old_rev_id],
+    )?;
+    crate::retention::save_revision(
+        tx,
+        &new_rev_id,
+        &json!({"layer": "durable", "reason": reason}),
+    )?;
+    archive_superseded_memory(tx, drop_id, drop_rev, reason)?;
+    Ok(())
+}
+
 pub(crate) fn resolve(conn: &mut Connection, p: &Value) -> Result<Value> {
     let audit_id = required(p, "auditId")?.trim();
     let action = required(p, "action")?.trim();
-    if !matches!(action, "dismiss" | "keep_a" | "keep_b") {
-        return Err(invalid("处理方式仅支持 dismiss / keep_a / keep_b"));
+    if !matches!(action, "dismiss" | "keep_a" | "keep_b" | "merge") {
+        return Err(invalid("处理方式仅支持 dismiss / keep_a / keep_b / merge"));
     }
     let row: Option<(String, i64, String, i64, String)> = conn
         .query_row(
@@ -1413,12 +1728,27 @@ pub(crate) fn resolve(conn: &mut Connection, p: &Value) -> Result<Value> {
     if status != "open" {
         return Err(AppError::new("CONFLICT", "该巡检项已处理，请刷新"));
     }
+    let merged_content = if action == "merge" {
+        let m = required(p, "mergedContent")?.trim();
+        if m.is_empty() {
+            return Err(invalid("合并后的记忆正文不能为空"));
+        }
+        crate::db::validate_content(m)?;
+        Some(m.to_owned())
+    } else {
+        None
+    };
     let reason = p["reason"]
         .as_str()
         .map(str::trim)
         .filter(|s| !s.is_empty())
-        .unwrap_or("库内冲突巡检确认：已由另一条活跃记忆替代，转仅存原文");
+        .unwrap_or(if action == "merge" {
+            "库内冲突巡检合并：整合两条记忆并保留双方原文依据"
+        } else {
+            "库内冲突巡检确认：已由另一条活跃记忆替代，转仅存原文"
+        });
     let tx = conn.transaction()?;
+    let mut merged_memory_id: Option<String> = None;
     let new_status = match action {
         "dismiss" => "dismissed",
         "keep_a" => {
@@ -1429,6 +1759,25 @@ pub(crate) fn resolve(conn: &mut Connection, p: &Value) -> Result<Value> {
             archive_superseded_memory(&tx, &mem_a, rev_a, reason)?;
             "resolved"
         }
+        "merge" => {
+            let keep_b = p["keepTarget"].as_str() == Some("b");
+            let (keep_id, keep_rev, drop_id, drop_rev) = if keep_b {
+                (mem_b.as_str(), rev_b, mem_a.as_str(), rev_a)
+            } else {
+                (mem_a.as_str(), rev_a, mem_b.as_str(), rev_b)
+            };
+            merge_memories_in_tx(
+                &tx,
+                keep_id,
+                keep_rev,
+                drop_id,
+                drop_rev,
+                merged_content.as_deref().unwrap(),
+                reason,
+            )?;
+            merged_memory_id = Some(keep_id.to_owned());
+            "resolved"
+        }
         _ => unreachable!(),
     };
     tx.execute(
@@ -1436,7 +1785,11 @@ pub(crate) fn resolve(conn: &mut Connection, p: &Value) -> Result<Value> {
         params![new_status, now(), audit_id],
     )?;
     tx.commit()?;
-    Ok(json!({"resolved": true, "status": new_status}))
+    let mut out = json!({"resolved": true, "status": new_status});
+    if let Some(mid) = merged_memory_id {
+        out["mergedMemoryId"] = json!(mid);
+    }
+    Ok(out)
 }
 
 pub(crate) fn dispatch(conn: &mut Connection, command: &str, p: &Value) -> Result<Value> {
@@ -1463,7 +1816,7 @@ pub(crate) fn validate_backup(conn: &Connection) -> Result<()> {
     }
     let invalid: i64 = conn.query_row(
         "SELECT count(*) FROM memory_audits a
-         WHERE a.kind NOT IN ('date_conflict','owner_conflict','negation_conflict','duplicate_overlap')
+         WHERE a.kind NOT IN ('date_conflict','owner_conflict','negation_conflict','numeric_conflict','duplicate_overlap')
             OR a.status NOT IN ('open','dismissed','resolved')
             OR a.memory_a_revision < 1 OR a.memory_b_revision < 1
             OR NOT EXISTS(SELECT 1 FROM projects p WHERE p.id=a.project_id)
@@ -1746,5 +2099,147 @@ mod tests {
             "Single sign-on is not enabled."
         )
         .contains(&"duplicate_overlap".to_owned()));
+    }
+
+    #[test]
+    fn audit_detects_unit_aware_numeric_conflict_and_ignores_equivalent_units() {
+        let check_pair = |pid: &str, a: &str, b: &str| -> Vec<String> {
+            let dir = tempfile::tempdir().unwrap();
+            let db = Database::open(dir.path().to_path_buf()).unwrap();
+            db.conn
+                .execute("INSERT INTO projects VALUES(?,?,?,'now')", [pid, pid, ""])
+                .unwrap();
+            insert_active(&db.conn, "m1", pid, a);
+            insert_active(&db.conn, "m2", pid, b);
+            scan(&db.conn, Some(pid)).unwrap();
+            let listed = list(&db.conn, &json!({"projectId": pid})).unwrap();
+            listed["audits"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|item| item["kind"].as_str().unwrap().to_owned())
+                .collect()
+        };
+
+        assert!(check_pair(
+            "p_ms",
+            "支付网关响应时间上限为 200ms。",
+            "支付网关响应时间放宽至 0.5s。"
+        )
+        .contains(&"numeric_conflict".to_owned()));
+        assert!(check_pair(
+            "p_min",
+            "账户锁定时长为 15 分钟。",
+            "账户锁定时长为 30 分钟。"
+        )
+        .contains(&"numeric_conflict".to_owned()));
+        assert!(!check_pair(
+            "p_eq",
+            "支付网关超时阈值为 1000ms。",
+            "支付网关超时阈值为 1s。"
+        )
+        .contains(&"numeric_conflict".to_owned()));
+    }
+
+    #[test]
+    fn audit_merge_preserves_combined_evidence_and_passes_backup_validation() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut db = Database::open(dir.path().to_path_buf()).unwrap();
+        db.conn
+            .execute("INSERT INTO projects VALUES('p1','合并项目','','now')", [])
+            .unwrap();
+        db.conn
+            .execute(
+                "INSERT INTO sources VALUES('s1','p1','压测文档','text','s1.txt',NULL,'now','h1','ready',2,NULL,'originals/s1.txt')",
+                [],
+            )
+            .unwrap();
+        for (mid, sid, ord, content) in [
+            ("ma", "seg_a", 0, "支付网关响应时间上限为 200ms。"),
+            (
+                "mb",
+                "seg_b",
+                1,
+                "支付网关响应时间放宽至 0.5s，限灰度阶段。",
+            ),
+        ] {
+            db.conn
+                .execute(
+                    "INSERT INTO segments VALUES(?,?,?,?,?,?)",
+                    params![sid, "s1", "v1", ord, format!("段{}", ord + 1), content],
+                )
+                .unwrap();
+            insert_active(&db.conn, mid, "p1", content);
+            db.conn
+                .execute(
+                    "INSERT INTO revision_evidence VALUES(?,?)",
+                    params![mid, sid],
+                )
+                .unwrap();
+        }
+
+        scan(&db.conn, Some("p1")).unwrap();
+        let audits = list(&db.conn, &json!({"projectId": "p1"})).unwrap();
+        let audit_id = audits["audits"][0]["id"].as_str().unwrap();
+
+        let res = resolve(
+            &mut db.conn,
+            &json!({
+                "auditId": audit_id,
+                "action": "merge",
+                "mergedContent": "支付网关全量上限为 200ms（灰度期间放宽至 0.5s）。",
+            }),
+        )
+        .unwrap();
+        assert_eq!(res["status"], "resolved");
+        assert_eq!(res["mergedMemoryId"], "ma");
+
+        let (ma_rev, ma_content): (i64, String) = db
+            .conn
+            .query_row(
+                "SELECT revision, content FROM memories WHERE id='ma'",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(ma_rev, 2);
+        assert_eq!(
+            ma_content,
+            "支付网关全量上限为 200ms（灰度期间放宽至 0.5s）。"
+        );
+
+        let ma_rev2: String = db
+            .conn
+            .query_row(
+                "SELECT id FROM revisions WHERE memory_id='ma' AND number=2",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        let ev_count: i64 = db
+            .conn
+            .query_row(
+                "SELECT count(*) FROM revision_evidence WHERE revision_id=?",
+                [&ma_rev2],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(ev_count, 2);
+
+        let mb_rev2: String = db
+            .conn
+            .query_row(
+                "SELECT id FROM revisions WHERE memory_id='mb' AND number=2",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            crate::retention::revision(&db.conn, &mb_rev2).unwrap()["layer"],
+            "archive"
+        );
+
+        validate_backup(&db.conn).unwrap();
+        crate::retention::validate_backup(&db.conn).unwrap();
     }
 }

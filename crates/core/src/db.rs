@@ -7,7 +7,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 
-pub(crate) const SCHEMA_VERSION: i64 = 16;
+pub(crate) const SCHEMA_VERSION: i64 = 17;
 pub(crate) struct ParseTask {
     pub path: PathBuf,
     pub kind: String,
@@ -176,9 +176,15 @@ impl Database {
             | "update_habit_status"
             | "delete_user_habit"
             | "record_copilot_feedback"
-            | "record_habit_outcome" => crate::habits::dispatch(&self.conn, &request.command, &p),
+            | "record_habit_outcome"
+            | "propose_user_habit" => crate::habits::dispatch(&self.conn, &request.command, &p),
             "get_memory_audits" | "run_memory_audit" | "resolve_memory_audit" => {
                 crate::memory_audit::dispatch(&mut self.conn, &request.command, &p)
+            }
+            "get_memory_consolidations"
+            | "run_memory_consolidation"
+            | "resolve_memory_consolidation" => {
+                crate::memory_consolidation::dispatch(&mut self.conn, &request.command, &p)
             }
             "_writing_habits" => {
                 let scope = p["projectId"]
@@ -186,14 +192,45 @@ impl Database {
                     .map(str::trim)
                     .filter(|s| !s.is_empty() && *s != "all");
                 let ctx = p["context"].as_str().unwrap_or("");
-                let items =
-                    crate::habits::select_for_context(&self.conn, scope, &["writing"], ctx, 6)?;
+                let audience = p["audience"].as_str();
+                let report_kind = p["reportKind"].as_str();
+                let items = crate::habits::select_for_context_filtered(
+                    &self.conn,
+                    scope,
+                    &["writing"],
+                    ctx,
+                    audience,
+                    report_kind,
+                    6,
+                )?;
                 Ok(json!({"habits": items}))
+            }
+            "_claim_open_habit_samples" => {
+                let batch = crate::habits::claim_open_habit_samples(&self.conn)?;
+                if let Some(b) = batch {
+                    Ok(json!({"batch": b, "guard": self.maintenance_guard()?}))
+                } else {
+                    Ok(Value::Null)
+                }
+            }
+            "_apply_open_habit_induction" => {
+                let created = crate::habits::apply_open_habit_induction(
+                    &self.conn,
+                    &p["batch"],
+                    p.get("induced").filter(|v| !v.is_null()),
+                )?;
+                Ok(json!({"created": created}))
             }
             "_sleep_time_maintenance" => {
                 let proposals = crate::habits::synthesize_proposals(&self.conn)?;
                 let audit = crate::memory_audit::scan(&self.conn, None)?;
-                Ok(json!({"habitProposalsCreated": proposals, "audit": audit}))
+                let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+                let consolidation = crate::memory_consolidation::scan(&self.conn, None, &today)?;
+                Ok(json!({
+                    "habitProposalsCreated": proposals,
+                    "audit": audit,
+                    "consolidation": consolidation,
+                }))
             }
             "get_governance_workspace"
             | "get_governance_item"
@@ -400,9 +437,10 @@ impl Database {
     fn semantic_active_memories(&self, p: &Value) -> Result<Value> {
         let scope = crate::semantic::project_scope(p);
         let mut stmt = self.conn.prepare(
-            "SELECT m.id,r.id,m.project_id,m.content
+            "SELECT m.id,r.id,m.project_id,m.content,m.kind,m.source_title,coalesce(f.facets,'{}')
              FROM memories m
              JOIN revisions r ON r.memory_id=m.id AND r.number=m.revision AND r.content=m.content
+             LEFT JOIN revision_facets f ON f.revision_id=r.id
              WHERE (?1 IS NULL OR m.project_id=?1)
                AND m.state='active'
                AND NOT EXISTS(SELECT 1 FROM workspace_lifecycle l WHERE l.kind='project' AND l.entity_id=m.project_id AND l.archived=1)
@@ -411,11 +449,22 @@ impl Database {
         )?;
         let rows = stmt
             .query_map([scope], |row| {
+                let memory_id: String = row.get(0)?;
+                let revision_id: String = row.get(1)?;
+                let project_id: String = row.get(2)?;
+                let content: String = row.get(3)?;
+                let kind: String = row.get(4)?;
+                let source_title: String = row.get(5)?;
+                let facets_raw: String = row.get(6)?;
+                let facets: Value = serde_json::from_str(&facets_raw).unwrap_or(Value::Null);
+                let embed_text =
+                    crate::semantic::contextual_text(&source_title, &kind, &facets, &content);
                 Ok(json!({
-                    "memoryId": row.get::<_, String>(0)?,
-                    "revisionId": row.get::<_, String>(1)?,
-                    "projectId": row.get::<_, String>(2)?,
-                    "content": row.get::<_, String>(3)?,
+                    "memoryId": memory_id,
+                    "revisionId": revision_id,
+                    "projectId": project_id,
+                    "content": content,
+                    "embedText": embed_text,
                 }))
             })?
             .collect::<std::result::Result<Vec<_>, _>>()?;
@@ -1201,10 +1250,32 @@ impl Database {
                 })
             })?
             .collect::<std::result::Result<Vec<_>, _>>()?;
-        let context: String = self.conn.query_row("SELECT json_object('name',p.name,'description',substr(p.description,1,2000),'goal',substr(coalesce(f.goal,''),1,2000),'status',coalesce(f.status,'active'),'targetDate',f.target_date) FROM sources s JOIN projects p ON p.id=s.project_id LEFT JOIN project_profiles f ON f.project_id=p.id WHERE s.id=?", [&source], |r|r.get(0))?;
+        let (project_id, source_title, context_raw): (String, String, String) = self.conn.query_row(
+            "SELECT s.project_id, s.title, json_object('name',p.name,'description',substr(p.description,1,2000),'goal',substr(coalesce(f.goal,''),1,2000),'status',coalesce(f.status,'active'),'targetDate',f.target_date) FROM sources s JOIN projects p ON p.id=s.project_id LEFT JOIN project_profiles f ON f.project_id=p.id WHERE s.id=?",
+            [&source],
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+        )?;
+        let mut context_value: Value = serde_json::from_str(&context_raw)
+            .map_err(|_| AppError::new("DATABASE", "项目提取背景损坏"))?;
+        let prefs = crate::habits::extraction_preferences(&self.conn, &project_id)?;
+        if !prefs.is_empty() {
+            context_value["userExtractionPreferences"] = json!({
+                "role": "用户已确认的提取偏好，仅用于判断是否提取及保留层次（durable/working/archive），不是事实依据，不能据此补写候选",
+                "items": prefs,
+            });
+        }
+        let aliases = crate::aliases::load_groups(&self.conn, Some(&project_id))?;
+        if let Some(brief) = crate::document_brief::build(&source_title, &segments, &aliases) {
+            context_value["documentBrief"] = brief;
+            if context_value.to_string().len() > 30000 {
+                if let Some(obj) = context_value.as_object_mut() {
+                    obj.remove("documentBrief");
+                }
+            }
+        }
         self.conn.execute(
             "INSERT OR IGNORE INTO extraction_project_context VALUES(?,?)",
-            params![job, context],
+            params![job, context_value.to_string()],
         )?;
         let raw: String = self.conn.query_row(
             "SELECT context FROM extraction_project_context WHERE job_id=?",
@@ -1606,6 +1677,11 @@ pub(crate) fn migrate(conn: &Connection) -> Result<()> {
             crate::habits::migrate(conn)?;
             crate::memory_audit::migrate(conn)?;
             conn.execute_batch("PRAGMA user_version=16;")?;
+        }
+        if version < 17 {
+            crate::memory_audit::migrate_v17(conn)?;
+            crate::memory_consolidation::migrate(conn)?;
+            conn.execute_batch("PRAGMA user_version=17;")?;
         }
         Ok(())
     })();

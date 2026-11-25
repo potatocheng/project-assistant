@@ -58,6 +58,37 @@ impl Worker {
                     // and active-memory contradiction audit without consuming LLM daily budget.
                     if (idle || force) && last_sleep_gen != activity {
                         let _ = call("_sleep_time_maintenance", json!({}));
+                        if crate::semantic::load_settings(&root).is_ok_and(|s| s.enabled) {
+                            if let Ok(rows) = call("_semantic_active_memories", json!({})) {
+                                let list = rows["memories"].as_array().cloned().unwrap_or_default();
+                                let inputs = crate::semantic::ActiveMemoryInput::from_values(&list);
+                                let _ = crate::semantic::idle_sync(&root, &inputs, 128);
+                            }
+                        }
+                        if (status["settings"]["enabled"] == true || force)
+                            && status["callsToday"].as_i64().unwrap_or(0)
+                                < status["settings"]["dailyCalls"].as_i64().unwrap_or(100)
+                        {
+                            if let Ok(claimed) = call("_claim_open_habit_samples", json!({})) {
+                                if !claimed.is_null() {
+                                    let guard = claimed["guard"].clone();
+                                    let batch = claimed["batch"].clone();
+                                    let can_run = !state.stopped.load(Ordering::SeqCst)
+                                        && state.generation.load(Ordering::SeqCst) == activity
+                                        && call("_memory_reserve", guard).is_ok_and(|v| v == true);
+                                    if can_run {
+                                        if let Ok(ind) = settings::load(&root).and_then(|cfg| {
+                                            crate::habits::induce_open_writing_habit(&cfg, &batch)
+                                        }) {
+                                            let _ = call(
+                                                "_apply_open_habit_induction",
+                                                json!({"batch": batch, "induced": ind}),
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         last_sleep_gen = activity;
                     }
                     if (!force && (status["settings"]["enabled"] != true || !idle))
@@ -144,8 +175,11 @@ impl Worker {
                             memory::Output::Extract(job, epoch, task.generation, result)
                         }
                         memory::Task::Compare { snapshot, .. } => {
-                            let result = if let Ok(Some(local)) = memory::compare_locally(&snapshot)
-                            {
+                            let result = if snapshot["batch"] == true {
+                                memory::run_batch_compare(&snapshot, &reserve, &|| {
+                                    settings::load(&root)
+                                })
+                            } else if let Ok(Some(local)) = memory::compare_locally(&snapshot) {
                                 Ok(local)
                             } else if reserve() {
                                 settings::load(&root)

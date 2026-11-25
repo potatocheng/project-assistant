@@ -16,6 +16,7 @@ mod coordination;
 mod daily_use;
 mod db;
 mod delivery;
+mod document_brief;
 mod docx_export;
 mod evidence_pack;
 mod extraction_context;
@@ -27,6 +28,7 @@ mod maintenance;
 mod management;
 mod memory;
 mod memory_audit;
+mod memory_consolidation;
 #[cfg(test)]
 mod memory_evaluation;
 mod memory_facts;
@@ -660,6 +662,7 @@ impl Engine {
                 | "get_semantic_search_status"
                 | "get_habits_center"
                 | "get_memory_audits"
+                | "get_memory_consolidations"
         ) {
             self.inner.maintenance.touch();
         }
@@ -711,6 +714,8 @@ impl Engine {
                     command: "_writing_habits".into(),
                     payload: json!({
                         "projectId": request.payload.get("projectId").cloned().unwrap_or(Value::Null),
+                        "audience": request.payload["style"].as_str().unwrap_or(""),
+                        "reportKind": request.payload["reportType"].as_str().unwrap_or(""),
                         "context": format!(
                             "{} {} {}",
                             request.payload["reportType"].as_str().unwrap_or(""),
@@ -1082,9 +1087,13 @@ pub fn is_public_command(command: &str) -> bool {
             | "delete_user_habit"
             | "record_copilot_feedback"
             | "record_habit_outcome"
+            | "propose_user_habit"
             | "get_memory_audits"
             | "run_memory_audit"
             | "resolve_memory_audit"
+            | "get_memory_consolidations"
+            | "run_memory_consolidation"
+            | "resolve_memory_consolidation"
             | "get_semantic_search_status"
             | "save_semantic_search_settings"
             | "test_embedding_connection"

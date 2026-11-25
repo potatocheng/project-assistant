@@ -493,11 +493,35 @@ fn save_report(conn: &Connection, p: &Value) -> Result<Value> {
         params![base + 1, now(), key],
     )?;
     insert_report_version(conn, key, base + 1, &content, &old["basis"], true)?;
-    let _ = crate::habits::observe_report_edit(
+    let polish_meta = p.get("polishMeta");
+    let audience = polish_meta
+        .and_then(|m| m["audience"].as_str())
+        .map(str::trim)
+        .filter(|s| !s.is_empty());
+    let polished_base = polish_meta.and_then(|m| m["polishedContent"].as_str());
+    if let (Some(polished), Some(ids)) = (
+        polished_base,
+        polish_meta.and_then(|m| m["appliedHabitIds"].as_array()),
+    ) {
+        let applied: Vec<String> = ids
+            .iter()
+            .filter_map(|v| v.as_str().map(str::to_owned))
+            .collect();
+        let _ = crate::habits::evaluate_polish_feedback(
+            conn,
+            old["projectId"].as_str(),
+            audience,
+            polished,
+            &content,
+            &applied,
+        );
+    }
+    let _ = crate::habits::observe_report_edit_with_audience(
         conn,
         old["projectId"].as_str(),
         "周报",
-        old["content"].as_str().unwrap_or(""),
+        audience,
+        polished_base.unwrap_or_else(|| old["content"].as_str().unwrap_or("")),
         &content,
     );
     report(conn, key, None)

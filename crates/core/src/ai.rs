@@ -1681,23 +1681,44 @@ pub(crate) fn complete_agent_turn(
     }))
 }
 
-fn polish_habit_block(habits: &[Value]) -> (String, bool) {
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+struct PolishHabitFlags {
+    omit_percentages: bool,
+    soften_risk_wording: bool,
+    risks_first: bool,
+}
+
+fn polish_habit_block(habits: &[Value]) -> (String, PolishHabitFlags) {
     let mut lines = Vec::new();
     let mut seen = std::collections::HashSet::new();
-    let mut omit_percentages = false;
+    let mut flags = PolishHabitFlags::default();
     for habit in habits.iter().take(8) {
-        let rule_key = habit["ruleKey"].as_str().unwrap_or("");
+        let rule_key = habit["patternKey"]
+            .as_str()
+            .or_else(|| habit["ruleKey"].as_str())
+            .unwrap_or("");
+        let base_key = if rule_key.starts_with("writing:") {
+            let mut parts = rule_key.splitn(3, ':');
+            match (parts.next(), parts.next()) {
+                (Some(a), Some(b)) => format!("{a}:{b}"),
+                _ => rule_key.to_owned(),
+            }
+        } else {
+            rule_key.to_owned()
+        };
         let inst = habit["instruction"].as_str().map(str::trim).unwrap_or("");
-        let line = match rule_key {
+        let line = match base_key.as_str() {
             "writing:drop_percentages" => {
-                omit_percentages = true;
+                flags.omit_percentages = true;
                 "- 【必须执行】禁止保留任何百分比数字（%），请改为定性进度表述（如「推进中」「接近完成」「待启动」）。".to_owned()
             }
             "writing:risks_first" => {
+                flags.risks_first = true;
                 "- 【必须执行】将「阻塞 / 风险 / 需协调事项」放在报告最前或最醒目位置，再写常规进展。".to_owned()
             }
             "writing:soften_risk_wording" => {
-                "- 【必须执行】用客观、缓和、建设性措辞表述风险与阻塞（如「需关注」「协调推进中」「存在待确认事项」），避免「失控」「崩溃」「严重延误」「重大事故」「直接挂了」「扯皮」等尖锐或情绪化字眼。".to_owned()
+                flags.soften_risk_wording = true;
+                "- 【必须执行】通篇（含所有小节标题与正文）避免使用「风险」「阻塞」「失控」「崩溃」「严重延误」「重大事故」「直接挂了」「扯皮」等尖锐或告警式字眼，统一改用「需协调」「待确认事项」「需关注」「协调推进中」等客观、缓和、建设性表述（例如将「当前阻塞与协同配合」改为「待确认与需协调事项」）。".to_owned()
             }
             "writing:bullet_style" => {
                 "- 【必须执行】正文全部使用简短要点列表（`-`），避免大段连续段落叙述。".to_owned()
@@ -1728,7 +1749,12 @@ fn polish_habit_block(habits: &[Value]) -> (String, bool) {
                     continue;
                 }
                 if inst.contains("百分比") || inst.to_lowercase().contains("omit percent") {
-                    omit_percentages = true;
+                    flags.omit_percentages = true;
+                }
+                if inst.contains("风险")
+                    && (inst.contains("需协调") || inst.contains("待确认"))
+                {
+                    flags.soften_risk_wording = true;
                 }
                 format!("- 【必须执行】{inst}")
             }
@@ -1738,15 +1764,57 @@ fn polish_habit_block(habits: &[Value]) -> (String, bool) {
         }
     }
     if lines.is_empty() {
-        (String::new(), omit_percentages)
+        (String::new(), flags)
     } else {
         (
             format!(
                 "\n\n已确认的个人写作习惯（最高优先级，若与上方目标风格通用示例冲突，以本节习惯为准）：\n{}",
                 lines.join("\n")
             ),
-            omit_percentages,
+            flags,
         )
+    }
+}
+
+fn polish_audience_guide(style: &str, flags: &PolishHabitFlags) -> Result<String> {
+    match style {
+        "executive" => {
+            let risk_heading = if flags.soften_risk_wording {
+                "需关注与待拍板事项"
+            } else {
+                "需关注风险与待拍板"
+            };
+            Ok(format!(
+                "面向【管理层 / 老板】的摘要版：\n\
+                1. 结论先行：首段用 2~3 句话概括整体交付状态、核心成果与是否偏离目标。\n\
+                2. 重点协调前置：单独列「{risk_heading}」，写清影响与需要的支持。\n\
+                3. 关键进展与下步节点：提炼重要里程碑和关键成果，删去琐碎过程细节，使用清晰 Markdown 标题与列表。"
+            ))
+        }
+        "team" => {
+            let blocker_section = if flags.soften_risk_wording {
+                "待确认与需协调事项（标注责任人/时间）"
+            } else {
+                "当前阻塞与协同配合（标注责任人/时间）"
+            };
+            let structure = if flags.risks_first {
+                format!("分「{blocker_section}」「本期完成」「推进中与重点事项」「后续计划」")
+            } else {
+                format!("分「本期完成」「推进中与重点事项」「{blocker_section}」「后续计划」")
+            };
+            Ok(format!(
+                "面向【项目群 / 执行团队】的对齐版：\n\
+                1. 结构清晰：{structure}。\n\
+                2. 语言直接明确，适合直接发群内对齐进度与催办。"
+            ))
+        }
+        "client" => Ok(
+            "面向【客户 / 外部合作方】的专业汇报版：\n\
+            1. 措辞专业、克制、积极且客观。\n\
+            2. 分「阶段交付成果」「里程碑与进度说明」「需贵方确认 / 配合事项」「下一阶段工作安排」，避免暴露内部混乱或情绪化表达。"
+                .to_owned(),
+        ),
+        _ => Err(AppError::new("VALIDATION", "不支持的汇报风格")),
     }
 }
 
@@ -1772,19 +1840,8 @@ pub(crate) fn polish_report(
     if !matches!(report_type, "daily" | "weekly") {
         return Err(AppError::new("VALIDATION", "仅支持日报或周报润色"));
     }
-    let audience_guide = match style {
-        "executive" => "面向【管理层 / 老板】的摘要版：\n\
-            1. 结论先行：首段用 2~3 句话概括整体交付状态、核心成果与是否偏离目标。\n\
-            2. 风险与拍板事项前置：单独列「需关注风险与待拍板」，写清影响与需要的支持。\n\
-            3. 关键进展与下步节点：提炼重要里程碑和关键成果，删去琐碎过程细节，使用清晰 Markdown 标题与列表。",
-        "team" => "面向【项目群 / 执行团队】的对齐版：\n\
-            1. 结构清晰：分「本期完成」「推进中与重点事项」「当前阻塞与协同配合（标注责任人/时间）」「后续计划」。\n\
-            2. 语言直接明确，适合直接发群内对齐进度与催办。",
-        "client" => "面向【客户 / 外部合作方】的专业汇报版：\n\
-            1. 措辞专业、克制、积极且客观。\n\
-            2. 分「阶段交付成果」「里程碑与进度说明」「需贵方确认 / 配合事项」「下一阶段工作安排」，避免暴露内部混乱或情绪化表达。",
-        _ => return Err(AppError::new("VALIDATION", "不支持的汇报风格")),
-    };
+    let (habit_block, habit_flags) = polish_habit_block(writing_habits);
+    let audience_guide = polish_audience_guide(style, &habit_flags)?;
     let kind_label = if report_type == "weekly" {
         "项目周报"
     } else {
@@ -1820,8 +1877,7 @@ pub(crate) fn polish_report(
             pref_lines.join("\n")
         )
     };
-    let (habit_block, omit_percentages) = polish_habit_block(writing_habits);
-    let numeric_red_line = if omit_percentages {
+    let numeric_red_line = if habit_flags.omit_percentages {
         "2. 保持非百分比类的数量、日期与责任人准确；按个人写作习惯省略具体百分比，改用定性表述时不得虚构原稿未提及的事项或结论。"
     } else {
         "2. 保持数值、日期与责任人准确；原稿中未说明的信息不要臆测补全。"
@@ -1932,12 +1988,17 @@ pub(crate) fn polish_report(
         return Err(AppError::new("MODEL_RESPONSE", "模型未生成有效的报告正文"));
     }
     let fact_warnings = detect_polished_fact_drift(trimmed, date_label, &polished);
+    let applied_ids: Vec<&str> = writing_habits
+        .iter()
+        .filter_map(|h| h["id"].as_str())
+        .collect();
     Ok(json!({
         "content": polished,
         "style": style,
         "model": config.model,
         "usage": usage,
-        "factWarnings": fact_warnings
+        "factWarnings": fact_warnings,
+        "appliedHabitIds": applied_ids
     }))
 }
 
@@ -3752,22 +3813,83 @@ mod tests {
 
     #[test]
     fn polish_habit_block_elevates_confirmed_writing_habits_and_adjusts_percentage_red_line() {
-        let (empty_block, empty_omit) = super::polish_habit_block(&[]);
+        let (empty_block, empty_flags) = super::polish_habit_block(&[]);
         assert!(empty_block.is_empty());
-        assert!(!empty_omit);
+        assert!(!empty_flags.omit_percentages);
+        assert!(!empty_flags.soften_risk_wording);
+        assert!(!empty_flags.risks_first);
 
         let habits = vec![
-            json!({"ruleKey": "writing:drop_percentages", "instruction": "不写具体百分比"}),
-            json!({"ruleKey": "writing:soften_risk_wording", "instruction": "风险措辞更委婉"}),
-            json!({"ruleKey": "writing:no_greeting_closing", "instruction": "去掉问候语和结语"}),
+            json!({"patternKey": "writing:drop_percentages", "instruction": "不写具体百分比"}),
+            json!({"patternKey": "writing:soften_risk_wording", "instruction": "风险措辞更委婉"}),
+            json!({"patternKey": "writing:no_greeting_closing", "instruction": "去掉问候语和结语"}),
             json!({"ruleKey": "writing:owner_tag", "instruction": "事项末尾标注责任人"}),
         ];
-        let (block, omit) = super::polish_habit_block(&habits);
-        assert!(omit);
+        let (block, flags) = super::polish_habit_block(&habits);
+        assert!(flags.omit_percentages);
+        assert!(flags.soften_risk_wording);
+        assert!(!flags.risks_first);
         assert!(block.contains("最高优先级"));
         assert!(block.contains("禁止保留任何百分比数字（%）"));
-        assert!(block.contains("避免「失控」「崩溃」「严重延误」「重大事故」「直接挂了」「扯皮」"));
+        assert!(
+            block.contains("避免「失控」")
+                || block.contains("「失控」「崩溃」「严重延误」「重大事故」「直接挂了」「扯皮」")
+        );
+        assert!(block.contains("待确认与需协调事项"));
         assert!(block.contains("严禁任何开场白、问候语"));
         assert!(block.contains("（@责任人）"));
+    }
+
+    #[test]
+    fn polish_habit_block_reads_pattern_key_from_saved_habits() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = crate::db::Database::open(dir.path().to_path_buf()).unwrap();
+        crate::habits::dispatch(
+            &db.conn,
+            "save_user_habit",
+            &json!({
+                "patternKey": "writing:drop_percentages",
+                "category": "writing",
+                "title": "省略百分比",
+                "instruction": "不写具体百分比"
+            }),
+        )
+        .unwrap();
+        let selected =
+            crate::habits::select_for_context(&db.conn, None, &["writing"], "", 6).unwrap();
+        let (block, flags) = super::polish_habit_block(&selected);
+        assert!(flags.omit_percentages);
+        assert!(block.contains("禁止保留任何百分比数字（%）"));
+    }
+
+    #[test]
+    fn polish_audience_guide_adapts_headings_and_order_to_writing_habits() {
+        let default_team =
+            super::polish_audience_guide("team", &super::PolishHabitFlags::default()).unwrap();
+        assert!(default_team.contains("当前阻塞与协同配合"));
+
+        let softened_team = super::polish_audience_guide(
+            "team",
+            &super::PolishHabitFlags {
+                soften_risk_wording: true,
+                risks_first: true,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert!(!softened_team.contains("阻塞"));
+        assert!(!softened_team.contains("风险"));
+        assert!(softened_team.contains("分「待确认与需协调事项（标注责任人/时间）」「本期完成」"));
+
+        let softened_exec = super::polish_audience_guide(
+            "executive",
+            &super::PolishHabitFlags {
+                soften_risk_wording: true,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert!(!softened_exec.contains("风险"));
+        assert!(softened_exec.contains("需关注与待拍板事项"));
     }
 }

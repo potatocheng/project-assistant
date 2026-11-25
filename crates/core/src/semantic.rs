@@ -760,6 +760,18 @@ fn closest_preferences(vectors: &[Vec<f32>]) -> Vec<usize> {
     similarities.into_iter().take(4).map(|(id, _)| id).collect()
 }
 
+static HABIT_VECTORS: OnceLock<Mutex<HashMap<String, Vec<f32>>>> = OnceLock::new();
+
+fn habit_cache_key(config: &EmbeddingSettings, text: &str) -> String {
+    format!(
+        "{}|{}|{}|{}",
+        config.provider,
+        config.base_url.trim_end_matches('/'),
+        config.model.trim(),
+        hash(text.as_bytes())
+    )
+}
+
 pub(crate) fn rank_copilot_habits(root: &Path, payload: &Value) -> Result<Value> {
     let mut config = load_settings(root)?;
     let question = payload["question"].as_str().unwrap_or("").trim();
@@ -770,7 +782,7 @@ pub(crate) fn rank_copilot_habits(root: &Path, payload: &Value) -> Result<Value>
         .as_array()
         .filter(|items| !items.is_empty() && items.len() <= 32)
         .ok_or_else(|| AppError::new("VALIDATION", "习惯匹配的候选数量无效"))?;
-    let mut texts = vec![question.chars().take(MAX_EMBED_CHARS).collect()];
+    let mut candidate_texts = Vec::with_capacity(candidates.len());
     let mut chars = 0;
     for item in candidates {
         let text = item
@@ -780,11 +792,98 @@ pub(crate) fn rank_copilot_habits(root: &Path, payload: &Value) -> Result<Value>
         if chars > 7000 {
             return Err(AppError::new("VALIDATION", "习惯匹配的候选文本过长"));
         }
-        texts.push(text.to_owned());
+        candidate_texts.push(text.to_owned());
     }
     config.timeout_seconds = config.timeout_seconds.min(15);
     let key = inherited_ai_key(root, &config);
-    let vectors = embed_texts(&config, key.as_deref(), &texts)?;
+
+    let keys: Vec<String> = candidate_texts
+        .iter()
+        .map(|text| habit_cache_key(&config, text))
+        .collect();
+    let cache = HABIT_VECTORS.get_or_init(|| Mutex::new(HashMap::new()));
+    let mut cached_hits: Vec<Option<Vec<f32>>> = vec![None; candidate_texts.len()];
+    {
+        if let Ok(guard) = cache.lock() {
+            for (idx, cache_key) in keys.iter().enumerate() {
+                if let Some(vec) = guard.get(cache_key) {
+                    cached_hits[idx] = Some(vec.clone());
+                }
+            }
+        }
+    }
+
+    let mut to_embed: Vec<String> = vec![question.chars().take(MAX_EMBED_CHARS).collect()];
+    let mut miss_positions: Vec<usize> = Vec::new();
+    let mut miss_key_to_embed_idx: HashMap<String, usize> = HashMap::new();
+    for (idx, hit) in cached_hits.iter().enumerate() {
+        if hit.is_none() {
+            miss_positions.push(idx);
+            if !miss_key_to_embed_idx.contains_key(&keys[idx]) {
+                let embed_idx = to_embed.len();
+                miss_key_to_embed_idx.insert(keys[idx].clone(), embed_idx);
+                to_embed.push(candidate_texts[idx].clone());
+            }
+        }
+    }
+
+    let embedded = embed_texts(&config, key.as_deref(), &to_embed)?;
+    let Some(query_vec) = embedded.first().cloned() else {
+        return Ok(json!({"indices": []}));
+    };
+    let dim = query_vec.len();
+
+    let mut newly_embedded: Vec<(String, Vec<f32>)> = Vec::new();
+    for idx in miss_positions {
+        let embed_idx = miss_key_to_embed_idx[&keys[idx]];
+        let vec = embedded[embed_idx].clone();
+        newly_embedded.push((keys[idx].clone(), vec.clone()));
+        cached_hits[idx] = Some(vec);
+    }
+
+    // Re-embed any cached entry whose dimension does not match the current query vector.
+    let mut mismatched_positions: Vec<usize> = Vec::new();
+    let mut mismatched_texts: Vec<String> = Vec::new();
+    let mut mismatched_key_to_idx: HashMap<String, usize> = HashMap::new();
+    let mut stale_keys: Vec<String> = Vec::new();
+    for (idx, vec_opt) in cached_hits.iter().enumerate() {
+        if let Some(vec) = vec_opt {
+            if vec.len() != dim {
+                stale_keys.push(keys[idx].clone());
+                mismatched_positions.push(idx);
+                if !mismatched_key_to_idx.contains_key(&keys[idx]) {
+                    mismatched_key_to_idx.insert(keys[idx].clone(), mismatched_texts.len());
+                    mismatched_texts.push(candidate_texts[idx].clone());
+                }
+            }
+        }
+    }
+    if !mismatched_texts.is_empty() {
+        let retried = embed_texts(&config, key.as_deref(), &mismatched_texts)?;
+        for idx in mismatched_positions {
+            let vec = retried[mismatched_key_to_idx[&keys[idx]]].clone();
+            newly_embedded.push((keys[idx].clone(), vec.clone()));
+            cached_hits[idx] = Some(vec);
+        }
+    }
+
+    if !newly_embedded.is_empty() || !stale_keys.is_empty() {
+        if let Ok(mut guard) = cache.lock() {
+            for stale_key in stale_keys {
+                guard.remove(&stale_key);
+            }
+            if guard.len() > 1024 {
+                guard.clear();
+            }
+            for (cache_key, vec) in newly_embedded {
+                guard.insert(cache_key, vec);
+            }
+        }
+    }
+
+    let mut vectors = Vec::with_capacity(1 + cached_hits.len());
+    vectors.push(query_vec);
+    vectors.extend(cached_hits.into_iter().flatten());
     Ok(json!({"indices": closest_preferences(&vectors)}))
 }
 
@@ -812,7 +911,93 @@ pub(crate) struct ActiveMemoryInput {
     pub memory_id: String,
     pub revision_id: String,
     pub project_id: String,
+    #[allow(dead_code)]
     pub content: String,
+    pub embed_text: String,
+}
+
+fn clip_chars(text: &str, max_chars: usize) -> String {
+    if text.chars().count() <= max_chars {
+        text.to_owned()
+    } else {
+        text.chars().take(max_chars).collect()
+    }
+}
+
+fn has_cjk(text: &str) -> bool {
+    text.chars()
+        .any(|c| matches!(c, '\u{3400}'..='\u{4dbf}' | '\u{4e00}'..='\u{9fff}' | '\u{f900}'..='\u{faff}'))
+}
+
+pub(crate) fn contextual_text(
+    source_title: &str,
+    kind: &str,
+    facets: &Value,
+    content: &str,
+) -> String {
+    let cjk = has_cjk(content) || has_cjk(source_title);
+    let mut parts = Vec::new();
+    let kind = kind.trim();
+    if !kind.is_empty() && !kind.eq_ignore_ascii_case("fact") {
+        if cjk {
+            let label = match kind.to_lowercase().as_str() {
+                "decision" => "决策",
+                "risk" => "风险",
+                "blocker" => "阻塞",
+                "preference" => "偏好",
+                "task" => "任务",
+                "milestone" => "里程碑",
+                "summary" | "snapshot" => "阶段摘要",
+                _ => kind,
+            };
+            parts.push(format!("类型：{label}"));
+        } else {
+            parts.push(format!("Type: {kind}"));
+        }
+    }
+    let title = source_title.trim();
+    if !title.is_empty() && !content.to_lowercase().contains(&title.to_lowercase()) {
+        if cjk {
+            parts.push(format!("来源：{}", clip_chars(title, 80)));
+        } else {
+            parts.push(format!("Source: {}", clip_chars(title, 80)));
+        }
+    }
+    if let Some(obj) = facets.as_object() {
+        let mut keys: Vec<&String> = obj.keys().collect();
+        keys.sort();
+        let mut facet_parts = Vec::new();
+        let (kv_sep, arr_sep, join_sep) = if cjk {
+            ("：", "、", "；")
+        } else {
+            (": ", ", ", "; ")
+        };
+        for key in keys {
+            match obj.get(key) {
+                Some(Value::String(s)) if !s.trim().is_empty() => {
+                    facet_parts.push(format!("{key}{kv_sep}{}", s.trim()));
+                }
+                Some(Value::Array(arr)) => {
+                    let items: Vec<&str> = arr
+                        .iter()
+                        .filter_map(|v| v.as_str().map(str::trim).filter(|s| !s.is_empty()))
+                        .collect();
+                    if !items.is_empty() {
+                        facet_parts.push(format!("{key}{kv_sep}{}", items.join(arr_sep)));
+                    }
+                }
+                _ => {}
+            }
+        }
+        if !facet_parts.is_empty() {
+            parts.push(clip_chars(&facet_parts.join(join_sep), 200));
+        }
+    }
+    if parts.is_empty() {
+        content.to_owned()
+    } else {
+        format!("[{}]\n{}", parts.join(" | "), content)
+    }
 }
 
 pub(crate) fn project_scope(payload: &Value) -> Option<&str> {
@@ -826,21 +1011,29 @@ impl ActiveMemoryInput {
     pub(crate) fn from_values(rows: &[Value]) -> Vec<Self> {
         rows.iter()
             .filter_map(|row| {
+                let content = row["content"].as_str()?.to_owned();
+                let embed_text = row["embedText"]
+                    .as_str()
+                    .filter(|s| !s.trim().is_empty())
+                    .map(str::to_owned)
+                    .unwrap_or_else(|| content.clone());
                 Some(Self {
                     memory_id: row["memoryId"].as_str()?.to_owned(),
                     revision_id: row["revisionId"].as_str()?.to_owned(),
                     project_id: row["projectId"].as_str()?.to_owned(),
-                    content: row["content"].as_str()?.to_owned(),
+                    content,
+                    embed_text,
                 })
             })
             .collect()
     }
 }
 
-pub(crate) fn rebuild_index(
+fn sync_index(
     root: &Path,
     scope: Option<&str>,
     memories: &[ActiveMemoryInput],
+    max_embed: Option<usize>,
 ) -> Result<Value> {
     let config = load_settings(root)?;
     let inherited = inherited_ai_key(root, &config);
@@ -890,7 +1083,7 @@ pub(crate) fn rebuild_index(
 
     let mut pending = Vec::new();
     for m in memories {
-        let content_hash = hash(m.content.as_bytes());
+        let content_hash = hash(m.embed_text.as_bytes());
         if existing
             .get(&m.memory_id)
             .is_some_and(|(rev, h)| rev == &m.revision_id && h == &content_hash)
@@ -900,9 +1093,12 @@ pub(crate) fn rebuild_index(
             pending.push((m, content_hash));
         }
     }
+    if let Some(max) = max_embed {
+        pending.truncate(max);
+    }
 
     for chunk in pending.chunks(MAX_BATCH_SIZE) {
-        let texts: Vec<String> = chunk.iter().map(|(m, _)| m.content.clone()).collect();
+        let texts: Vec<String> = chunk.iter().map(|(m, _)| m.embed_text.clone()).collect();
         let vectors = embed_texts(&config, inherited.as_deref(), &texts)?;
         let Some(first) = vectors.first() else {
             continue;
@@ -936,6 +1132,25 @@ pub(crate) fn rebuild_index(
         "dimensions": dim_seen,
         "sqliteVecVersion": sqlite_vec_version()?,
     }))
+}
+
+pub(crate) fn rebuild_index(
+    root: &Path,
+    scope: Option<&str>,
+    memories: &[ActiveMemoryInput],
+) -> Result<Value> {
+    sync_index(root, scope, memories, None)
+}
+
+pub(crate) fn idle_sync(
+    root: &Path,
+    memories: &[ActiveMemoryInput],
+    max_embed: usize,
+) -> Result<Value> {
+    if !load_settings(root)?.enabled {
+        return Ok(json!({"indexed": 0, "disabled": true}));
+    }
+    sync_index(root, None, memories, Some(max_embed))
 }
 
 pub(crate) struct SemanticQueryOutcome {
@@ -1049,7 +1264,7 @@ fn query_hits_inner(
 
     let mut missing = Vec::new();
     for m in memories {
-        let content_hash = hash(m.content.as_bytes());
+        let content_hash = hash(m.embed_text.as_bytes());
         if !existing
             .get(&m.memory_id)
             .is_some_and(|(rev, h)| rev == &m.revision_id && h == &content_hash)
@@ -1062,7 +1277,7 @@ fn query_hits_inner(
     }
     let mut synced_now = 0usize;
     for chunk in missing.chunks(MAX_BATCH_SIZE) {
-        let texts: Vec<String> = chunk.iter().map(|(m, _)| m.content.clone()).collect();
+        let texts: Vec<String> = chunk.iter().map(|(m, _)| m.embed_text.clone()).collect();
         let vectors = embed_texts(config, inherited_key, &texts)?;
         let batch: Vec<_> = chunk
             .iter()
@@ -1330,12 +1545,14 @@ mod tests {
                 revision_id: "r1".into(),
                 project_id: "p1".into(),
                 content: "支付网关上线日期已推迟到下周三。".into(),
+                embed_text: "支付网关上线日期已推迟到下周三。".into(),
             },
             ActiveMemoryInput {
                 memory_id: "m-other".into(),
                 revision_id: "r2".into(),
                 project_id: "p1".into(),
                 content: "办公区会议室预订规则更新。".into(),
+                embed_text: "办公区会议室预订规则更新。".into(),
             },
         ];
         // Query uses a completely different Chinese phrasing ("延期") with zero lexical overlap!
@@ -1346,5 +1563,169 @@ mod tests {
 
         stop.store(true, Ordering::SeqCst);
         let _ = server.join();
+    }
+
+    #[test]
+    fn rank_copilot_habits_caches_candidate_vectors_across_turns() {
+        use std::sync::{
+            atomic::{AtomicBool, Ordering},
+            Arc, Mutex,
+        };
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let addr = listener.local_addr().unwrap();
+        let stop = Arc::new(AtomicBool::new(false));
+        let stopping = stop.clone();
+        let batch_sizes = Arc::new(Mutex::new(Vec::<usize>::new()));
+        let recorded = batch_sizes.clone();
+        let server = thread::spawn(move || {
+            while !stopping.load(Ordering::SeqCst) {
+                let (mut stream, _) = match listener.accept() {
+                    Ok(s) => s,
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                        thread::sleep(Duration::from_millis(5));
+                        continue;
+                    }
+                    Err(_) => break,
+                };
+                stream.set_nonblocking(false).unwrap();
+                let mut buf = Vec::new();
+                let mut tmp = [0u8; 4096];
+                let end = loop {
+                    let n = stream.read(&mut tmp).unwrap();
+                    if n == 0 {
+                        break buf.len();
+                    }
+                    buf.extend_from_slice(&tmp[..n]);
+                    if let Some(pos) = buf.windows(4).position(|w| w == b"\r\n\r\n") {
+                        break pos + 4;
+                    }
+                };
+                let headers = String::from_utf8_lossy(&buf[..end]);
+                let content_len = headers
+                    .lines()
+                    .filter_map(|l| l.split_once(':'))
+                    .find(|(k, _)| k.eq_ignore_ascii_case("content-length"))
+                    .and_then(|(_, v)| v.trim().parse::<usize>().ok())
+                    .unwrap_or(0);
+                while buf.len() < end + content_len {
+                    let n = stream.read(&mut tmp).unwrap();
+                    if n == 0 {
+                        break;
+                    }
+                    buf.extend_from_slice(&tmp[..n]);
+                }
+                let body: Value = serde_json::from_slice(&buf[end..end + content_len]).unwrap();
+                let inputs = body["input"].as_array().unwrap();
+                recorded.lock().unwrap().push(inputs.len());
+                let embeddings: Vec<Vec<f32>> = inputs
+                    .iter()
+                    .map(|v| {
+                        let s = v.as_str().unwrap_or("");
+                        if s.contains("habit_cache_test_alpha")
+                            || s.contains("habit_cache_test_query_alpha")
+                        {
+                            vec![1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                        } else if s.contains("habit_cache_test_beta") {
+                            vec![0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                        } else if s.contains("habit_cache_test_gamma")
+                            || s.contains("habit_cache_test_query_gamma")
+                        {
+                            vec![0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                        } else {
+                            vec![0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+                        }
+                    })
+                    .collect();
+                let resp = json!({"embeddings": embeddings}).to_string();
+                write!(
+                    stream,
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                    resp.len(),
+                    resp
+                )
+                .unwrap();
+            }
+        });
+
+        let dir = tempfile::tempdir().unwrap();
+        save_settings(
+            dir.path(),
+            &json!({
+                "enabled": true,
+                "provider": "ollama",
+                "baseUrl": format!("http://{addr}"),
+                "model": "bge-m3",
+                "timeoutSeconds": 10,
+                "remoteConsent": false
+            }),
+        )
+        .unwrap();
+
+        let candidates = json!([
+            "habit_cache_test_alpha: 使用简短清单输出周报",
+            "habit_cache_test_beta: 延迟提醒默认三天后复查",
+            "habit_cache_test_gamma: 任务优先级默认设为高"
+        ]);
+        let first = rank_copilot_habits(
+            dir.path(),
+            &json!({"question": "habit_cache_test_query_alpha", "candidates": candidates}),
+        )
+        .unwrap();
+        assert_eq!(first["indices"][0], 1);
+
+        let second = rank_copilot_habits(
+            dir.path(),
+            &json!({"question": "habit_cache_test_query_gamma", "candidates": candidates}),
+        )
+        .unwrap();
+        assert_eq!(second["indices"][0], 3);
+        assert_eq!(*batch_sizes.lock().unwrap(), vec![4, 1]);
+
+        stop.store(true, Ordering::SeqCst);
+        let _ = server.join();
+    }
+
+    #[test]
+    fn contextual_text_prefixes_kind_source_and_facets() {
+        let content = "支付网关上线时间调整至周五。";
+        assert_eq!(contextual_text("", "", &Value::Null, content), content);
+        let facets = json!({
+            "subject": "支付网关",
+            "tags": ["灰度", "风控"],
+        });
+        let zh_decision = contextual_text("十月发布评审纪要", "decision", &facets, content);
+        assert!(zh_decision.starts_with('['));
+        assert!(zh_decision.contains("类型：决策"));
+        assert!(zh_decision.contains("来源：十月发布评审纪要"));
+        assert!(zh_decision.contains("subject：支付网关"));
+        assert!(zh_decision.contains("tags：灰度、风控"));
+        assert!(zh_decision.ends_with(content));
+
+        let zh_fact = contextual_text("十月发布评审纪要", "fact", &facets, content);
+        assert!(!zh_fact.contains("类型：fact"));
+        assert!(zh_fact.contains("来源：十月发布评审纪要"));
+        assert!(zh_fact.contains("subject：支付网关"));
+
+        let en_body = "2:32 pm on 29 January, 2023 | Jon: Hey Gina!";
+        assert_eq!(
+            contextual_text("Jon", "fact", &Value::Null, en_body),
+            en_body
+        );
+
+        let en_facets = json!({
+            "subject": "Dance Studio",
+            "tags": ["planning", "venue"],
+        });
+        let en_decision = contextual_text(
+            "Quarterly Review",
+            "decision",
+            &en_facets,
+            "Opened the studio in Rome.",
+        );
+        assert!(en_decision.contains("Type: decision"));
+        assert!(en_decision.contains("Source: Quarterly Review"));
+        assert!(en_decision.contains("subject: Dance Studio; tags: planning, venue"));
+        assert!(!has_cjk(&en_decision));
     }
 }

@@ -70,6 +70,107 @@ function extractText(content: Message['content']): string {
     .join('\n');
 }
 
+function clipCompactText(text: string, maxChars: number): string {
+  return text.length <= maxChars ? text : `${text.slice(0, Math.max(0, maxChars - 1))}…`;
+}
+
+function messageChars(msg: Message): number {
+  let total = extractText(msg.content).length;
+  if (msg.role === 'assistant' && Array.isArray(msg.content)) {
+    for (const part of msg.content) {
+      if (part.type === 'toolCall') {
+        total += part.name.length + JSON.stringify(part.arguments ?? {}).length;
+      }
+    }
+  }
+  return total;
+}
+
+function foldToolResult(msg: Message): Message {
+  if (msg.role !== 'toolResult') return msg;
+  const text = extractText(msg.content).replace(/\s+/g, ' ').trim();
+  const status = msg.isError ? '失败' : '成功';
+  const preview = text ? clipCompactText(text, 160) : status;
+  return {
+    ...msg,
+    content: [{ type: 'text', text: `[早期工具结果已折叠] ${msg.toolName}(${status}): ${preview}` }],
+  };
+}
+
+function summarizeDroppedTurn(turn: Message[], index: number): string {
+  const userTexts: string[] = [];
+  const tools: string[] = [];
+  let lastAssistantText = '';
+  for (const msg of turn) {
+    if (msg.role === 'user') {
+      const text = extractText(msg.content).replace(/\s+/g, ' ').trim();
+      if (text) userTexts.push(clipCompactText(text, 120));
+    } else if (msg.role === 'assistant') {
+      const text = extractText(msg.content).replace(/\s+/g, ' ').trim();
+      if (text) lastAssistantText = text;
+      if (Array.isArray(msg.content)) {
+        for (const part of msg.content) {
+          if (part.type === 'toolCall' && !tools.includes(part.name)) {
+            tools.push(part.name);
+          }
+        }
+      }
+    }
+  }
+  const parts = [`- 第${index + 1}轮`];
+  if (userTexts.length) parts.push(`用户：${userTexts.join(' / ')}`);
+  if (tools.length) parts.push(`工具：${tools.join('、')}`);
+  if (lastAssistantText) parts.push(`结论：${clipCompactText(lastAssistantText, 160)}`);
+  return parts.join(' | ');
+}
+
+export function compactConversation(
+  messages: Message[],
+  options?: { maxChars?: number; keepFullTurns?: number },
+): { messages: Message[]; memo: string | null } {
+  const maxChars = options?.maxChars ?? 24000;
+  const keepFullTurns = Math.max(0, options?.keepFullTurns ?? 2);
+  const turns: Message[][] = [];
+  for (const msg of messages) {
+    if (msg.role === 'user' || turns.length === 0) {
+      turns.push([msg]);
+    } else {
+      turns[turns.length - 1].push(msg);
+    }
+  }
+  if (turns.length === 0) {
+    return { messages: [], memo: null };
+  }
+
+  const foldBefore = Math.max(0, turns.length - keepFullTurns);
+  const preparedTurns = turns.map((turn, idx) =>
+    idx < foldBefore ? turn.map(foldToolResult) : turn,
+  );
+  const turnLengths = preparedTurns.map(turn =>
+    turn.reduce((sum, msg) => sum + messageChars(msg), 0),
+  );
+  let totalChars = turnLengths.reduce((sum, len) => sum + len, 0);
+
+  const droppedTurns: Message[][] = [];
+  let start = 0;
+  while (preparedTurns.length - start > 1 && totalChars > maxChars) {
+    droppedTurns.push(preparedTurns[start]);
+    totalChars -= turnLengths[start];
+    start += 1;
+  }
+
+  let memo: string | null = null;
+  if (droppedTurns.length > 0) {
+    const raw = droppedTurns.map((turn, idx) => summarizeDroppedTurn(turn, idx)).join('\n');
+    memo = clipCompactText(raw, 2000);
+  }
+
+  return {
+    messages: preparedTurns.slice(start).flat(),
+    memo,
+  };
+}
+
 export function serializeContextForProxy(context: Context): {
   messages: Array<Record<string, unknown>>;
   tools: Array<Record<string, unknown>>;
@@ -361,6 +462,71 @@ export async function selectHabitsForTurn(
   } catch {
     return fallback;
   }
+}
+
+const PREFILL_FIELD_LABELS: Record<string, string> = {
+  priority: '优先级',
+  severity: '严重度',
+  assignee: '负责人',
+};
+
+const PREFILL_VALUE_LABELS: Record<string, Record<string, string>> = {
+  priority: { high: '高', medium: '中', low: '低' },
+  severity: { high: '高', medium: '中', low: '低' },
+};
+
+export function formatPrefillDetail(
+  filled: Array<{ field: string; value: string; habitId: string }>,
+): string | null {
+  if (!filled.length) return null;
+  const parts = filled.map(item => {
+    const label = PREFILL_FIELD_LABELS[item.field] ?? item.field;
+    const valueLabel = PREFILL_VALUE_LABELS[item.field]?.[item.value] ?? item.value;
+    return `${label}=${valueLabel}`;
+  });
+  return `已按你的习惯预填：${parts.join('、')}（可修改）`;
+}
+
+export function prefillArgsFromHabits(
+  habits: UserHabit[] | undefined,
+  projectId: string | null,
+  toolName: string,
+  args: Record<string, unknown>,
+): { args: Record<string, unknown>; filled: Array<{ field: string; value: string; habitId: string }> } {
+  const next = { ...args };
+  const filled: Array<{ field: string; value: string; habitId: string }> = [];
+  const eligible = (habits ?? []).filter(h => {
+    if (h.status !== 'active' || h.lowUtilityWarning || h.category !== 'workflow') return false;
+    if (h.projectId && h.projectId !== projectId) return false;
+    if (h.rule?.action !== 'copilot_default') return false;
+    const ruleTool = typeof h.rule.tool === 'string' ? h.rule.tool.trim() : '';
+    const field = typeof h.rule.field === 'string' ? h.rule.field.trim() : '';
+    const value = typeof h.rule.value === 'string' ? h.rule.value.trim() : '';
+    return (
+      ruleTool === toolName &&
+      (field === 'priority' || field === 'severity' || field === 'assignee') &&
+      value.length > 0
+    );
+  });
+
+  // Project-scoped habits beat global habits for the same field.
+  eligible.sort((a, b) => {
+    const aScoped = projectId && a.projectId === projectId ? 1 : 0;
+    const bScoped = projectId && b.projectId === projectId ? 1 : 0;
+    return bScoped - aScoped || (b.updatedAt || '').localeCompare(a.updatedAt || '') || a.id.localeCompare(b.id);
+  });
+
+  for (const field of ['priority', 'severity', 'assignee'] as const) {
+    const current = next[field];
+    const isMissing = current === undefined || current === null || (typeof current === 'string' && current.trim() === '');
+    if (!isMissing) continue;
+    const match = eligible.find(h => String(h.rule.field).trim() === field);
+    if (!match) continue;
+    const value = String(match.rule.value).trim();
+    next[field] = value;
+    filled.push({ field, value, habitId: match.id });
+  }
+  return { args: next, filled };
 }
 
 export function attributeCopilotHabitFeedback(
@@ -995,6 +1161,43 @@ export function createPmAgentTools(deps: {
         };
       },
     }),
+    defineTool({
+      name: 'propose_user_habit',
+      label: '记录待确认的个人习惯建议',
+      description:
+        '当用户在对话中明确表达“以后/默认/总是按某种方式处理汇报、提醒、筛选或任务”时，保存一条待用户确认的习惯建议（不会直接修改项目事实或立即生效，需用户在记忆与习惯中心确认）。',
+      parameters: Type.Object({
+        category: Type.Union([
+          Type.Literal('writing'),
+          Type.Literal('reminder'),
+          Type.Literal('workflow'),
+          Type.Literal('filtering'),
+        ]),
+        title: Type.String({ description: '简短习惯标题（最多 160 字）' }),
+        instruction: Type.String({ description: '可执行的习惯规则说明（最多 600 字）' }),
+        projectId: Type.Optional(Type.String({ description: '可选，限定单个项目 ID；不填则为全局习惯' })),
+        audience: Type.Optional(
+          Type.Union([Type.Literal('executive'), Type.Literal('team'), Type.Literal('client')]),
+        ),
+      }),
+      execute: async (_id, params) => {
+        const pid = params.projectId?.trim() || '';
+        const rule: Record<string, unknown> = { action: 'explicit_teaching' };
+        if (params.audience) rule.audience = params.audience;
+        const proposal = await executor('propose_user_habit', {
+          ...(pid ? { projectId: pid } : {}),
+          category: params.category,
+          title: params.title.trim(),
+          instruction: params.instruction.trim(),
+          rule,
+        });
+        await onMutated();
+        return {
+          content: [{ type: 'text', text: JSON.stringify({ ok: true, proposal }) }],
+          details: { kind: 'propose_habit', category: params.category },
+        };
+      },
+    }),
   ];
 }
 
@@ -1089,24 +1292,35 @@ export function createPmCopilotAgent(deps: {
       const applicable = currentProject === projectId && currentPage === page && sameProfile ? selected
         : localHabits(rankHabitsForPrompt(currentProfile, currentProject, currentPage, question), question);
       shownHabits = applicable.evidence;
-      const systemPrompt = renderSystemPrompt(getState(), currentProject, getDate(), currentPage,
+      const compacted = compactConversation(context.messages);
+      const basePrompt = renderSystemPrompt(getState(), currentProject, getDate(), currentPage,
         getPreferences?.(), getAliases?.(), shownHabits, applicable.focus);
-      return stream(model, { ...context, systemPrompt }, options);
+      const systemPrompt = compacted.memo
+        ? `${basePrompt}\n\n## 早期对话备忘（历史轮次已压缩，仅作上下文参考）\n${compacted.memo}`
+        : basePrompt;
+      return stream(model, { ...context, systemPrompt, messages: compacted.messages }, options);
     },
     beforeToolCall: async (ctx, signal) => {
       if (!WRITE_TOOL_NAMES.has(ctx.toolCall.name)) {
         return undefined;
       }
       const args = (ctx.args && typeof ctx.args === 'object' ? ctx.args : {}) as Record<string, unknown>;
-      const info = summarizeApproval(ctx.toolCall.name, args, getState(), getDate());
+      const initialPid = typeof args.projectId === 'string' && args.projectId
+        ? args.projectId
+        : getProjectId() || null;
+      const currentHabits = getHabits?.();
+      const prefill = prefillArgsFromHabits(currentHabits, initialPid, ctx.toolCall.name, args);
+      const info = summarizeApproval(ctx.toolCall.name, prefill.args, getState(), getDate());
+      const prefillLine = formatPrefillDetail(prefill.filled);
+      const details = prefillLine ? [...info.details, prefillLine] : info.details;
       const rawDecision = await requestApproval(
         {
           toolCallId: ctx.toolCall.id,
           toolName: ctx.toolCall.name,
           title: info.title,
           summary: info.summary,
-          details: info.details,
-          args,
+          details,
+          args: prefill.args,
         },
         signal,
       );
@@ -1114,10 +1328,10 @@ export function createPmCopilotAgent(deps: {
         typeof rawDecision === 'boolean'
           ? { approved: rawDecision, overrideArgs: undefined, rememberAsHabit: false }
           : rawDecision;
-      const finalArgs = decision.overrideArgs ? { ...args, ...decision.overrideArgs } : args;
+      const finalArgs = decision.overrideArgs ? { ...prefill.args, ...decision.overrideArgs } : prefill.args;
       const edited =
         !!decision.overrideArgs &&
-        Object.keys(decision.overrideArgs).some(k => decision.overrideArgs![k] !== args[k]);
+        Object.keys(decision.overrideArgs).some(k => decision.overrideArgs![k] !== prefill.args[k]);
       const decisionKind: 'approved' | 'edited_and_approved' | 'rejected' = !decision.approved
         ? 'rejected'
         : edited
@@ -1126,12 +1340,20 @@ export function createPmCopilotAgent(deps: {
       const pid = typeof finalArgs.projectId === 'string' && finalArgs.projectId
         ? finalArgs.projectId
         : getProjectId() || null;
+      const candidateMap = new Map<string, UserHabit>();
+      for (const h of shownHabits) candidateMap.set(h.id, h);
+      if (prefill.filled.length > 0 && currentHabits) {
+        const usedIds = new Set(prefill.filled.map(f => f.habitId));
+        for (const h of currentHabits) {
+          if (usedIds.has(h.id)) candidateMap.set(h.id, h);
+        }
+      }
       const { appliedHabitIds, acceptedHabitIds } = attributeCopilotHabitFeedback(
-        shownHabits,
+        [...candidateMap.values()],
         pid,
         ctx.toolCall.name,
         decisionKind,
-        args,
+        prefill.args,
         finalArgs,
       );
 
@@ -1139,7 +1361,7 @@ export function createPmCopilotAgent(deps: {
         projectId: pid,
         toolName: ctx.toolCall.name,
         decision: decisionKind,
-        originalArgs: args,
+        originalArgs: prefill.args,
         finalArgs,
         rememberAsHabit: !!decision.rememberAsHabit,
         appliedHabitIds,
@@ -1154,7 +1376,7 @@ export function createPmCopilotAgent(deps: {
       if (!decision.approved) {
         return { block: true, reason: '用户取消了此操作，请尊重用户决定并简短告知。' };
       }
-      if (decision.overrideArgs) {
+      if (prefill.filled.length > 0 || decision.overrideArgs) {
         approvedOverrides.set(ctx.toolCall.id, finalArgs);
       }
       return undefined;

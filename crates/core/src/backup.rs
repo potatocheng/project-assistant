@@ -385,6 +385,7 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
         crate::aliases::validate_backup(&conn)?;
         crate::habits::validate_backup(&conn)?;
         crate::memory_audit::validate_backup(&conn)?;
+        crate::memory_consolidation::validate_backup(&conn)?;
         return Ok(Validated {
             stage,
             manifest,
@@ -411,6 +412,7 @@ fn validate(root: &Path, p: &Value) -> Result<Validated> {
     crate::aliases::validate_backup(&conn)?;
     crate::habits::validate_backup(&conn)?;
     crate::memory_audit::validate_backup(&conn)?;
+    crate::memory_consolidation::validate_backup(&conn)?;
     Ok(Validated {
         stage,
         manifest,

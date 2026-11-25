@@ -1249,4 +1249,133 @@ mod tests {
         );
         validate_backup(&db.conn).unwrap();
     }
+
+    #[test]
+    fn claim_extract_injects_project_filtering_habits_into_frozen_context() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut db = Database::open(dir.path().to_owned()).unwrap();
+        call(
+            &mut db,
+            "save_ai_settings",
+            json!({"provider":"ollama","baseUrl":"http://127.0.0.1:11434","model":"checkpoint-fixture","outputFormat":"json_schema","timeoutSeconds":5,"autoExtract":false,"remoteConsent":false}),
+        );
+        let p_with_habit = call(&mut db, "create_project", json!({"name":"带提取偏好项目"}));
+        let pid_with = p_with_habit["id"].as_str().unwrap();
+        crate::habits::dispatch(
+            &db.conn,
+            "save_user_habit",
+            &json!({
+                "projectId": pid_with,
+                "category": "filtering",
+                "patternKey": "filtering:strict_reject:fact",
+                "title": "严格过滤低价值事实",
+                "instruction": "跳过寒暄和过渡性过程描述，不生成普通事实候选。",
+                "rule": {"action": "extraction_filter", "kind": "fact", "strict": true}
+            }),
+        )
+        .unwrap();
+
+        let p_plain = call(&mut db, "create_project", json!({"name":"无提取偏好项目"}));
+        let pid_plain = p_plain["id"].as_str().unwrap();
+
+        let claim_for = |db: &mut Database, project_id: &str| {
+            let imported = call(
+                db,
+                "import_text",
+                json!({"projectId": project_id, "title": "纪要", "text": TEXT}),
+            );
+            let parse = imported["jobId"].as_str().unwrap();
+            let task = db.claim(parse, db.epoch).unwrap().unwrap();
+            db.complete(
+                parse,
+                db.epoch,
+                task.generation,
+                Ok(vec![ParsedSegment {
+                    locator: "第1行".into(),
+                    text: TEXT.into(),
+                }]),
+            )
+            .unwrap();
+            let source = imported["sourceId"].as_str().unwrap();
+            let job = call(db, "start_extraction", json!({"sourceId": source}))["id"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            db.claim_extract(&job, db.epoch).unwrap().unwrap()
+        };
+
+        let task_with = claim_for(&mut db, pid_with);
+        let prefs = task_with.project_context["userExtractionPreferences"]["items"]
+            .as_array()
+            .expect("expected userExtractionPreferences items");
+        assert_eq!(prefs.len(), 1);
+        assert_eq!(prefs[0]["action"], "extraction_filter");
+        assert_eq!(prefs[0]["kind"], "fact");
+
+        let task_plain = claim_for(&mut db, pid_plain);
+        assert!(
+            task_plain
+                .project_context
+                .get("userExtractionPreferences")
+                .is_none(),
+            "project without filtering habits should not include userExtractionPreferences"
+        );
+    }
+
+    #[test]
+    fn claim_extract_attaches_document_brief_only_for_long_sources() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut db = Database::open(dir.path().to_owned()).unwrap();
+        call(
+            &mut db,
+            "save_ai_settings",
+            json!({"provider":"ollama","baseUrl":"http://127.0.0.1:11434","model":"checkpoint-fixture","outputFormat":"json_schema","timeoutSeconds":5,"autoExtract":false,"remoteConsent":false}),
+        );
+        let project = call(
+            &mut db,
+            "create_project",
+            json!({"name":"长文档提取测试项目"}),
+        );
+        let pid = project["id"].as_str().unwrap();
+
+        let claim_text = |db: &mut Database, title: &str, text: &str| {
+            let imported = call(
+                db,
+                "import_text",
+                json!({"projectId": pid, "title": title, "text": text}),
+            );
+            let parse = imported["jobId"].as_str().unwrap();
+            let task = db.claim(parse, db.epoch).unwrap().unwrap();
+            db.complete(
+                parse,
+                db.epoch,
+                task.generation,
+                Ok(vec![ParsedSegment {
+                    locator: "第1页".into(),
+                    text: text.into(),
+                }]),
+            )
+            .unwrap();
+            let source = imported["sourceId"].as_str().unwrap();
+            let job = call(db, "start_extraction", json!({"sourceId": source}))["id"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            db.claim_extract(&job, db.epoch).unwrap().unwrap()
+        };
+
+        let short_task = claim_text(&mut db, "短纪要", "# 概览\n今天决定周五发布。");
+        assert!(short_task.project_context.get("documentBrief").is_none());
+
+        let long_text = format!(
+            "# 方案总览\n一、总体目标\n灰度比例是指先对10%商户开放。\n{}",
+            "核心服务已经完成联调并具备上线条件。".repeat(150)
+        );
+        let long_task = claim_text(&mut db, "发布方案长文档", &long_text);
+        let outline = long_task.project_context["documentBrief"]["outline"]
+            .as_array()
+            .expect("expected documentBrief.outline for long source");
+        assert!(!outline.is_empty());
+        assert_eq!(outline[0]["title"], "方案总览");
+    }
 }

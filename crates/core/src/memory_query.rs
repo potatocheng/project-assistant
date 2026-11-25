@@ -373,23 +373,30 @@ pub(crate) fn retrieve_with_semantic(
     let mut eligible_vec_hits = 0usize;
     if let Some(signals) = &semantic {
         if !signals.hits.is_empty() && !corpus.is_empty() {
-            // The UI returns a short evidence list. With a large offset even
-            // weak tail matches in both lists outrank a top hit in one list.
             const RRF_K: f64 = 10.0;
             const MAX_COSINE_DISTANCE: f64 = 0.65;
+            const SIM_FLOOR: f64 = 1.0 - MAX_COSINE_DISTANCE;
+            const LEX_WEIGHT: f64 = 1.0;
+            const VEC_WEIGHT: f64 = 0.85;
             let corpus_ids: std::collections::HashSet<&str> =
                 corpus.iter().filter_map(|m| m["id"].as_str()).collect();
             // Vectors NEVER bypass eligibility: filter strictly to active, non-conflicted,
             // non-archived, retention-valid, entity/date-applicable memories in `corpus`.
-            let mut vec_ranks = std::collections::HashMap::<&str, usize>::new();
+            let mut vec_hits = std::collections::HashMap::<&str, (usize, f64)>::new();
+            let mut best_sim = 0.0_f64;
             for (memory_id, distance) in &signals.hits {
                 if *distance <= MAX_COSINE_DISTANCE && corpus_ids.contains(memory_id.as_str()) {
-                    let next_rank = vec_ranks.len() + 1;
-                    vec_ranks.entry(memory_id.as_str()).or_insert(next_rank);
+                    let next_rank = vec_hits.len() + 1;
+                    let sim = (1.0 - *distance).clamp(0.0, 1.0);
+                    vec_hits.entry(memory_id.as_str()).or_insert_with(|| {
+                        best_sim = best_sim.max(sim);
+                        (next_rank, sim)
+                    });
                 }
             }
-            eligible_vec_hits = vec_ranks.len();
+            eligible_vec_hits = vec_hits.len();
             if eligible_vec_hits > 0 {
+                let max_bm25 = bm25_scores.iter().copied().fold(0.0_f64, f64::max);
                 let mut bm25_order: Vec<usize> = (0..corpus.len())
                     .filter(|&i| bm25_scores[i] > 0.0)
                     .collect();
@@ -409,9 +416,34 @@ pub(crate) fn retrieve_with_semantic(
                 }
                 for (idx, memory) in corpus.iter().enumerate() {
                     let id = memory["id"].as_str().unwrap_or("");
-                    let reciprocal = |rank: &usize| 1.0 / (RRF_K + *rank as f64);
-                    scores[idx] = bm25_ranks.get(&idx).map_or(0.0, reciprocal)
-                        + vec_ranks.get(id).map_or(0.0, reciprocal);
+                    let lex = if max_bm25 > 0.0 && bm25_scores[idx] > 0.0 {
+                        let bm25_norm = (bm25_scores[idx] / max_bm25).clamp(0.0, 1.0);
+                        let lex_rank = *bm25_ranks.get(&idx).unwrap_or(&corpus.len());
+                        let lex_rrf = (RRF_K + 1.0) / (RRF_K + lex_rank as f64);
+                        0.65 * bm25_norm + 0.35 * lex_rrf
+                    } else {
+                        0.0
+                    };
+                    let vec = if let Some(&(vec_rank, sim)) = vec_hits.get(id) {
+                        let abs_sim = ((sim - SIM_FLOOR) / (1.0 - SIM_FLOOR)).clamp(0.0, 1.0);
+                        let rel_sim = if best_sim > SIM_FLOOR {
+                            ((sim - SIM_FLOOR) / (best_sim - SIM_FLOOR).max(0.10)).clamp(0.0, 1.0)
+                        } else {
+                            0.0
+                        };
+                        let vec_rrf = (RRF_K + 1.0) / (RRF_K + vec_rank as f64);
+                        (abs_sim * (0.50 + 0.25 * rel_sim + 0.25 * vec_rrf)).max(1e-4)
+                    } else {
+                        0.0
+                    };
+                    scores[idx] = if max_bm25 > 0.0 {
+                        LEX_WEIGHT * lex + VEC_WEIGHT * vec
+                    } else {
+                        vec
+                    };
+                }
+                if let Some(obj) = hybrid_trace.as_object_mut() {
+                    obj.insert("fusionMode".into(), json!("calibrated_hybrid"));
                 }
             }
         }
@@ -2086,5 +2118,103 @@ mod tests {
         assert_eq!(ids, vec!["eligible-vec"]);
         assert_eq!(result.trace["hybridRetrieval"]["eligibleVecHits"], 1);
         assert_eq!(result.trace["jieba"], true);
+    }
+
+    #[test]
+    fn calibrated_hybrid_protects_strong_bm25_top1_from_weak_vector_noise() {
+        let conn = database();
+        add_memory(
+            &conn,
+            "strong-lex",
+            "p",
+            "Caroline attended the LGBTQ support group meeting in May.",
+            json!({}),
+        );
+        add_memory(
+            &conn,
+            "weak-tail",
+            "p",
+            "Caroline discussed random weekend plans.",
+            json!({}),
+        );
+        let semantic = SemanticSignals {
+            hits: vec![("weak-tail".into(), 0.62)],
+            trace: json!({"enabled": true, "backend": "sqlite-vec", "fusion": "rrf", "vecHits": 1}),
+        };
+        let result = retrieve_with_semantic(
+            &conn,
+            Some("p"),
+            &Query::new("When did Caroline go to the LGBTQ support group?"),
+            5,
+            2000,
+            false,
+            "2026-10-21",
+            Some(semantic),
+        )
+        .unwrap();
+        assert_eq!(result.records[0]["id"], "strong-lex");
+        assert_eq!(
+            result.trace["hybridRetrieval"]["fusionMode"],
+            "calibrated_hybrid"
+        );
+    }
+
+    #[test]
+    fn calibrated_hybrid_recalls_pure_semantic_hit_and_boosts_dual_consensus() {
+        let conn = database();
+        add_memory(
+            &conn,
+            "lex-only",
+            "p",
+            "Project alpha milestone review scheduled.",
+            json!({}),
+        );
+        add_memory(
+            &conn,
+            "dual-hit",
+            "p",
+            "Project alpha release review confirmed for Friday.",
+            json!({}),
+        );
+        add_memory(
+            &conn,
+            "pure-sem",
+            "p",
+            "Go-live date postponed to next Wednesday.",
+            json!({}),
+        );
+        let semantic = SemanticSignals {
+            hits: vec![("dual-hit".into(), 0.15)],
+            trace: json!({"enabled": true, "backend": "sqlite-vec", "fusion": "rrf", "vecHits": 1}),
+        };
+        let dual_res = retrieve_with_semantic(
+            &conn,
+            Some("p"),
+            &Query::new("Project alpha review"),
+            5,
+            2000,
+            false,
+            "2026-10-21",
+            Some(semantic),
+        )
+        .unwrap();
+        assert_eq!(dual_res.records[0]["id"], "dual-hit");
+
+        let zero_lex_sem = SemanticSignals {
+            hits: vec![("pure-sem".into(), 0.10)],
+            trace: json!({"enabled": true, "backend": "sqlite-vec", "fusion": "rrf", "vecHits": 1}),
+        };
+        let sem_res = retrieve_with_semantic(
+            &conn,
+            Some("p"),
+            &Query::new("Will the launch be delayed?"),
+            5,
+            2000,
+            false,
+            "2026-10-21",
+            Some(zero_lex_sem),
+        )
+        .unwrap();
+        assert_eq!(sem_res.records[0]["id"], "pure-sem");
     }
 }

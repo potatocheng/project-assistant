@@ -24,6 +24,20 @@ const MAX_READING_CHARS: usize = 18_000;
 struct SourceAnchors {
     memory_ids: Vec<String>,
     segment_anchors: BTreeMap<String, Vec<usize>>,
+    blocked_ordinals: HashSet<i64>,
+}
+
+enum SourceEligibility {
+    Blocked,
+    Allowed { blocked_ordinals: HashSet<i64> },
+}
+
+fn add_with_neighbors(ordinals: impl IntoIterator<Item = i64>, blocked: &mut HashSet<i64>) {
+    for ord in ordinals {
+        blocked.insert(ord - 1);
+        blocked.insert(ord);
+        blocked.insert(ord + 1);
+    }
 }
 
 struct PassageCandidate {
@@ -55,15 +69,22 @@ fn source_origin(conn: &Connection, source: &str) -> Result<Value> {
     ).optional()?.unwrap_or(Value::Null))
 }
 
-fn eligible_source(conn: &Connection, project: &str, source: &str, as_of: &str) -> Result<bool> {
-    if conn.query_row("SELECT EXISTS(SELECT 1 FROM workspace_lifecycle WHERE archived=1 AND ((kind='source' AND entity_id=?1) OR (kind='project' AND entity_id=?2)))",rusqlite::params![source,project],|r|r.get::<_,bool>(0))? { return Ok(false); }
+fn source_eligibility(
+    conn: &Connection,
+    project: &str,
+    source: &str,
+    as_of: &str,
+) -> Result<SourceEligibility> {
+    if conn.query_row("SELECT EXISTS(SELECT 1 FROM workspace_lifecycle WHERE archived=1 AND ((kind='source' AND entity_id=?1) OR (kind='project' AND entity_id=?2)))",rusqlite::params![source,project],|r|r.get::<_,bool>(0))? {
+        return Ok(SourceEligibility::Blocked);
+    }
     let ready: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM sources WHERE id=? AND project_id=? AND status='ready')",
         params![source, project],
         |row| row.get(0),
     )?;
     if !ready {
-        return Ok(false);
+        return Ok(SourceEligibility::Blocked);
     }
     // Use the same remote identity/order as planning, but do not fall back to
     // stale text while the newer snapshot is parsing or has failed.
@@ -76,17 +97,33 @@ fn eligible_source(conn: &Connection, project: &str, source: &str, as_of: &str) 
         params![source,project], |row| row.get(0),
     )?;
     if superseded {
-        return Ok(false);
+        return Ok(SourceEligibility::Blocked);
     }
-    // Editing a draft before confirmation still produces revision 1 with a
-    // confirmation origin. Preserve that human correction as well.
+
+    let mut blocked_ordinals = HashSet::new();
+
+    // Editing a draft before confirmation produces revision 1 with a confirmation origin.
+    // Quarantine the touched proposal segments (+/-1 neighbor); fall back to Blocked if unlocatable.
     let edited: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM proposals WHERE source_id=? AND project_id=? AND status='confirmed' AND edited<>0)",
         params![source,project], |row| row.get(0),
     )?;
     if edited {
-        return Ok(false);
+        let mut stmt = conn.prepare(
+            "SELECT DISTINCT g.ordinal FROM proposals p
+             JOIN proposal_evidence e ON e.proposal_id=p.id
+             JOIN segments g ON g.id=e.segment_id
+             WHERE p.source_id=?1 AND p.project_id=?2 AND p.status='confirmed' AND p.edited<>0 AND g.source_id=?1",
+        )?;
+        let ords: Vec<i64> = stmt
+            .query_map(params![source, project], |r| r.get(0))?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        if ords.is_empty() {
+            return Ok(SourceEligibility::Blocked);
+        }
+        add_with_neighbors(ords, &mut blocked_ordinals);
     }
+
     let pending: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM memory_reviews v JOIN proposals p ON p.id=v.proposal_id
          WHERE p.source_id=? AND p.project_id=? AND p.status='pending' AND v.status='pending'
@@ -95,8 +132,23 @@ fn eligible_source(conn: &Connection, project: &str, source: &str, as_of: &str) 
         |row| row.get(0),
     )?;
     if pending {
-        return Ok(false);
+        let mut stmt = conn.prepare(
+            "SELECT DISTINCT g.ordinal FROM memory_reviews v
+             JOIN proposals p ON p.id=v.proposal_id
+             JOIN proposal_evidence e ON e.proposal_id=p.id
+             JOIN segments g ON g.id=e.segment_id
+             WHERE p.source_id=?1 AND p.project_id=?2 AND p.status='pending' AND v.status='pending'
+               AND v.disposition IN ('conflict','uncertain') AND g.source_id=?1",
+        )?;
+        let ords: Vec<i64> = stmt
+            .query_map(params![source, project], |r| r.get(0))?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        if ords.is_empty() {
+            return Ok(SourceEligibility::Blocked);
+        }
+        add_with_neighbors(ords, &mut blocked_ordinals);
     }
+
     // Inspect all historical links: a correction without new evidence must
     // still prevent an unchanged sibling memory from reopening the old source.
     let mut statement = conn.prepare(
@@ -119,18 +171,45 @@ fn eligible_source(conn: &Connection, project: &str, source: &str, as_of: &str) 
     })?;
     for row in rows {
         let (memory, state, revision, origin, revision_id, revision_content, content) = row?;
-        if state != "active"
+        let tainted = state != "active"
             || revision != 1
             || origin == "user_correction"
             || content != revision_content
             || frozen(conn, &memory)?
             || !crate::retention::eligible(&crate::retention::revision(conn, &revision_id)?, as_of)
-            || !memory_facts::applicable(&memory_facts::load(conn, &revision_id)?, &[], as_of)
-        {
-            return Ok(false);
+            || !memory_facts::applicable(&memory_facts::load(conn, &revision_id)?, &[], as_of);
+        if tainted {
+            if revision != 1 || origin == "user_correction" {
+                let has_current_source_evidence: bool = conn.query_row(
+                    "SELECT EXISTS(
+                        SELECT 1 FROM revision_evidence e
+                        JOIN segments g ON g.id=e.segment_id
+                        WHERE e.revision_id=?1 AND g.source_id=?2
+                    )",
+                    params![revision_id, source],
+                    |r| r.get(0),
+                )?;
+                if !has_current_source_evidence {
+                    return Ok(SourceEligibility::Blocked);
+                }
+            }
+            let mut ev_stmt = conn.prepare(
+                "SELECT DISTINCT g.ordinal
+                 FROM revisions h
+                 JOIN revision_evidence e ON e.revision_id=h.id
+                 JOIN segments g ON g.id=e.segment_id
+                 WHERE h.memory_id=?1 AND g.source_id=?2",
+            )?;
+            let ords: Vec<i64> = ev_stmt
+                .query_map(params![memory, source], |r| r.get(0))?
+                .collect::<std::result::Result<Vec<_>, _>>()?;
+            if ords.is_empty() {
+                return Ok(SourceEligibility::Blocked);
+            }
+            add_with_neighbors(ords, &mut blocked_ordinals);
         }
     }
-    Ok(true)
+    Ok(SourceEligibility::Allowed { blocked_ordinals })
 }
 
 fn anchor_sources(
@@ -199,18 +278,28 @@ fn anchor_sources(
              JOIN sources s ON s.id=g.source_id WHERE e.revision_id=? AND s.project_id=? AND s.status='ready' ORDER BY s.id,g.ordinal,g.id",
         )?;
         let links = statement.query_map(params![revision_id, project], |row| {
-            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, i64>(2)?,
+            ))
         })?;
         for link in links {
-            let (source, segment) = link?;
+            let (source, segment, ordinal) = link?;
             let key = (project.to_owned(), source.clone());
             if !sources.contains_key(&key) && sources.len() >= MAX_SOURCES {
                 continue;
             }
-            if !eligible_source(conn, project, &source, as_of)? {
+            let SourceEligibility::Allowed { blocked_ordinals } =
+                source_eligibility(conn, project, &source, as_of)?
+            else {
+                continue;
+            };
+            if blocked_ordinals.contains(&ordinal) {
                 continue;
             }
             let selected = sources.entry(key).or_default();
+            selected.blocked_ordinals = blocked_ordinals;
             if !selected.memory_ids.iter().any(|id| id == memory) {
                 selected.memory_ids.push(memory.to_owned());
             }
@@ -271,7 +360,10 @@ pub(crate) fn retrieve(
         for row in rows {
             let (segment, version, ordinal, locator, content, title, source_hash) = row?;
             // Do not turn a character cap into a silently missing condition.
-            if content.trim().is_empty() || content.chars().count() > MAX_PASSAGE_CHARS {
+            if source_anchors.blocked_ordinals.contains(&ordinal)
+                || content.trim().is_empty()
+                || content.chars().count() > MAX_PASSAGE_CHARS
+            {
                 continue;
             }
             let anchor_indices = source_anchors
@@ -419,12 +511,16 @@ pub(crate) fn validate(conn: &Connection, reference: &Value) -> Result<()> {
         text("asOfDate")?,
     );
     crate::tasks::valid_date(as_of).map_err(|_| stale())?;
+    let SourceEligibility::Allowed { blocked_ordinals } =
+        source_eligibility(conn, project, source, as_of)?
+    else {
+        return Err(stale());
+    };
     if reference["kind"] != "source_passage"
         || reference.get("memoryId").is_some()
         || reference["id"] != format!("source:{source}:{segment}")
         || reference["evidenceLabel"] != "导入原文（非正式记忆）"
         || reference.get("sourceOrigin") != Some(&source_origin(conn, source)?)
-        || !eligible_source(conn, project, source, as_of)?
     {
         return Err(stale());
     }
@@ -447,7 +543,8 @@ pub(crate) fn validate(conn: &Connection, reference: &Value) -> Result<()> {
         )
         .optional()?
         .ok_or_else(stale)?;
-    if reference["sourceVersionId"] != row.0
+    if blocked_ordinals.contains(&row.1)
+        || reference["sourceVersionId"] != row.0
         || reference["ordinal"] != row.1
         || reference["locator"] != row.2
         || reference["content"] != row.3
@@ -1088,5 +1185,80 @@ mod tests {
         )
         .unwrap();
         assert!(passages(&conn, &[anchor]).is_empty());
+    }
+
+    #[test]
+    fn segment_level_invalidation_blocks_tainted_window_while_keeping_distant_segments_readable() {
+        let conn = database();
+        source(
+            &conn,
+            "doc5",
+            "p",
+            &[
+                "overview segment zero expired working state",
+                "overview segment one neighbor",
+                "overview segment two neutral bridge",
+                "overview segment three durable active",
+                "overview segment four distant context",
+            ],
+        );
+        let expired_anchor = memory(&conn, "m0", "p", "doc5", "expired working state");
+        crate::retention::save_revision(
+            &conn,
+            "m0:r1",
+            &json!({"layer":"working","reason":"过期阶段状态","reviewAfter":"2000-01-01"}),
+        )
+        .unwrap();
+        let active_anchor = memory(&conn, "m3", "p", "doc5", "durable active");
+        conn.execute(
+            "UPDATE revision_evidence SET segment_id='doc5:3' WHERE revision_id='m3:r1'",
+            [],
+        )
+        .unwrap();
+
+        let result = retrieve(
+            &conn,
+            Some("p"),
+            &Query::new("overview segment"),
+            DATE,
+            &[expired_anchor, active_anchor.clone()],
+        )
+        .unwrap();
+        let seg_ids: Vec<&str> = result
+            .iter()
+            .map(|r| r["segmentId"].as_str().unwrap())
+            .collect();
+        // Segment 0 (tainted) and its neighbor segment 1 are blocked, while distant segments stay readable
+        assert!(!seg_ids.contains(&"doc5:0"));
+        assert!(!seg_ids.contains(&"doc5:1"));
+        assert!(seg_ids.contains(&"doc5:3"));
+        assert!(seg_ids.contains(&"doc5:4"));
+        for item in &result {
+            validate(&conn, item).unwrap();
+        }
+
+        // Manual user_correction WITHOUT new evidence falls back to conservative whole-source quarantine
+        conn.execute(
+            "INSERT INTO revisions VALUES('m0:r2','m0',2,'corrected without new evidence','fix','user_correction','later')",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "UPDATE memories SET revision=2, content='corrected without new evidence' WHERE id='m0'",
+            [],
+        )
+        .unwrap();
+        assert!(retrieve(
+            &conn,
+            Some("p"),
+            &Query::new("overview segment"),
+            DATE,
+            &[active_anchor],
+        )
+        .unwrap()
+        .is_empty());
+        for item in &result {
+            assert_eq!(validate(&conn, item).unwrap_err().code, "QA_CONTEXT_STALE");
+        }
     }
 }

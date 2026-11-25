@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import {
   attributeCopilotHabitFeedback,
   buildSystemPrompt,
+  compactConversation,
   createPmAgentTools,
   createPmCopilotAgent,
+  prefillArgsFromHabits,
   selectHabitsForTurn,
 } from '../src/components/shell/pi-copilot-agent.ts';
 
@@ -500,4 +502,301 @@ test('A project switch during semantic selection cannot send the old project hab
   await agent.prompt('请给一个建议');
   assert.match(prompt, /新项目使用交接簿/);
   assert.doesNotMatch(prompt, /原项目私人约定/);
+});
+
+test('prefillArgsFromHabits fills missing workflow defaults without overriding explicit values', () => {
+  const mk = (id, overrides) => ({
+    id,
+    projectId: null,
+    patternKey: id,
+    category: 'workflow',
+    title: id,
+    instruction: id,
+    rule: { action: 'copilot_default', tool: 'create_task', field: 'priority', value: 'high' },
+    status: 'active',
+    confidence: 0.9,
+    appliedCount: 1,
+    acceptedCount: 1,
+    overriddenCount: 0,
+    utilityScore: 0.7,
+    lowUtilityWarning: false,
+    version: 1,
+    lastAppliedAt: null,
+    createdAt: '2026-11-24T00:00:00Z',
+    updatedAt: '2026-11-24T00:00:00Z',
+    ...overrides,
+  });
+  const habits = [
+    mk('global_prio', { projectId: null, rule: { action: 'copilot_default', tool: 'create_task', field: 'priority', value: 'low' } }),
+    mk('proj_prio', { projectId: 'p1', rule: { action: 'copilot_default', tool: 'create_task', field: 'priority', value: 'high' } }),
+    mk('other_proj', { projectId: 'p2', rule: { action: 'copilot_default', tool: 'create_task', field: 'assignee', value: '李静' } }),
+    mk('paused_assignee', { projectId: 'p1', status: 'paused', rule: { action: 'copilot_default', tool: 'create_task', field: 'assignee', value: '暂停人' } }),
+    mk('low_util_assignee', { projectId: 'p1', lowUtilityWarning: true, rule: { action: 'copilot_default', tool: 'create_task', field: 'assignee', value: '低效人' } }),
+    mk('other_tool', { projectId: 'p1', rule: { action: 'copilot_default', tool: 'create_risk_or_decision', field: 'severity', value: 'high' } }),
+    mk('valid_assignee', { projectId: 'p1', rule: { action: 'copilot_default', tool: 'create_task', field: 'assignee', value: '王明' } }),
+  ];
+
+  // Missing priority & empty assignee get filled; project-scoped priority wins over global
+  const filled = prefillArgsFromHabits(habits, 'p1', 'create_task', {
+    projectId: 'p1',
+    title: '压测准备',
+    assignee: '',
+  });
+  assert.equal(filled.args.priority, 'high');
+  assert.equal(filled.args.assignee, '王明');
+  assert.deepEqual(filled.filled.map(f => `${f.field}:${f.value}`), ['priority:high', 'assignee:王明']);
+
+  // Explicit values are never overridden
+  const explicit = prefillArgsFromHabits(habits, 'p1', 'create_task', {
+    projectId: 'p1',
+    title: '压测准备',
+    priority: 'medium',
+    assignee: '张敏',
+  });
+  assert.equal(explicit.args.priority, 'medium');
+  assert.equal(explicit.args.assignee, '张敏');
+  assert.equal(explicit.filled.length, 0);
+});
+
+test('createPmCopilotAgent deterministically prefills approval card and executed tool payload from habits', async () => {
+  const calls = [];
+  let approvalReq = null;
+  let turn = 0;
+  const habits = [
+    {
+      id: 'h_prio_high',
+      projectId: 'p1',
+      patternKey: 'workflow:copilot:create_task:priority:high',
+      category: 'workflow',
+      title: '新建任务默认高优先级',
+      instruction: '新建任务默认设高优先级',
+      rule: { action: 'copilot_default', tool: 'create_task', field: 'priority', value: 'high' },
+      status: 'active',
+      confidence: 0.9,
+      appliedCount: 2,
+      acceptedCount: 2,
+      overriddenCount: 0,
+      utilityScore: 0.75,
+      lowUtilityWarning: false,
+      version: 1,
+      lastAppliedAt: null,
+      createdAt: '2026-11-24T00:00:00Z',
+      updatedAt: '2026-11-24T00:00:00Z',
+    },
+  ];
+  const agent = createPmCopilotAgent({
+    getState: () => baseState,
+    getDate: () => '2026-11-25',
+    getProjectId: () => 'p1',
+    getContextLabel: () => '项目工作台',
+    getHabits: () => habits,
+    onMutated: async () => {},
+    requestApproval: async (req) => {
+      approvalReq = req;
+      return true;
+    },
+    executor: async (command, payload) => {
+      calls.push({ command, payload });
+      if (command === 'copilot_agent_turn') {
+        turn += 1;
+        if (turn === 1) {
+          return {
+            model: 'qwen2.5:7b',
+            provider: 'ollama',
+            content: '',
+            toolCalls: [{ id: 'c1', name: 'create_task', arguments: { projectId: 'p1', title: '核对灰度清单' } }],
+            stopReason: 'toolUse',
+          };
+        }
+        return { model: 'qwen2.5:7b', provider: 'ollama', content: '已创建。', toolCalls: [], stopReason: 'stop' };
+      }
+      if (command === 'create_task') return { id: 't_prefill', ...payload };
+      return {};
+    },
+  });
+
+  await agent.prompt('帮我建个核对灰度清单的任务');
+  await agent.waitForIdle();
+
+  assert.equal(approvalReq.args.priority, 'high');
+  assert.ok(approvalReq.details.some(d => d.includes('已按你的习惯预填：优先级=高')));
+  const createCall = calls.find(c => c.command === 'create_task');
+  assert.equal(createCall.payload.priority, 'high');
+  const feedbackCall = calls.find(c => c.command === 'record_copilot_feedback');
+  assert.equal(feedbackCall.payload.decision, 'approved');
+  assert.deepEqual(feedbackCall.payload.appliedHabitIds, ['h_prio_high']);
+});
+
+test('compactConversation folds older tool results, drops oldest whole turns into memo, and keeps toolCallId pairs intact', () => {
+  const largeToolText = '详细日志条目 '.repeat(400);
+  const mkAssistantToolTurn = (id, name, reply) => ([
+    {
+      role: 'assistant',
+      content: [{ type: 'toolCall', id, name, arguments: { projectId: 'p1' } }],
+      api: 'openai-completions',
+      provider: 'ollama',
+      model: 'qwen2.5:7b',
+      usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+      stopReason: 'toolUse',
+      timestamp: 1,
+    },
+    {
+      role: 'toolResult',
+      toolCallId: id,
+      toolName: name,
+      content: [{ type: 'text', text: largeToolText }],
+      isError: false,
+      timestamp: 2,
+    },
+    {
+      role: 'assistant',
+      content: [{ type: 'text', text: reply }],
+      api: 'openai-completions',
+      provider: 'ollama',
+      model: 'qwen2.5:7b',
+      usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+      stopReason: 'stop',
+      timestamp: 3,
+    },
+  ]);
+
+  const messages = [
+    { role: 'user', content: '第1轮：检查最早的发布准备情况', timestamp: 10 },
+    ...mkAssistantToolTurn('tc_1', 'inspect_release', '已完成第1轮发布检查并记录风险。'),
+    { role: 'user', content: '第2轮：补充依赖排查', timestamp: 20 },
+    ...mkAssistantToolTurn('tc_2', 'inspect_deps', '第2轮依赖全部就绪。'),
+    { role: 'user', content: '第3轮：确认当前灰度任务', timestamp: 30 },
+    ...mkAssistantToolTurn('tc_3', 'get_tasks', '第3轮任务保持最新状态。'),
+    { role: 'user', content: '第4轮：生成今日结论', timestamp: 40 },
+  ];
+
+  // Turns 1-2 (older than the last 2) get folded; with a tight maxChars the oldest turn is then dropped to memo
+  const compact = compactConversation(messages, { maxChars: 3200, keepFullTurns: 2 });
+  assert.ok(compact.memo);
+  assert.match(compact.memo, /第1轮/);
+  assert.match(compact.memo, /inspect_release/);
+  assert.match(compact.memo, /已完成第1轮发布检查并记录风险/);
+  assert.ok(compact.memo.length <= 2000);
+
+  // Original input is never mutated
+  assert.equal(messages[2].content[0].text, largeToolText);
+
+  // Turn 1 dropped; turn 2's toolResult folded while preserving toolCallId pair; turn 3 kept full
+  assert.ok(!compact.messages.some(m => m.role === 'user' && m.content.includes('第1轮')));
+  const foldedToolResult = compact.messages.find(m => m.role === 'toolResult' && m.toolCallId === 'tc_2');
+  assert.ok(foldedToolResult);
+  assert.match(foldedToolResult.content[0].text, /^\[早期工具结果已折叠\] inspect_deps/);
+  const fullToolResult = compact.messages.find(m => m.role === 'toolResult' && m.toolCallId === 'tc_3');
+  assert.ok(fullToolResult);
+  assert.equal(fullToolResult.content[0].text, largeToolText);
+
+  // Every remaining toolResult still has its matching toolCall in the preceding assistant message
+  const toolCallIds = new Set(
+    compact.messages.flatMap(m =>
+      m.role === 'assistant' ? m.content.filter(p => p.type === 'toolCall').map(p => p.id) : [],
+    ),
+  );
+  for (const msg of compact.messages) {
+    if (msg.role === 'toolResult') assert.ok(toolCallIds.has(msg.toolCallId));
+  }
+
+  // Current turn is never dropped even if it alone exceeds maxChars
+  const giantLast = compactConversation(
+    [{ role: 'user', content: 'X'.repeat(5000), timestamp: 1 }],
+    { maxChars: 100, keepFullTurns: 2 },
+  );
+  assert.equal(giantLast.messages.length, 1);
+  assert.equal(giantLast.memo, null);
+});
+
+test('createPmCopilotAgent compacts long context for proxy while keeping agent state history intact', async () => {
+  let seenSystem = '';
+  let seenMessages = [];
+  const agent = createPmCopilotAgent({
+    getState: () => baseState,
+    getDate: () => '2026-11-25',
+    getProjectId: () => 'p1',
+    getContextLabel: () => '项目工作台',
+    onMutated: async () => {},
+    requestApproval: async () => true,
+    executor: async (command, payload) => {
+      if (command === 'copilot_agent_turn') {
+        seenSystem = payload.messages[0].content;
+        seenMessages = payload.messages.slice(1);
+        return {
+          model: 'qwen2.5:7b',
+          provider: 'ollama',
+          content: '收到。',
+          toolCalls: [],
+          stopReason: 'stop',
+        };
+      }
+      return {};
+    },
+  });
+
+  // Seed a multi-turn conversation exceeding 24k chars across older turns
+  const hugeReply = '历史长正文'.repeat(3000);
+  const makeTurn = (idx) => ([
+    { role: 'user', content: `历史问题${idx}`, timestamp: idx * 10 },
+    {
+      role: 'assistant',
+      content: [{ type: 'text', text: `第${idx}轮结论：${hugeReply}` }],
+      api: 'openai-completions',
+      provider: 'ollama',
+      model: 'qwen2.5:7b',
+      usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+      stopReason: 'stop',
+      timestamp: idx * 10 + 1,
+    },
+  ]);
+  agent.state.messages = [...makeTurn(1), ...makeTurn(2), ...makeTurn(3)];
+  const beforeLen = agent.state.messages.length;
+
+  await agent.prompt('当前最新问题');
+  await agent.waitForIdle();
+
+  assert.match(seenSystem, /早期对话备忘/);
+  assert.match(seenSystem, /历史问题1/);
+  assert.ok(seenMessages.length < beforeLen + 1);
+  assert.equal(seenMessages[seenMessages.length - 1].content, '当前最新问题');
+  // Agent's stored conversation state was not truncated
+  assert.equal(agent.state.messages.length, beforeLen + 2);
+});
+
+test('propose_user_habit tool delegates pending habit proposal to Rust without requiring write approval', async () => {
+  const calls = [];
+  let mutated = 0;
+  const tools = createPmAgentTools({
+    executor: async (command, payload) => {
+      calls.push({ command, payload });
+      return {
+        id: 'hp_explicit_1',
+        status: 'pending',
+        patternKey: 'explicit:writing:custom',
+        ...payload,
+      };
+    },
+    getState: () => baseState,
+    getDate: () => '2026-11-25',
+    getProjectId: () => 'p1',
+    onMutated: async () => {
+      mutated += 1;
+    },
+  });
+  const tool = tools.find(t => t.name === 'propose_user_habit');
+  assert.ok(tool);
+  const res = await tool.execute('call_1', {
+    category: 'writing',
+    title: '高管周报省略常规巡检',
+    instruction: '向老板汇报时跳过已完成且无异常的常规巡检项。',
+    audience: 'executive',
+  });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].command, 'propose_user_habit');
+  assert.equal(calls[0].payload.category, 'writing');
+  assert.deepEqual(calls[0].payload.rule, { action: 'explicit_teaching', audience: 'executive' });
+  assert.equal(calls[0].payload.projectId, undefined);
+  assert.equal(mutated, 1);
+  assert.match(res.content[0].text, /hp_explicit_1/);
 });

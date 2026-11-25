@@ -14,6 +14,8 @@ import type {
   HabitsCenter,
   MemoryAuditItem,
   MemoryAuditsResponse,
+  MemoryConsolidationItem,
+  MemoryConsolidationsResponse,
   MemoryDetail,
   Project,
   SourceDetail,
@@ -296,6 +298,7 @@ const AUDIT_KIND_LABELS: Record<MemoryAuditItem['kind'], string> = {
   date_conflict: '日期不一致',
   owner_conflict: '负责人冲突',
   negation_conflict: '肯定/取消矛盾',
+  numeric_conflict: '数值指标冲突',
   duplicate_overlap: '高度重复',
 };
 
@@ -653,6 +656,8 @@ function MemoryAuditsSection({
   onCountChange?: (count: number) => void;
 }) {
   const [audits, setAudits] = useState<MemoryAuditItem[]>([]);
+  const [mergingId, setMergingId] = useState<string | null>(null);
+  const [mergedContent, setMergedContent] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -698,19 +703,27 @@ function MemoryAuditsSection({
     }
   };
 
-  const resolveAudit = async (audit: MemoryAuditItem, action: 'keep_a' | 'keep_b' | 'dismiss') => {
+  const resolveAudit = async (audit: MemoryAuditItem, action: 'keep_a' | 'keep_b' | 'dismiss' | 'merge', customContent?: string) => {
     setBusy(true);
     setError('');
     setNotice('');
     try {
-      await execute('resolve_memory_audit', { auditId: audit.id, action });
+      await execute('resolve_memory_audit', {
+        auditId: audit.id,
+        action,
+        ...(action === 'merge' ? { mergedContent: (customContent ?? '').trim() } : {}),
+      });
+      setMergingId(null);
+      setMergedContent('');
       await load(projectId);
       await onResolved();
       if (alive.current) {
         setNotice(
           action === 'dismiss'
             ? '已标记为不同事项，两条记忆均保留活跃。'
-            : '已保留所选记忆，另一条已转入“仅存原文”归档，不再参与问答检索，完整修订历史已保留。',
+            : action === 'merge'
+              ? '已将两条记忆合并为新修订，双方原文依据与修订历史均已保留。'
+              : '已保留所选记忆，另一条已转入“仅存原文”归档，不再参与问答检索，完整修订历史已保留。',
         );
       }
     } catch (caught) {
@@ -779,13 +792,219 @@ function MemoryAuditsSection({
                 type="button"
                 className="button secondary compact"
                 disabled={disabled || busy}
+                onClick={() => {
+                  if (mergingId === audit.id) {
+                    setMergingId(null);
+                  } else {
+                    setMergingId(audit.id);
+                    setMergedContent(`${audit.memoryA.content}\n${audit.memoryB.content}`);
+                  }
+                }}
+              >
+                {mergingId === audit.id ? '取消合并' : '合并为一条'}
+              </button>
+              <button
+                type="button"
+                className="button secondary compact"
+                disabled={disabled || busy}
                 onClick={() => void resolveAudit(audit, 'dismiss')}
               >
                 确认为不同事项
               </button>
             </div>
+            {mergingId === audit.id && (
+              <div className="memory-merge-box" style={{ marginTop: 10 }}>
+                <label className="field-label" htmlFor={`audit-merge-${audit.id}`}>合并后的记忆正文（保留双方原文依据）</label>
+                <textarea
+                  id={`audit-merge-${audit.id}`}
+                  rows={3}
+                  value={mergedContent}
+                  disabled={disabled || busy}
+                  onChange={(e) => setMergedContent(e.target.value)}
+                />
+                <div className="memory-source-actions" style={{ marginTop: 6 }}>
+                  <button
+                    type="button"
+                    className="button primary compact"
+                    disabled={disabled || busy || !mergedContent.trim()}
+                    onClick={() => void resolveAudit(audit, 'merge', mergedContent)}
+                  >
+                    <Check size={14} />确认合并并归档旧项
+                  </button>
+                </div>
+              </div>
+            )}
           </article>
         ))
+      )}
+    </section>
+  );
+}
+
+function MemoryConsolidationsSection({
+  projects,
+  projectId,
+  disabled,
+  onResolved,
+}: {
+  projects: Project[];
+  projectId: string;
+  disabled: boolean;
+  onResolved: () => Promise<unknown>;
+}) {
+  const [items, setItems] = useState<MemoryConsolidationItem[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const alive = useRef(true);
+
+  const load = useCallback(async (scope = projectId) => {
+    setError('');
+    try {
+      const res = await execute<MemoryConsolidationsResponse>(
+        'get_memory_consolidations',
+        scope ? { projectId: scope } : {},
+      );
+      if (!alive.current) return;
+      const list = res.consolidations ?? [];
+      setItems(list);
+      setDrafts((prev) => {
+        const next = { ...prev };
+        for (const item of list) {
+          if (next[item.id] === undefined) next[item.id] = item.proposedContent;
+        }
+        return next;
+      });
+    } catch (caught) {
+      if (alive.current) setError(asError(caught).message);
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    alive.current = true;
+    void load(projectId);
+    return () => { alive.current = false; };
+  }, [projectId, load]);
+
+  const runScan = async () => {
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const res = await execute<MemoryConsolidationsResponse>(
+        'run_memory_consolidation',
+        projectId ? { projectId } : {},
+      );
+      if (!alive.current) return;
+      const list = res.consolidations ?? [];
+      setItems(list);
+      const scan = res.scan;
+      setNotice(
+        scan
+          ? `主题聚类扫描完成：检查 ${scan.scannedProjects} 个项目，生成 ${scan.newProposals} 条阶段归并建议。`
+          : '过程记忆主题归并扫描完成。',
+      );
+    } catch (caught) {
+      if (alive.current) setError(asError(caught).message);
+    } finally {
+      if (alive.current) setBusy(false);
+    }
+  };
+
+  const resolveItem = async (item: MemoryConsolidationItem, action: 'confirm' | 'dismiss') => {
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      await execute('resolve_memory_consolidation', {
+        consolidationId: item.id,
+        action,
+        ...(action === 'confirm' ? { content: (drafts[item.id] ?? item.proposedContent).trim(), layer: 'durable' } : {}),
+      });
+      await load(projectId);
+      await onResolved();
+      if (alive.current) {
+        setNotice(
+          action === 'confirm'
+            ? '已确认为阶段快照并归档其余过程记忆，全部原文依据已保留。'
+            : '已忽略该归并建议，原记录保持不变。',
+        );
+      }
+    } catch (caught) {
+      if (alive.current) setError(asError(caught).message);
+    } finally {
+      if (alive.current) setBusy(false);
+    }
+  };
+
+  return (
+    <section className="memory-audit-section" style={{ marginTop: 18 }}>
+      <h3>过程记忆主题归并建议（{items.length}）</h3>
+      <p className="field-hint">
+        空闲时按实体或主题聚类多条过程记忆（含到期 working 记录），提炼为单条阶段快照；确认后旧过程记录将转入「仅存原文」归档并保留全部原文追溯。
+      </p>
+      <div className="memory-source-actions">
+        <button
+          type="button"
+          className="button secondary compact"
+          disabled={disabled || busy}
+          onClick={() => void runScan()}
+        >
+          {busy ? <Spinner /> : <RefreshCw size={14} />}扫描过程记忆归并建议
+        </button>
+      </div>
+      {error && <p className="inline-error" role="alert">{error}</p>}
+      {notice && <p className="inline-success" role="status">{notice}</p>}
+      {items.length === 0 ? (
+        <p className="field-hint">当前筛选范围内暂无待确认的过程记忆归并建议。</p>
+      ) : (
+        items.map((item) => {
+          const text = drafts[item.id] ?? item.proposedContent;
+          return (
+            <article className="memory-review" key={item.id}>
+              <div className="memory-review-heading">
+                <strong>{item.title}</strong>
+                <span>{projects.find((p) => p.id === item.projectId)?.name ?? '项目'}</span>
+              </div>
+              <p className="field-hint">{item.reason}</p>
+              <details className="feishu-permissions">
+                <summary>查看被归并的 {item.sourceMemories.length} 条原记忆</summary>
+                {item.sourceMemories.map((src) => (
+                  <p key={src.id}>
+                    <strong>v{src.revision} · {src.layer} · {src.sourceTitle}</strong>：{src.content}
+                  </p>
+                ))}
+              </details>
+              <label className="field-label" htmlFor={`consolidation-${item.id}`}>归并后保留的阶段快照正文</label>
+              <textarea
+                id={`consolidation-${item.id}`}
+                rows={3}
+                value={text}
+                disabled={disabled || busy}
+                onChange={(e) => setDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
+              />
+              <div className="memory-review-actions">
+                <button
+                  type="button"
+                  className="button seal compact"
+                  disabled={disabled || busy || !text.trim()}
+                  onClick={() => void resolveItem(item, 'confirm')}
+                >
+                  确认归并（归档旧记录）
+                </button>
+                <button
+                  type="button"
+                  className="button secondary compact"
+                  disabled={disabled || busy}
+                  onClick={() => void resolveItem(item, 'dismiss')}
+                >
+                  忽略建议
+                </button>
+              </div>
+            </article>
+          );
+        })
       )}
     </section>
   );
@@ -914,6 +1133,12 @@ export function MemoryCenter({ projects, close, onSaved, initialTab = 'sources',
             disabled={!!busy}
             onResolved={async () => { await refresh(); await onSaved(); }}
             onCountChange={setOpenAuditCount}
+          />
+          <MemoryConsolidationsSection
+            projects={projects}
+            projectId={reviewProjectId}
+            disabled={!!busy}
+            onResolved={async () => { await refresh(); await onSaved(); }}
           />
         </>}
         {tab === 'history' && <>
