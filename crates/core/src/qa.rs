@@ -183,6 +183,10 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
     if let Some(trace) = payload.get("_semanticTrace") {
         out["_semanticTrace"] = trace.clone();
     }
+    if let Some(alias_hints) = crate::aliases::question_alias_hints(conn, Some(project), question)?
+    {
+        out["entityAliases"] = alias_hints;
+    }
     Ok(out)
 }
 

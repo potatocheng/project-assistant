@@ -111,26 +111,234 @@ fn clip(s: &str, max_chars: usize) -> String {
 }
 
 fn has_percentage(text: &str) -> bool {
-    let chars: Vec<char> = text.chars().collect();
-    chars
-        .windows(2)
-        .any(|w| w[0].is_ascii_digit() && (w[1] == '%' || w[1] == '％'))
+    text.lines().any(|line| {
+        let mut digit = false;
+        for c in line.chars().filter(|c| !c.is_whitespace()) {
+            if digit && matches!(c, '%' | '％') {
+                return true;
+            }
+            digit = c.is_ascii_digit() || ('０'..='９').contains(&c);
+        }
+        false
+    })
 }
 
-fn first_marker_pos(text: &str, markers: &[&str]) -> Option<usize> {
-    markers.iter().filter_map(|m| text.find(m)).min()
+fn risks_before_progress(text: &str) -> Option<bool> {
+    let mut risk = None;
+    let mut progress = None;
+    for (i, line) in text.lines().map(str::trim).enumerate() {
+        if is_bullet(line) {
+            continue;
+        }
+        let label = if line.starts_with('#') {
+            line.trim_start_matches('#').trim()
+        } else if let Some((label, _)) = line.split_once(['：', ':']) {
+            label.trim()
+        } else if matches!(
+            line,
+            "风险"
+                | "当前风险"
+                | "风险与阻塞"
+                | "风险及阻塞"
+                | "阻塞"
+                | "卡点"
+                | "待拍板"
+                | "待决策"
+                | "需关注"
+                | "进展"
+                | "今日进展"
+                | "本周进展"
+                | "项目进展"
+                | "完成情况"
+                | "今日完成"
+                | "本周完成"
+                | "推进情况"
+        ) {
+            line
+        } else {
+            continue;
+        };
+        if ["风险", "阻塞", "卡点", "待拍板", "待决策", "需关注"]
+            .iter()
+            .any(|m| label.contains(m))
+        {
+            risk.get_or_insert(i);
+        }
+        if ["进展", "完成", "推进"].iter().any(|m| label.contains(m)) {
+            progress.get_or_insert(i);
+        }
+    }
+    Some(risk? < progress?)
 }
 
-fn bullet_line_count(text: &str) -> usize {
-    text.lines()
-        .filter(|line| {
-            let trimmed = line.trim_start();
-            trimmed.starts_with("- ")
-                || trimmed.starts_with("* ")
-                || trimmed.starts_with("• ")
-                || trimmed.starts_with("· ")
+fn is_bullet(line: &str) -> bool {
+    ["- ", "* ", "• ", "· "]
+        .iter()
+        .any(|prefix| line.trim_start().starts_with(prefix))
+}
+
+fn is_greeting_line(line: &str) -> bool {
+    let lower = line.trim().to_lowercase();
+    [
+        "大家好",
+        "各位领导",
+        "领导好",
+        "各位同事",
+        "各位好",
+        "早安",
+        "早上好",
+        "hi all",
+        "hello all",
+        "dear all",
+    ]
+    .iter()
+    .any(|cue| lower.starts_with(cue) || lower.contains(cue))
+}
+
+fn is_closing_line(line: &str) -> bool {
+    let lower = line.trim().to_lowercase();
+    [
+        "辛苦审阅",
+        "请审阅",
+        "请查收",
+        "请各位指正",
+        "请指正",
+        "祝好",
+        "祝工作顺利",
+        "工作顺利",
+        "顺颂",
+        "此致",
+        "谢谢大家",
+        "以上请知悉",
+        "辛苦各位",
+        "thanks",
+        "best regards",
+    ]
+    .iter()
+    .any(|cue| lower.contains(cue))
+}
+
+fn markdown_table_rows(text: &str) -> usize {
+    let pipe_lines: Vec<&str> = text
+        .lines()
+        .map(str::trim)
+        .filter(|l| l.starts_with('|') && l.matches('|').count() >= 2)
+        .collect();
+    let has_separator = pipe_lines.iter().any(|l| l.contains("---"));
+    if has_separator && pipe_lines.len() >= 3 {
+        pipe_lines.len()
+    } else {
+        0
+    }
+}
+
+fn conclusion_detail_positions(text: &str) -> (Option<usize>, Option<usize>) {
+    let mut conclusion = None;
+    let mut detail = None;
+    for (i, raw) in text.lines().enumerate() {
+        let line = raw.trim();
+        if is_bullet(line) || line.is_empty() {
+            continue;
+        }
+        let label = if let Some(heading) = line.strip_prefix('#') {
+            heading.trim_start_matches('#').trim()
+        } else if line.starts_with('【') {
+            if let Some(end) = line.find('】') {
+                line['【'.len_utf8()..end].trim()
+            } else {
+                continue;
+            }
+        } else if let Some((label, _)) = line.split_once(['：', ':']) {
+            label.trim()
+        } else if matches!(
+            line,
+            "结论"
+                | "核心结论"
+                | "整体结论"
+                | "总结"
+                | "结论与总结"
+                | "进展"
+                | "今日进展"
+                | "本周进展"
+                | "项目进展"
+                | "完成情况"
+                | "今日完成"
+                | "本周完成"
+                | "推进情况"
+                | "明细"
+                | "详情"
+                | "细节"
+                | "过程"
+        ) {
+            line
+        } else {
+            continue;
+        };
+        let lower = label.to_lowercase();
+        if ["结论", "总结", "摘要", "一句话"]
+            .iter()
+            .any(|m| label.contains(m))
+            || ["conclusion", "summary", "tl;dr"]
+                .iter()
+                .any(|m| lower.contains(m))
+        {
+            conclusion.get_or_insert(i);
+        } else if ["进展", "完成", "推进", "明细", "详情", "细节", "过程"]
+            .iter()
+            .any(|m| label.contains(m))
+            || ["progress", "detail"].iter().any(|m| lower.contains(m))
+        {
+            detail.get_or_insert(i);
+        }
+    }
+    (conclusion, detail)
+}
+
+fn has_qa_line(text: &str, prefixes: &[&str]) -> bool {
+    text.lines().any(|raw| {
+        let trimmed = raw.trim_start();
+        prefixes.iter().any(|p| trimmed.starts_with(p))
+    })
+}
+
+fn count_en_words_and_cjk(text: &str) -> (usize, usize) {
+    let mut words = 0usize;
+    let mut run_len = 0usize;
+    let mut cjk = 0usize;
+    for ch in text.chars() {
+        if ch.is_ascii_alphabetic() {
+            run_len += 1;
+        } else {
+            if run_len >= 2 {
+                words += 1;
+            }
+            run_len = 0;
+            if ('\u{4e00}'..='\u{9fff}').contains(&ch) {
+                cjk += 1;
+            }
+        }
+    }
+    if run_len >= 2 {
+        words += 1;
+    }
+    (words, cjk)
+}
+
+fn count_owner_tags(text: &str) -> usize {
+    let at_tags = text
+        .char_indices()
+        .filter(|(idx, ch)| {
+            *ch == '@'
+                && text[idx + 1..]
+                    .chars()
+                    .next()
+                    .is_some_and(|next| !next.is_whitespace())
         })
-        .count()
+        .count();
+    at_tags
+        + text.matches("（负责人").count()
+        + text.matches("(负责人").count()
+        + text.matches("【负责人").count()
 }
 
 fn record_observation(
@@ -208,23 +416,7 @@ pub(crate) fn observe_report_edit(
     }
 
     // 2. User moved risks/blockers/decisions ahead of progress/completed items
-    let risk_markers = ["风险", "阻塞", "卡点", "待拍板", "待决策"];
-    let progress_markers = ["进展", "完成", "推进中", "本期完成", "今日完成"];
-    let old_risk_first = match (
-        first_marker_pos(old, &risk_markers),
-        first_marker_pos(old, &progress_markers),
-    ) {
-        (Some(r), Some(p)) => r < p,
-        _ => false,
-    };
-    let new_risk_first = match (
-        first_marker_pos(new, &risk_markers),
-        first_marker_pos(new, &progress_markers),
-    ) {
-        (Some(r), Some(p)) => r < p,
-        _ => false,
-    };
-    if !old_risk_first && new_risk_first {
+    if risks_before_progress(old) == Some(false) && risks_before_progress(new) == Some(true) {
         record_observation(
             conn,
             project_id,
@@ -286,9 +478,17 @@ pub(crate) fn observe_report_edit(
     }
 
     // 5. User converted prose into bullet list
-    let old_bullets = bullet_line_count(old);
-    let new_bullets = bullet_line_count(new);
-    if new_bullets >= 3 && new_bullets >= old_bullets + 2 {
+    let old_bullets = old.lines().filter(|l| is_bullet(l)).count();
+    let new_bullets = new.lines().filter(|l| is_bullet(l)).count();
+    let new_lines: HashSet<_> = new.lines().map(str::trim).collect();
+    let replaced_prose = old.lines().map(str::trim).any(|line| {
+        !line.is_empty()
+            && !line.starts_with('#')
+            && !line.ends_with(['：', ':'])
+            && !is_bullet(line)
+            && !new_lines.contains(line)
+    });
+    if new_bullets >= 3 && new_bullets >= old_bullets + 2 && replaced_prose {
         record_observation(
             conn,
             project_id,
@@ -301,6 +501,156 @@ pub(crate) fn observe_report_edit(
                 "title": "汇报正文偏好条列要点格式",
                 "instruction": "撰写或润色汇报时统一使用简洁的 Markdown 无序列表要点，避免大段连续文字。",
                 "rule": {"action": "report_style", "preferBullets": true}
+            }),
+        )?;
+        observed = true;
+    }
+
+    // 6. User stripped greeting opening and/or closing courtesy line while preserving body
+    let old_lines: Vec<&str> = old
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .collect();
+    let new_lines_non_empty: Vec<&str> = new
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .collect();
+    let old_has_courtesy = old_lines.len() >= 3
+        && (old_lines.first().is_some_and(|l| is_greeting_line(l))
+            || old_lines.last().is_some_and(|l| is_closing_line(l)));
+    let new_clean_of_courtesy = !new_lines_non_empty.is_empty()
+        && !new_lines_non_empty
+            .first()
+            .is_some_and(|l| is_greeting_line(l))
+        && !new_lines_non_empty
+            .last()
+            .is_some_and(|l| is_closing_line(l));
+    let retained_core_lines = new_lines_non_empty
+        .iter()
+        .filter(|l| old_lines.contains(*l))
+        .count();
+    if old_has_courtesy && new_clean_of_courtesy && retained_core_lines >= 1 {
+        record_observation(
+            conn,
+            project_id,
+            "report_edit",
+            "writing:no_greeting_closing",
+            "writing",
+            &format!("编辑{report_kind}时删去了开场问候或结尾客套语，直接呈现核心正文"),
+            json!({
+                "reportKind": report_kind,
+                "title": "汇报直奔主题（去掉寒暄与客套结语）",
+                "instruction": "撰写或润色汇报时去掉「大家好/请审阅/祝好」等开场与结尾客套语，直接输出结构化正文。",
+                "rule": {"action": "report_style", "noGreeting": true}
+            }),
+        )?;
+        observed = true;
+    }
+
+    // 7. User converted draft into Markdown table format
+    if markdown_table_rows(old) == 0 && markdown_table_rows(new) >= 3 {
+        record_observation(
+            conn,
+            project_id,
+            "report_edit",
+            "writing:table_style",
+            "writing",
+            &format!("编辑{report_kind}时将内容改写为 Markdown 表格展示"),
+            json!({
+                "reportKind": report_kind,
+                "title": "汇报偏好 Markdown 表格结构化展示",
+                "instruction": "撰写或润色汇报时优先使用 Markdown 表格呈现事项、责任人、状态与时间节点。",
+                "rule": {"action": "report_style", "preferTable": true}
+            }),
+        )?;
+        observed = true;
+    }
+
+    // 8. User moved conclusion/summary section ahead of details/progress (distinct from risks_first)
+    let old_pos = conclusion_detail_positions(old);
+    let new_pos = conclusion_detail_positions(new);
+    if matches!(new_pos, (Some(nc), Some(nd)) if nc < nd)
+        && matches!(old_pos, (None, _) | (Some(_), Some(_)) if old_pos.0.is_none_or(|oc| oc > old_pos.1.unwrap()))
+    {
+        record_observation(
+            conn,
+            project_id,
+            "report_edit",
+            "writing:conclusion_first",
+            "writing",
+            &format!("编辑{report_kind}时将结论/总结段前置到详细进展之前"),
+            json!({
+                "reportKind": report_kind,
+                "title": "汇报结构偏好结论前置",
+                "instruction": "撰写或润色汇报时先给出整体结论与判断，再展开详细进展与过程明细。",
+                "rule": {"action": "report_style", "conclusionFirst": true}
+            }),
+        )?;
+        observed = true;
+    }
+
+    // 9. User structured report in Q/A pairs
+    let q_prefixes = ["Q:", "Q：", "问：", "问:"];
+    let a_prefixes = ["A:", "A：", "答：", "答:"];
+    if !has_qa_line(old, &q_prefixes)
+        && !has_qa_line(old, &a_prefixes)
+        && has_qa_line(new, &q_prefixes)
+        && has_qa_line(new, &a_prefixes)
+    {
+        record_observation(
+            conn,
+            project_id,
+            "report_edit",
+            "writing:qa_format",
+            "writing",
+            &format!("编辑{report_kind}时改为「Q：/A：」问答格式呈现"),
+            json!({
+                "reportKind": report_kind,
+                "title": "汇报偏好问答式呈现",
+                "instruction": "撰写或润色汇报时用「Q：问题 / A：结论」问答形式呈现关键事项。",
+                "rule": {"action": "report_style", "qaFormat": true}
+            }),
+        )?;
+        observed = true;
+    }
+
+    // 10. User switched technical wording toward English terms
+    let (old_words, old_cjk) = count_en_words_and_cjk(old);
+    let (new_words, new_cjk) = count_en_words_and_cjk(new);
+    if old_cjk >= 6 && new_words >= old_words + 3 && new_cjk * 2 <= old_cjk {
+        record_observation(
+            conn,
+            project_id,
+            "report_edit",
+            "writing:english_terms",
+            "writing",
+            &format!("编辑{report_kind}时改为优先使用英文技术术语与模块名"),
+            json!({
+                "reportKind": report_kind,
+                "title": "技术术语偏好使用英文原词",
+                "instruction": "撰写或润色汇报时技术术语与模块名称优先使用英文原词（如 Auth、Rate Limiting），保持专业一致。",
+                "rule": {"action": "report_style", "englishTerms": true}
+            }),
+        )?;
+        observed = true;
+    }
+
+    // 11. User tagged explicit owners inline with (@负责人) or（负责人...）
+    if count_owner_tags(old) == 0 && count_owner_tags(new) >= 2 {
+        record_observation(
+            conn,
+            project_id,
+            "report_edit",
+            "writing:owner_tag",
+            "writing",
+            &format!("编辑{report_kind}时在事项末尾补充了（@责任人）标注"),
+            json!({
+                "reportKind": report_kind,
+                "title": "汇报事项末尾标注责任人",
+                "instruction": "撰写或润色汇报时在每个事项末尾用（@责任人）标注负责人；仅标注原稿已写明的责任人，不得臆测。",
+                "rule": {"action": "report_style", "ownerTag": true}
             }),
         )?;
         observed = true;
@@ -474,24 +824,31 @@ pub(crate) fn synthesize_proposals(conn: &Connection) -> Result<usize> {
         .collect::<std::result::Result<Vec<_>, _>>()?;
     drop(stmt);
 
-    // Group by (project_scope_or_global, pattern_key). If a pattern occurs across multiple
-    // projects, promote it under global scope (None) as well.
+    // Group by (project_scope_or_global, pattern_key). Only promote to global scope (None)
+    // when the pattern genuinely recurs across multiple distinct scopes (>= 2), preventing
+    // single-project observations from creating duplicate project + global proposals.
     type ObservationSamples = Vec<(String, String, Value)>;
     let mut grouped: HashMap<(Option<String>, String), ObservationSamples> = HashMap::new();
     let mut by_pattern_global: HashMap<String, ObservationSamples> = HashMap::new();
+    let mut by_pattern_scopes: HashMap<String, HashSet<Option<String>>> = HashMap::new();
     for (obs_id, project_id, pattern_key, category, detail_raw, _at) in rows {
         let detail: Value = serde_json::from_str(&detail_raw).unwrap_or_else(|_| json!({}));
         grouped
             .entry((project_id.clone(), pattern_key.clone()))
             .or_default()
             .push((obs_id.clone(), category.clone(), detail.clone()));
+        by_pattern_scopes
+            .entry(pattern_key.clone())
+            .or_default()
+            .insert(project_id);
         by_pattern_global
             .entry(pattern_key)
             .or_default()
             .push((obs_id, category, detail));
     }
     for (pattern_key, list) in by_pattern_global {
-        if list.len() as i64 >= PROPOSAL_THRESHOLD {
+        let distinct_scopes = by_pattern_scopes.get(&pattern_key).map_or(0, HashSet::len);
+        if list.len() as i64 >= PROPOSAL_THRESHOLD && distinct_scopes >= 2 {
             grouped.entry((None, pattern_key)).or_insert(list);
         }
     }
@@ -747,8 +1104,57 @@ struct HabitSpec<'a> {
     confidence: f64,
 }
 
+fn exclusive_slot_prefix(pattern_key: &str, rule: &Value) -> Option<String> {
+    if rule["action"].as_str() == Some("copilot_default") {
+        let tool = rule["tool"].as_str().map(str::trim).unwrap_or("");
+        let field = rule["field"].as_str().map(str::trim).unwrap_or("");
+        if !tool.is_empty() && !field.is_empty() {
+            return Some(format!("workflow:copilot:{tool}:{field}:"));
+        }
+    }
+    if rule["action"].as_str() == Some("default_snooze_days")
+        || pattern_key.starts_with("reminder:snooze_days:")
+    {
+        return Some("reminder:snooze_days:".to_owned());
+    }
+    if pattern_key.starts_with("workflow:copilot:") {
+        let parts: Vec<&str> = pattern_key.split(':').collect();
+        if parts.len() >= 5
+            && parts[2] != "cautious"
+            && !parts[2].is_empty()
+            && !parts[3].is_empty()
+        {
+            return Some(format!("workflow:copilot:{}:{}:", parts[2], parts[3]));
+        }
+    }
+    None
+}
+
+fn pause_conflicting_slot_habits(
+    conn: &Connection,
+    project_id: Option<&str>,
+    pattern_key: &str,
+    rule: &Value,
+    at: &str,
+) -> Result<usize> {
+    let Some(prefix) = exclusive_slot_prefix(pattern_key, rule) else {
+        return Ok(0);
+    };
+    let paused = conn.execute(
+        "UPDATE user_habits
+         SET status='paused', version=version+1, updated_at=?1
+         WHERE status='active'
+           AND coalesce(project_id,'')=coalesce(?2,'')
+           AND pattern_key<>?3
+           AND substr(pattern_key, 1, length(?4))=?4",
+        params![at, project_id, pattern_key, prefix],
+    )?;
+    Ok(paused)
+}
+
 fn upsert_active_habit(conn: &Connection, spec: HabitSpec<'_>) -> Result<Value> {
     let at = now();
+    let _ = pause_conflicting_slot_habits(conn, spec.project_id, spec.pattern_key, spec.rule, &at)?;
     let existing: Option<(String, i64)> = conn
         .query_row(
             "SELECT id, version FROM user_habits
@@ -960,9 +1366,29 @@ fn update_status(conn: &Connection, p: &Value) -> Result<Value> {
         .as_i64()
         .filter(|v| *v >= 1)
         .ok_or_else(|| invalid("缺少习惯版本号"))?;
+    let at = now();
+    if status == "active" {
+        if let Some((proj, pkey, rule_raw)) = conn
+            .query_row(
+                "SELECT project_id, pattern_key, rule_json FROM user_habits WHERE id=? AND version=?",
+                params![hid, base],
+                |r| {
+                    Ok((
+                        r.get::<_, Option<String>>(0)?,
+                        r.get::<_, String>(1)?,
+                        r.get::<_, String>(2)?,
+                    ))
+                },
+            )
+            .optional()?
+        {
+            let rule: Value = serde_json::from_str(&rule_raw).unwrap_or_else(|_| json!({}));
+            let _ = pause_conflicting_slot_habits(conn, proj.as_deref(), &pkey, &rule, &at)?;
+        }
+    }
     let changed = conn.execute(
         "UPDATE user_habits SET status=?1, version=version+1, updated_at=?2 WHERE id=?3 AND version=?4",
-        params![status, now(), hid, base],
+        params![status, at, hid, base],
     )?;
     if changed == 0 {
         return Err(AppError::new(
@@ -1191,7 +1617,7 @@ pub(crate) fn select_for_context(
                 last_applied_at,created_at,updated_at
          FROM user_habits
          WHERE status='active'
-           AND (?1 IS NULL OR project_id IS NULL OR project_id=?1)
+           AND (project_id IS NULL OR project_id=?1)
          ORDER BY updated_at DESC, id
          LIMIT 100",
     )?;
@@ -1321,6 +1747,66 @@ pub(crate) fn validate_backup(conn: &Connection) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn report_section_order_recognizes_plain_headings_and_skips_list_items() {
+        assert_eq!(
+            risks_before_progress("风险与阻塞\n账号待开通。\n今日进展\n完成联调。"),
+            Some(true)
+        );
+        assert_eq!(
+            risks_before_progress("- 风险：补测接口。\n今日进展\n完成联调。\n当前风险"),
+            Some(false)
+        );
+    }
+
+    #[test]
+    fn report_edit_signals_distinguish_style_changes_from_content_edits() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = crate::db::Database::open(dir.path().to_owned()).unwrap();
+        let examples = [
+            ("百分比删除", "接口验证进度 70%。", "接口验证已接近完成。", Some("writing:drop_percentages")),
+            ("全角数值", "接口验证进度 ７０ ％。", "接口验证已接近完成。", Some("writing:drop_percentages")),
+            ("数值更新", "接口验证进度 70%。", "接口验证进度 80 %。", None),
+            ("小标题换序", "## 今日进展\n完成联调。\n## 风险\n人员待定。", "## 风险\n人员待定。\n## 今日进展\n完成联调。", Some("writing:risks_first")),
+            ("带冒号的标题", "今日完成：接口联调。\n当前风险：账号待开通。", "当前风险：账号待开通。\n今日完成：接口联调。", Some("writing:risks_first")),
+            ("前言提到风险", "## 今日进展\n完成联调。\n## 风险\n人员待定。", "团队关注风险，联调按时完成。\n## 今日进展\n完成联调。\n## 风险\n人员待定。", None),
+            ("正文条列化", "联调完成；测试通过；周五交付。", "- 联调完成\n- 测试通过\n- 周五交付", Some("writing:bullet_style")),
+            ("替换部分正文", "- 通过评审\n需要补日志、验签和回滚说明。", "- 通过评审\n- 补日志\n- 验签\n- 补回滚说明", Some("writing:bullet_style")),
+            ("列表追加", "- 通过评审\n- 完成联调", "- 通过评审\n- 完成联调\n- 补日志\n- 验签", None),
+            ("正文后追加待办", "联调按时完成。", "联调按时完成。\n- 补日志\n- 验签\n- 补回滚说明", None),
+            ("删除问候语与结语", "大家好，汇报如下：\n- 接口联调完成\n- 测试环境部署就绪\n辛苦各位审阅，祝好！", "- 接口联调完成\n- 测试环境部署就绪", Some("writing:no_greeting_closing")),
+            ("保留问候语无改动信号", "大家好，汇报如下：\n- 接口联调完成\n- 测试环境部署就绪\n请查收", "大家好，汇报如下：\n- 接口联调完成\n- 补压测说明\n请查收", None),
+            ("改写为Markdown表格", "支付模块王明负责开发中；审计模块李静负责已完成。", "| 模块 | 负责人 | 状态 |\n| --- | --- | --- |\n| 支付 | 王明 | 开发中 |\n| 审计 | 李静 | 已完成 |", Some("writing:table_style")),
+            ("结论段前置", "## 今日进展\n完成接口联调。\n## 核心结论\n周四可按期发布。", "## 核心结论\n周四可按期发布。\n## 今日进展\n完成接口联调。", Some("writing:conclusion_first")),
+            ("问答式呈现", "目前压测尚未启动，因为测试环境缺少证书。", "Q: 压测启动了吗？\nA: 尚未启动，因测试环境缺少证书。", Some("writing:qa_format")),
+            ("英文术语偏好", "完成了身份认证模块和流量限流改造。", "Completed Auth module and Rate Limiting refactor.", Some("writing:english_terms")),
+            ("责任人尾缀标注", "完成对账脚本修复；补齐灰度监控大盘。", "完成对账脚本修复（@王明）；补齐灰度监控大盘（@张敏）。", Some("writing:owner_tag")),
+            ("一句话结论前置", "本周完成了网关接口开发，联调正常，下周进入灰度验证。", "【一句话结论】整体按期，下周进入灰度。\n详情：本周完成网关开发与联调。", Some("writing:conclusion_first")),
+            ("单行正文去问候", "各位领导好：\n今日完成支付联调。\n祝工作顺利！", "今日完成支付联调。", Some("writing:no_greeting_closing")),
+            ("补充单责任人噪声", "测试证书待运维开通。", "测试证书待运维王磊开通。", None),
+        ];
+        let mut failures = Vec::new();
+        for (name, old, new, expected) in examples {
+            db.conn
+                .execute("DELETE FROM habit_observations", [])
+                .unwrap();
+            observe_report_edit(&db.conn, None, "日报", old, new).unwrap();
+            let mut stmt = db
+                .conn
+                .prepare("SELECT pattern_key FROM habit_observations")
+                .unwrap();
+            let actual: Vec<String> = stmt
+                .query_map([], |r| r.get(0))
+                .unwrap()
+                .map(|r| r.unwrap())
+                .collect();
+            if actual.iter().map(String::as_str).ne(expected) {
+                failures.push((name, actual));
+            }
+        }
+        assert!(failures.is_empty(), "unexpected edit signals: {failures:?}");
+    }
     use crate::db::Database;
 
     #[test]
@@ -1368,6 +1854,11 @@ mod tests {
 
         let selected =
             select_for_context(&db.conn, Some("p1"), &["writing"], "周报润色", 5).unwrap();
+        let workspace = select_for_context(&db.conn, None, &["writing"], "周报润色", 5).unwrap();
+        assert!(
+            workspace.is_empty(),
+            "a project writing rule leaked into a workspace report"
+        );
         assert_eq!(selected.len(), 1);
         assert_eq!(selected[0]["patternKey"], "writing:risks_first");
 
@@ -1398,5 +1889,109 @@ mod tests {
         assert_eq!(res["savedHabits"].as_array().unwrap().len(), 2);
         let workflow = select_for_context(&db.conn, None, &["workflow"], "新建任务", 5).unwrap();
         assert_eq!(workflow.len(), 2);
+    }
+
+    #[test]
+    fn single_project_observations_do_not_duplicate_global_proposal_and_exclusive_slot_auto_pauses()
+    {
+        let dir = tempfile::tempdir().unwrap();
+        let db = Database::open(dir.path().to_path_buf()).unwrap();
+        db.conn
+            .execute(
+                "INSERT INTO projects VALUES('p1','支付二期','','2026-11-24T00:00:00Z')",
+                [],
+            )
+            .unwrap();
+        db.conn
+            .execute(
+                "INSERT INTO projects VALUES('p2','清结算','','2026-11-24T00:00:00Z')",
+                [],
+            )
+            .unwrap();
+
+        let draft = "今日完成：接口联调进度 60%。\n当前风险：测试账号待开通。";
+        let edited = "今日完成：接口联调推进中。\n当前风险：测试账号待开通。";
+        for _ in 0..3 {
+            observe_report_edit(&db.conn, Some("p1"), "日报", draft, edited).unwrap();
+        }
+        let c1 = center(&db.conn, &json!({"projectId": "p1"})).unwrap();
+        let drop_props: Vec<&Value> = c1["proposals"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|p| p["patternKey"] == "writing:drop_percentages")
+            .collect();
+        // Single project must produce ONLY the project-scoped proposal (no duplicate global!)
+        assert_eq!(drop_props.len(), 1);
+        assert_eq!(drop_props[0]["projectId"], "p1");
+
+        // Adding an edit in a second project promotes a global proposal cleanly
+        observe_report_edit(&db.conn, Some("p2"), "日报", draft, edited).unwrap();
+        let c2 = center(&db.conn, &json!({})).unwrap();
+        let global_props: Vec<&Value> = c2["proposals"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|p| p["patternKey"] == "writing:drop_percentages" && p["projectId"].is_null())
+            .collect();
+        assert_eq!(global_props.len(), 1);
+
+        // Preference shift in exclusive slot (create_task:priority:high -> low) auto-pauses old value
+        record_copilot_feedback(
+            &db.conn,
+            &json!({
+                "projectId": "p1",
+                "toolName": "create_task",
+                "decision": "edited_and_approved",
+                "originalArgs": {"priority": "medium", "assignee": ""},
+                "finalArgs": {"priority": "high", "assignee": "王明"},
+                "rememberAsHabit": true
+            }),
+        )
+        .unwrap();
+        record_copilot_feedback(
+            &db.conn,
+            &json!({
+                "projectId": "p1",
+                "toolName": "create_task",
+                "decision": "edited_and_approved",
+                "originalArgs": {"priority": "high"},
+                "finalArgs": {"priority": "low"},
+                "rememberAsHabit": true
+            }),
+        )
+        .unwrap();
+        let c3 = center(&db.conn, &json!({"projectId": "p1"})).unwrap();
+        let habits = c3["habits"].as_array().unwrap();
+        let high = habits
+            .iter()
+            .find(|h| h["patternKey"] == "workflow:copilot:create_task:priority:high")
+            .unwrap();
+        let low = habits
+            .iter()
+            .find(|h| h["patternKey"] == "workflow:copilot:create_task:priority:low")
+            .unwrap();
+        let assignee = habits
+            .iter()
+            .find(|h| h["patternKey"] == "workflow:copilot:create_task:assignee:王明")
+            .unwrap();
+        assert_eq!(high["status"], "paused");
+        assert_eq!(low["status"], "active");
+        assert_eq!(assignee["status"], "active");
+
+        // Re-activating high automatically pauses low
+        update_status(
+            &db.conn,
+            &json!({"id": high["id"], "status": "active", "baseVersion": high["version"]}),
+        )
+        .unwrap();
+        let c4 = center(&db.conn, &json!({"projectId": "p1"})).unwrap();
+        let low_after = c4["habits"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|h| h["id"] == low["id"])
+            .unwrap();
+        assert_eq!(low_after["status"], "paused");
     }
 }

@@ -15,7 +15,6 @@ import { type ToastAction, usePresence, useSwipeDismiss } from '../interaction';
 import { Spinner, useModalLayer } from '../ui';
 import { planCopilotAction } from './copilot-actions';
 import {
-  buildSystemPrompt,
   createPmCopilotAgent,
   type ToolApprovalDecision,
   type ToolApprovalRequest,
@@ -109,11 +108,12 @@ export function CopilotDrawer({
   const aliasesRef = useRef<EntityAlias[]>([]);
   const habitsRef = useRef<UserHabit[]>([]);
   const offlineSessionRef = useRef<Map<string, string>>(new Map());
+  const profileReadyRef = useRef<Promise<void> | undefined>(undefined);
 
   useEffect(() => {
     if (!open) return;
     let active = true;
-    void Promise.all([
+    profileReadyRef.current = Promise.all([
       execute<AssistantPreferences>('get_assistant_preferences').catch(() => null),
       execute<{ aliases: EntityAlias[] }>('list_entity_aliases', projectId ? { projectId } : {}).catch(() => null),
       execute<HabitsCenter>('get_habits_center', projectId ? { projectId } : {}).catch(() => null),
@@ -122,17 +122,6 @@ export function CopilotDrawer({
       preferencesRef.current = prefs;
       aliasesRef.current = aliasRes?.aliases ?? [];
       habitsRef.current = habitsRes?.habits ?? [];
-      if (agentRef.current) {
-        agentRef.current.state.systemPrompt = buildSystemPrompt(
-          stateRef.current,
-          projectIdRef.current,
-          dateRef.current,
-          contextLabelRef.current,
-          preferencesRef.current,
-          aliasesRef.current,
-          habitsRef.current,
-        );
-      }
     });
     return () => {
       active = false;
@@ -323,18 +312,7 @@ export function CopilotDrawer({
   }, [timeline, workspaceKey]);
 
   const ensureAgent = (): Agent => {
-    if (agentRef.current) {
-      agentRef.current.state.systemPrompt = buildSystemPrompt(
-        stateRef.current,
-        projectIdRef.current,
-        dateRef.current,
-        contextLabelRef.current,
-        preferencesRef.current,
-        aliasesRef.current,
-        habitsRef.current,
-      );
-      return agentRef.current;
-    }
+    if (agentRef.current) return agentRef.current;
 
     const agent = createPmCopilotAgent({
       executor: execute,
@@ -345,6 +323,7 @@ export function CopilotDrawer({
       getPreferences: () => preferencesRef.current,
       getAliases: () => aliasesRef.current,
       getHabits: () => habitsRef.current,
+      waitForProfile: () => profileReadyRef.current,
       onMutated: async () => {
         await onChangedRef.current();
       },

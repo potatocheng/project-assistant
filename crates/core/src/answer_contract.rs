@@ -69,6 +69,9 @@ pub(crate) fn evidence_reader(
         crate::question_flow::ANSWER_RULES,
         COMPACT_RULES
     );
+    if context.get("entityAliases").is_some_and(|v| !v.is_null()) {
+        system.push_str("\npresentationContext.entityAliases给出用户配置的名称别名映射；当references使用其中某一名称且与问题中的别名属于同一组时，可直接认定指向同一对象并正常作答，不要因名称写法不同判为missing/partial。");
+    }
     let mut input = json!({"readerContract":"evidence-answer-reader-v1",
         "task":"依据references逐项回答原问题要求的对象与字段；部分直接可答则partial并保留必要未知，全部无直接依据则unknown。",
         "question":question,"projectId":context["projectId"],
@@ -81,7 +84,12 @@ pub(crate) fn evidence_reader(
             presentation.insert("date".to_owned(), date.clone());
         }
     }
-    for field in ["preferences", "contextIntent", "limitations"] {
+    for field in [
+        "preferences",
+        "contextIntent",
+        "limitations",
+        "entityAliases",
+    ] {
         if let Some(value) = context.get(field).filter(|value| !value.is_null()) {
             presentation.insert(field.to_owned(), value.clone());
         }
@@ -1599,5 +1607,26 @@ mod tests {
         for item in &projected {
             assert!(item["content"][0]["text"].is_string());
         }
+    }
+
+    #[test]
+    fn evidence_reader_forwards_entity_aliases_only_when_present() {
+        let refs = [json!({"id":"r1","projectId":"p1","content":"王明负责支付网关接入。"})];
+        let base_ctx = json!({"projectId":"p1","question":"老王负责什么？"});
+        let base_req = evidence_reader(&base_ctx, &refs, None).unwrap();
+        assert!(base_req.input.get("presentationContext").is_none());
+        assert!(!base_req.system.contains("entityAliases"));
+
+        let alias_ctx = json!({
+            "projectId": "p1",
+            "question": "老王负责什么？",
+            "entityAliases": [{"canonical": "王明", "aliases": ["老王"]}]
+        });
+        let alias_req = evidence_reader(&alias_ctx, &refs, None).unwrap();
+        assert_eq!(
+            alias_req.input["presentationContext"]["entityAliases"],
+            alias_ctx["entityAliases"]
+        );
+        assert!(alias_req.system.contains("entityAliases"));
     }
 }

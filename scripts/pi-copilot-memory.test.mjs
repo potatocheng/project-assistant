@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  attributeCopilotHabitFeedback,
   buildSystemPrompt,
   createPmAgentTools,
   createPmCopilotAgent,
+  selectHabitsForTurn,
 } from '../src/components/shell/pi-copilot-agent.ts';
 
 const baseState = {
@@ -204,7 +206,8 @@ test('buildSystemPrompt injects active confirmed user habits and skips paused ha
   );
   assert.match(prompt, /用户已确认的个人工作习惯/);
   assert.match(prompt, /先把风险与阻塞放在最前面/);
-  assert.match(prompt, /绝不能覆盖客观项目事实/);
+  assert.match(prompt, /对于用户交由你选择的部分，按适用的历史偏好/);
+  assert.match(prompt, /项目事实须核实，写入操作须单独授权/);
   assert.doesNotMatch(prompt, /这条已暂停规则不应出现在系统提示中/);
 });
 
@@ -285,4 +288,216 @@ test('createPmCopilotAgent applies PAHF inline overrideArgs and fires record_cop
   assert.equal(feedbackCall.payload.originalArgs.priority, 'medium');
   assert.equal(feedbackCall.payload.finalArgs.priority, 'high');
   assert.equal(feedbackCall.payload.finalArgs.assignee, '王明');
+});
+
+test('buildSystemPrompt excludes lowUtilityWarning habits and ranks project-scoped context-relevant habits first', () => {
+  const mk = (id, overrides) => ({
+    id,
+    projectId: null,
+    patternKey: `k:${id}`,
+    category: 'workflow',
+    title: `标题-${id}`,
+    instruction: `指令-${id}`,
+    rule: {},
+    status: 'active',
+    confidence: 0.85,
+    appliedCount: 2,
+    acceptedCount: 2,
+    overriddenCount: 0,
+    utilityScore: 0.75,
+    lowUtilityWarning: false,
+    version: 1,
+    lastAppliedAt: null,
+    createdAt: '2026-11-24T00:00:00Z',
+    updatedAt: '2026-11-24T00:00:00Z',
+    ...overrides,
+  });
+  const habits = [
+    mk('degraded', { projectId: 'p1', instruction: '已衰减低效习惯不应注入', utilityScore: 0.25, lowUtilityWarning: true }),
+    mk('other_proj', { projectId: 'p2', instruction: '其他项目习惯不应注入' }),
+    mk('global_low', { projectId: null, category: 'filtering', instruction: '全局低相关习惯', utilityScore: 0.6 }),
+    mk('scoped_writing', { projectId: 'p1', category: 'writing', instruction: '本项目汇报写作习惯', utilityScore: 0.9 }),
+  ];
+  const prompt = buildSystemPrompt(baseState, 'p1', '2026-11-24', '工作汇报与日报', null, [], habits);
+  assert.doesNotMatch(prompt, /已衰减低效习惯不应注入/);
+  assert.doesNotMatch(prompt, /其他项目习惯不应注入/);
+  assert.match(prompt, /本项目汇报写作习惯/);
+  assert.ok(
+    prompt.indexOf('本项目汇报写作习惯') < prompt.indexOf('全局低相关习惯'),
+    'expected scoped writing habit ranked ahead of global filtering habit on report page',
+  );
+});
+
+test('attributeCopilotHabitFeedback isolates tool and field overrides without cross-tool collateral damage', () => {
+  const mk = (id, rule) => ({
+    id,
+    projectId: 'p1',
+    patternKey: id,
+    category: 'workflow',
+    title: id,
+    instruction: id,
+    rule,
+    status: 'active',
+    confidence: 0.9,
+    appliedCount: 1,
+    acceptedCount: 1,
+    overriddenCount: 0,
+    utilityScore: 0.67,
+    lowUtilityWarning: false,
+    version: 1,
+    lastAppliedAt: null,
+    createdAt: '2026-11-24T00:00:00Z',
+    updatedAt: '2026-11-24T00:00:00Z',
+  });
+  const habits = [
+    mk('h_task_prio', { action: 'copilot_default', tool: 'create_task', field: 'priority', value: 'high' }),
+    mk('h_task_assignee', { action: 'copilot_default', tool: 'create_task', field: 'assignee', value: '王明' }),
+    mk('h_risk_sev', { action: 'copilot_default', tool: 'create_risk_or_decision', field: 'severity', value: 'high' }),
+  ];
+  // User edits ONLY create_task.priority (high -> low), keeping assignee = 王明, never touching create_risk_or_decision
+  const out = attributeCopilotHabitFeedback(
+    habits,
+    'p1',
+    'create_task',
+    'edited_and_approved',
+    { priority: 'high', assignee: '王明' },
+    { priority: 'low', assignee: '王明' },
+  );
+  assert.deepEqual(out.appliedHabitIds, ['h_task_prio']);
+  assert.deepEqual(out.acceptedHabitIds, ['h_task_assignee']);
+  // An unrelated default was never applied to this draft.
+  for (const decision of ['rejected', 'edited_and_approved']) {
+    const unrelated = attributeCopilotHabitFeedback(habits, 'p1', 'create_task', decision,
+      { priority: 'medium' }, { priority: 'low' });
+    assert.deepEqual(unrelated.appliedHabitIds, []);
+    assert.deepEqual(unrelated.acceptedHabitIds, []);
+  }
+});
+
+test('Copilot selects habits for the current user turn on the same page', async () => {
+  const prompts = [];
+  const selections = [];
+  const habits = Array.from({ length: 14 }, (_, i) => ({
+    id: String(i).padStart(2, '0'), projectId: null, category: 'workflow', status: 'active',
+    confidence: 0.9, utilityScore: 0.5, title: '个人偏好',
+    instruction: i === 13 ? '核对发票时先列税率' : i === 12 ? '排期优先标出里程碑' : '按部门归档' + i,
+  }));
+  habits.push({ ...habits[13], projectId: 'p2', instruction: '另一项目单独核对发票税率' });
+  const agent = createPmCopilotAgent({
+    getState: () => baseState, getDate: () => '2026-11-24', getProjectId: () => '',
+    getContextLabel: () => '工作台', getHabits: () => habits,
+    onMutated: async () => {}, requestApproval: async () => false,
+    executor: async (name, payload) => {
+      if (name === 'rank_copilot_habits') {
+        selections.push(payload.question);
+        const match = payload.candidates.findIndex(p => p.includes(payload.question.includes('税率') ? '税率' : '里程碑'));
+        assert.ok(match >= 0);
+        return { indices: [match+1] };
+      }
+      assert.equal(name, 'copilot_agent_turn');
+      prompts.push({user:payload.messages.filter(m=>m.role==='user').at(-1).content,
+        focus:payload.messages[0].content.split('与本轮相关的历史偏好（供默认选择参考）').at(-1)});
+      return { content: '好', toolCalls: [], stopReason: 'stop' };
+    },
+  });
+  await agent.prompt('帮我核对这张发票的税率');
+  await agent.prompt('帮我整理排期和里程碑');
+  assert.equal(selections.length, 2);
+  assert.equal(prompts[0].user, '帮我核对这张发票的税率');
+  assert.equal(prompts[1].user, '帮我整理排期和里程碑');
+  assert.match(prompts[0].focus, /核对发票时先列税率/);
+  assert.doesNotMatch(prompts[0].focus, /另一项目|排期优先标出里程碑/);
+  assert.match(prompts[1].focus, /排期优先标出里程碑/);
+  assert.doesNotMatch(prompts[1].focus, /另一项目|核对发票时先列税率/);
+});
+
+test('A semantic match can focus confirmed evidence without dropping the local shortlist on failure', async () => {
+  const habit = (id, instruction, overrides = {}) => ({ id, instruction, title: '约定', projectId: null,
+    category: 'workflow', status: 'active', confidence: .9, utilityScore: .5, ...overrides });
+  const eligible = [
+    habit('fax', 'Send invoice copies by fax.'), habit('desk', 'Contact the duty desk about an outage.'),
+    habit('archive', 'Archive the weekly record.'), habit('rent', 'Use the north office.'),
+    habit('clips', 'Draft short videos.'), habit('too-long', 'Oversized'.repeat(1000)),
+  ];
+  const all = [...eligible, habit('misc', 'Private cross-scope', {projectId:'p2'}),
+    habit('old', 'Private inactive', {status:'paused'}), habit('low', 'Private degraded', {lowUtilityWarning:true})];
+  const pick = (question, run) => selectHabitsForTurn(all, 'p1', '', question, run);
+  const selected = await pick('Who should hear about a service interruption?', async (_name, payload) => {
+    assert.ok(payload.candidates.every(text => !/Private|Oversized/.test(text)));
+    const id = payload.candidates.findIndex(text => text.includes('outage'))+1;
+    return { indices: [id, id] };
+  });
+  assert.deepEqual(selected.focus, [eligible[1]]);
+  assert.deepEqual(new Set(selected.evidence), new Set(eligible));
+  assert.deepEqual((await pick('invoice', async () => ({indices:[]}))).focus, [eligible[0]]);
+  for (const run of [async () => ({indices:[0,999]}), async () => ({indices:['1']}),
+    async () => ({indices:[1,2,3,4,5]}), async () => { throw new Error('offline'); }]) {
+    const fallback = await pick('invoice', run);
+    assert.deepEqual(fallback.focus, [eligible[0]]);
+    assert.deepEqual(new Set(fallback.evidence), new Set(eligible));
+  }
+});
+
+test('Copilot waits for the loaded profile and reuses the same selection across a tool round', async () => {
+  let selections = 0;
+  let profile = [];
+  const prompts = [];
+  const agent = createPmCopilotAgent({
+    getState: () => baseState, getDate: () => '2026-11-24', getProjectId: () => 'p1', getContextLabel: () => '工作台',
+    getHabits: () => [...profile], waitForProfile: async () => {
+      profile = Array.from({length:7}, (_,i) => ({id:String(i), title:'格式', instruction:'输出格式'+i,
+        category:'writing', projectId:null, status:'active', confidence:1, utilityScore:.5}));
+    },
+    onMutated: async () => {}, requestApproval: async () => false,
+    executor: async (name, payload) => {
+      if (name === 'rank_copilot_habits') { selections++; return {indices:[1]}; }
+      assert.equal(name, 'copilot_agent_turn');
+      prompts.push(payload.messages[0].content);
+      return prompts.length === 1
+        ? {content:'',toolCalls:[{id:'read',name:'list_tasks',arguments:{}}],stopReason:'toolUse'}
+        : {content:'完成',toolCalls:[],stopReason:'stop'};
+    },
+  });
+  await agent.prompt('我的任务还有哪些？');
+  assert.equal(selections, 1);
+  assert.equal(prompts.length, 2);
+  assert.match(prompts[0], /输出格式0/);
+  assert.equal(prompts[0], prompts[1]);
+  assert.deepEqual(agent.state.messages.find(m=>m.role==='user').content, [{type:'text',text:'我的任务还有哪些？'}]);
+});
+
+test('A vector match outside the previous twelve expands the evidence without evicting any original', async () => {
+  const profile = Array.from({length:18}, (_,i)=>({id:String(i).padStart(2,'0'), title:'约定', instruction:'格式'+i,
+    category:'writing', projectId:null, status:'active', confidence:1, utilityScore:.5}));
+  const pick = executor=>selectHabitsForTurn(profile,'','工作台','Help with a handoff',executor);
+  const local = await pick(async()=>({indices:[]}));
+  const expanded = await pick(async()=>({indices:[18]}));
+  assert.equal(local.evidence.length,12);
+  assert.deepEqual(expanded.evidence,[...local.evidence,profile[17]]);
+  assert.deepEqual(expanded.focus,[profile[17]]);
+});
+
+test('A project switch during semantic selection cannot send the old project habits to the answering model', async () => {
+  let project = 'p1';
+  let prompt = '';
+  const habits = Array.from({length:6}, (_,i) => ({
+    id:String(i), title:'约定', instruction:'原项目私人约定'+i, category:'writing', projectId:'p1',
+    status:'active', confidence:1, utilityScore:.5,
+  }));
+  habits.push({...habits[0], id:'new', instruction:'新项目使用交接簿', projectId:'p2'});
+  const agent = createPmCopilotAgent({
+    getState: () => baseState, getDate: () => '2026-11-24', getProjectId: () => project,
+    getHabits: () => habits, getContextLabel: () => '工作台', onMutated: async () => {}, requestApproval: async () => false,
+    executor: async (name, payload) => {
+      if (name === 'rank_copilot_habits') {
+        project = 'p2';
+        return {indices:[1]};
+      }
+      prompt = payload.messages[0].content;
+      return {content:'完成',toolCalls:[],stopReason:'stop'};
+    },
+  });
+  await agent.prompt('请给一个建议');
+  assert.match(prompt, /新项目使用交接簿/);
+  assert.doesNotMatch(prompt, /原项目私人约定/);
 });

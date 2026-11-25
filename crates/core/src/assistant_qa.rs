@@ -198,6 +198,9 @@ pub(crate) fn retrieve(conn: &Connection, payload: &Value) -> Result<Value> {
     }
     context["preferences"] = crate::memory_workbench::preferences(conn)?;
     context["contextIntent"] = json!(context_intent(question));
+    if let Some(alias_hints) = crate::aliases::question_alias_hints(conn, scope, question)? {
+        context["entityAliases"] = alias_hints;
+    }
     if let Some(hits) = payload.get("_semanticHits") {
         context["_semanticHits"] = hits.clone();
     }

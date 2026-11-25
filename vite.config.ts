@@ -12,6 +12,10 @@ export default defineConfig({
       },
     ],
   },
+  optimizeDeps: {
+    // The pi-ai browser shim reaches this CommonJS dependency through a deep import.
+    include: ['partial-json'],
+  },
   clearScreen: false,
   server: {
     host: '127.0.0.1',

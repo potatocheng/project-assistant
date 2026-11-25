@@ -1681,6 +1681,75 @@ pub(crate) fn complete_agent_turn(
     }))
 }
 
+fn polish_habit_block(habits: &[Value]) -> (String, bool) {
+    let mut lines = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+    let mut omit_percentages = false;
+    for habit in habits.iter().take(8) {
+        let rule_key = habit["ruleKey"].as_str().unwrap_or("");
+        let inst = habit["instruction"].as_str().map(str::trim).unwrap_or("");
+        let line = match rule_key {
+            "writing:drop_percentages" => {
+                omit_percentages = true;
+                "- 【必须执行】禁止保留任何百分比数字（%），请改为定性进度表述（如「推进中」「接近完成」「待启动」）。".to_owned()
+            }
+            "writing:risks_first" => {
+                "- 【必须执行】将「阻塞 / 风险 / 需协调事项」放在报告最前或最醒目位置，再写常规进展。".to_owned()
+            }
+            "writing:soften_risk_wording" => {
+                "- 【必须执行】用客观、缓和、建设性措辞表述风险与阻塞（如「需关注」「协调推进中」「存在待确认事项」），避免「失控」「崩溃」「严重延误」「重大事故」「直接挂了」「扯皮」等尖锐或情绪化字眼。".to_owned()
+            }
+            "writing:bullet_style" => {
+                "- 【必须执行】正文全部使用简短要点列表（`-`），避免大段连续段落叙述。".to_owned()
+            }
+            "writing:concise_length" => {
+                "- 【必须执行】精简篇幅与冗余修饰，仅保留核心结论、关键节点、责任人与阻塞点。".to_owned()
+            }
+            "writing:no_greeting_closing" => {
+                "- 【必须执行】严禁任何开场白、问候语（如「大家好」「各位好」）或结尾致谢、客套话（如「请审阅」「辛苦」「祝好」）。".to_owned()
+            }
+            "writing:table_style" => {
+                "- 【必须执行】优先使用 Markdown 表格展示任务、负责人、状态与节点信息。".to_owned()
+            }
+            "writing:conclusion_first" => {
+                "- 【必须执行】开篇第一段或首条先给总体结论与当前状态判断，再展开分项细节。".to_owned()
+            }
+            "writing:qa_format" => {
+                "- 【必须执行】关键事项用「Q：/A：」问答形式呈现。".to_owned()
+            }
+            "writing:english_terms" => {
+                "- 【必须执行】技术术语与模块名称优先使用英文原词，不强行意译。".to_owned()
+            }
+            "writing:owner_tag" => {
+                "- 【必须执行】事项末尾以（@责任人）标注原稿已写明的负责人，原稿未写明的不得臆测补全。".to_owned()
+            }
+            _ => {
+                if inst.is_empty() {
+                    continue;
+                }
+                if inst.contains("百分比") || inst.to_lowercase().contains("omit percent") {
+                    omit_percentages = true;
+                }
+                format!("- 【必须执行】{inst}")
+            }
+        };
+        if seen.insert(line.clone()) {
+            lines.push(line);
+        }
+    }
+    if lines.is_empty() {
+        (String::new(), omit_percentages)
+    } else {
+        (
+            format!(
+                "\n\n已确认的个人写作习惯（最高优先级，若与上方目标风格通用示例冲突，以本节习惯为准）：\n{}",
+                lines.join("\n")
+            ),
+            omit_percentages,
+        )
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn polish_report(
     config: &AiConfig,
@@ -1743,15 +1812,6 @@ pub(crate) fn polish_report(
             _ => {}
         }
     }
-    for habit in writing_habits.iter().take(6) {
-        if let Some(inst) = habit["instruction"]
-            .as_str()
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
-        {
-            pref_lines.push(format!("- 已确认写作习惯：{inst}"));
-        }
-    }
     let pref_block = if pref_lines.is_empty() {
         String::new()
     } else {
@@ -1760,12 +1820,18 @@ pub(crate) fn polish_report(
             pref_lines.join("\n")
         )
     };
+    let (habit_block, omit_percentages) = polish_habit_block(writing_habits);
+    let numeric_red_line = if omit_percentages {
+        "2. 保持非百分比类的数量、日期与责任人准确；按个人写作习惯省略具体百分比，改用定性表述时不得虚构原稿未提及的事项或结论。"
+    } else {
+        "2. 保持数值、日期与责任人准确；原稿中未说明的信息不要臆测补全。"
+    };
     let system_prompt = format!(
         "你是一位资深项目管理助理。请基于用户提供的「{kind_label}」原始记录草稿，在不改变任何客观事实的前提下，按以下要求改写为清晰可读的 Markdown 报告。\n\n\
-        目标风格：\n{audience_guide}{pref_block}\n\n\
+        目标风格：\n{audience_guide}{pref_block}{habit_block}\n\n\
         严格事实红线：\n\
         1. 严禁虚构或新增原稿中没有的任务名称、人名、日期、比例或已解决结论。\n\
-        2. 保持数值、日期与责任人准确；原稿中未说明的信息不要臆测补全。\n\
+        {numeric_red_line}\n\
         3. 直接输出整理后的 Markdown 正文，不要加开场寒暄或结尾解释。"
     );
     let user_prompt =
@@ -3682,5 +3748,26 @@ mod tests {
         .0;
         assert_eq!(checked.facets.topic, "log retention");
         assert_eq!(checked.facets.conditions, ["Only enterprise customers"]);
+    }
+
+    #[test]
+    fn polish_habit_block_elevates_confirmed_writing_habits_and_adjusts_percentage_red_line() {
+        let (empty_block, empty_omit) = super::polish_habit_block(&[]);
+        assert!(empty_block.is_empty());
+        assert!(!empty_omit);
+
+        let habits = vec![
+            json!({"ruleKey": "writing:drop_percentages", "instruction": "不写具体百分比"}),
+            json!({"ruleKey": "writing:soften_risk_wording", "instruction": "风险措辞更委婉"}),
+            json!({"ruleKey": "writing:no_greeting_closing", "instruction": "去掉问候语和结语"}),
+            json!({"ruleKey": "writing:owner_tag", "instruction": "事项末尾标注责任人"}),
+        ];
+        let (block, omit) = super::polish_habit_block(&habits);
+        assert!(omit);
+        assert!(block.contains("最高优先级"));
+        assert!(block.contains("禁止保留任何百分比数字（%）"));
+        assert!(block.contains("避免「失控」「崩溃」「严重延误」「重大事故」「直接挂了」「扯皮」"));
+        assert!(block.contains("严禁任何开场白、问候语"));
+        assert!(block.contains("（@责任人）"));
     }
 }

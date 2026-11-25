@@ -534,13 +534,16 @@ fn scan_at(
         return Ok(json!({"scanned":false,"changed":0,"ready":0,"lastRunAt":last}));
     }
     let mut candidates = candidates(conn, project, at)?;
-    if let Ok(adjustments) = crate::habits::proactive_priority_adjustments(conn, project) {
-        if !adjustments.is_empty() {
-            for candidate in candidates.values_mut() {
-                if let Some(&delta) = adjustments.get(&candidate.kind) {
-                    candidate.priority = (candidate.priority + delta).max(10);
-                }
-            }
+    let mut by_project = HashMap::new();
+    for candidate in candidates.values_mut() {
+        let adjustments = by_project
+            .entry(candidate.project.clone())
+            .or_insert_with(|| {
+                crate::habits::proactive_priority_adjustments(conn, Some(&candidate.project))
+                    .unwrap_or_default()
+            });
+        if let Some(&delta) = adjustments.get(&candidate.kind) {
+            candidate.priority = (candidate.priority + delta).max(10);
         }
     }
     let all = read_actions(conn, project)?;

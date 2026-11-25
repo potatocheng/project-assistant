@@ -1,6 +1,6 @@
 import { useDraftState, DraftStatus } from '../../drafts';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, CalendarPlus, Check, ChevronDown, ChevronLeft, CircleAlert, Download, FileText, History, LayoutGrid, List, PencilLine, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowRight, CalendarPlus, Check, ChevronDown, ChevronLeft, CircleAlert, Download, FileText, GitBranch, History, Hourglass, LayoutGrid, List, Lock, PencilLine, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { asError, execute, exportDocument } from '../../api';
 import { buildTasksCsv } from './report-export';
 import { TaskKanban } from './TaskKanban';
@@ -20,6 +20,8 @@ import { BatchScheduleDialog } from './BatchScheduleDialog';
 import { ListPager } from '../ListPager';
 import { DailyPlanning } from './DailyPlanning';
 import type { PlanningOverview } from './DailyPlanning';
+import { GROUP_LABELS, structureDailyTasks, unlockedBy, type StructuredRow } from './daily-structure';
+import { directConnections } from '../workbench-model';
 import './task-focus.css';
 
 export function taskFields(task: Task) {
@@ -73,8 +75,18 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
   const unplannedCount = isConfirmed ? originalList.filter((t) => !belongsToday(t)).length : 0;
   const listed = isConfirmed && !showUnplanned ? originalList.filter(belongsToday).sort((a, b) => (allocated.get(a.id) ?? 99999) - (allocated.get(b.id) ?? 99999)) : originalList;
   const rows = listed.filter((task) => (!status || task.status === status) && `${task.title} ${task.description} ${task.assignee ?? ''}`.toLowerCase().includes(query.toLowerCase()));
-  const pageIndex=Math.min(listPage,Math.max(0,Math.ceil(rows.length/50)-1));
-  useEffect(()=>{if(focusTaskId){const i=rows.findIndex(t=>t.id===focusTaskId);if(i>=0)setListPage(Math.floor(i/50));}},[focusTaskId]);
+  const relations = currentPlanning?.relations ?? [];
+  const grouped = mode === 'daily' && day >= localDay();
+  const todayIds = new Set(listed.map((t) => t.id));
+  const structured = grouped ? structureDailyTasks(rows, state.tasks ?? [], relations, todayIds) : null;
+  const displayRows = structured ? structured.map((r) => r.task) : rows;
+  const structuredMap = structured ? new Map<string, StructuredRow>(structured.map((r) => [r.task.id, r])) : null;
+  const groupCounts = new Map<string, number>();
+  if (structured) {
+    for (const item of structured) groupCounts.set(item.group, (groupCounts.get(item.group) ?? 0) + 1);
+  }
+  const pageIndex=Math.min(listPage,Math.max(0,Math.ceil(displayRows.length/50)-1));
+  useEffect(()=>{if(focusTaskId){const i=displayRows.findIndex(t=>t.id===focusTaskId);if(i>=0)setListPage(Math.floor(i/50));}},[focusTaskId]);
   const hasFilter = !!query || !!status;
   const hasUnfinishedTasks = scoped.some((task) => ['todo', 'in_progress', 'blocked'].includes(task.status));
   const selectedSnapshot = listed.find((task) => task.id === selectedId);
@@ -91,8 +103,8 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
   }, [mode, day, projectId, taskVersion, tick]);
   useEffect(() => { if (focusTaskId) { revealDetail.current = true; setSelectedId(focusTaskId); } }, [focusTaskId]);
   useEffect(() => {
-    setSelectedId((current) => rows.some((task) => task.id === current) ? current : rows[0]?.id ?? null);
-  }, [rows.map((task) => task.id).join(',')]);
+    setSelectedId((current) => displayRows.some((task) => task.id === current) ? current : displayRows[0]?.id ?? null);
+  }, [displayRows.map((task) => task.id).join(',')]);
   useEffect(() => {
     if (!selectedId) { setDetail(null); return; }
     let cancelled = false; setDetailLoading(true); setDetailError('');
@@ -137,6 +149,7 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
     const prevStatus = task.status;
     const prevProgress = task.progress;
     const nextDone = task.status !== 'done';
+    const unlocked = nextDone ? unlockedBy(task.id, state.tasks ?? [], relations, todayIds) : [];
     setBusyRowId(task.id);
     try {
       const updated = await execute<Task>('update_task', {
@@ -151,7 +164,12 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
       });
       setTick(v => v + 1);
       await onChanged();
-      notify(nextDone ? `已完成「${task.title}」。` : `已恢复「${task.title}」为进行中。`, false, {
+      const message = nextDone
+        ? (unlocked.length
+          ? `已完成「${task.title}」，已解锁：${unlocked.slice(0, 2).map((item) => item.title).join('、')}${unlocked.length > 2 ? ` 等 ${unlocked.length} 项` : ''}`
+          : `已完成「${task.title}」。`)
+        : `已恢复「${task.title}」为进行中。`;
+      notify(message, false, {
         label: '撤销',
         onClick: async () => {
           await execute('update_task', {
@@ -245,16 +263,38 @@ export function TaskWorkspace({ mode, state, day: selectedDay, setDay, projectId
     {isConfirmed && <div className="planning-list-mode"><span>{showUnplanned ? '当前显示当日全部事项。' : '按已确认的排期排列。'}</span><button className="text-button tiny" onClick={() => setShowUnplanned(!showUnplanned)}>{showUnplanned ? '只看已安排任务' : `其他事项 · ${unplannedCount}`}</button></div>}
     <div className={`work-layout ${selectedSnapshot ? 'has-task-detail' : 'list-only'} ${mode === 'tasks' && viewMode === 'kanban' ? 'is-kanban-layout' : ''}`}><section className="task-list-panel" ref={listPanelRef}><div className="task-list-toolbar"><div className="task-list-heading"><h3>{mode === 'daily' ? '当天任务' : projectId ? '项目任务' : '全部任务'}</h3><span>{activeCount} 项未完成{rows.length !== activeCount && ` · 共 ${rows.length} 项`}</span></div></div>
       {mode === 'daily' && day !== localDay() && <p className="work-scope-note">清单为截至 {day} 的记录；任务详情显示最新进度。</p>}
-      {loading ? <div className="loading-view"><Spinner />正在加载任务…</div> : error ? <WorkEmpty title="清单加载失败" action={<button className="button secondary" onClick={() => setTick((value) => value + 1)}>重试</button>}>{error}</WorkEmpty> : !rows.length ? <WorkEmpty title={hasFilter ? '没有匹配的任务' : !state.projects.length ? '先创建一个项目' : mode === 'daily' ? '这一天暂无任务' : '还没有任务'} action={hasFilter ? <button className="button secondary" onClick={() => { setQuery(''); setStatus(''); }}>清除筛选</button> : mode === 'daily' && hasUnfinishedTasks ? <button className="button secondary" onClick={() => { setPlanTask(null); setForm('plan'); }}><CalendarPlus size={15} />安排已有任务</button> : state.projects.length > 0 ? <button className="button secondary" onClick={() => setForm('create')}><Plus size={15} />新建任务</button> : undefined}>{hasFilter ? '试试其他关键词，或清除状态筛选。' : !state.projects.length ? '在左侧创建项目后，即可添加任务。' : mode === 'daily' ? hasUnfinishedTasks ? '选择已有任务安排到这一天，或新建事项。' : '新建这一天需要推进的事项。' : '添加需要完成或跟进的具体事项。'}</WorkEmpty> : mode === 'tasks' && viewMode === 'kanban' ? <TaskKanban tasks={rows} projects={state.projects} day={day} selectedId={selectedId} onSelect={selectTask} onChanged={async () => { setTick(v => v + 1); await onChanged(); }} notify={notify} /> : <div className="task-table"><div className="task-table-head"><span>任务 / 负责人</span><span>截止日期</span><span>状态</span></div>{rows.slice(pageIndex*50,(pageIndex+1)*50).map((task) => {
+      {loading ? <div className="loading-view"><Spinner />正在加载任务…</div> : error ? <WorkEmpty title="清单加载失败" action={<button className="button secondary" onClick={() => setTick((value) => value + 1)}>重试</button>}>{error}</WorkEmpty> : !rows.length ? <WorkEmpty title={hasFilter ? '没有匹配的任务' : !state.projects.length ? '先创建一个项目' : mode === 'daily' ? '这一天暂无任务' : '还没有任务'} action={hasFilter ? <button className="button secondary" onClick={() => { setQuery(''); setStatus(''); }}>清除筛选</button> : mode === 'daily' && hasUnfinishedTasks ? <button className="button secondary" onClick={() => { setPlanTask(null); setForm('plan'); }}><CalendarPlus size={15} />安排已有任务</button> : state.projects.length > 0 ? <button className="button secondary" onClick={() => setForm('create')}><Plus size={15} />新建任务</button> : undefined}>{hasFilter ? '试试其他关键词，或清除状态筛选。' : !state.projects.length ? '在左侧创建项目后，即可添加任务。' : mode === 'daily' ? hasUnfinishedTasks ? '选择已有任务安排到这一天，或新建事项。' : '新建这一天需要推进的事项。' : '添加需要完成或跟进的具体事项。'}</WorkEmpty> : mode === 'tasks' && viewMode === 'kanban' ? <TaskKanban tasks={rows} projects={state.projects} day={day} selectedId={selectedId} onSelect={selectTask} onChanged={async () => { setTick(v => v + 1); await onChanged(); }} notify={notify} /> : <div className="task-table"><div className="task-table-head"><span>任务 / 负责人</span><span>截止日期</span><span>状态</span></div>{displayRows.slice(pageIndex*50,(pageIndex+1)*50).map((task, idx, pageSlice) => {
         const allocation = mode === 'daily' ? currentPlanning?.allocations.find((a) => a.taskId === task.id) : undefined;
         const overdue = !!task.dueDate && task.dueDate < day && ['todo', 'in_progress', 'blocked'].includes(task.status);
-        return <div key={task.id} className={`task-row-item ${selectedId === task.id ? 'task-row-selected' : ''}`}><span className="task-row-check-wrap"><input type="checkbox" className="task-row-check ledger-check-input" aria-label={`标记「${task.title}」为已完成`} checked={task.status === 'done'} disabled={busyRowId === task.id || task.status === 'cancelled'} onChange={() => void toggleTaskDone(task)} /><span className="ledger-check-visual" aria-hidden="true"><svg className="ledger-check-svg" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2L5 8.7L9.6 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg></span></span><button type="button" className="task-row" aria-pressed={selectedId === task.id} onClick={() => selectTask(task.id)}><div className="task-row-main"><div className="task-row-title">{task.priority === 'high' && <span className="priority-high" title="高优先级">高</span>}<strong className={task.status === 'done' ? 'is-done' : undefined}>{task.title}</strong></div><div className="task-row-meta"><span>{TASK_CATEGORY[task.category]}</span><span>{task.assignee || '负责人待定'}</span>{!projectId && <span>{state.projects.find((project) => project.id === task.projectId)?.name ?? '所属项目'}</span>}</div>{allocation && <p className="planning-row-reason" title={allocation.reason}>预计 {allocation.minutes} 分钟 · {allocation.reason}</p>}</div><div className={`task-row-due ${overdue ? 'task-overdue' : ''}`}>{task.dueDate ?? '未设置'}{overdue && <small>已逾期</small>}</div><div className="task-row-state"><TaskStatusLabel status={task.status} /><span>{task.progress}%</span></div></button></div>;
+        const item = structuredMap?.get(task.id);
+        const prevGroup = idx > 0 ? structuredMap?.get(pageSlice[idx - 1].id)?.group : undefined;
+        const showHeading = !!item && item.group !== prevGroup;
+        const groupInfo = showHeading && item ? GROUP_LABELS[item.group] : null;
+        const relationIcon = item?.tone === 'unlock' ? <GitBranch size={12} /> : item?.tone === 'pending' ? <Hourglass size={12} /> : item?.tone === 'waiting' ? <Lock size={12} /> : null;
+        return <Fragment key={task.id}>
+          {showHeading && item && groupInfo && <div className="task-group-heading"><span>{groupInfo.label}</span><small>{groupCounts.get(item.group) ?? 0}</small>{groupInfo.hint && <em>{groupInfo.hint}</em>}</div>}
+          <div className={`task-row-item ${selectedId === task.id ? 'task-row-selected' : ''}`}><span className="task-row-check-wrap"><input type="checkbox" className="task-row-check ledger-check-input" aria-label={`标记「${task.title}」为已完成`} checked={task.status === 'done'} disabled={busyRowId === task.id || task.status === 'cancelled'} onChange={() => void toggleTaskDone(task)} /><span className="ledger-check-visual" aria-hidden="true"><svg className="ledger-check-svg" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2L5 8.7L9.6 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg></span></span><button type="button" className="task-row" aria-pressed={selectedId === task.id} onClick={() => selectTask(task.id)}><div className="task-row-main"><div className="task-row-title">{task.priority === 'high' && <span className="priority-high" title="高优先级">高</span>}<strong className={task.status === 'done' ? 'is-done' : undefined}>{task.title}</strong></div><div className="task-row-meta"><span>{TASK_CATEGORY[task.category]}</span><span>{task.assignee || '负责人待定'}</span>{!projectId && <span>{state.projects.find((project) => project.id === task.projectId)?.name ?? '所属项目'}</span>}</div>{item?.note && <p className={`task-row-relation is-${item.tone}`} title={item.note}>{relationIcon}{item.note}</p>}{allocation && <p className="planning-row-reason" title={allocation.reason}>预计 {allocation.minutes} 分钟 · {allocation.reason}</p>}</div><div className={`task-row-due ${overdue ? 'task-overdue' : ''}`}>{task.dueDate ?? '未设置'}{overdue && <small>已逾期</small>}</div><div className="task-row-state"><TaskStatusLabel status={task.status} /><span>{task.progress}%</span></div></button></div>
+        </Fragment>;
       })}</div>}
-      {!(mode === 'tasks' && viewMode === 'kanban') && <ListPager page={pageIndex} total={rows.length} size={50} onChange={setListPage}/>}
+      {!(mode === 'tasks' && viewMode === 'kanban') && <ListPager page={pageIndex} total={displayRows.length} size={50} onChange={setListPage}/>}
       {mode === 'daily' && originalList.length > 0 && <div className="daily-report-link"><span>将当天已记录的进展整理成日报。</span><button className="text-button" onClick={onReport}>查看当日日报 <ArrowRight size={14} /></button></div>}
     </section>{selectedSnapshot && <aside className="task-inspector" ref={inspectorRef} tabIndex={-1} aria-label="任务详情"><button className="task-inspector-back" onClick={returnToList}><ChevronLeft size={14} />返回任务列表</button>{detailLoading ? <div className="loading-view"><Spinner />正在读取任务…</div> : detailError ? <WorkEmpty title="任务暂时无法读取" action={<button className="button secondary" onClick={() => setTick((value) => value + 1)}>重试</button>}>{detailError}</WorkEmpty> : !detail ? <WorkEmpty title="正在读取任务详情" /> : <>
       <div className="task-detail-heading"><div className="eyebrow">任务详情</div><h3>{detail.task.title}</h3><div className="task-detail-status"><TaskStatusLabel status={detail.task.status} /><span>{detail.task.progress}%</span></div>{mode === 'daily' && selectedSnapshot && selectedSnapshot.version !== detail.task.version && <p className="task-history-notice">今日列表快照与当前最新状态略有差异，以下为最新任务信息。</p>}<div className="task-detail-actions"><Button label="更新进度" variant="primary" size="sm" icon={<PencilLine size={13} />} onClick={() => setForm('edit')} /><Button label="安排日期" variant="secondary" size="sm" icon={<CalendarPlus size={13} />} onClick={() => { setPlanTask(detail.task); setForm('plan'); }} /></div></div>
       <dl className="task-attributes"><div><dt>项目</dt><dd>{state.projects.find((project) => project.id === detail.task.projectId)?.name}</dd></div><div><dt>执行方式</dt><dd>{TASK_CATEGORY[detail.task.category]}</dd></div><div><dt>负责人</dt><dd>{detail.task.assignee || '待定'}</dd></div><div><dt>优先级</dt><dd>{TASK_PRIORITY[detail.task.priority]}</dd></div><div><dt>计划日期</dt><dd>{detail.task.plannedDate || '未安排'}</dd></div><div><dt>截止日期</dt><dd>{detail.task.dueDate || '未设置'}</dd></div></dl>
+      {currentPlanning && (() => {
+        const connections = directConnections(detail.task, state.tasks ?? [], relations);
+        const taskBlockers = relations.filter((r) => r.active && r.kind === 'blocker' && r.taskId === detail.task.id);
+        if (!connections.length && !taskBlockers.length) return null;
+        const selectableIds = new Set(displayRows.map((t) => t.id));
+        const latestById = new Map((state.tasks ?? []).map((t) => [t.id, t]));
+        return <section className="task-relations-section"><h4>前置与后续</h4>
+          {connections.map((conn) => {
+            const latestTarget = latestById.get(conn.task.id) ?? conn.task;
+            return <div className="task-relation-line" key={conn.id}><span>{conn.role === 'before' ? '前置' : '后续'}</span>{selectableIds.has(conn.task.id) ? <button type="button" className="text-button tiny" onClick={() => selectTask(conn.task.id)}>{latestTarget.title}</button> : <strong>{latestTarget.title}</strong>}<TaskStatusLabel status={latestTarget.status} />{conn.reason && <small>{conn.reason}</small>}</div>;
+          })}
+          {taskBlockers.map((blocker) => <div className="task-relation-line" key={blocker.id}><span>阻塞</span><small>{blocker.reason}</small></div>)}
+        </section>;
+      })()}
       {detail.task.description && <div className="task-description"><h4>任务说明</h4><p>{detail.task.description}</p></div>}
       <TaskCoach state={state} key={detail.task.id} task={detail.task} date={day} onModelSettings={onModelSettings} onChanged={async () => { setTick(v => v + 1); await onChanged(); }} />
       <details className="task-source-section task-source-details"><summary>原文依据{detail.evidence.length > 0 && <span>{detail.evidence.length} 处</span>}<ChevronDown size={13} /></summary>{detail.evidence.length ? detail.evidence.map((evidence) => <div className="task-evidence" key={evidence.segmentId}><strong>{evidence.sourceTitle}</strong><p>{evidence.text}</p><button className="text-button tiny" onClick={() => onEvidence(evidence)}>查看原文 · {evidence.locator} <ArrowRight size={12} /></button></div>) : <p className="panel-hint">{detail.task.memoryId ? '源自已确认记录，无额外关联原文。' : '此任务为手动创建。'}</p>}</details>

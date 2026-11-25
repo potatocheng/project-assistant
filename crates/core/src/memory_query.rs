@@ -373,7 +373,9 @@ pub(crate) fn retrieve_with_semantic(
     let mut eligible_vec_hits = 0usize;
     if let Some(signals) = &semantic {
         if !signals.hits.is_empty() && !corpus.is_empty() {
-            const RRF_K: f64 = 60.0;
+            // The UI returns a short evidence list. With a large offset even
+            // weak tail matches in both lists outrank a top hit in one list.
+            const RRF_K: f64 = 10.0;
             const MAX_COSINE_DISTANCE: f64 = 0.65;
             let corpus_ids: std::collections::HashSet<&str> =
                 corpus.iter().filter_map(|m| m["id"].as_str()).collect();
@@ -407,20 +409,9 @@ pub(crate) fn retrieve_with_semantic(
                 }
                 for (idx, memory) in corpus.iter().enumerate() {
                     let id = memory["id"].as_str().unwrap_or("");
-                    let b_rank = bm25_ranks.get(&idx).copied();
-                    let v_rank = vec_ranks.get(id).copied();
-                    scores[idx] = if b_rank.is_some() || v_rank.is_some() {
-                        let b_part = b_rank.map_or(0.0, |r| 1.0 / (RRF_K + r as f64));
-                        let v_part = v_rank.map_or(0.0, |r| 0.9 / (RRF_K + r as f64));
-                        let tie = if bm25_scores[idx] > 0.0 {
-                            (bm25_scores[idx] / (bm25_scores[idx] + 10.0)) * 0.002
-                        } else {
-                            0.0
-                        };
-                        b_part + v_part + tie
-                    } else {
-                        0.0
-                    };
+                    let reciprocal = |rank: &usize| 1.0 / (RRF_K + *rank as f64);
+                    scores[idx] = bm25_ranks.get(&idx).map_or(0.0, reciprocal)
+                        + vec_ranks.get(id).map_or(0.0, reciprocal);
                 }
             }
         }

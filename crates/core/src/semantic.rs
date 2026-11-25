@@ -13,7 +13,7 @@ use std::{
     io::Write,
     net::IpAddr,
     path::Path,
-    sync::Once,
+    sync::{Mutex, Once, OnceLock},
     time::Duration,
 };
 
@@ -459,15 +459,20 @@ impl VectorIndex {
         Ok(rows)
     }
 
-    pub(crate) fn prune_missing(&mut self, active: &HashSet<(String, String)>) -> Result<usize> {
+    pub(crate) fn prune_missing_in_scope(
+        &mut self,
+        scope: Option<&str>,
+        active: &HashSet<(String, String)>,
+    ) -> Result<usize> {
         if !self.has_vec_table()? {
             return Ok(0);
         }
-        let mut stmt = self
-            .conn
-            .prepare("SELECT rowid, memory_id, revision_id FROM memory_vec_map")?;
+        let mut stmt = self.conn.prepare(
+            "SELECT rowid, memory_id, revision_id FROM memory_vec_map
+             WHERE (?1 IS NULL OR project_id = ?1)",
+        )?;
         let stale: Vec<i64> = stmt
-            .query_map([], |r| {
+            .query_map([scope], |r| {
                 Ok((
                     r.get::<_, i64>(0)?,
                     r.get::<_, String>(1)?,
@@ -528,31 +533,38 @@ impl VectorIndex {
         Ok(())
     }
 
-    pub(crate) fn search(&self, query_embedding: &[f32], k: usize) -> Result<Vec<(String, f64)>> {
+    pub(crate) fn search(
+        &self,
+        query_embedding: &[f32],
+        scope: Option<&str>,
+        k: usize,
+    ) -> Result<Vec<(String, f64)>> {
         if k == 0 || !self.has_vec_table()? {
             return Ok(Vec::new());
         }
-        let count: i64 = self
-            .conn
-            .query_row("SELECT count(*) FROM memory_vec_map", [], |r| r.get(0))?;
-        if count == 0 {
-            return Ok(Vec::new());
-        }
-        let effective_k = (k as i64).min(count).max(1);
+        // vec0 applies a rowid IN constraint before computing its top k.
+        let filter = if scope.is_some() {
+            "AND v.rowid IN (SELECT rowid FROM memory_vec_map WHERE project_id = ?3)"
+        } else {
+            ""
+        };
         let bytes = f32_to_bytes(query_embedding);
-        let mut stmt = self.conn.prepare(
+        let mut stmt = self.conn.prepare(&format!(
             "SELECT m.memory_id, v.distance
              FROM memory_vec v
              JOIN memory_vec_map m ON m.rowid = v.rowid
-             WHERE v.embedding MATCH ?1 AND k = ?2
-             ORDER BY v.distance ASC",
-        )?;
-        let rows = stmt
-            .query_map(params![bytes, effective_k], |r| {
-                Ok((r.get::<_, String>(0)?, r.get::<_, f64>(1)?))
-            })?
-            .collect::<std::result::Result<Vec<_>, _>>()?;
-        Ok(rows)
+             WHERE v.embedding MATCH ?1 AND k = ?2 {filter}
+             ORDER BY v.distance ASC"
+        ))?;
+        let mut rows = match scope {
+            Some(project) => stmt.query(params![bytes, k, project])?,
+            None => stmt.query(params![bytes, k])?,
+        };
+        let mut hits = Vec::new();
+        while let Some(row) = rows.next()? {
+            hits.push((row.get(0)?, row.get(1)?));
+        }
+        Ok(hits)
     }
 }
 
@@ -571,13 +583,32 @@ fn openai_embeddings_url(base_url: &str) -> Result<reqwest::Url> {
     Ok(url)
 }
 
-fn build_http_client(timeout_seconds: u64) -> Result<reqwest::blocking::Client> {
-    reqwest::blocking::Client::builder()
+fn build_http_client(timeout_seconds: u64, is_loopback: bool) -> Result<reqwest::blocking::Client> {
+    static CLIENTS: OnceLock<Mutex<HashMap<(u64, bool), reqwest::blocking::Client>>> =
+        OnceLock::new();
+    let pool = CLIENTS.get_or_init(|| Mutex::new(HashMap::new()));
+    if let Ok(guard) = pool.lock() {
+        if let Some(cached) = guard.get(&(timeout_seconds, is_loopback)) {
+            return Ok(cached.clone());
+        }
+    }
+    let mut builder = reqwest::blocking::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_secs(timeout_seconds.min(10)))
-        .timeout(Duration::from_secs(timeout_seconds))
+        .timeout(Duration::from_secs(timeout_seconds));
+    if is_loopback {
+        // Avoid Windows/OS system-proxy auto-discovery overhead on 127.0.0.1 / localhost.
+        builder = builder.no_proxy();
+    }
+    let client = builder
         .build()
-        .map_err(|_| AppError::new("EMBEDDING_NETWORK", "无法初始化向量 HTTP 客户端"))
+        .map_err(|_| AppError::new("EMBEDDING_NETWORK", "无法初始化向量 HTTP 客户端"))?;
+    if let Ok(mut guard) = pool.lock() {
+        if guard.len() < 16 {
+            guard.insert((timeout_seconds, is_loopback), client.clone());
+        }
+    }
+    Ok(client)
 }
 
 pub(crate) fn embed_texts(
@@ -593,7 +624,7 @@ pub(crate) fn embed_texts(
         .iter()
         .map(|t| t.chars().take(MAX_EMBED_CHARS).collect())
         .collect();
-    let client = build_http_client(config.timeout_seconds)?;
+    let client = build_http_client(config.timeout_seconds, !config.is_remote())?;
 
     if config.provider == "ollama" {
         let base = config.base_url.trim_end_matches('/');
@@ -705,6 +736,58 @@ pub(crate) fn embed_texts(
     Ok(vectors)
 }
 
+fn closest_preferences(vectors: &[Vec<f32>]) -> Vec<usize> {
+    let Some((query, records)) = vectors.split_first() else {
+        return Vec::new();
+    };
+    let norm = |v: &[f32]| v.iter().map(|&x| f64::from(x).powi(2)).sum::<f64>().sqrt();
+    let query_norm = norm(query);
+    let mut similarities = Vec::new();
+    for (index, record) in records.iter().enumerate() {
+        let scale = query_norm * norm(record);
+        if scale > 0.0 {
+            let dot: f64 = query
+                .iter()
+                .zip(record)
+                .map(|(&a, &b)| f64::from(a) * f64::from(b))
+                .sum();
+            if dot > 0.0 {
+                similarities.push((index + 1, dot / scale));
+            }
+        }
+    }
+    similarities.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
+    similarities.into_iter().take(4).map(|(id, _)| id).collect()
+}
+
+pub(crate) fn rank_copilot_habits(root: &Path, payload: &Value) -> Result<Value> {
+    let mut config = load_settings(root)?;
+    let question = payload["question"].as_str().unwrap_or("").trim();
+    if !config.enabled || question.is_empty() {
+        return Ok(json!({"indices": []}));
+    }
+    let candidates = payload["candidates"]
+        .as_array()
+        .filter(|items| !items.is_empty() && items.len() <= 32)
+        .ok_or_else(|| AppError::new("VALIDATION", "习惯匹配的候选数量无效"))?;
+    let mut texts = vec![question.chars().take(MAX_EMBED_CHARS).collect()];
+    let mut chars = 0;
+    for item in candidates {
+        let text = item
+            .as_str()
+            .ok_or_else(|| AppError::new("VALIDATION", "习惯候选应为文本"))?;
+        chars += text.chars().count();
+        if chars > 7000 {
+            return Err(AppError::new("VALIDATION", "习惯匹配的候选文本过长"));
+        }
+        texts.push(text.to_owned());
+    }
+    config.timeout_seconds = config.timeout_seconds.min(15);
+    let key = inherited_ai_key(root, &config);
+    let vectors = embed_texts(&config, key.as_deref(), &texts)?;
+    Ok(json!({"indices": closest_preferences(&vectors)}))
+}
+
 pub(crate) fn test_connection(root: &Path) -> Result<Value> {
     let mut config = load_settings(root)?;
     let inherited = inherited_ai_key(root, &config);
@@ -732,6 +815,13 @@ pub(crate) struct ActiveMemoryInput {
     pub content: String,
 }
 
+pub(crate) fn project_scope(payload: &Value) -> Option<&str> {
+    payload["projectId"]
+        .as_str()
+        .map(str::trim)
+        .filter(|s| !s.is_empty() && *s != "all")
+}
+
 impl ActiveMemoryInput {
     pub(crate) fn from_values(rows: &[Value]) -> Vec<Self> {
         rows.iter()
@@ -747,7 +837,11 @@ impl ActiveMemoryInput {
     }
 }
 
-pub(crate) fn rebuild_index(root: &Path, memories: &[ActiveMemoryInput]) -> Result<Value> {
+pub(crate) fn rebuild_index(
+    root: &Path,
+    scope: Option<&str>,
+    memories: &[ActiveMemoryInput],
+) -> Result<Value> {
     let config = load_settings(root)?;
     let inherited = inherited_ai_key(root, &config);
     if !config.enabled {
@@ -762,7 +856,7 @@ pub(crate) fn rebuild_index(root: &Path, memories: &[ActiveMemoryInput]) -> Resu
         .iter()
         .map(|m| (m.memory_id.clone(), m.revision_id.clone()))
         .collect();
-    let pruned = index.prune_missing(&active_set)?;
+    let pruned = index.prune_missing_in_scope(scope, &active_set)?;
     if memories.is_empty() {
         return Ok(json!({
             "indexed": 0,
@@ -854,6 +948,7 @@ pub(crate) struct SemanticQueryOutcome {
 /// back to lexical retrieval and records `fallbackReason` in the trace.
 pub(crate) fn query_hits(
     root: &Path,
+    scope: Option<&str>,
     question: &str,
     memories: &[ActiveMemoryInput],
     top_k: usize,
@@ -904,6 +999,7 @@ pub(crate) fn query_hits(
         root,
         &config,
         inherited.as_deref(),
+        scope,
         question,
         memories,
         top_k,
@@ -928,6 +1024,7 @@ fn query_hits_inner(
     root: &Path,
     config: &EmbeddingSettings,
     inherited_key: Option<&str>,
+    scope: Option<&str>,
     question: &str,
     memories: &[ActiveMemoryInput],
     top_k: usize,
@@ -946,7 +1043,8 @@ fn query_hits_inner(
         .iter()
         .map(|m| (m.memory_id.clone(), m.revision_id.clone()))
         .collect();
-    let _ = index.prune_missing(&active_set)?;
+    // Scope-aware pruning: querying Project A must NEVER wipe cached vectors of Project B.
+    let _ = index.prune_missing_in_scope(scope, &active_set)?;
     let existing = index.existing_map()?;
 
     let mut missing = Vec::new();
@@ -984,7 +1082,7 @@ fn query_hits_inner(
         index.upsert_batch(&batch)?;
     }
 
-    let hits = index.search(&query_vec, top_k)?;
+    let hits = index.search(&query_vec, scope, top_k)?;
     Ok(SemanticQueryOutcome {
         trace: json!({
             "enabled": true,
@@ -1024,11 +1122,49 @@ pub(crate) fn status(root: &Path, active_count: Option<i64>) -> Result<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn scoped_knn_finds_local_neighbors_behind_a_larger_project() {
+        let mut index = VectorIndex::open_in_memory().unwrap();
+        index.ensure_profile("example", 8).unwrap();
+        let query = vec![1., 0., 0., 0., 0., 0., 0., 0.];
+        let mut rows: Vec<_> = (0..12)
+            .map(|n| {
+                (
+                    format!("other-{n}"),
+                    format!("r-{n}"),
+                    "other".into(),
+                    format!("h-{n}"),
+                    query.clone(),
+                )
+            })
+            .collect();
+        rows.push((
+            "local".into(),
+            "r-local".into(),
+            "here".into(),
+            "h-local".into(),
+            vec![0.9, 0.1, 0., 0., 0., 0., 0., 0.],
+        ));
+        index.upsert_batch(&rows).unwrap();
+        let scoped = index.search(&query, Some("here"), 1).unwrap();
+        assert_eq!(scoped.first().map(|hit| hit.0.as_str()), Some("local"));
+        assert!(index.search(&query, Some("empty"), 1).unwrap().is_empty());
+        assert_ne!(index.search(&query, None, 1).unwrap()[0].0, "local");
+    }
     use std::{
         io::{Read, Write},
         net::TcpListener,
         thread,
     };
+
+    #[test]
+    fn preference_similarity_uses_direction_and_ignores_zero_vectors() {
+        let v = |x, y| vec![x, y];
+        let vectors = vec![v(2., 0.), v(100., 100.), v(1., 0.), v(0., 0.), v(-2., 0.)];
+        assert_eq!(closest_preferences(&vectors), vec![2, 1]);
+        assert!(closest_preferences(&[v(0., 0.), v(4., 0.)]).is_empty());
+    }
 
     #[test]
     fn sqlite_vec_cosine_knn_indexes_prunes_and_switches_dimensions_cleanly() {
@@ -1064,21 +1200,35 @@ mod tests {
         .unwrap();
 
         let hits = idx
-            .search(&[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 2)
+            .search(&[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], Some("p1"), 2)
             .unwrap();
         assert_eq!(hits.len(), 2);
         assert_eq!(hits[0].0, "m1");
         assert!(hits[0].1 < 0.001);
         assert_eq!(hits[1].0, "m3");
 
-        // Prune removed revision
-        let keep: HashSet<_> = [("m3".into(), "r3".into())].into_iter().collect();
-        assert_eq!(idx.prune_missing(&keep).unwrap(), 2);
-        let after = idx
-            .search(&[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 5)
+        // Add a vector in project p2; pruning p1 MUST NOT wipe p2's cached vector
+        idx.upsert_batch(&[(
+            "m-p2".into(),
+            "r-p2".into(),
+            "p2".into(),
+            "h-p2".into(),
+            vec![1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        )])
+        .unwrap();
+        let keep_p1: HashSet<_> = [("m3".into(), "r3".into())].into_iter().collect();
+        assert_eq!(idx.prune_missing_in_scope(Some("p1"), &keep_p1).unwrap(), 2);
+        assert_eq!(idx.stats().unwrap()["indexedCount"], 2);
+        let after_p1 = idx
+            .search(&[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], Some("p1"), 5)
             .unwrap();
-        assert_eq!(after.len(), 1);
-        assert_eq!(after[0].0, "m3");
+        assert_eq!(after_p1.len(), 1);
+        assert_eq!(after_p1[0].0, "m3");
+        let after_p2 = idx
+            .search(&[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], Some("p2"), 5)
+            .unwrap();
+        assert_eq!(after_p2.len(), 1);
+        assert_eq!(after_p2[0].0, "m-p2");
 
         // Switching embedding model dimension recreates vec0 cleanly
         assert!(idx
@@ -1189,7 +1339,7 @@ mod tests {
             },
         ];
         // Query uses a completely different Chinese phrasing ("延期") with zero lexical overlap!
-        let outcome = query_hits(dir.path(), "发版会不会延期？", &memories, 5);
+        let outcome = query_hits(dir.path(), Some("p1"), "发版会不会延期？", &memories, 5);
         assert_eq!(outcome.trace["fusion"], "rrf");
         assert_eq!(outcome.hits[0].0, "m-delay");
         assert!(outcome.hits[0].1 < 0.01);

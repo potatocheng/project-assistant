@@ -251,6 +251,26 @@ fn verified_memory_search_respects_aliases_lifecycle_and_hybrid_sqlite_vec() {
         1
     );
 
+    let other = call(&engine, "create_project", json!({"name":"数据平台"}));
+    let other_id = other["id"].as_str().unwrap();
+    import_and_confirm(
+        &engine,
+        other_id,
+        "交付纪要",
+        "数据字典已定稿。",
+        "数据字典已定稿。",
+    );
+    let partial = call(
+        &engine,
+        "rebuild_semantic_index",
+        json!({"projectId":other_id}),
+    );
+    assert_eq!(partial["indexed"], 1);
+    assert_eq!(
+        partial["pruned"], 0,
+        "a project rebuild must preserve the other project's index"
+    );
+
     // Backup & restore preserves entity_aliases and clears derived semantic-index.sqlite
     let backup = call(&engine, "create_backup", json!({}));
     let filename = backup["filename"].as_str().unwrap();

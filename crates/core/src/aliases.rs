@@ -264,6 +264,43 @@ pub(crate) fn load_groups(conn: &Connection, scope: Option<&str>) -> Result<Vec<
     Ok(groups)
 }
 
+/// Returns alias groups matched against terms appearing in `question` (`None` when none match),
+/// preserving canonical names and their configured aliases for QA prompt grounding.
+pub(crate) fn question_alias_hints(
+    conn: &Connection,
+    scope: Option<&str>,
+    question: &str,
+) -> Result<Option<Value>> {
+    let groups = load_groups(conn, scope)?;
+    if groups.is_empty() {
+        return Ok(None);
+    }
+    let lower_q = question.to_lowercase();
+    let mut hints = Vec::new();
+    let mut seen_canon = std::collections::HashSet::new();
+    for group in groups {
+        let Some(canonical) = group.first() else {
+            continue;
+        };
+        let matched = group.iter().any(|term| {
+            let t = term.trim().to_lowercase();
+            !t.is_empty() && lower_q.contains(&t)
+        });
+        if !matched || !seen_canon.insert(canonical.to_lowercase()) {
+            continue;
+        }
+        let aliases: Vec<&str> = group.iter().skip(1).map(String::as_str).collect();
+        if !aliases.is_empty() {
+            hints.push(json!({"canonical": canonical, "aliases": aliases}));
+        }
+    }
+    if hints.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(Value::Array(hints)))
+    }
+}
+
 pub(crate) fn validate_backup(conn: &Connection) -> Result<()> {
     if !table_exists(conn)? {
         return Err(AppError::new("INVALID_BACKUP", "备份缺少术语与别名表"));
@@ -368,6 +405,16 @@ mod tests {
         )
         .unwrap();
         assert_eq!(updated["version"], 2);
+
+        let hints = question_alias_hints(&db.conn, Some("p1"), "老王最近在跟什么？").unwrap();
+        assert_eq!(
+            hints,
+            Some(json!([{"canonical": "王明", "aliases": ["老王", "王总"]}]))
+        );
+        assert_eq!(
+            question_alias_hints(&db.conn, Some("p1"), "谁负责测试？").unwrap(),
+            None
+        );
 
         delete(&db.conn, &json!({"id":scoped["id"]})).unwrap();
         assert_eq!(load_groups(&db.conn, Some("p1")).unwrap().len(), 1);

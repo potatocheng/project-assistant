@@ -42,28 +42,581 @@ fn table_exists(conn: &Connection) -> Result<bool> {
     )?)
 }
 
-fn extract_iso_dates(text: &str) -> BTreeSet<String> {
-    let bytes = text.as_bytes();
-    let mut dates = BTreeSet::new();
-    if bytes.len() < 10 {
-        return dates;
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+struct DateToken {
+    year: Option<u16>,
+    month: u8,
+    day: u8,
+}
+
+impl DateToken {
+    fn matches(self, other: Self) -> bool {
+        self.month == other.month
+            && self.day == other.day
+            && match (self.year, other.year) {
+                (Some(a), Some(b)) => a == b,
+                _ => true,
+            }
     }
-    for i in 0..=bytes.len() - 10 {
-        let s = &bytes[i..i + 10];
-        if s[0..4].iter().all(u8::is_ascii_digit)
-            && s[4] == b'-'
-            && s[5..7].iter().all(u8::is_ascii_digit)
-            && s[7] == b'-'
-            && s[8..10].iter().all(u8::is_ascii_digit)
-        {
-            if let Ok(token) = std::str::from_utf8(s) {
-                dates.insert(token.to_owned());
+
+    fn format(self) -> String {
+        match self.year {
+            Some(y) => format!("{y:04}-{:02}-{:02}", self.month, self.day),
+            None => format!("{:02}-{:02}", self.month, self.day),
+        }
+    }
+}
+
+fn valid_calendar_date(month: u8, day: u8) -> bool {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => (1..=31).contains(&day),
+        4 | 6 | 9 | 11 => (1..=30).contains(&day),
+        2 => (1..=29).contains(&day),
+        _ => false,
+    }
+}
+
+fn dates_match(a: &BTreeSet<DateToken>, b: &BTreeSet<DateToken>) -> bool {
+    a.len() == b.len() && a.iter().zip(b.iter()).all(|(da, db)| da.matches(*db))
+}
+
+fn parse_ascii_u16(bytes: &[u8]) -> Option<u16> {
+    if bytes.is_empty() || !bytes.iter().all(u8::is_ascii_digit) {
+        return None;
+    }
+    std::str::from_utf8(bytes).ok()?.parse::<u16>().ok()
+}
+
+fn parse_english_month(token: &str) -> Option<u8> {
+    match token {
+        "jan" | "january" => Some(1),
+        "feb" | "february" => Some(2),
+        "mar" | "march" => Some(3),
+        "apr" | "april" => Some(4),
+        "may" => Some(5),
+        "jun" | "june" => Some(6),
+        "jul" | "july" => Some(7),
+        "aug" | "august" => Some(8),
+        "sep" | "sept" | "september" => Some(9),
+        "oct" | "october" => Some(10),
+        "nov" | "november" => Some(11),
+        "dec" | "december" => Some(12),
+        _ => None,
+    }
+}
+
+fn parse_english_day(token: &str) -> Option<u8> {
+    let trimmed = token
+        .strip_suffix("st")
+        .or_else(|| token.strip_suffix("nd"))
+        .or_else(|| token.strip_suffix("rd"))
+        .or_else(|| token.strip_suffix("th"))
+        .unwrap_or(token);
+    if trimmed.is_empty() || trimmed.len() > 2 || !trimmed.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    trimmed.parse::<u8>().ok().filter(|d| (1..=31).contains(d))
+}
+
+fn extract_dates(text: &str) -> BTreeSet<DateToken> {
+    let mut dates = BTreeSet::new();
+    let bytes = text.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let prev_digit = i > 0 && bytes[i - 1].is_ascii_digit();
+        if !prev_digit && i + 8 <= bytes.len() {
+            if let Some(year) =
+                parse_ascii_u16(&bytes[i..i + 4]).filter(|y| (1900..=2199).contains(y))
+            {
+                let sep = bytes[i + 4];
+                if matches!(sep, b'-' | b'/' | b'.') {
+                    let m_start = i + 5;
+                    let m_len = bytes[m_start..]
+                        .iter()
+                        .take(2)
+                        .take_while(|b| b.is_ascii_digit())
+                        .count();
+                    if (1..=2).contains(&m_len) && bytes.get(m_start + m_len) == Some(&sep) {
+                        let d_start = m_start + m_len + 1;
+                        let d_len = bytes[d_start..]
+                            .iter()
+                            .take(2)
+                            .take_while(|b| b.is_ascii_digit())
+                            .count();
+                        let after_digit =
+                            bytes.get(d_start + d_len).is_some_and(u8::is_ascii_digit);
+                        if (1..=2).contains(&d_len) && !after_digit {
+                            if let (Some(m), Some(d)) = (
+                                parse_ascii_u16(&bytes[m_start..m_start + m_len]).map(|v| v as u8),
+                                parse_ascii_u16(&bytes[d_start..d_start + d_len]).map(|v| v as u8),
+                            ) {
+                                if valid_calendar_date(m, d) {
+                                    dates.insert(DateToken {
+                                        year: Some(year),
+                                        month: m,
+                                        day: d,
+                                    });
+                                    i = d_start + d_len;
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let prev_joined = i > 0
+            && (bytes[i - 1].is_ascii_alphanumeric() || matches!(bytes[i - 1], b'-' | b'/' | b'.'));
+        if !prev_joined && i + 3 <= bytes.len() && bytes[i].is_ascii_digit() {
+            let m_len = bytes[i..]
+                .iter()
+                .take(2)
+                .take_while(|b| b.is_ascii_digit())
+                .count();
+            if (1..=2).contains(&m_len) {
+                if let Some(&_sep @ (b'-' | b'/')) = bytes.get(i + m_len) {
+                    let d_start = i + m_len + 1;
+                    let d_len = bytes[d_start..]
+                        .iter()
+                        .take(2)
+                        .take_while(|b| b.is_ascii_digit())
+                        .count();
+                    let next_joined = bytes.get(d_start + d_len).is_some_and(|b| {
+                        b.is_ascii_alphanumeric() || matches!(b, b'-' | b'/' | b'.')
+                    });
+                    if (1..=2).contains(&d_len) && !next_joined {
+                        if let (Some(m), Some(d)) = (
+                            parse_ascii_u16(&bytes[i..i + m_len]).map(|v| v as u8),
+                            parse_ascii_u16(&bytes[d_start..d_start + d_len]).map(|v| v as u8),
+                        ) {
+                            if valid_calendar_date(m, d) {
+                                dates.insert(DateToken {
+                                    year: None,
+                                    month: m,
+                                    day: d,
+                                });
+                                i = d_start + d_len;
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        i += 1;
+    }
+
+    for (idx, _) in text.match_indices('月') {
+        let before = text[..idx].trim_end();
+        let month_digits: String = before
+            .chars()
+            .rev()
+            .take_while(|c| c.is_ascii_digit())
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect();
+        if !(1..=2).contains(&month_digits.len()) {
+            continue;
+        }
+        let Ok(month) = month_digits.parse::<u8>() else {
+            continue;
+        };
+        let before_month = before[..before.len() - month_digits.len()].trim_end();
+        let year = if let Some(before_year) = before_month.strip_suffix('年') {
+            let y_digits: String = before_year
+                .trim_end()
+                .chars()
+                .rev()
+                .take_while(|c| c.is_ascii_digit())
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect();
+            if y_digits.len() == 4 {
+                y_digits
+                    .parse::<u16>()
+                    .ok()
+                    .filter(|y| (1900..=2199).contains(y))
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+        let after = text[idx + '月'.len_utf8()..].trim_start();
+        let day_digits: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
+        if !(1..=2).contains(&day_digits.len()) {
+            continue;
+        }
+        if !after[day_digits.len()..].starts_with(['日', '号']) {
+            continue;
+        }
+        if let Ok(day) = day_digits.parse::<u8>() {
+            if valid_calendar_date(month, day) {
+                dates.insert(DateToken { year, month, day });
             }
         }
     }
+
+    let mut ascii_tokens: Vec<(String, usize, usize)> = Vec::new();
+    let mut t_start: Option<usize> = None;
+    for (pos, ch) in text.char_indices() {
+        if ch.is_ascii_alphanumeric() {
+            t_start.get_or_insert(pos);
+        } else if let Some(s) = t_start.take() {
+            ascii_tokens.push((text[s..pos].to_lowercase(), s, pos));
+        }
+    }
+    if let Some(s) = t_start {
+        ascii_tokens.push((text[s..].to_lowercase(), s, text.len()));
+    }
+    let gap_ok = |a_end: usize, b_start: usize| -> bool {
+        let gap = &text[a_end..b_start];
+        gap.len() <= 4 && gap.chars().all(|c| c.is_ascii_whitespace() || c == ',')
+    };
+    let mut ti = 0usize;
+    while ti + 1 < ascii_tokens.len() {
+        if !gap_ok(ascii_tokens[ti].2, ascii_tokens[ti + 1].1) {
+            ti += 1;
+            continue;
+        }
+        let mut matched = None;
+        if let (Some(m), Some(d)) = (
+            parse_english_month(&ascii_tokens[ti].0),
+            parse_english_day(&ascii_tokens[ti + 1].0),
+        ) {
+            matched = Some((m, d));
+        } else if let (Some(d), Some(m)) = (
+            parse_english_day(&ascii_tokens[ti].0),
+            parse_english_month(&ascii_tokens[ti + 1].0),
+        ) {
+            matched = Some((m, d));
+        }
+        if let Some((month, day)) = matched {
+            let year = if ti + 2 < ascii_tokens.len()
+                && gap_ok(ascii_tokens[ti + 1].2, ascii_tokens[ti + 2].1)
+                && ascii_tokens[ti + 2].0.len() == 4
+            {
+                ascii_tokens[ti + 2]
+                    .0
+                    .parse::<u16>()
+                    .ok()
+                    .filter(|y| (1900..=2199).contains(y))
+            } else {
+                None
+            };
+            if valid_calendar_date(month, day) {
+                dates.insert(DateToken { year, month, day });
+            }
+            ti += if year.is_some() { 3 } else { 2 };
+            continue;
+        }
+        ti += 1;
+    }
+
     dates
 }
 
+fn extract_stages(text: &str) -> BTreeSet<&'static str> {
+    let lower = text.to_lowercase();
+    let mut stages = BTreeSet::new();
+    const STAGE_GROUPS: &[(&str, &[&str])] = &[
+        ("kickoff", &["立项", "启动", "kickoff", "kick-off"]),
+        (
+            "design",
+            &[
+                "方案评审",
+                "架构评审",
+                "设计评审",
+                "需求评审",
+                "立项评审",
+                "design review",
+                "prd",
+            ],
+        ),
+        (
+            "dev",
+            &[
+                "开发完成",
+                "联调",
+                "提测",
+                "code complete",
+                "dev complete",
+                "integration",
+            ],
+        ),
+        (
+            "freeze",
+            &["封板", "冻结", "code freeze", "feature freeze", "freeze"],
+        ),
+        (
+            "uat",
+            &[
+                "内测",
+                "灰度",
+                "试运行",
+                "验收",
+                "uat",
+                "beta",
+                "canary",
+                "pilot",
+            ],
+        ),
+        (
+            "release",
+            &[
+                "上线",
+                "发布",
+                "投产",
+                "交付",
+                "launch",
+                "release",
+                "go-live",
+                "go live",
+                "production",
+            ],
+        ),
+        ("retro", &["复盘", "总结", "归档", "retro", "postmortem"]),
+    ];
+    for (bucket, cues) in STAGE_GROUPS {
+        if cues.iter().any(|cue| lower.contains(cue)) {
+            stages.insert(*bucket);
+        }
+    }
+    stages
+}
+
+fn is_valid_owner_candidate(candidate: &str) -> bool {
+    let trimmed = candidate.trim();
+    let char_len = trimmed.chars().count();
+    if !(2..=20).contains(&char_len) {
+        return false;
+    }
+    let has_cjk = trimmed
+        .chars()
+        .any(|c| ('\u{4e00}'..='\u{9fff}').contains(&c));
+    if has_cjk && char_len > 6 {
+        return false;
+    }
+    !matches!(
+        trimmed.to_lowercase().as_str(),
+        "谁" | "自己"
+            | "团队"
+            | "小组"
+            | "部门"
+            | "研发"
+            | "开发"
+            | "测试"
+            | "运维"
+            | "产品"
+            | "前端"
+            | "后端"
+            | "专人"
+            | "系统"
+            | "模块"
+            | "项目"
+            | "我们"
+            | "大家"
+            | "各自"
+            | "共同"
+            | "全权"
+            | "主要"
+            | "具体"
+            | "统一"
+            | "人员"
+            | "同事"
+            | "同学"
+            | "技术"
+            | "the"
+            | "a"
+            | "an"
+            | "this"
+            | "that"
+            | "it"
+            | "team"
+            | "backend"
+            | "frontend"
+    )
+}
+
+fn strip_owner_suffix(mut s: &str) -> &str {
+    const SUFFIXES: &[&str] = &[
+        "全权负责",
+        "全权承接",
+        "全权",
+        "承接",
+        "承担",
+        "主导",
+        "接手",
+        "跟进",
+        "负责",
+        "处理",
+        "牵头",
+    ];
+    loop {
+        s = s.trim();
+        let before = s;
+        for suf in SUFFIXES {
+            if let Some(stripped) = s.strip_suffix(suf) {
+                s = stripped.trim();
+                break;
+            }
+        }
+        if s == before {
+            return s;
+        }
+    }
+}
+
+fn extract_owner_raw(content: &str) -> Option<String> {
+    for (idx, _) in content.match_indices('由') {
+        if idx > 0 && matches!(content[..idx].chars().next_back(), Some('理' | '自' | '原')) {
+            continue;
+        }
+        let rest = &content[idx + '由'.len_utf8()..];
+        for verb in ["负责", "接手", "牵头", "跟进", "承接"] {
+            if let Some(end) = rest.find(verb) {
+                let candidate = strip_owner_suffix(rest[..end].trim());
+                let char_len = candidate.chars().count();
+                if (1..=12).contains(&char_len)
+                    && !candidate.contains(['，', '。', '、', ',', '.', '；', ';', '\n', ' '])
+                    && is_valid_owner_candidate(candidate)
+                {
+                    return Some(candidate.to_owned());
+                }
+            }
+        }
+    }
+    for prefix in [
+        "负责人：",
+        "负责人:",
+        "负责人为",
+        "负责人是",
+        "已转交",
+        "转交给",
+        "转交",
+        "交给",
+        "改派给",
+        "改派",
+    ] {
+        if let Some(start) = content.find(prefix) {
+            let rest = content[start + prefix.len()..].trim_start();
+            let candidate: String = rest
+                .chars()
+                .take_while(|c| {
+                    !matches!(
+                        c,
+                        '，' | '。'
+                            | '、'
+                            | ','
+                            | '.'
+                            | '；'
+                            | ';'
+                            | '\n'
+                            | ' '
+                            | '（'
+                            | '('
+                            | '）'
+                            | ')'
+                    )
+                })
+                .collect();
+            let trimmed = strip_owner_suffix(&candidate);
+            if is_valid_owner_candidate(trimmed) {
+                return Some(trimmed.to_owned());
+            }
+        }
+    }
+    for verb in ["负责", "牵头", "接手", "跟进", "承接"] {
+        for (idx, _) in content.match_indices(verb) {
+            let before = content[..idx].trim_end();
+            let raw_candidate: String = before
+                .chars()
+                .rev()
+                .take_while(|c| {
+                    !matches!(
+                        c,
+                        '，' | '。'
+                            | '、'
+                            | ','
+                            | '.'
+                            | '；'
+                            | ';'
+                            | '\n'
+                            | ' '
+                            | '：'
+                            | ':'
+                            | '（'
+                            | '('
+                            | '）'
+                            | ')'
+                            | '将'
+                            | '把'
+                            | '由'
+                            | '改'
+                            | '转'
+                            | '请'
+                            | '让'
+                            | '需'
+                            | '已'
+                            | '并'
+                            | '和'
+                            | '与'
+                            | '及'
+                    )
+                })
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect();
+            let candidate = strip_owner_suffix(&raw_candidate);
+            if is_valid_owner_candidate(candidate) {
+                return Some(candidate.to_owned());
+            }
+        }
+    }
+    let lower = content.to_lowercase();
+    for cue in [
+        "owner:",
+        "owner is ",
+        "owned by ",
+        "assigned to ",
+        "led by ",
+    ] {
+        if let Some(idx) = lower.find(cue) {
+            let rest = content[idx + cue.len()..].trim_start();
+            let candidate: String = rest
+                .chars()
+                .take_while(|c| c.is_ascii_alphabetic() || *c == '-' || *c == '_')
+                .collect();
+            let trimmed = strip_owner_suffix(&candidate);
+            if is_valid_owner_candidate(trimmed) {
+                return Some(trimmed.to_owned());
+            }
+        }
+    }
+    for cue in [" owns ", " leads "] {
+        if let Some(idx) = lower.find(cue) {
+            let before = content[..idx].trim_end();
+            let raw_candidate: String = before
+                .chars()
+                .rev()
+                .take_while(|c| c.is_ascii_alphabetic() || *c == '-' || *c == '_')
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect();
+            let candidate = strip_owner_suffix(&raw_candidate);
+            if is_valid_owner_candidate(candidate) {
+                return Some(candidate.to_owned());
+            }
+        }
+    }
+    None
+}
+
+#[allow(dead_code)]
 fn extract_owner(
     content: &str,
     facets: &Value,
@@ -78,43 +631,218 @@ fn extract_owner(
             return Some(canonicalize(entity, alias_map));
         }
     }
-    // Pattern 1: "由<name>负责"
-    if let Some(start) = content.find('由') {
-        let rest = &content[start + '由'.len_utf8()..];
-        if let Some(end) = rest.find("负责") {
-            let candidate = rest[..end].trim();
-            let char_len = candidate.chars().count();
-            if (1..=12).contains(&char_len)
-                && !candidate.contains(['，', '。', '、', ',', '.', '；', ';', '\n', ' '])
-            {
-                return Some(canonicalize(candidate, alias_map));
+    extract_owner_raw(content).map(|raw| canonicalize(&raw, alias_map))
+}
+
+fn is_audit_punct(c: char) -> bool {
+    c.is_ascii_punctuation()
+        || matches!(
+            c,
+            '，' | '。'
+                | '、'
+                | '；'
+                | '：'
+                | '！'
+                | '？'
+                | '（'
+                | '）'
+                | '【'
+                | '】'
+                | '「'
+                | '」'
+                | '『'
+                | '』'
+                | '“'
+                | '”'
+                | '‘'
+                | '’'
+                | '—'
+                | '…'
+                | '·'
+        )
+}
+
+fn owner_subject(content: &str, raw: &str) -> Option<String> {
+    let idx = if content.is_ascii() {
+        content
+            .to_ascii_lowercase()
+            .find(&raw.to_ascii_lowercase())?
+    } else {
+        content.find(raw)?
+    };
+    let mut before = &content[..idx];
+    const CUES: &[&str] = &[
+        "已交由",
+        "交由",
+        "改由",
+        "已转交",
+        "转交给",
+        "转交",
+        "交给",
+        "改派给",
+        "改派",
+        "负责人：",
+        "负责人:",
+        "负责人为",
+        "负责人是",
+        "由",
+        "is owned by",
+        "owned by",
+        "is assigned to",
+        "assigned to",
+        "is led by",
+        "led by",
+        "owner is",
+        "owner:",
+    ];
+    loop {
+        before = before.trim_end_matches(|c: char| c.is_whitespace() || is_audit_punct(c));
+        let prev = before;
+        let lower_before = before.to_ascii_lowercase();
+        for cue in CUES {
+            if cue.is_ascii() {
+                if lower_before.ends_with(cue) {
+                    before = &before[..before.len() - cue.len()];
+                    break;
+                }
+            } else if let Some(stripped) = before.strip_suffix(cue) {
+                before = stripped;
+                break;
             }
         }
-    }
-    // Pattern 2: "负责人：<name>" / "负责人为<name>"
-    for prefix in ["负责人：", "负责人:", "负责人为", "负责人是"] {
-        if let Some(start) = content.find(prefix) {
-            let rest = content[start + prefix.len()..].trim_start();
-            let candidate: String = rest
-                .chars()
-                .take_while(|c| {
-                    !matches!(
-                        c,
-                        '，' | '。' | '、' | ',' | '.' | '；' | ';' | '\n' | ' ' | '（' | '('
-                    )
-                })
-                .collect();
-            let char_len = candidate.chars().count();
-            if (1..=12).contains(&char_len) {
-                return Some(canonicalize(&candidate, alias_map));
-            }
+        if before == prev {
+            break;
         }
     }
-    None
+    let norm: String = before
+        .chars()
+        .filter(|c| !c.is_whitespace() && !is_audit_punct(*c))
+        .flat_map(|c| c.to_lowercase())
+        .collect();
+    if norm.chars().count() >= 2 {
+        Some(norm)
+    } else {
+        None
+    }
+}
+
+fn extract_numbers(text: &str) -> BTreeSet<String> {
+    let mut nums = BTreeSet::new();
+    let mut cur = String::new();
+    for ch in text.chars() {
+        if ch.is_ascii_digit() {
+            cur.push(ch);
+        } else if !cur.is_empty() {
+            nums.insert(std::mem::take(&mut cur));
+        }
+    }
+    if !cur.is_empty() {
+        nums.insert(cur);
+    }
+    nums
+}
+
+fn common_prefix_chars(a: &str, b: &str) -> usize {
+    a.chars()
+        .filter(|c| !c.is_whitespace())
+        .zip(b.chars().filter(|c| !c.is_whitespace()))
+        .take_while(|(ca, cb)| ca == cb)
+        .count()
+}
+
+fn shared_subject_prefix(a: &str, b: &str) -> bool {
+    let n = common_prefix_chars(a, b);
+    if n < 4 {
+        return false;
+    }
+    let has_cjk = a
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .take(n)
+        .any(|c| ('\u{4e00}'..='\u{9fff}').contains(&c));
+    has_cjk || n >= 12
+}
+
+fn implicit_exclusive(a: &str, b: &str) -> Option<((&'static str, &'static str), usize)> {
+    const CJK_PAIRS: &[(&str, &str)] = &[
+        ("线下", "线上"),
+        ("纸质", "电子"),
+        ("人工", "自动"),
+        ("手动", "自动"),
+        ("同步", "异步"),
+        ("串行", "并行"),
+        ("本地", "云端"),
+        ("单体", "微服务"),
+        ("启用", "停用"),
+        ("启用", "禁用"),
+        ("开启", "关闭"),
+        ("盖章", "签章"),
+    ];
+    const EN_PAIRS: &[(&str, &str)] = &[
+        ("online", "offline"),
+        ("manual", "automatic"),
+        ("manual", "automated"),
+        ("enabled", "disabled"),
+        ("synchronous", "asynchronous"),
+    ];
+    let en_words = |t: &str| -> HashSet<String> {
+        t.split_whitespace()
+            .map(|w| w.trim_matches(|c: char| is_audit_punct(c)).to_lowercase())
+            .filter(|w| !w.is_empty())
+            .collect()
+    };
+    let words_a = en_words(a);
+    let words_b = en_words(b);
+
+    let mut first: Option<(&'static str, &'static str)> = None;
+    let mut count = 0usize;
+
+    for &(x, y) in CJK_PAIRS {
+        let a_x = a.contains(x);
+        let a_y = a.contains(y);
+        let b_x = b.contains(x);
+        let b_y = b.contains(y);
+        if (a_x && !a_y && b_y && !b_x) || (a_y && !a_x && b_x && !b_y) {
+            first.get_or_insert((x, y));
+            count += 1;
+        }
+    }
+    for &(x, y) in EN_PAIRS {
+        let a_x = words_a.contains(x);
+        let a_y = words_a.contains(y);
+        let b_x = words_b.contains(x);
+        let b_y = words_b.contains(y);
+        if (a_x && !a_y && b_y && !b_x) || (a_y && !a_x && b_x && !b_y) {
+            first.get_or_insert((x, y));
+            count += 1;
+        }
+    }
+    first.map(|pair| (pair, count))
+}
+
+fn has_change_cue(t: &str) -> bool {
+    [
+        "改用",
+        "改为",
+        "改成",
+        "换成",
+        "换用",
+        "切换为",
+        "切换到",
+        "替换为",
+        "替代",
+        "转为",
+        "不再采用",
+        "switched to",
+        "replaced",
+        "instead",
+    ]
+    .iter()
+    .any(|cue| t.contains(cue))
 }
 
 fn has_negation(content: &str) -> bool {
-    [
+    if [
         "已取消",
         "取消",
         "暂缓",
@@ -132,6 +860,32 @@ fn has_negation(content: &str) -> bool {
     ]
     .iter()
     .any(|cue| content.contains(cue))
+    {
+        return true;
+    }
+    let lower = content.to_lowercase();
+    [
+        "cancelled",
+        "canceled",
+        "dropped",
+        "abandoned",
+        "deprecated",
+        "rejected",
+        "on hold",
+        "discontinued",
+        "no longer",
+        "stopped",
+        "removed",
+        "not used",
+        "won't use",
+        "will not use",
+        " not ",
+        "n't ",
+        "never ",
+        "disabled",
+    ]
+    .iter()
+    .any(|cue| lower.contains(cue))
 }
 
 fn build_alias_map(groups: &[Vec<String>]) -> HashMap<String, String> {
@@ -215,9 +969,14 @@ struct ActiveMemory {
     id: String,
     revision: i64,
     facets: Value,
+    text: String,
     tokens: HashSet<String>,
-    dates: BTreeSet<String>,
+    subject_tokens: HashSet<String>,
+    numbers: BTreeSet<String>,
+    dates: BTreeSet<DateToken>,
+    stages: BTreeSet<&'static str>,
     owner: Option<String>,
+    owner_subject: Option<String>,
     negated: bool,
     entity: Option<String>,
 }
@@ -294,9 +1053,66 @@ pub(crate) fn scan(conn: &Connection, scope: Option<&str>) -> Result<Value> {
             .into_iter()
             .map(|(id, revision, content, facets_raw)| {
                 let facets: Value = serde_json::from_str(&facets_raw).unwrap_or_else(|_| json!({}));
+                let text = content.to_lowercase();
                 let tokens = canonical_tokens(&content, &alias_map);
-                let dates = extract_iso_dates(&content);
-                let owner = extract_owner(&content, &facets, &alias_map);
+                let numbers = extract_numbers(&content);
+                let dates = extract_dates(&content);
+                let stages = extract_stages(&content);
+                let raw_text_owner = extract_owner_raw(&content);
+                let owner = if facets["role"].as_str() == Some("owner") {
+                    facets["entity"]
+                        .as_str()
+                        .map(str::trim)
+                        .filter(|s| !s.is_empty())
+                        .map(|e| canonicalize(e, &alias_map))
+                        .or_else(|| {
+                            raw_text_owner
+                                .as_deref()
+                                .map(|r| canonicalize(r, &alias_map))
+                        })
+                } else {
+                    raw_text_owner
+                        .as_deref()
+                        .map(|r| canonicalize(r, &alias_map))
+                };
+                let owner_subject = raw_text_owner
+                    .as_deref()
+                    .and_then(|raw| owner_subject(&content, raw));
+                let subject_tokens: HashSet<String> = tokens
+                    .iter()
+                    .filter(|t| {
+                        let s = t.as_str();
+                        owner.as_deref() != Some(s)
+                            && !matches!(
+                                s,
+                                "负责"
+                                    | "负责人"
+                                    | "接手"
+                                    | "牵头"
+                                    | "跟进"
+                                    | "改由"
+                                    | "转交"
+                                    | "交给"
+                                    | "改派"
+                                    | "交由"
+                                    | "全权"
+                                    | "承接"
+                                    | "承担"
+                                    | "主导"
+                                    | "已交由"
+                                    | "owner"
+                                    | "owned"
+                                    | "assigned"
+                                    | "leads"
+                                    | "owns"
+                                    | "by"
+                                    | "to"
+                                    | "is"
+                                    | "the"
+                            )
+                    })
+                    .cloned()
+                    .collect();
                 let negated = has_negation(&content);
                 let entity = facets["entity"]
                     .as_str()
@@ -307,9 +1123,14 @@ pub(crate) fn scan(conn: &Connection, scope: Option<&str>) -> Result<Value> {
                     id,
                     revision,
                     facets,
+                    text,
                     tokens,
+                    subject_tokens,
+                    numbers,
                     dates,
+                    stages,
                     owner,
+                    owner_subject,
                     negated,
                     entity,
                 }
@@ -332,12 +1153,45 @@ pub(crate) fn scan(conn: &Connection, scope: Option<&str>) -> Result<Value> {
                 let shared_entity =
                     matches!((&a.entity, &b.entity), (Some(ea), Some(eb)) if ea == eb);
                 let sim = jaccard(&a.tokens, &b.tokens);
-                if sim < 0.30 && !shared_entity {
+                let subject_sim = jaccard(&a.subject_tokens, &b.subject_tokens);
+                let shared_stage = !a.stages.is_disjoint(&b.stages);
+                let prefix = shared_subject_prefix(&a.text, &b.text);
+                let same_owner_subject =
+                    matches!((&a.owner_subject, &b.owner_subject), (Some(x), Some(y)) if x == y);
+                let implicit = implicit_exclusive(&a.text, &b.text);
+                let contained = {
+                    let pair = if a.tokens.len() < b.tokens.len() && a.tokens.is_subset(&b.tokens) {
+                        Some((&a.tokens, &b.tokens))
+                    } else if b.tokens.len() < a.tokens.len() && b.tokens.is_subset(&a.tokens) {
+                        Some((&b.tokens, &a.tokens))
+                    } else {
+                        None
+                    };
+                    pair.is_some_and(|(small, big)| {
+                        small.len() >= 4
+                            && small.len() * 10 >= big.len() * 7
+                            && a.numbers == b.numbers
+                            && !big
+                                .difference(small)
+                                .any(|t| t.contains(['不', '未', '无', '非', '没']))
+                    })
+                };
+                if sim < 0.30
+                    && !shared_entity
+                    && subject_sim < 0.45
+                    && !(shared_stage && prefix)
+                    && !same_owner_subject
+                    && !(implicit.is_some() && prefix)
+                    && !contained
+                {
                     continue;
                 }
+                let stage_compatible = a.stages.is_empty() || b.stages.is_empty() || shared_stage;
 
-                let finding: Option<(&str, String)> = if sim >= 0.85
-                    && a.dates == b.dates
+                let finding: Option<(&str, String)> = if (sim >= 0.85 || contained)
+                    && stage_compatible
+                    && dates_match(&a.dates, &b.dates)
+                    && a.numbers == b.numbers
                     && a.negated == b.negated
                     && a.owner == b.owner
                 {
@@ -346,18 +1200,34 @@ pub(crate) fn scan(conn: &Connection, scope: Option<&str>) -> Result<Value> {
                         "两条活跃记忆表述高度重复，建议保留更完整的一条，将另一条归档为仅存原文。"
                             .into(),
                     ))
-                } else if (sim >= 0.35 || shared_entity)
+                } else if (sim >= 0.35 || shared_entity || (shared_stage && prefix))
+                    && stage_compatible
                     && !a.dates.is_empty()
                     && !b.dates.is_empty()
-                    && a.dates.is_disjoint(&b.dates)
+                    && !a
+                        .dates
+                        .iter()
+                        .any(|da| b.dates.iter().any(|db| da.matches(*db)))
                 {
-                    let da = a.dates.iter().cloned().collect::<Vec<_>>().join("、");
-                    let db = b.dates.iter().cloned().collect::<Vec<_>>().join("、");
+                    let da = a
+                        .dates
+                        .iter()
+                        .map(|d| d.format())
+                        .collect::<Vec<_>>()
+                        .join("、");
+                    let db = b
+                        .dates
+                        .iter()
+                        .map(|d| d.format())
+                        .collect::<Vec<_>>()
+                        .join("、");
                     Some((
                         "date_conflict",
                         format!("两条相关活跃记忆记录了不同日期（{da} vs {db}），可能存在排期变更后旧记忆未更新。"),
                     ))
-                } else if (sim >= 0.35 || shared_entity)
+                } else if (same_owner_subject
+                    || ((sim >= 0.35 || shared_entity || subject_sim >= 0.50)
+                        && subject_sim >= 0.25))
                     && matches!((&a.owner, &b.owner), (Some(oa), Some(ob)) if oa != ob)
                 {
                     let oa = a.owner.as_deref().unwrap_or("");
@@ -371,6 +1241,15 @@ pub(crate) fn scan(conn: &Connection, scope: Option<&str>) -> Result<Value> {
                     Some((
                         "negation_conflict",
                         "两条相关活跃记忆存在肯定与取消/否决表述矛盾，请确认当前有效结论。".into(),
+                    ))
+                } else if a.negated == b.negated
+                    && matches!(implicit, Some((_, count)) if count >= 2 || has_change_cue(&a.text) || has_change_cue(&b.text))
+                    && (prefix || sim >= 0.30 || shared_entity)
+                {
+                    let ((x, y), _) = implicit.unwrap();
+                    Some((
+                        "negation_conflict",
+                        format!("两条相关活跃记忆对同一事项记录了互斥做法（{x} vs {y}），可能是方案变更后旧记忆未更新。"),
                     ))
                 } else {
                     None
@@ -678,5 +1557,194 @@ mod tests {
             .unwrap();
         let policy = crate::retention::revision(&db.conn, &rev_id).unwrap();
         assert_eq!(policy["layer"], "archive");
+    }
+
+    #[test]
+    fn audit_handles_non_iso_dates_stage_guard_natural_owner_and_english_negation() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = Database::open(dir.path().to_path_buf()).unwrap();
+        db.conn
+            .execute("INSERT INTO projects VALUES('p1','Nova','','now')", [])
+            .unwrap();
+
+        // 1) Chinese date conflict ("12月5日" vs "12月12日")
+        insert_active(&db.conn, "c1", "p1", "Nova网关发布时间定在12月5日。");
+        insert_active(&db.conn, "c2", "p1", "Nova网关发布时间调整为12月12日。");
+
+        // 2) English date conflict ("Dec 5" vs "Dec 19")
+        insert_active(
+            &db.conn,
+            "e1",
+            "p1",
+            "Atlas billing migration launch date is Dec 5.",
+        );
+        insert_active(
+            &db.conn,
+            "e2",
+            "p1",
+            "Atlas billing migration launch date is Dec 19.",
+        );
+
+        // 3) Equivalent cross-format dates should NOT conflict ("2026-11-28" == "11月28日")
+        insert_active(&db.conn, "q1", "p1", "Orion灰度验证日期定在2026-11-28。");
+        insert_active(&db.conn, "q2", "p1", "Orion灰度验证时间已确认为11月28日。");
+
+        // 4) Same-project different-stage dates should NOT conflict ("封板" vs "上线")
+        insert_active(
+            &db.conn,
+            "s1",
+            "p1",
+            "Apollo版本代码封板日期定在2026-11-20。",
+        );
+        insert_active(
+            &db.conn,
+            "s2",
+            "p1",
+            "Apollo版本正式上线日期定在2026-12-01。",
+        );
+
+        // 5) Natural Chinese owner conflict ("王明负责" vs "李静接手")
+        insert_active(&db.conn, "o1", "p1", "账单对账中心重构由王明负责推进。");
+        insert_active(&db.conn, "o2", "p1", "账单对账中心重构改由李静接手。");
+
+        // 6) English owner conflict ("owned by Alice" vs "assigned to Bob")
+        insert_active(
+            &db.conn,
+            "eo1",
+            "p1",
+            "Token rotation service is owned by Alice.",
+        );
+        insert_active(
+            &db.conn,
+            "eo2",
+            "p1",
+            "Token rotation service is assigned to Bob.",
+        );
+
+        // 7) English negation conflict ("deprecated / no longer")
+        insert_active(
+            &db.conn,
+            "n1",
+            "p1",
+            "Legacy webhook signature V1 remains active for partner callbacks.",
+        );
+        insert_active(
+            &db.conn,
+            "n2",
+            "p1",
+            "Legacy webhook signature V1 is deprecated and no longer used for partner callbacks.",
+        );
+
+        // 8) Same project unrelated tasks with different owners + shared entity should NOT conflict
+        insert_active(&db.conn, "u1", "p1", "Nova移动端推送通知由张三负责。");
+        insert_active(&db.conn, "u2", "p1", "Nova财务对账报表由赵四负责。");
+        for (mid, ent) in [("u1", "Nova"), ("u2", "Nova")] {
+            db.conn
+                .execute(
+                    "INSERT INTO revision_facets VALUES(?,?)",
+                    params![mid, json!({"entity": ent}).to_string()],
+                )
+                .unwrap();
+        }
+
+        scan(&db.conn, Some("p1")).unwrap();
+        let listed = list(&db.conn, &json!({"projectId": "p1"})).unwrap();
+        let audits = listed["audits"].as_array().unwrap();
+        let has_pair = |x: &str, y: &str, kind: &str| {
+            audits.iter().any(|a| {
+                a["kind"] == kind
+                    && ((a["memoryA"]["id"] == x && a["memoryB"]["id"] == y)
+                        || (a["memoryA"]["id"] == y && a["memoryB"]["id"] == x))
+            })
+        };
+
+        assert!(has_pair("c1", "c2", "date_conflict"), "audits: {audits:?}");
+        assert!(has_pair("e1", "e2", "date_conflict"), "audits: {audits:?}");
+        assert!(
+            !has_pair("q1", "q2", "date_conflict"),
+            "equivalent dates conflicted: {audits:?}"
+        );
+        assert!(
+            !has_pair("s1", "s2", "date_conflict"),
+            "different stages conflicted: {audits:?}"
+        );
+        assert!(has_pair("o1", "o2", "owner_conflict"), "audits: {audits:?}");
+        assert!(
+            has_pair("eo1", "eo2", "owner_conflict"),
+            "audits: {audits:?}"
+        );
+        assert!(
+            has_pair("n1", "n2", "negation_conflict"),
+            "audits: {audits:?}"
+        );
+        assert!(
+            !has_pair("u1", "u2", "owner_conflict"),
+            "unrelated shared-entity tasks conflicted: {audits:?}"
+        );
+    }
+
+    #[test]
+    fn audit_closes_paraphrase_handover_implicit_and_containment_boundaries() {
+        let check_pair = |pid: &str, a: &str, b: &str| -> Vec<String> {
+            let dir = tempfile::tempdir().unwrap();
+            let db = Database::open(dir.path().to_path_buf()).unwrap();
+            db.conn
+                .execute("INSERT INTO projects VALUES(?,?,?,'now')", [pid, pid, ""])
+                .unwrap();
+            insert_active(&db.conn, "m1", pid, a);
+            insert_active(&db.conn, "m2", pid, b);
+            scan(&db.conn, Some(pid)).unwrap();
+            let listed = list(&db.conn, &json!({"projectId": pid})).unwrap();
+            listed["audits"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|item| item["kind"].as_str().unwrap().to_owned())
+                .collect()
+        };
+
+        assert!(check_pair(
+            "p_para",
+            "风控规则引擎封板日期为 2026-12-02。",
+            "风控规则引擎代码冻结推迟到 2026-12-09。"
+        )
+        .contains(&"date_conflict".to_owned()));
+        assert!(check_pair(
+            "p_hand",
+            "退款对账任务已交由王明接手跟进。",
+            "退款对账任务改派李静全权承接。"
+        )
+        .contains(&"owner_conflict".to_owned()));
+        assert!(check_pair(
+            "p_imp",
+            "客户验收采用线下纸质盖章确认。",
+            "客户验收改用线上电子签章确认。"
+        )
+        .contains(&"negation_conflict".to_owned()));
+        assert!(check_pair(
+            "p_dup",
+            "Authentication audit events are retained for 180 days.",
+            "Authentication audit events are retained for 180 days in production."
+        )
+        .contains(&"duplicate_overlap".to_owned()));
+
+        assert!(check_pair(
+            "p_roles",
+            "支付重构二期后端开发由王明负责。",
+            "支付重构二期测试验收由张敏负责。"
+        )
+        .is_empty());
+        assert!(!check_pair(
+            "p_num",
+            "账户锁定时长为 15 分钟。",
+            "账户锁定时长为 30 分钟。"
+        )
+        .contains(&"duplicate_overlap".to_owned()));
+        assert!(!check_pair(
+            "p_not",
+            "Single sign-on is enabled.",
+            "Single sign-on is not enabled."
+        )
+        .contains(&"duplicate_overlap".to_owned()));
     }
 }

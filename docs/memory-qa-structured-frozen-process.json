@@ -1,10 +1,10 @@
 {
   "version": "memory-qa-structured-frozen-process-v1",
-  "recordedAt": "2026-10-26T07:22:08.262Z",
+  "recordedAt": "2026-11-24T16:46:04.973Z",
   "providerRequests": 0,
   "binarySha256": "7e65315438a1ba9b8b67cf42dc88319e42d35499c5ce537a2633debde7525a57",
   "passed": true,
-  "workspace": ".local-data\\qa-structured-frozen-process-7MqKZG",
+  "workspace": ".local-data\\qa-structured-frozen-process-R7QuGJ",
   "results": [
     {
       "paperId": "1806.00738",

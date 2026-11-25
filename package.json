@@ -33,6 +33,7 @@
     "verify:retention:scoring": "node --test scripts/score-chat-retention.test.mjs",
     "release:preflight": "node scripts/release-preflight.mjs",
     "verify:coach": "node --test scripts/coach-model.test.mjs",
+    "verify:daily-structure": "node --test scripts/daily-structure.test.mjs",
     "astryx": "node node_modules/@astryxdesign/cli/clients/cli/bin/astryx.mjs"
   },
   "dependencies": {

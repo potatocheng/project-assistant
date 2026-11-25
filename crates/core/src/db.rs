@@ -398,9 +398,7 @@ impl Database {
         }))
     }
     fn semantic_active_memories(&self, p: &Value) -> Result<Value> {
-        let scope = p["projectId"]
-            .as_str()
-            .filter(|s| !s.is_empty() && *s != "all");
+        let scope = crate::semantic::project_scope(p);
         let mut stmt = self.conn.prepare(
             "SELECT m.id,r.id,m.project_id,m.content
              FROM memories m

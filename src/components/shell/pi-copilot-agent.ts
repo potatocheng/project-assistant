@@ -248,6 +248,179 @@ export function createRustProxyStreamFn(executor: BackendExecutor): StreamFn {
   };
 }
 
+const habitSegmenter = new Intl.Segmenter('zh', { granularity: 'word' });
+const habitStopwords = new Set('a an the i me my you your it this that to of in on and or is are can for with 我 你 的 了 是 请 帮 我们'.split(' '));
+
+function habitTerms(text: string): Set<string> {
+  const terms = new Set<string>();
+  for (const { segment, isWordLike } of habitSegmenter.segment(text.normalize('NFKC').toLowerCase())) {
+    if (isWordLike && !habitStopwords.has(segment)) terms.add(segment);
+  }
+  return terms;
+}
+
+function rankHabitsForPrompt(
+  habits: UserHabit[] | undefined,
+  projectId: string,
+  contextLabel: string,
+  question: string,
+) {
+  const ctx = (contextLabel || '').trim().toLowerCase();
+  const eligible = (habits ?? []).filter(
+    h =>
+      h.status === 'active' &&
+      !h.lowUtilityWarning &&
+      (!h.projectId || h.projectId === projectId),
+  );
+  // Count a term once per habit. Words common to the whole profile provide
+  // little evidence that a particular instruction applies to this turn.
+  const query = habitTerms(question);
+  const matches = eligible.map(h => query.size
+    ? [...habitTerms(h.title + ' ' + h.instruction)].filter(t => query.has(t))
+    : []);
+  const frequency = new Map<string, number>();
+  for (const terms of matches) {
+    for (const term of terms) frequency.set(term, (frequency.get(term) ?? 0) + 1);
+  }
+  const scored = eligible.map((h, index) => {
+    const scopeBonus = projectId && h.projectId === projectId ? 0.25 : 0;
+    const utility = Number.isFinite(h.utilityScore) ? h.utilityScore : 0.5;
+    const confidence = Number.isFinite(h.confidence) ? h.confidence : 0.7;
+    let relBonus = 0;
+    if (ctx) {
+      const catHints: Record<string, string[]> = {
+        writing: ['汇报', '日报', '周报', '报告', 'report'],
+        reminder: ['提醒', '跟进', '主动', 'proactive', '沟通', '协作'],
+        workflow: ['工作台', '任务', '看板', '排期', '风险', '决策', 'workbench', 'task'],
+        filtering: ['记忆', '资料', 'memory', '知识'],
+      };
+      const hints = catHints[h.category] ?? [];
+      if (
+        hints.some(term => ctx.includes(term)) ||
+        h.title.toLowerCase().includes(ctx) ||
+        h.instruction.toLowerCase().includes(ctx)
+      ) {
+        relBonus = 0.2;
+      }
+    }
+    const overlap = matches[index].reduce((sum, term) =>
+      sum + Math.log((eligible.length + 1) / (frequency.get(term)! + 1)), 0);
+    return { habit: h, overlap, score: confidence * utility + scopeBonus + relBonus + overlap / (2 + overlap) };
+  });
+  scored.sort(
+    (a, b) =>
+      b.score - a.score ||
+      (b.habit.updatedAt || '').localeCompare(a.habit.updatedAt || '') ||
+      a.habit.id.localeCompare(b.habit.id),
+  );
+  return scored;
+}
+
+type RankedHabits = ReturnType<typeof rankHabitsForPrompt>;
+const focusedHabitLimit = 4;
+
+type TurnHabits = { evidence: UserHabit[]; focus: UserHabit[] };
+
+function localHabits(ranked: RankedHabits, question: string): TurnHabits {
+  const evidence = ranked.slice(0, 12).map(entry => entry.habit);
+  const focus = question.trim() ? ranked.filter(entry => ranked.length <= focusedHabitLimit || entry.overlap > 0)
+    .slice(0, focusedHabitLimit).map(entry => entry.habit) : [];
+  return { evidence, focus };
+}
+
+// Semantic matches can expand or highlight the existing evidence. Losing an
+// optional service never removes a confirmed record from the local shortlist.
+export async function selectHabitsForTurn(
+  habits: UserHabit[] | undefined, projectId: string, page: string, question: string,
+  executor: BackendExecutor,
+): Promise<TurnHabits> {
+  const ranked = rankHabitsForPrompt(habits, projectId, page, question);
+  const fallback = localHabits(ranked, question);
+  if (!question.trim() || ranked.length <= focusedHabitLimit) return fallback;
+  const candidates: UserHabit[] = [];
+  const records: string[] = [];
+  let chars = 0;
+  for (const { habit } of ranked.slice(0, 32)) {
+    const record = [habit.title.slice(0, 96), habit.instruction].join('\n');
+    const cost = record.length;
+    if (chars + cost > 7000) continue;
+    chars += cost;
+    candidates.push(habit);
+    records.push(record);
+  }
+  if (!records.length) return fallback;
+  try {
+    const result = await executor<{ indices: number[] }>('rank_copilot_habits', {
+      question: question.slice(0, 4000), candidates: records,
+    });
+    if (!Array.isArray(result?.indices) || !result.indices.length || result.indices.length > focusedHabitLimit ||
+        !result.indices.every(id => Number.isInteger(id) && id >= 1 && id <= candidates.length)) return fallback;
+    const focus = [...new Set(result.indices)].map(id => candidates[id - 1]);
+    const existing = new Set(fallback.evidence.map(h => h.id));
+    return { focus, evidence: [...fallback.evidence, ...focus.filter(h => !existing.has(h.id))] };
+  } catch {
+    return fallback;
+  }
+}
+
+export function attributeCopilotHabitFeedback(
+  habits: UserHabit[] | undefined,
+  projectId: string | null,
+  toolName: string,
+  decision: 'approved' | 'edited_and_approved' | 'rejected',
+  originalArgs: Record<string, unknown>,
+  finalArgs: Record<string, unknown>,
+): { appliedHabitIds: string[]; acceptedHabitIds: string[] } {
+  const candidates = (habits ?? []).filter(h => {
+    if (h.status !== 'active' || h.lowUtilityWarning || h.category !== 'workflow') return false;
+    if (h.projectId && h.projectId !== projectId) return false;
+    const ruleTool = typeof h.rule?.tool === 'string' ? h.rule.tool.trim() : '';
+    return ruleTool === toolName;
+  });
+
+  if (decision === 'rejected') {
+    const applied = candidates.filter(h => h.rule.action !== 'copilot_default' ||
+      (typeof h.rule.field === 'string' && typeof h.rule.value === 'string' &&
+        String(originalArgs[h.rule.field] ?? '').trim() === h.rule.value));
+    return { appliedHabitIds: applied.map(h => h.id), acceptedHabitIds: [] };
+  }
+
+  if (decision === 'approved') {
+    const matched = candidates
+      .filter(h => {
+        if (h.rule?.action === 'copilot_default') {
+          const field = typeof h.rule.field === 'string' ? h.rule.field : '';
+          const value = typeof h.rule.value === 'string' ? h.rule.value : '';
+          if (!field || !value) return false;
+          return String(finalArgs[field] ?? '').trim() === value;
+        }
+        return true;
+      })
+      .map(h => h.id);
+    return { appliedHabitIds: matched, acceptedHabitIds: [] };
+  }
+
+  // edited_and_approved: only penalize habits whose specific field was overridden away from rule.value;
+  // habits on the same tool whose field was kept intact earn accepted utility credit.
+  const overriddenIds: string[] = [];
+  const acceptedIds: string[] = [];
+  for (const h of candidates) {
+    if (h.rule?.action === 'copilot_default') {
+      const field = typeof h.rule.field === 'string' ? h.rule.field : '';
+      const value = typeof h.rule.value === 'string' ? h.rule.value : '';
+      if (!field || !value) continue;
+      const oldVal = String(originalArgs[field] ?? '').trim();
+      const newVal = String(finalArgs[field] ?? '').trim();
+      if (oldVal === value && newVal !== value) {
+        overriddenIds.push(h.id);
+      } else if (oldVal === value && newVal === value) {
+        acceptedIds.push(h.id);
+      }
+    }
+  }
+  return { appliedHabitIds: overriddenIds, acceptedHabitIds: acceptedIds };
+}
+
 export function buildSystemPrompt(
   state: AppState,
   projectId: string,
@@ -256,11 +429,26 @@ export function buildSystemPrompt(
   preferences?: AssistantPreferences | null,
   aliases?: EntityAlias[],
   habits?: UserHabit[],
+  question = '',
+): string {
+  return renderSystemPrompt(state, projectId, date, contextLabel, preferences, aliases,
+    localHabits(rankHabitsForPrompt(habits, projectId, contextLabel, question), question).evidence);
+}
+
+export function renderSystemPrompt(
+  state: AppState,
+  projectId: string,
+  date: string,
+  contextLabel: string,
+  preferences: AssistantPreferences | null | undefined,
+  aliases: EntityAlias[] | undefined,
+  activeHabits: UserHabit[],
+  focusedHabits: UserHabit[] = [],
 ): string {
   const activeProject = state.projects.find(p => p.id === projectId);
   const projectList = state.projects.map(p => `- ${p.name} (id: ${p.id})`).join('\n') || '（暂无项目）';
   const lines = [
-    '你是「循序（Cadence）」内置的 AI 副驾驶，专门协助项目经理高效推进日常交付与项目管理。',
+    '你是循序（Cadence）的 AI 副驾驶，协助用户处理项目工作和日常决策。',
     `当前日期：${date}`,
     `当前页面：${contextLabel}`,
     `当前项目范围：${activeProject ? `${activeProject.name} (id: ${activeProject.id})` : '全部项目'}`,
@@ -293,7 +481,7 @@ export function buildSystemPrompt(
   }
 
   if (aliases && aliases.length > 0) {
-    const aliasLines = aliases.slice(0, 30).map(item => {
+    const aliasLines = aliases.filter(item => !item.projectId || item.projectId === projectId).slice(0, 30).map(item => {
       const kindLabel = item.kind === 'person' ? '人名' : item.kind === 'project' ? '项目' : '术语';
       const scopeLabel = item.projectId ? '本项目' : '全局';
       return `- [${kindLabel}/${scopeLabel}] ${item.canonical} = ${item.aliases.join(' / ')}`;
@@ -305,30 +493,26 @@ export function buildSystemPrompt(
     );
   }
 
-  const activeHabits = (habits ?? []).filter(h => h.status === 'active').slice(0, 12);
-  if (activeHabits.length > 0) {
-    const catLabel: Record<string, string> = {
-      writing: '写作汇报',
-      reminder: '提醒节奏',
-      workflow: '工作流',
-      filtering: '信息过滤',
-    };
-    lines.push(
-      '',
-      '用户已确认的个人工作习惯（由你审阅启用；仅用于调整表达风格、工具默认参数与交互习惯，绝不能覆盖客观项目事实）：',
-      ...activeHabits.map(h => `- [${catLabel[h.category] ?? h.category}] ${h.instruction}`),
-    );
-  }
-
   lines.push(
     '',
     '工作准则：',
-    '1. 先查后说、绝不绕过依据：回答项目事实、历史决策、责任归属、日期或资料内容前，优先调用 ask_verified_memory（走本地完整证据包与原文断言核验）或 search_project_memory（走本地可信记忆过滤与混合检索），严禁编造任务、日期、人名或结论。',
-    '2. 明确区分依据与冲突：若工具返回 pendingReviewCount > 0，或 status 为 unknown / conflicted，必须如实提醒用户存在待确认的冲突更新或依据不足，绝不把被屏蔽的旧记忆或个人猜测当作事实。回答引用项目记忆时标明来源标题与版本。',
-    '3. 主动闭环：当用户要求新建任务、改期、标记完成、记录风险/决策或生成日报时，直接调用对应的写入工具；系统会自动向用户弹出确认卡，你无需在文字里重复要求用户手动复制或自己操作。',
+    '1. 回答项目事实、日期、责任归属或资料内容，先用 ask_verified_memory 或 search_project_memory 核实。引用记忆须注明来源标题和版本。',
+    '2. pendingReviewCount > 0 或 status 为 unknown / conflicted 时，说明冲突或缺失的依据。禁止编造事实或引用被屏蔽的旧记忆。',
+    '3. 用户要求创建或变更项目记录时，调用对应写入工具，交由系统确认卡审批。',
     '4. 修改已有任务前，务必先调用 list_tasks 获取准确的 taskId 与 version。',
-    '5. 表达结构清晰、使用中文大白话，重点突出下一步行动。',
+    '5. 遵循用户本轮要求的语言、格式和详略。默认用简洁中文回答。',
   );
+  if (activeHabits.length > 0) {
+    const catLabel: Record<string, string> = {
+      writing: '写作汇报', reminder: '提醒节奏', workflow: '工作流', filtering: '信息过滤',
+    };
+    const focused = new Set(focusedHabits.map(h => h.id));
+    const describe = (h: UserHabit) => `- [${catLabel[h.category] ?? h.category}] ${h.instruction}`;
+    const background = activeHabits.filter(h => !focused.has(h.id));
+    if (background.length) lines.push('', '用户已确认的个人工作习惯', ...background.map(describe));
+    if (focusedHabits.length) lines.push('', '与本轮相关的历史偏好（供默认选择参考）', ...focusedHabits.map(describe));
+    lines.push('先满足用户本轮明确指定的内容。对于用户交由你选择的部分，按适用的历史偏好给出具体建议。项目事实须核实，写入操作须单独授权。');
+  }
   return lines.join('\n');
 }
 
@@ -823,6 +1007,7 @@ export function createPmCopilotAgent(deps: {
   getPreferences?: () => AssistantPreferences | null;
   getAliases?: () => EntityAlias[];
   getHabits?: () => UserHabit[];
+  waitForProfile?: () => Promise<void> | undefined;
   onMutated: () => Promise<unknown>;
   onNavigate?: (page: Page) => void;
   requestApproval: (req: ToolApprovalRequest, signal?: AbortSignal) => Promise<ToolApprovalDecision>;
@@ -869,23 +1054,45 @@ export function createPmCopilotAgent(deps: {
     },
   });
 
+  let shownHabits: UserHabit[] = [];
+  let lastSelection: { timestamp?: number; question: string; projectId: string; page: string;
+    profileKey: string; selection: Promise<TurnHabits> } | undefined;
+  const stream = createRustProxyStreamFn(executor);
   return new Agent({
     initialState: {
-      systemPrompt: buildSystemPrompt(
-        getState(),
-        getProjectId(),
-        getDate(),
-        getContextLabel(),
-        getPreferences?.(),
-        getAliases?.(),
-        getHabits?.(),
-      ),
+      systemPrompt: buildSystemPrompt(getState(), getProjectId(), getDate(), getContextLabel(),
+        getPreferences?.(), getAliases?.(), getHabits?.()),
       model,
       tools,
       thinkingLevel: 'off',
     },
     toolExecution: 'sequential',
-    streamFn: createRustProxyStreamFn(executor),
+    streamFn: async (model, context, options) => {
+      await deps.waitForProfile?.();
+      if (options?.signal?.aborted) return stream(model, context, options);
+      const user = [...context.messages].reverse().find(message => message.role === 'user');
+      const question = user ? extractText(user.content) : '';
+      const projectId = getProjectId();
+      const page = getContextLabel();
+      const profile = getHabits?.();
+      const profileKey = JSON.stringify(profile ?? []);
+      if (!lastSelection || lastSelection.timestamp !== user?.timestamp || lastSelection.question !== question ||
+          lastSelection.projectId !== projectId || lastSelection.page !== page || lastSelection.profileKey !== profileKey) {
+        lastSelection = { timestamp: user?.timestamp, question, projectId, page, profileKey,
+          selection: selectHabitsForTurn(profile, projectId, page, question, executor) };
+      }
+      const selected = await lastSelection.selection;
+      const currentProject = getProjectId();
+      const currentPage = getContextLabel();
+      const currentProfile = getHabits?.();
+      const sameProfile = currentProfile === profile || JSON.stringify(currentProfile ?? []) === profileKey;
+      const applicable = currentProject === projectId && currentPage === page && sameProfile ? selected
+        : localHabits(rankHabitsForPrompt(currentProfile, currentProject, currentPage, question), question);
+      shownHabits = applicable.evidence;
+      const systemPrompt = renderSystemPrompt(getState(), currentProject, getDate(), currentPage,
+        getPreferences?.(), getAliases?.(), shownHabits, applicable.focus);
+      return stream(model, { ...context, systemPrompt }, options);
+    },
     beforeToolCall: async (ctx, signal) => {
       if (!WRITE_TOOL_NAMES.has(ctx.toolCall.name)) {
         return undefined;
@@ -911,22 +1118,38 @@ export function createPmCopilotAgent(deps: {
       const edited =
         !!decision.overrideArgs &&
         Object.keys(decision.overrideArgs).some(k => decision.overrideArgs![k] !== args[k]);
-      const appliedHabitIds = (getHabits?.() ?? [])
-        .filter(h => h.status === 'active' && h.category === 'workflow')
-        .map(h => h.id);
+      const decisionKind: 'approved' | 'edited_and_approved' | 'rejected' = !decision.approved
+        ? 'rejected'
+        : edited
+          ? 'edited_and_approved'
+          : 'approved';
       const pid = typeof finalArgs.projectId === 'string' && finalArgs.projectId
         ? finalArgs.projectId
         : getProjectId() || null;
+      const { appliedHabitIds, acceptedHabitIds } = attributeCopilotHabitFeedback(
+        shownHabits,
+        pid,
+        ctx.toolCall.name,
+        decisionKind,
+        args,
+        finalArgs,
+      );
 
       void executor('record_copilot_feedback', {
         projectId: pid,
         toolName: ctx.toolCall.name,
-        decision: !decision.approved ? 'rejected' : edited ? 'edited_and_approved' : 'approved',
+        decision: decisionKind,
         originalArgs: args,
         finalArgs,
         rememberAsHabit: !!decision.rememberAsHabit,
         appliedHabitIds,
       }).catch(() => {});
+      if (acceptedHabitIds.length > 0) {
+        void executor('record_habit_outcome', {
+          habitIds: acceptedHabitIds,
+          outcome: 'accepted',
+        }).catch(() => {});
+      }
 
       if (!decision.approved) {
         return { block: true, reason: '用户取消了此操作，请尊重用户决定并简短告知。' };

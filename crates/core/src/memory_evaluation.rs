@@ -8,6 +8,9 @@ use std::{collections::BTreeMap, time::Instant};
 const DATA: &str = include_str!("../tests/fixtures/memory-evaluation-v1.json");
 const DATE: &str = "2026-10-20T00:00:00Z";
 
+#[path = "memory_evaluation/locomo.rs"]
+mod locomo;
+
 /// A file-only diagnostic bridge to the production reader and exact binding
 /// validator. It neither retrieves/truncates evidence nor calls a provider.
 #[test]

@@ -296,24 +296,21 @@ fn prelude_report_edits_pahf_feedback_proactive_habits_and_reme_utility_loop() {
     );
 
     // Create a 4th identical overdue task; rescan should apply learned negative priority delta
-    let task4 = call(
-        &engine,
-        "create_task",
-        json!({
-            "clientRequestId": req_id(),
-            "projectId": project_id,
-            "title": "逾期跟进事项 4",
-            "description": "",
-            "category": "action",
-            "assignee": null,
-            "priority": "high",
-            "status": "todo",
-            "progress": 0,
-            "dueDate": "2020-01-01",
-            "plannedDate": "2020-01-01",
-            "workDate": "2026-11-24",
-        }),
-    );
+    let mut overdue_task = json!({
+        "clientRequestId": req_id(),
+        "projectId": project_id,
+        "title": "逾期跟进事项 4",
+        "description": "",
+        "category": "action",
+        "assignee": null,
+        "priority": "high",
+        "status": "todo",
+        "progress": 0,
+        "dueDate": "2020-01-01",
+        "plannedDate": "2020-01-01",
+        "workDate": "2026-11-24",
+    });
+    let task4 = call(&engine, "create_task", overdue_task.clone());
     let task4_id = task4["id"].as_str().unwrap();
     let scan2 = call(
         &engine,
@@ -331,6 +328,22 @@ fn prelude_report_edits_pahf_feedback_proactive_habits_and_reme_utility_loop() {
         lowered_priority < baseline_priority,
         "expected confirmed reminder habit to reduce proactive priority ({lowered_priority} < {baseline_priority})"
     );
+    let other_project = call(&engine, "create_project", json!({"name": "对照项目"}));
+    overdue_task["projectId"] = other_project["id"].clone();
+    overdue_task["clientRequestId"] = json!(req_id());
+    let other_task = call(&engine, "create_task", overdue_task);
+    let workspace_scan = call(&engine, "run_proactive_scan", json!({}));
+    let workspace_priority = |task: &Value| {
+        let action = workspace_scan["actions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|action| action["targetId"] == task["id"])
+            .unwrap();
+        action["priority"].as_i64().unwrap()
+    };
+    assert_eq!(workspace_priority(&task4), lowered_priority);
+    assert_eq!(workspace_priority(&other_task), baseline_priority);
 }
 
 #[test]

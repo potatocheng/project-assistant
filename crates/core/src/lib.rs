@@ -684,6 +684,9 @@ impl Engine {
             settings.validate_credentials()?;
             return ai::test_connection(&settings.config(), settings.api_key.as_deref());
         }
+        if request.command == "rank_copilot_habits" {
+            return semantic::rank_copilot_habits(&self.inner.root, &request.payload);
+        }
         if request.command == "copilot_agent_turn" {
             let settings = settings::load(&self.inner.root)?;
             settings.validate_material_access()?;
@@ -760,7 +763,11 @@ impl Engine {
                     .map(Vec::as_slice)
                     .unwrap_or(&[]),
             );
-            return semantic::rebuild_index(&self.inner.root, &inputs);
+            return semantic::rebuild_index(
+                &self.inner.root,
+                semantic::project_scope(&request.payload),
+                &inputs,
+            );
         }
         if request.command == "search_verified_memories" {
             let enriched =
@@ -1063,6 +1070,7 @@ pub fn is_public_command(command: &str) -> bool {
             | "run_memory_maintenance"
             | "memory_activity"
             | "copilot_agent_turn"
+            | "rank_copilot_habits"
             | "polish_report"
             | "list_entity_aliases"
             | "save_entity_alias"
@@ -1105,8 +1113,8 @@ pub(crate) fn enrich_payload_with_semantic(
     if query_text.is_empty() {
         return payload;
     }
-    let scope_payload =
-        json!({"projectId": payload.get("projectId").cloned().unwrap_or(Value::Null)});
+    let scope = semantic::project_scope(&payload);
+    let scope_payload = json!({"projectId": scope});
     let Ok(active) = actor_call(
         sender,
         Request {
@@ -1122,7 +1130,7 @@ pub(crate) fn enrich_payload_with_semantic(
             .map(Vec::as_slice)
             .unwrap_or(&[]),
     );
-    let outcome = semantic::query_hits(root, &query_text, &inputs, 64);
+    let outcome = semantic::query_hits(root, scope, &query_text, &inputs, 64);
     if let Some(obj) = payload.as_object_mut() {
         obj.insert(
             "_semanticHits".into(),
